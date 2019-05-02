@@ -354,6 +354,8 @@ static void M_PlaybackSetViews(INT32 choice);
 static void M_PlaybackAdjustView(INT32 choice);
 static void M_PlaybackQuit(INT32 choice);
 
+static UINT8 playback_enterheld = 0; // horrid hack to prevent holding the button from being extremely fucked
+
 // Drawing functions
 static void M_DrawGenericMenu(void);
 static void M_DrawGenericBackgroundMenu(void);
@@ -2837,11 +2839,11 @@ boolean M_Responder(event_t *ev)
 		// Flip left/right with up/down for the playback menu, since it's a horizontal icon row.
 		switch (ch)
 		{
-		case KEY_LEFTARROW: ch = KEY_UPARROW; break;
-		case KEY_UPARROW: ch = KEY_RIGHTARROW; break;
-		case KEY_RIGHTARROW: ch = KEY_DOWNARROW; break;
-		case KEY_DOWNARROW: ch = KEY_LEFTARROW; break;
-		default: break;
+			case KEY_LEFTARROW: ch = KEY_UPARROW; break;
+			case KEY_UPARROW: ch = KEY_RIGHTARROW; break;
+			case KEY_RIGHTARROW: ch = KEY_DOWNARROW; break;
+			case KEY_DOWNARROW: ch = KEY_LEFTARROW; break;
+			default: break;
 		}
 	}
 
@@ -2891,6 +2893,15 @@ boolean M_Responder(event_t *ev)
 		case KEY_ENTER:
 			noFurtherInput = true;
 			currentMenu->lastOn = itemOn;
+
+			if (currentMenu == &PlaybackMenuDef)
+			{
+				boolean held = (boolean)playback_enterheld;
+				playback_enterheld = TICRATE/7;
+				if (held)
+					return true;
+			}
+
 			if (routine)
 			{
 				if (((currentMenu->menuitems[itemOn].status & IT_TYPE)==IT_CALL
@@ -3293,6 +3304,14 @@ void M_Ticker(void)
 
 	if (--skullAnimCounter <= 0)
 		skullAnimCounter = 8;
+
+	if (currentMenu == &PlaybackMenuDef)
+	{
+		if (playback_enterheld > 0)
+			playback_enterheld--;
+	}
+	else
+		playback_enterheld = 0;
 
 	//added : 30-01-98 : test mode for five seconds
 	if (vidm_testingmode > 0)
@@ -4349,7 +4368,6 @@ void M_StartMessage(const char *string, void *routine,
 	M_StartControlPanel(); // can't put menuactive to true
 
 	if (currentMenu == &MessageDef) // Prevent recursion
-		MessageDef.prevMenu = &MainDef;
 	else
 		MessageDef.prevMenu = currentMenu;
 
