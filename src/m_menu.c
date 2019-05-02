@@ -5787,7 +5787,7 @@ static void M_DrawPlaybackMenu(void)
 
 			if (splitscreen >= i - playback_view1)
 			{
-				INT32 ply = displayplayers[i - playback_view1 + 1];
+				INT32 ply = displayplayers[i - playback_view1];
 
 				icon = facerankprefix[players[ply].skin];
 				if (i != itemOn)
