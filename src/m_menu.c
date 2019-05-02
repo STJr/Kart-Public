@@ -4368,6 +4368,7 @@ void M_StartMessage(const char *string, void *routine,
 	M_StartControlPanel(); // can't put menuactive to true
 
 	if (currentMenu == &MessageDef) // Prevent recursion
+		MessageDef.prevMenu = ((demo.playback) ? &PlaybackMenuDef : &MainDef);
 	else
 		MessageDef.prevMenu = currentMenu;
 
