@@ -319,7 +319,7 @@ menu_t OP_SoundOptionsDef;
 //static void M_RestartAudio(void);
 
 //Misc
-menu_t /*OP_DataOptionsDef,*/ OP_ScreenshotOptionsDef, OP_EraseDataDef;
+menu_t OP_DataOptionsDef, OP_ScreenshotOptionsDef, OP_EraseDataDef;
 menu_t OP_HUDOptionsDef, OP_ChatOptionsDef;
 menu_t OP_GameOptionsDef, OP_ServerOptionsDef;
 #ifndef NONET
@@ -338,11 +338,11 @@ static patch_t *addonsp[NUM_EXT+5];
 
 // Replay hut
 menu_t MISC_ReplayHutDef;
+menu_t MISC_ReplayOptionsDef;
 static void M_HandleReplayHutList(INT32 choice);
 static void M_DrawReplayHut(void);
 static void M_DrawReplayStartMenu(void);
 static boolean M_QuitReplayHut(void);
-static void M_EnterReplayOptions(INT32 choice);
 static void M_HutStartReplay(INT32 choice);
 
 static void M_DrawPlaybackMenu(void);
@@ -547,10 +547,8 @@ static menuitem_t MISC_AddonsMenu[] =
 
 static menuitem_t MISC_ReplayHutMenu[] =
 {
-	{IT_CALL      |IT_STRING,  NULL, "Replay Options...", M_EnterReplayOptions,  0},
-
-	{IT_KEYHANDLER|IT_NOTHING, NULL, "",                  M_HandleReplayHutList, 20}, // Dummy menuitem for the replay list
-	{IT_NOTHING,               NULL, "",                  NULL,                  20}, // Dummy for handling wrapping to the top of the menu..
+	{IT_KEYHANDLER|IT_NOTHING, NULL, "", M_HandleReplayHutList, 0}, // Dummy menuitem for the replay list
+	{IT_NOTHING,               NULL, "", NULL,                  0}, // Dummy for handling wrapping to the top of the menu..
 };
 
 static menuitem_t MISC_ReplayStartMenu[] =
@@ -778,9 +776,9 @@ static menuitem_t SR_PandorasBox[] =
 // Sky Room Custom Unlocks
 static menuitem_t SR_MainMenu[] =
 {
-	{IT_STRING|IT_SUBMENU,                  NULL, "Unlockables", &SR_UnlockChecklistDef, 0},
-	{IT_CALL|IT_STRING|IT_CALL_NOTMODIFIED, NULL, "Statistics",  M_Statistics,           10},
-	{IT_CALL|IT_STRING,                     NULL, "Replay Hut",  M_ReplayHut,            20},
+	{IT_STRING|IT_SUBMENU,                  NULL, "Unlockables", &SR_UnlockChecklistDef, 100},
+	{IT_CALL|IT_STRING|IT_CALL_NOTMODIFIED, NULL, "Statistics",  M_Statistics,           108},
+	{IT_CALL|IT_STRING,                     NULL, "Replay Hut",  M_ReplayHut,            116},
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom1
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom2
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom3
@@ -1129,15 +1127,13 @@ static menuitem_t OP_MainMenu[] =
 	{IT_SUBMENU|IT_STRING,		NULL, "Sound Options...",		&OP_SoundOptionsDef,		 40},
 
 	{IT_SUBMENU|IT_STRING,		NULL, "HUD Options...",			&OP_HUDOptionsDef,			 60},
-	{IT_STRING|IT_CALL,			NULL, "Screenshot Options...",	M_ScreenshotOptions,		 70},
+	{IT_SUBMENU|IT_STRING,		NULL, "Gameplay Options...",	&OP_GameOptionsDef,			 70},
+	{IT_SUBMENU|IT_STRING,		NULL, "Server Options...",		&OP_ServerOptionsDef,		 80},
 
-	{IT_SUBMENU|IT_STRING,		NULL, "Gameplay Options...",	&OP_GameOptionsDef,			 90},
-	{IT_SUBMENU|IT_STRING,		NULL, "Server Options...",		&OP_ServerOptionsDef,		100},
-	{IT_STRING|IT_CALL,			NULL, "Add-on Options...",      M_AddonsOptions,			110},
+	{IT_SUBMENU|IT_STRING,		NULL, "Data Options...",		&OP_DataOptionsDef,			100},
 
-	{IT_CALL|IT_STRING,			NULL, "Tricks & Secrets (F1)",	M_Manual,					130},
-	{IT_CALL|IT_STRING,			NULL, "Play Credits",			M_Credits,					140},
-	{IT_SUBMENU|IT_STRING,		NULL, "Erase Data...",			&OP_EraseDataDef,			150},
+	{IT_CALL|IT_STRING,			NULL, "Tricks & Secrets (F1)",	M_Manual,					120},
+	{IT_CALL|IT_STRING,			NULL, "Play Credits",			M_Credits,					130},
 };
 
 static menuitem_t OP_ControlsMenu[] =
@@ -1409,12 +1405,14 @@ static menuitem_t OP_SoundOptionsMenu[] =
 	{IT_STRING|IT_CVAR,        NULL, "Play SFX While Unfocused", &cv_playsoundifunfocused, 135},
 };
 
-/*static menuitem_t OP_DataOptionsMenu[] =
+static menuitem_t OP_DataOptionsMenu[] =
 {
-	{IT_STRING | IT_CALL, NULL, "Screenshot Options...", M_ScreenshotOptions, 10},
+	{IT_STRING | IT_CALL,		NULL, "Screenshot Options...",	M_ScreenshotOptions,	 10},
+	{IT_STRING | IT_CALL,		NULL, "Add-on Options...",		M_AddonsOptions,		 20},
+	{IT_STRING | IT_SUBMENU,	NULL, "Replay Options...",		&MISC_ReplayOptionsDef,	 30},
 
-	{IT_STRING | IT_SUBMENU, NULL, "Erase Data...", &OP_EraseDataDef, 30},
-};*/
+	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 50},
+};
 
 static menuitem_t OP_ScreenshotOptionsMenu[] =
 {
@@ -1655,7 +1653,7 @@ menu_t MISC_AddonsDef =
 {
 	NULL,
 	sizeof (MISC_AddonsMenu)/sizeof (menuitem_t),
-	&MainDef,
+	&OP_DataOptionsDef,
 	MISC_AddonsMenu,
 	M_DrawAddons,
 	50, 28,
@@ -1671,7 +1669,7 @@ menu_t MISC_ReplayHutDef =
 	MISC_ReplayHutMenu,
 	M_DrawReplayHut,
 	30, 80,
-	(sizeof (MISC_ReplayHutMenu)/sizeof (menuitem_t)) - 2, // Start on the replay list
+	0,
 	M_QuitReplayHut
 };
 
@@ -1679,9 +1677,9 @@ menu_t MISC_ReplayOptionsDef =
 {
 	"M_REPOPT",
 	sizeof (MISC_ReplayOptionsMenu)/sizeof (menuitem_t),
-	&MISC_ReplayHutDef,
+	&OP_DataOptionsDef,
 	MISC_ReplayOptionsMenu,
-	M_DrawGenericBackgroundMenu,
+	M_DrawGenericMenu,
 	27, 40,
 	0,
 	NULL
@@ -1808,18 +1806,7 @@ menu_t SR_PandoraDef =
 	0,
 	M_ExitPandorasBox
 };
-menu_t SR_MainDef =
-{
-	"M_SECRET",
-	sizeof (SR_MainMenu)/sizeof (menuitem_t),
-	&MainDef,
-	SR_MainMenu,
-	M_DrawGenericMenu,
-	//M_DrawSkyRoom,
-	60, 40,
-	0,
-	NULL
-};
+menu_t SR_MainDef = CENTERMENUSTYLE(NULL, SR_MainMenu, &MainDef, 72);
 
 //menu_t SR_LevelSelectDef = MAPICONMENUSTYLE(NULL, SR_LevelSelectMenu, &SR_MainDef);
 
@@ -2163,10 +2150,10 @@ menu_t OP_OpenGLColorDef =
 	NULL
 };
 #endif
-//menu_t OP_DataOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_DataOptionsMenu, &OP_MainDef, 60, 30);
-menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_SCSHOT", OP_ScreenshotOptionsMenu, &OP_MainDef, 30, 30);
-menu_t OP_AddonsOptionsDef = DEFAULTMENUSTYLE("M_ADDONS", OP_AddonsOptionsMenu, &OP_MainDef, 30, 30);
-menu_t OP_EraseDataDef = DEFAULTMENUSTYLE("M_DATA", OP_EraseDataMenu, &OP_MainDef, 30, 30);
+menu_t OP_DataOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_DataOptionsMenu, &OP_MainDef, 60, 30);
+menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_SCSHOT", OP_ScreenshotOptionsMenu, &OP_DataOptionsDef, 30, 30);
+menu_t OP_AddonsOptionsDef = DEFAULTMENUSTYLE("M_ADDONS", OP_AddonsOptionsMenu, &OP_DataOptionsDef, 30, 30);
+menu_t OP_EraseDataDef = DEFAULTMENUSTYLE("M_DATA", OP_EraseDataMenu, &OP_DataOptionsDef, 30, 30);
 
 // ==========================================================================
 // CVAR ONCHANGE EVENTS GO HERE
@@ -5697,15 +5684,6 @@ static boolean M_QuitReplayHut(void)
 	return true;
 }
 
-static void M_EnterReplayOptions(INT32 choice)
-{
-	(void)choice;
-
-	// We can't just use M_SetupNextMenu because that'll boot us back to the title screen!
-	currentMenu = &MISC_ReplayOptionsDef;
-	itemOn = currentMenu->lastOn;
-}
-
 static void M_HutStartReplay(INT32 choice)
 {
 	(void)choice;
@@ -6088,11 +6066,10 @@ static void M_Options(INT32 choice)
 	(void)choice;
 
 	// if the player is not admin or server, disable gameplay & server options
-	OP_MainMenu[5].status = OP_MainMenu[6].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+	OP_MainMenu[4].status = OP_MainMenu[5].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
-	// if the player is playing _at all_, disable the erase data & credits options
-	OP_MainMenu[9].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
-	OP_MainMenu[10].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+	OP_MainMenu[8].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL); // Play credits
+	OP_DataOptionsMenu[3].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU); // Erase data
 
 	OP_GameOptionsMenu[3].status =
 		(M_SecretUnlocked(SECRET_ENCORE)) ? (IT_CVAR|IT_STRING) : IT_SECRET; // cv_kartencore
