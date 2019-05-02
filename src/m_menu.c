@@ -5758,6 +5758,8 @@ static void M_DrawPlaybackMenu(void)
 	}
 	else
 	{
+		PlaybackMenu[playback_viewcount].status = IT_ARROWS|IT_STRING;
+
 		for (i = 0; i <= splitscreen; i++)
 			PlaybackMenu[playback_view1+i].status = IT_ARROWS|IT_STRING;
 		for (i = splitscreen+1; i < 4; i++)
