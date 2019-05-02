@@ -1217,7 +1217,7 @@ INT32 JoyAxis(axis_input_e axissel, UINT8 p)
 //
 // set secondaryplayer true to build player 2's ticcmd in splitscreen mode
 //
-INT32 localaiming[MAXSPLITSCREENPLAYERS]; // TODO: convert these 3 into MAXSPLITSCREENPLAYERS arrays
+INT32 localaiming[MAXSPLITSCREENPLAYERS];
 angle_t localangle[MAXSPLITSCREENPLAYERS];
 boolean camspin[MAXSPLITSCREENPLAYERS];
 
