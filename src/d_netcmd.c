@@ -2204,12 +2204,14 @@ static void Command_Map_f(void)
 	const char *mapname;
 	size_t i;
 	INT32 j, newmapnum;
-	boolean newresetplayers;
+	boolean newresetplayers, newencoremode;
 	INT32 newgametype = gametype;
 
-	// max length of command: map map03 -gametype coop -noresetplayers -force
-	//                         1    2       3       4         5           6
+	// max length of command: map map03 -gametype race -noresetplayers -force -encore
+	//                         1    2       3       4         5           6      7
 	// = 8 arg max
+	// i don't know whether this is intrinsic to the system or just someone being weird but
+	// "noresetplayers" is pretty useless for kart if it turns out this is too close to the limit
 	if (COM_Argc() < 2 || COM_Argc() > 8)
 	{
 		CONS_Printf(M_GetText("map <mapname> [-gametype <type> [-force]: warp to map\n"));
@@ -2292,6 +2294,21 @@ static void Command_Map_f(void)
 		}
 	}
 
+	// new encoremode value
+	// use cvar by default
+
+	newencoremode = (boolean)cv_kartencore.value;
+
+	if (COM_CheckParm("-encore"))
+	{
+		if (!M_SecretUnlocked(SECRET_ENCORE) && !newencoremode)
+		{
+			CONS_Alert(CONS_NOTICE, M_GetText("You haven't unlocked Encore Mode yet!\n"));
+			return;
+		}
+		newencoremode = !newencoremode;
+	}
+
 	if (!(i = COM_CheckParm("-force")) && newgametype == gametype) // SRB2Kart
 		newresetplayers = false; // if not forcing and gametypes is the same
 
@@ -2322,7 +2339,7 @@ static void Command_Map_f(void)
 	}
 
 	fromlevelselect = false;
-	D_MapChange(newmapnum, newgametype, (boolean)cv_kartencore.value, newresetplayers, 0, false, false);
+	D_MapChange(newmapnum, newgametype, newencoremode, newresetplayers, 0, false, false);
 }
 
 /** Receives a map command and changes the map.
