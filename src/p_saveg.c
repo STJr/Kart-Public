@@ -265,25 +265,11 @@ static void P_NetArchivePlayers(void)
 		if (flags & AWAYVIEW)
 			WRITEUINT32(save_p, players[i].awayviewmobj->mobjnum);
 
-		WRITEUINT8(save_p, players[i].charability);
-		WRITEUINT8(save_p, players[i].charability2);
 		WRITEUINT32(save_p, players[i].charflags);
-		WRITEUINT32(save_p, (UINT32)players[i].thokitem);
-		WRITEUINT32(save_p, (UINT32)players[i].spinitem);
-		WRITEUINT32(save_p, (UINT32)players[i].revitem);
-		WRITEFIXED(save_p, players[i].actionspd);
-		WRITEFIXED(save_p, players[i].mindash);
-		WRITEFIXED(save_p, players[i].maxdash);
 		// SRB2kart
 		WRITEUINT8(save_p, players[i].kartspeed);
 		WRITEUINT8(save_p, players[i].kartweight);
 		//
-		WRITEFIXED(save_p, players[i].normalspeed);
-		WRITEFIXED(save_p, players[i].runspeed);
-		WRITEUINT8(save_p, players[i].thrustfactor);
-		WRITEUINT8(save_p, players[i].accelstart);
-		WRITEUINT8(save_p, players[i].acceleration);
-		WRITEFIXED(save_p, players[i].jumpfactor);
 
 		for (j = 0; j < MAXPREDICTTICS; j++)
 		{
@@ -447,25 +433,11 @@ static void P_NetUnArchivePlayers(void)
 		players[i].viewheight = 32<<FRACBITS;
 
 		//SetPlayerSkinByNum(i, players[i].skin);
-		players[i].charability = READUINT8(save_p);
-		players[i].charability2 = READUINT8(save_p);
 		players[i].charflags = READUINT32(save_p);
-		players[i].thokitem = (mobjtype_t)READUINT32(save_p);
-		players[i].spinitem = (mobjtype_t)READUINT32(save_p);
-		players[i].revitem = (mobjtype_t)READUINT32(save_p);
-		players[i].actionspd = READFIXED(save_p);
-		players[i].mindash = READFIXED(save_p);
-		players[i].maxdash = READFIXED(save_p);
 		// SRB2kart
 		players[i].kartspeed = READUINT8(save_p);
 		players[i].kartweight = READUINT8(save_p);
 		//
-		players[i].normalspeed = READFIXED(save_p);
-		players[i].runspeed = READFIXED(save_p);
-		players[i].thrustfactor = READUINT8(save_p);
-		players[i].accelstart = READUINT8(save_p);
-		players[i].acceleration = READUINT8(save_p);
-		players[i].jumpfactor = READFIXED(save_p);
 
 		for (j = 0; j < MAXPREDICTTICS; j++)
 		{

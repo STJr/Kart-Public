@@ -1960,13 +1960,13 @@ static void P_CheckBustableBlocks(player_t *player)
 					// ...or are drilling in NiGHTS (or Metal Sonic)
 					if (!(rover->flags & FF_SHATTER) && !(rover->flags & FF_SPINBUST)
 						&& !((player->pflags & PF_SPINNING) && !(player->pflags & PF_JUMPED))
-						&& (player->charability != CA_GLIDEANDCLIMB && !player->powers[pw_super])
+						&& (/*player->charability != CA_GLIDEANDCLIMB &&*/ !player->powers[pw_super])
 						&& !(player->pflags & PF_DRILLING) && !metalrecording)
 						continue;
 
 					// Only Knuckles can break this rock...
-					if (!(rover->flags & FF_SHATTER) && (rover->flags & FF_ONLYKNUX) && !(player->charability == CA_GLIDEANDCLIMB))
-						continue;
+					/*if (!(rover->flags & FF_SHATTER) && (rover->flags & FF_ONLYKNUX) && !(player->charability == CA_GLIDEANDCLIMB))
+						continue;*/
 
 					topheight = P_GetFOFTopZ(player->mo, node->m_sector, rover, player->mo->x, player->mo->y, NULL);
 					bottomheight = P_GetFOFBottomZ(player->mo, node->m_sector, rover, player->mo->x, player->mo->y, NULL);
@@ -2468,7 +2468,7 @@ static void P_DoBubbleBreath(player_t *player)
 		return;
 
 	// Tails stirs up the water while flying in it
-	if (player->powers[pw_tailsfly] && (leveltime & 1) && player->charability != CA_SWIM)
+	/*if (player->powers[pw_tailsfly] && (leveltime & 1) && player->charability != CA_SWIM)
 	{
 		fixed_t radius = (3*player->mo->radius)>>1;
 		angle_t fa = ((leveltime%45)*FINEANGLES/8) & FINEMASK;
@@ -2494,7 +2494,7 @@ static void P_DoBubbleBreath(player_t *player)
 			stirwaterz, MT_SMALLBUBBLE);
 		bubble->destscale = player->mo->scale;
 		P_SetScale(bubble,bubble->destscale);
-	}
+	}*/
 }
 
 //
@@ -3718,13 +3718,13 @@ void P_DoJump(player_t *player, boolean soundandstate)
 		else if (player->mo->eflags & MFE_GOOWATER)
 		{
 			player->mo->momz = 7*FRACUNIT;
-			if (player->charability == CA_JUMPBOOST && onground)
+			/*if (player->charability == CA_JUMPBOOST && onground)
 			{
 				if (player->charability2 == CA2_MULTIABILITY)
 					player->mo->momz += FixedMul(FRACUNIT/4, dist6);
 				else
 					player->mo->momz += FixedMul(FRACUNIT/8, dist6);
-			}
+			}*/
 		}
 		else if (maptol & TOL_NIGHTS)
 			player->mo->momz = 24*FRACUNIT;
@@ -4029,7 +4029,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 #ifdef HAVE_BLUA
 			if (!LUAh_JumpSpinSpecial(player))
 #endif
-			switch (player->charability)
+			/*switch (player->charability)
 			{
 				case CA_TELEKINESIS:
 					if (player->pflags & PF_JUMPED)
@@ -4054,11 +4054,11 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 					break;
 				default:
 					break;
-			}
+			}*/
 		}
 	}
 
-	if (player->charability == CA_AIRDRILL)
+	/*if (player->charability == CA_AIRDRILL)
 	{
 		if (player->pflags & PF_JUMPED)
 		{
@@ -4076,7 +4076,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 					P_InstaThrust(player->mo, player->mo->angle, ((FixedMul(player->normalspeed - player->actionspd/4, player->mo->scale))*2)/3);
 			}
 		}
-	}
+	}*/
 
 	if (cmd->buttons & BT_DRIFT && !player->exiting && !P_PlayerInPain(player))
 	{
@@ -4299,7 +4299,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		{
 			if (player->secondjump == 1)
 			{
-				if (player->charability == CA_FLOAT)
+				/*if (player->charability == CA_FLOAT)
 					player->mo->momz = 0;
 				else if (player->charability == CA_SLOWFALL)
 				{
@@ -4310,7 +4310,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 					}
 					else if (P_MobjFlip(player->mo)*player->mo->momz < -gravity*4)
 						player->mo->momz = P_MobjFlip(player->mo)*-gravity*4;
-				}
+				}*/
 				player->pflags &= ~PF_SPINNING;
 			}
 		}
@@ -4320,11 +4320,11 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		player->pflags &= ~PF_JUMPDOWN;
 
 		// Repeat abilities, but not double jump!
-		if ((player->charability2 == CA2_MULTIABILITY && player->charability != CA_DOUBLEJUMP)
+		/*if ((player->charability2 == CA2_MULTIABILITY && player->charability != CA_DOUBLEJUMP)
 			|| (player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds])))
 			player->secondjump = 0;
 		else if (player->charability == CA_FLOAT && player->secondjump == 1)
-			player->secondjump = 2;
+			player->secondjump = 2;*/
 
 
 		// If letting go of the jump button while still on ascent, cut the jump height.
@@ -6545,7 +6545,7 @@ static void P_MovePlayer(player_t *player)
 	else if (player->dashspeed > 0 && player->dashspeed < FixedMul(player->mindash, player->mo->scale))
 		player->dashspeed = FixedMul(player->mindash, player->mo->scale);
 
-	if (!(player->charability == CA_GLIDEANDCLIMB) || player->gotflag) // If you can't glide, then why the heck would you be gliding?
+	if (/*!(player->charability == CA_GLIDEANDCLIMB) ||*/ player->gotflag) // If you can't glide, then why the heck would you be gliding?
 	{
 		/* // SRB2kart - ???
 		if (player->pflags & PF_GLIDING || player->climbing)
@@ -6854,7 +6854,7 @@ static void P_MovePlayer(player_t *player)
 		}
 		// Otherwise, face the direction you're travelling.
 		else if (player->panim == PA_WALK || player->panim == PA_RUN || player->panim == PA_ROLL
-		|| (/*(player->mo->state >= &states[S_PLAY_ABL1] && player->mo->state <= &states[S_PLAY_SPC4]) && */player->charability == CA_FLY)) // SRB2kart - idk
+		/*|| ((player->mo->state >= &states[S_PLAY_ABL1] && player->mo->state <= &states[S_PLAY_SPC4]) && player->charability == CA_FLY)*/) // SRB2kart - idk
 			player->mo->angle = R_PointToAngle2(0, 0, player->rmomx, player->rmomy);
 
 		// Update the local angle control.
@@ -9090,7 +9090,7 @@ void P_PlayerThink(player_t *player)
 		|| (player->spectator || player->powers[pw_flashing] < K_GetKartFlashing(player))))
 		player->powers[pw_flashing]--;
 
-	if (player->powers[pw_tailsfly] && player->powers[pw_tailsfly] < UINT16_MAX && player->charability != CA_SWIM && !(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))) // tails fly counter
+	if (player->powers[pw_tailsfly] && player->powers[pw_tailsfly] < UINT16_MAX /*&& player->charability != CA_SWIM*/ && !(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))) // tails fly counter
 		player->powers[pw_tailsfly]--;
 
 	/* // SRB2kart - Can't drown.
