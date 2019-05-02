@@ -5489,8 +5489,21 @@ void G_BeginRecording(void)
 	demo_p += 16;
 
 	// Stats
+	demo_p++; // charability
+	demo_p++; // charability2
+	demo_p++; // actionspd
+	demo_p++; // mindash
+	demo_p++; // maxdash
+	// SRB2Kart
 	WRITEUINT8(demo_p,player->kartspeed);
 	WRITEUINT8(demo_p,player->kartweight);
+	//
+	demo_p++; // normalspeed
+	demo_p++; // runspeed
+	demo_p++; // thrustfactor
+	demo_p++; // accelstart
+	demo_p++; // acceleration
+	demo_p += 4; // jumpfactor
 
 	// Save netvar data (SONICCD, etc)
 	CV_SaveNetVars(&demo_p);

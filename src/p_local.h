@@ -186,8 +186,6 @@ UINT8 P_FindHighestLap(void);
 void P_FindEmerald(void);
 //void P_TransferToAxis(player_t *player, INT32 axisnum);
 boolean P_PlayerMoving(INT32 pnum);
-void P_SpawnThokMobj(player_t *player);
-void P_SpawnSpinMobj(player_t *player, mobjtype_t type);
 void P_Telekinesis(player_t *player, fixed_t thrust, fixed_t range);
 
 void P_PlayLivesJingle(player_t *player);
