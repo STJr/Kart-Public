@@ -4855,7 +4855,7 @@ static void FindClosestSkinForStats(UINT32 p, UINT8 kartspeed, UINT8 kartweight)
 {
 	INT32 closest_skin = GetSkinNumClosestToStats(kartspeed, kartweight);
 
-	CONS_Printf("Using %s instead...\n", skins[closest_skin].name);
+	//CONS_Printf("Using %s instead...\n", skins[closest_skin].name);
 	SetPlayerSkinByNum(p, closest_skin);
 }
 
