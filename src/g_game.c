@@ -2338,7 +2338,6 @@ void G_PlayerReborn(INT32 player)
 	INT16 starpostz;
 	INT32 starpostnum;
 	INT32 starpostangle;
-	fixed_t jumpfactor;
 	INT32 exiting;
 	INT16 numboxes;
 	INT16 totalring;
@@ -2390,6 +2389,7 @@ void G_PlayerReborn(INT32 player)
 	kartspeed = players[player].kartspeed;
 	kartweight = players[player].kartweight;
 	//
+	charflags = players[player].charflags;
 
 	starposttime = players[player].starposttime;
 	starpostx = players[player].starpostx;

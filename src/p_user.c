@@ -3635,195 +3635,6 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 */
 
 //
-// P_DoJump
-//
-// Jump routine for the player
-//
-void P_DoJump(player_t *player, boolean soundandstate)
-{
-	fixed_t factor;
-	const fixed_t dist6 = FixedMul(FixedDiv(player->speed, player->mo->scale), player->actionspd)/20;
-
-	return;
-
-	if (player->pflags & PF_JUMPSTASIS)
-		return;
-
-	if (!player->jumpfactor)
-		return;
-
-	if (player->kartstuff[k_spinouttimer]) // SRB2kart
-		return;
-
-	/* // SRB2kart - climbing in a kart?
-	if (player->climbing)
-	{
-		// Jump this high.
-		if (player->powers[pw_super])
-			player->mo->momz = 5*FRACUNIT;
-		else if (player->mo->eflags & MFE_UNDERWATER)
-			player->mo->momz = 2*FRACUNIT;
-		else
-			player->mo->momz = 15*(FRACUNIT/4);
-
-		player->mo->angle = player->mo->angle - ANGLE_180; // Turn around from the wall you were climbing.
-
-		if (player == &players[consoleplayer])
-			localangle = player->mo->angle; // Adjust the local control angle.
-		else if (player == &players[secondarydisplayplayer])
-			localangle2 = player->mo->angle;
-		else if (player == &players[thirddisplayplayer])
-			localangle3 = player->mo->angle;
-		else if (player == &players[fourthdisplayplayer])
-			localangle4 = player->mo->angle;
-
-		player->climbing = 0; // Stop climbing, duh!
-		P_InstaThrust(player->mo, player->mo->angle, FixedMul(6*FRACUNIT, player->mo->scale)); // Jump off the wall.
-	}
-	// Quicksand jumping.
-	else if (P_InQuicksand(player->mo))
-	{
-		if (player->mo->ceilingz-player->mo->floorz <= player->mo->height-1)
-			return;
-		player->mo->momz += (39*(FRACUNIT/4))>>1;
-		if (player->mo->momz >= 6*FRACUNIT)
-			player->mo->momz = 6*FRACUNIT; //max momz in quicksand
-		else if (player->mo->momz < 0) // still descending?
-			player->mo->momz = (39*(FRACUNIT/4))>>1; // just default to the jump height.
-	}
-	else*/ if (!(player->pflags & PF_JUMPED)) // Spin Attack
-	{
-		if (player->mo->ceilingz-player->mo->floorz <= player->mo->height-1)
-			return;
-
-		// Jump this high.
-		if (player->pflags & PF_CARRIED)
-		{
-			player->mo->momz = 9*FRACUNIT;
-			player->pflags &= ~PF_CARRIED;
-			/*if (player-players == consoleplayer && botingame)
-				CV_SetValue(&cv_analog2, true);*/
-		}
-		else if (player->pflags & PF_ITEMHANG)
-		{
-			player->mo->momz = 9*FRACUNIT;
-			player->pflags &= ~PF_ITEMHANG;
-		}
-		else if (player->pflags & PF_ROPEHANG)
-		{
-			player->mo->momz = 12*FRACUNIT;
-			player->pflags &= ~PF_ROPEHANG;
-			P_SetTarget(&player->mo->tracer, NULL);
-		}
-		else if (player->mo->eflags & MFE_GOOWATER)
-		{
-			player->mo->momz = 7*FRACUNIT;
-			/*if (player->charability == CA_JUMPBOOST && onground)
-			{
-				if (player->charability2 == CA2_MULTIABILITY)
-					player->mo->momz += FixedMul(FRACUNIT/4, dist6);
-				else
-					player->mo->momz += FixedMul(FRACUNIT/8, dist6);
-			}*/
-		}
-		else if (maptol & TOL_NIGHTS)
-			player->mo->momz = 24*FRACUNIT;
-		else
-			player->mo->momz = 3*FRACUNIT; // Kart jump momentum.
-		/* // SRB2kart - Okay enough of that.
-		else if (player->powers[pw_super])
-		{
-			if (player->charability == CA_FLOAT)
-				player->mo->momz = 28*FRACUNIT; //Obscene jump height anyone?
-			else if (player->charability == CA_SLOWFALL)
-				player->mo->momz = 37*(FRACUNIT/2); //Less obscene because during super, floating propells oneself upward.
-			else // Default super jump momentum.
-				player->mo->momz = 13*FRACUNIT;
-
-			// Add a boost for super characters with float/slowfall and multiability.
-			if (player->charability2 == CA2_MULTIABILITY &&
-				(player->charability == CA_FLOAT || player->charability == CA_SLOWFALL))
-				player->mo->momz += 2*FRACUNIT;
-			else if (player->charability == CA_JUMPBOOST)
-			{
-				if (player->charability2 == CA2_MULTIABILITY)
-					player->mo->momz += FixedMul(FRACUNIT/4, dist6);
-				else
-					player->mo->momz += FixedMul(FRACUNIT/8, dist6);
-			}
-		}
-		else if (player->charability2 == CA2_MULTIABILITY &&
-			(player->charability == CA_DOUBLEJUMP || player->charability == CA_FLOAT || player->charability == CA_SLOWFALL))
-		{
-			// Multiability exceptions, since some abilities cannot effectively use it and need a boost.
-			if (player->charability == CA_DOUBLEJUMP)
-				player->mo->momz = 23*(FRACUNIT/2); // Increased jump height instead of infinite jumps.
-			else if (player->charability == CA_FLOAT || player->charability == CA_SLOWFALL)
-				player->mo->momz = 12*FRACUNIT; // Increased jump height due to ineffective repeat.
-		}
-		else
-		{
-			player->mo->momz = 39*(FRACUNIT/4); // Default jump momentum.
-			if (player->charability == CA_JUMPBOOST && onground)
-			{
-				if (player->charability2 == CA2_MULTIABILITY)
-					player->mo->momz += FixedMul(FRACUNIT/4, dist6);
-				else
-					player->mo->momz += FixedMul(FRACUNIT/8, dist6);
-			}
-		}
-		*/
-
-		// Reduce player momz by 58.5% when underwater.
-		if (player->mo->eflags & MFE_UNDERWATER)
-			player->mo->momz = FixedMul(player->mo->momz, FixedDiv(117*FRACUNIT, 200*FRACUNIT));
-
-		player->jumping = 1;
-	}
-
-	factor = player->jumpfactor;
-
-	if (twodlevel || (player->mo->flags2 & MF2_TWOD))
-		factor += player->jumpfactor / 10;
-
-	P_SetObjectMomZ(player->mo, FixedMul(factor, player->mo->momz), false); // Custom height
-
-	// set just an eensy above the ground
-	if (player->mo->eflags & MFE_VERTICALFLIP)
-	{
-		player->mo->z--;
-		if (player->mo->pmomz < 0)
-			player->mo->momz += player->mo->pmomz; // Add the platform's momentum to your jump.
-		else
-			player->mo->pmomz = 0;
-	}
-	else
-	{
-		player->mo->z++;
-		if (player->mo->pmomz > 0)
-			player->mo->momz += player->mo->pmomz; // Add the platform's momentum to your jump.
-		else
-			player->mo->pmomz = 0;
-	}
-	player->mo->eflags &= ~MFE_APPLYPMOMZ;
-
-	player->pflags |= PF_JUMPED;
-
-	if (soundandstate)
-	{
-		if (!player->spectator)
-			S_StartSound(player->mo, sfx_jump); // Play jump sound!
-
-		/* // SRB2kart - don't need jump frames
-		if (!(player->charability2 == CA2_SPINDASH))
-			P_SetPlayerMobjState(player->mo, S_PLAY_SPRING);
-		else
-			P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
-		*/
-	}
-}
-
-//
 // P_DoSpinDash
 //
 // Player spindash handling
@@ -3946,7 +3757,7 @@ void P_DoJumpShield(player_t *player)
 		return;
 
 	player->pflags &= ~PF_JUMPED;
-	P_DoJump(player, false);
+	//P_DoJump(player, false);
 	player->pflags &= ~PF_JUMPED;
 	player->secondjump = 0;
 	player->jumping = 0;
@@ -4091,7 +3902,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		// Jump S3&K style while in quicksand.
 		if (P_InQuicksand(player->mo))
 		{
-			P_DoJump(player, true);
+			//P_DoJump(player, true);
 			player->secondjump = 0;
 			player->pflags &= ~PF_THOKKED;
 		}
@@ -4099,7 +3910,7 @@ static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
 		// can't jump while in air, can't jump while jumping
 		if (onground || player->climbing || player->pflags & (PF_CARRIED|PF_ITEMHANG|PF_ROPEHANG))
 		{
-			P_DoJump(player, true);
+			//P_DoJump(player, true);
 			player->secondjump = 0;
 			player->pflags &= ~PF_THOKKED;
 		}
@@ -6538,13 +6349,6 @@ static void P_MovePlayer(player_t *player)
 		P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 	}
 
-	// Cap the speed limit on a spindash
-	// Up the 60*FRACUNIT number to boost faster, you speed demon you!
-	if (player->dashspeed > FixedMul(player->maxdash, player->mo->scale))
-		player->dashspeed = FixedMul(player->maxdash, player->mo->scale);
-	else if (player->dashspeed > 0 && player->dashspeed < FixedMul(player->mindash, player->mo->scale))
-		player->dashspeed = FixedMul(player->mindash, player->mo->scale);
-
 	if (/*!(player->charability == CA_GLIDEANDCLIMB) ||*/ player->gotflag) // If you can't glide, then why the heck would you be gliding?
 	{
 		/* // SRB2kart - ???
@@ -6798,7 +6602,7 @@ static void P_MovePlayer(player_t *player)
 	P_DoSpinDash(player, cmd);
 	*/
 	// jumping
-	P_DoJumpStuff(player, cmd);
+	//P_DoJumpStuff(player, cmd);
 
 	/*
 	// If you're not spinning, you'd better not be spindashing!
