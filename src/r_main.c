@@ -1571,6 +1571,7 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_grcoronasize);
 #endif
 	CV_RegisterVar(&cv_grmd2);
+	CV_RegisterVar(&cv_grfallbackplayermodel);
 #endif
 
 #ifdef HWRENDER

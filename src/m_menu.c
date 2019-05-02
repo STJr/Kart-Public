@@ -1218,7 +1218,8 @@ static menuitem_t OP_VideoOptionsMenu[] =
 
 #ifdef HWRENDER
 	{IT_STRING | IT_CVAR,	NULL,	"3D models",            &cv_grmd2,              105},
-	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,   115},
+	{IT_STRING | IT_CVAR,	NULL,	"Fallback Player 3D Model",	&cv_grfallbackplayermodel,	115},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,   125},
 #endif
 };
 
