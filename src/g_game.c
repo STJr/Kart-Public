@@ -8090,6 +8090,8 @@ void G_StopDemo(void)
 	demo.timing = false;
 	singletics = false;
 
+	CV_SetValue(&cv_playbackspeed, 1);
+
 	if (gamestate == GS_LEVEL && rendermode != render_none)
 	{
 		V_SetPaletteLump("PLAYPAL"); // Reset the palette
