@@ -1369,10 +1369,9 @@ void D_SRB2Main(void)
 		midi_disabled = true;
 #endif
 	}
-	if (M_CheckParm("-nosound"))
-		sound_disabled = true;
-	if (M_CheckParm("-nomusic")) // combines -nomidimusic and -nodigmusic
+	if (M_CheckParm("-noaudio")) // combines -nosound and -nomusic
 	{
+		sound_disabled = true;
 		digital_disabled = true;
 #ifndef NO_MIDI
 		midi_disabled = true;
@@ -1380,12 +1379,24 @@ void D_SRB2Main(void)
 	}
 	else
 	{
+		if (M_CheckParm("-nosound"))
+			sound_disabled = true;
+		if (M_CheckParm("-nomusic")) // combines -nomidimusic and -nodigmusic
+		{
+			digital_disabled = true;
 #ifndef NO_MIDI
-		if (M_CheckParm("-nomidimusic"))
-			midi_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
+			midi_disabled = true;
 #endif
-		if (M_CheckParm("-nodigmusic"))
-			digital_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
+		}
+		else
+		{
+#ifndef NO_MIDI
+			if (M_CheckParm("-nomidimusic"))
+				midi_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
+#endif
+			if (M_CheckParm("-nodigmusic"))
+				digital_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
+		}
 	}
 	if (!( sound_disabled && digital_disabled
 #ifndef NO_MIDI

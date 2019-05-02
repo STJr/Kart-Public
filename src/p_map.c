@@ -1580,12 +1580,12 @@ static boolean PIT_CheckThing(mobj_t *thing)
 
 			if (G_BattleGametype())
 			{
-				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]))
+				if (thing->player->kartstuff[k_sneakertimer] && !(tmthing->player->kartstuff[k_sneakertimer]) && !(thing->player->powers[pw_flashing])) // Don't steal bumpers while intangible
 				{
 					K_StealBumper(thing->player, tmthing->player, false);
 					K_SpinPlayer(tmthing->player, thing, 0, tmthing, false);
 				}
-				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]))
+				else if (tmthing->player->kartstuff[k_sneakertimer] && !(thing->player->kartstuff[k_sneakertimer]) && !(tmthing->player->powers[pw_flashing]))
 				{
 					K_StealBumper(tmthing->player, thing->player, false);
 					K_SpinPlayer(thing->player, tmthing, 0, thing, false);

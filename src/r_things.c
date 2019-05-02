@@ -40,6 +40,8 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 //int	vsnprintf(char *str, size_t n, const char *fmt, va_list ap);
 #endif
 
+CV_PossibleValue_t Forceskin_cons_t[MAXSKINS+2];
+
 static void R_InitSkins(void);
 
 #define MINZ (FRACUNIT*4)
@@ -1803,7 +1805,7 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel)
 		}
 	}
 
-	// Someone seriously wants infinite draw distance for precipitation?
+	// no, no infinite draw distance for precipitation. this option at zero is supposed to turn it off
 	if ((limit_dist = (fixed_t)cv_drawdist_precip.value << FRACBITS))
 	{
 		for (precipthing = sec->preciplist; precipthing; precipthing = precipthing->snext)
@@ -1818,13 +1820,6 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel)
 
 			R_ProjectPrecipitationSprite(precipthing);
 		}
-	}
-	else
-	{
-		// Draw everything in sector, no checks
-		for (precipthing = sec->preciplist; precipthing; precipthing = precipthing->snext)
-			if (!(precipthing->precipflags & PCF_INVISIBLE))
-				R_ProjectPrecipitationSprite(precipthing);
 	}
 }
 
@@ -2595,6 +2590,10 @@ void R_InitSkins(void)
 	skin->spritedef.spriteframes = sprites[SPR_PLAY].spriteframes;
 	ST_LoadFaceGraphics(skin->facerank, skin->facewant, skin->facemmap, 0);
 
+	// Set values for Sonic skin
+	Forceskin_cons_t[1].value = 0;
+	Forceskin_cons_t[1].strvalue = skin->name;
+
 	//MD2 for sonic doesn't want to load in Linux.
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
@@ -2980,6 +2979,10 @@ next_token:
 		skin_cons_t[numskins].value = numskins;
 		skin_cons_t[numskins].strvalue = skin->name;
 #endif
+
+		// Update the forceskin possiblevalues
+		Forceskin_cons_t[numskins+1].value = numskins;
+		Forceskin_cons_t[numskins+1].strvalue = skins[numskins].name;
 
 		// add face graphics
 		ST_LoadFaceGraphics(skin->facerank, skin->facewant, skin->facemmap, numskins);

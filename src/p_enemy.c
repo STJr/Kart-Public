@@ -8434,6 +8434,9 @@ void A_SPBChase(mobj_t *actor)
 				wspeed = (3*defspeed)/2;
 			if (wspeed < 20*actor->tracer->scale)
 				wspeed = 20*actor->tracer->scale;
+			if (actor->tracer->player->pflags & PF_SLIDING)
+				wspeed = actor->tracer->player->speed/2;
+			//  ^^^^ current section: These are annoying, and grand metropolis in particular needs this.
 
 			hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
 			vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);

@@ -219,6 +219,7 @@ const UINT8 KartColor_Opposite[MAXSKINCOLORS*2] =
 	SKINCOLOR_SUNSET,10,      // SKINCOLOR_MOONSLAM
 	SKINCOLOR_MAUVE,10,       // SKINCOLOR_ULTRAVIOLET
 	SKINCOLOR_DAWN,6,         // SKINCOLOR_DUSK
+	SKINCOLOR_POPCORN,12,     // SKINCOLOR_BUBBLEGUM
 	SKINCOLOR_EMERALD,8,      // SKINCOLOR_PURPLE
 	SKINCOLOR_PASTEL,11,      // SKINCOLOR_FUCHSIA
 	SKINCOLOR_MAROON,8,       // SKINCOLOR_TOXIC
@@ -3505,7 +3506,6 @@ void K_DoSneaker(player_t *player, INT32 type)
 	{
 		player->pflags |= PF_ATTACKDOWN;
 		K_PlayBoostTaunt(player->mo);
-		player->powers[pw_flashing] = 0; // Stop flashing after boosting
 	}
 }
 
@@ -5008,6 +5008,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 
 	if ((!player->kartstuff[k_sneakertimer])
 	|| (!player->cmd.driftturn)
+	|| (!player->kartstuff[k_aizdriftstrat])
 	|| (player->cmd.driftturn > 0) != (player->kartstuff[k_aizdriftstrat] > 0))
 	{
 		if (!player->kartstuff[k_drift])

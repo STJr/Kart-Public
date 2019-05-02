@@ -40,6 +40,7 @@
 #include "g_input.h" // PLAYER1INPUTDOWN
 #include "k_kart.h" // colortranslations
 #include "console.h" // cons_menuhighlight
+#include "lua_hook.h" // IntermissionThinker hook
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -617,6 +618,10 @@ void Y_Ticker(void)
 	// Check for pause or menu up in single player
 	if (paused || P_AutoPause())
 		return;
+
+#ifdef HAVE_BLUA
+	LUAh_IntermissionThinker();
+#endif
 
 	intertic++;
 
@@ -1548,10 +1553,10 @@ void Y_EndVote(void)
 //
 static void Y_UnloadVoteData(void)
 {
+	voteclient.loaded = false;
+
 	if (rendermode != render_soft)
 		return;
-
-	voteclient.loaded = false;
 
 	UNLOAD(widebgpatch);
 	UNLOAD(bgpatch);
