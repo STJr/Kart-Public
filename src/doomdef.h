@@ -151,8 +151,8 @@ extern FILE *logstream;
 #else
 #define VERSION    100 // Game version
 #define SUBVERSION 4 // more precise version number
-#define VERSIONSTRING "v1.0.4 Netreplays"
-#define VERSIONSTRINGW L"v1.0.4 Netreplays"
+#define VERSIONSTRING "v1.0.4"
+#define VERSIONSTRINGW L"v1.0.4"
 // Hey! If you change this, add 1 to the MODVERSION below!
 // Otherwise we can't force updates!
 #endif
