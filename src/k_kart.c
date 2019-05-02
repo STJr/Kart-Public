@@ -1668,7 +1668,7 @@ void K_KartMoveAnimation(player_t *player)
 			P_SetPlayerMobjState(player->mo, S_KART_DRIFT1_R);
 	}
 	// Run frames - S_KART_RUN1   S_KART_RUN1_L   S_KART_RUN1_R
-	else if (player->speed > FixedMul(player->runspeed, player->mo->scale))
+	else if (player->speed > (20*player->mo->scale))
 	{
 		if (cmd->driftturn < 0 && !(player->mo->state >= &states[S_KART_RUN1_R] && player->mo->state <= &states[S_KART_RUN2_R]))
 			P_SetPlayerMobjState(player->mo, S_KART_RUN1_R);
@@ -1678,7 +1678,7 @@ void K_KartMoveAnimation(player_t *player)
 			P_SetPlayerMobjState(player->mo, S_KART_RUN1);
 	}
 	// Walk frames - S_KART_WALK1   S_KART_WALK1_L   S_KART_WALK1_R
-	else if (player->speed <= FixedMul(player->runspeed, player->mo->scale))
+	else if (player->speed <= (20*player->mo->scale))
 	{
 		if (cmd->driftturn < 0 && !(player->mo->state >= &states[S_KART_WALK1_R] && player->mo->state <= &states[S_KART_WALK2_R]))
 			P_SetPlayerMobjState(player->mo, S_KART_WALK1_R);
@@ -8325,7 +8325,7 @@ static void K_drawKartFirstPerson(void)
 	}
 
 	{
-		if (stplyr->speed < FixedMul(stplyr->runspeed, stplyr->mo->scale) && (leveltime & 1) && !splitscreen)
+		if (stplyr->speed < (20*stplyr->mo->scale) && (leveltime & 1) && !splitscreen)
 			y++;
 		// the following isn't EXPLICITLY right, it just gets the result we want, but i'm too lazy to look up the right way to do it
 		if (stplyr->mo->flags2 & MF2_SHADOW)

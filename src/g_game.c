@@ -5283,7 +5283,7 @@ void G_ReadMetalTic(mobj_t *metal)
 	speed = FixedDiv(P_AproxDistance(oldmetal.momx, oldmetal.momy), metal->scale)>>FRACBITS;
 
 	// Use speed to decide an appropriate state
-	if (speed > 28) // default skin runspeed
+	if (speed > 20) // default skin runspeed
 		statetype = 2;
 	else if (speed > 1) // stopspeed
 		statetype = 1;
