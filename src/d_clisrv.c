@@ -91,12 +91,10 @@ tic_t jointimeout = (3*TICRATE);
 static boolean sendingsavegame[MAXNETNODES]; // Are we sending the savegame?
 static tic_t freezetimeout[MAXNETNODES]; // Until when can this node freeze the server before getting a timeout?
 
-#ifdef NEWPING
 UINT16 pingmeasurecount = 1;
 UINT32 realpingtable[MAXPLAYERS]; //the base table of ping where an average will be sent to everyone.
 UINT32 playerpingtable[MAXPLAYERS]; //table of player latency values.
 tic_t servermaxping = 800;			// server's max ping. Defaults to 800
-#endif
 SINT8 nodetoplayer[MAXNETNODES];
 SINT8 nodetoplayer2[MAXNETNODES]; // say the numplayer for this node if any (splitscreen)
 SINT8 nodetoplayer3[MAXNETNODES]; // say the numplayer for this node if any (splitscreen == 2)
@@ -3074,12 +3072,10 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 			HU_AddChatText(va("\x82*%s has been kicked (Go away)", player_names[pnum]), false);
 			kickreason = KR_KICK;
 			break;
-#ifdef NEWPING
 		case KICK_MSG_PING_HIGH:
 			HU_AddChatText(va("\x82*%s left the game (Broke ping limit)", player_names[pnum]), false);
 			kickreason = KR_PINGLIMIT;
 			break;
-#endif
 		case KICK_MSG_CON_FAIL:
 			HU_AddChatText(va("\x82*%s left the game (Synch Failure)", player_names[pnum]), false);
 			kickreason = KR_SYNCH;
@@ -3152,10 +3148,8 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 		D_StartTitle();
 		if (msg == KICK_MSG_CON_FAIL)
 			M_StartMessage(M_GetText("Server closed connection\n(Synch failure)\nPress ESC\n"), NULL, MM_NOTHING);
-#ifdef NEWPING
 		else if (msg == KICK_MSG_PING_HIGH)
 			M_StartMessage(M_GetText("Server closed connection\n(Broke ping limit)\nPress ESC\n"), NULL, MM_NOTHING);
-#endif
 		else if (msg == KICK_MSG_BANNED)
 			M_StartMessage(M_GetText("You have been banned by the server\n\nPress ESC\n"), NULL, MM_NOTHING);
 		else if (msg == KICK_MSG_CUSTOM_KICK)
@@ -3199,15 +3193,15 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 static CV_PossibleValue_t netticbuffer_cons_t[] = {{0, "MIN"}, {3, "MAX"}, {0, NULL}};
 consvar_t cv_netticbuffer = {"netticbuffer", "1", CV_SAVE, netticbuffer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_allownewplayer = {"allowjoin", "On", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
+consvar_t cv_allownewplayer = {"allowjoin", "On", CV_SAVE|CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
 #ifdef VANILLAJOINNEXTROUND
-consvar_t cv_joinnextround = {"joinnextround", "Off", CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL}; /// \todo not done
+consvar_t cv_joinnextround = {"joinnextround", "Off", CV_SAVE|CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL}; /// \todo not done
 #endif
 static CV_PossibleValue_t maxplayers_cons_t[] = {{2, "MIN"}, {MAXPLAYERS, "MAX"}, {0, NULL}};
 consvar_t cv_maxplayers = {"maxplayers", "8", CV_SAVE, maxplayers_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t resynchattempts_cons_t[] = {{0, "MIN"}, {20, "MAX"}, {0, NULL}};
 consvar_t cv_resynchattempts = {"resynchattempts", "5", CV_SAVE, resynchattempts_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL	};
-consvar_t cv_blamecfail = {"blamecfail", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
+consvar_t cv_blamecfail = {"blamecfail", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
 
 // max file size to send to a player (in kilobytes)
 static CV_PossibleValue_t maxsend_cons_t[] = {{0, "MIN"}, {51200, "MAX"}, {0, NULL}};
@@ -3250,12 +3244,6 @@ void D_ClientServerInit(void)
 	RegisterNetXCmd(XD_ADDPLAYER, Got_AddPlayer);
 	RegisterNetXCmd(XD_REMOVEPLAYER, Got_RemovePlayer);
 #ifndef NONET
-	CV_RegisterVar(&cv_allownewplayer);
-#ifdef VANILLAJOINNEXTROUND
-	CV_RegisterVar(&cv_joinnextround);
-#endif
-	CV_RegisterVar(&cv_showjoinaddress);
-	CV_RegisterVar(&cv_blamecfail);
 #ifdef DUMPCONSISTENCY
 	CV_RegisterVar(&cv_dumpconsistency);
 #endif
@@ -4610,7 +4598,6 @@ FILESTAMP
 			resynch_local_inprogress = true;
 			CL_AcknowledgeResynch(&netbuffer->u.resynchpak);
 			break;
-#ifdef NEWPING
 		case PT_PING:
 			// Only accept PT_PING from the server.
 			if (node != servernode)
@@ -4640,7 +4627,6 @@ FILESTAMP
 			}
 
 			break;
-#endif
 		case PT_SERVERCFG:
 			break;
 		case PT_FILEFRAGMENT:
@@ -5278,7 +5264,6 @@ void TryRunTics(tic_t realtics)
 	}
 }
 
-#ifdef NEWPING
 
 /* 	Ping Update except better:
 	We call this once per second and check for people's pings. If their ping happens to be too high, we increment some timer and kick them out.
@@ -5362,11 +5347,9 @@ static inline void PingUpdate(void)
 
 	pingmeasurecount = 1; //Reset count
 }
-#endif
 
 static tic_t gametime = 0;
 
-#ifdef NEWPING
 static void UpdatePingTable(void)
 {
 	INT32 i;
@@ -5381,7 +5364,6 @@ static void UpdatePingTable(void)
 		pingmeasurecount++;
 	}
 }
-#endif
 
 // Handle timeouts to prevent definitive freezes from happenning
 static void HandleNodeTimeouts(void)
@@ -5406,9 +5388,7 @@ void NetKeepAlive(void)
 	if (realtics <= 0) // nothing new to update
 		return;
 
-#ifdef NEWPING
 	UpdatePingTable();
-#endif
 
 	if (server)
 		CL_SendClientKeepAlive();
@@ -5455,9 +5435,7 @@ void NetUpdate(void)
 
 	gametime = nowtime;
 
-#ifdef NEWPING
 	UpdatePingTable();
-#endif
 
 	if (client)
 		maketic = neededtic;
