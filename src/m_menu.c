@@ -1217,7 +1217,7 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			 90},
 
 #ifdef HWRENDER
-	{IT_STRING | IT_CVAR,	NULL,	"3D models",            &cv_grmd2,              105},
+	{IT_STRING | IT_CVAR,	NULL,	"3D models",            &cv_grmdls,              105},
 	{IT_STRING | IT_CVAR,	NULL,	"Fallback Player 3D Model",	&cv_grfallbackplayermodel,	115},
 	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,   125},
 #endif
@@ -2332,10 +2332,8 @@ static void M_ChangeCvar(INT32 choice)
 			choice *= (TICRATE/7);
 		else if (cv == &cv_maxsend)
 			choice *= 512;
-#ifdef NEWPING
 		else if (cv == &cv_maxping)
 			choice *= 50;
-#endif
 #endif
 		CV_AddValue(cv,choice);
 	}
