@@ -534,9 +534,6 @@ static void D_Display(void)
 	if (demo.rewinding)
 		V_DrawFadeScreen(TC_RAINBOW, (leveltime & 0x20) ? SKINCOLOR_PASTEL : SKINCOLOR_MOONSLAM);
 
-	if (cv_vhseffect.value && (paused || (demo.playback && cv_playbackspeed.value > 1)))
-		V_DrawVhsEffect(demo.rewinding);
-
 	// vid size change is now finished if it was on...
 	vid.recalc = 0;
 
