@@ -2325,7 +2325,8 @@ static void Command_Map_f(void)
 		; // The player wants us to trek on anyway.  Do so.
 	// G_TOLFlag handles both multiplayer gametype and ignores it for !multiplayer
 	// Alternatively, bail if the map header is completely missing anyway.
-	else
+	else if (!mapheaderinfo[newmapnum-1]
+	 || !(mapheaderinfo[newmapnum-1]->typeoflevel & G_TOLFlag(newgametype)))
 	{
 		char gametypestring[32] = "Single Player";
 
