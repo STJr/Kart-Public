@@ -180,7 +180,6 @@ boolean P_LookForEnemies(player_t *player);
 void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius);
 void P_HomingAttack(mobj_t *source, mobj_t *enemy); /// \todo doesn't belong in p_user
 //boolean P_SuperReady(player_t *player);
-void P_DoJump(player_t *player, boolean soundandstate);
 boolean P_AnalogMove(player_t *player);
 /*boolean P_TransferToNextMare(player_t *player);
 UINT8 P_FindLowestMare(void);*/
@@ -189,8 +188,6 @@ UINT8 P_FindHighestLap(void);
 void P_FindEmerald(void);
 //void P_TransferToAxis(player_t *player, INT32 axisnum);
 boolean P_PlayerMoving(INT32 pnum);
-void P_SpawnThokMobj(player_t *player);
-void P_SpawnSpinMobj(player_t *player, mobjtype_t type);
 void P_Telekinesis(player_t *player, fixed_t thrust, fixed_t range);
 
 void P_PlayLivesJingle(player_t *player);

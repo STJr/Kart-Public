@@ -410,6 +410,8 @@ static CV_PossibleValue_t joyaxis_cons_t[] = {{0, "None"},
 #endif
 #endif
 
+static CV_PossibleValue_t deadzone_cons_t[] = {{0, "MIN"}, {FRACUNIT, "MAX"}, {0, NULL}};
+
 // don't mind me putting these here, I was lazy to figure out where else I could put those without blowing up the compiler.
 
 // it automatically becomes compact with 20+ players, but if you like it, I guess you can turn that on!
@@ -480,6 +482,7 @@ consvar_t cv_aimaxis = {"joyaxis_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL, 
 consvar_t cv_lookaxis = {"joyaxis_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis = {"joyaxis_fire", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_driftaxis = {"joyaxis_drift", "Z-Rudder", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_deadzone = {"joy_deadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_turnaxis2 = {"joyaxis2_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis2 = {"joyaxis2_move", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -488,6 +491,7 @@ consvar_t cv_aimaxis2 = {"joyaxis2_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL
 consvar_t cv_lookaxis2 = {"joyaxis2_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis2 = {"joyaxis2_fire", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_driftaxis2 = {"joyaxis2_drift", "Z-Rudder", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_deadzone2 = {"joy2_deadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_turnaxis3 = {"joyaxis3_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis3 = {"joyaxis3_move", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -496,6 +500,7 @@ consvar_t cv_aimaxis3 = {"joyaxis3_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL
 consvar_t cv_lookaxis3 = {"joyaxis3_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis3 = {"joyaxis3_fire", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_driftaxis3 = {"joyaxis3_drift", "Z-Rudder", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_deadzone3 = {"joy3_deadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_turnaxis4 = {"joyaxis4_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis4 = {"joyaxis4_move", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -504,6 +509,7 @@ consvar_t cv_aimaxis4 = {"joyaxis4_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL
 consvar_t cv_lookaxis4 = {"joyaxis4_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis4 = {"joyaxis4_fire", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_driftaxis4 = {"joyaxis4_drift", "Z-Rudder", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_deadzone4 = {"joy4_deadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 
 #if MAXPLAYERS > 16
@@ -929,8 +935,8 @@ static INT32 Joy1Axis(axis_input_e axissel)
 		retaxis = +JOYAXISRANGE;
 	if (!Joystick.bGamepadStyle && axissel < AXISDEAD)
 	{
-		const INT32 jdeadzone = JOYAXISRANGE/4;
-		if (-jdeadzone < retaxis && retaxis < jdeadzone)
+		const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_deadzone.value) >> FRACBITS;
+		if (abs(retaxis) <= jdeadzone)
 			return 0;
 	}
 	if (flp) retaxis = -retaxis; //flip it around
@@ -1010,7 +1016,7 @@ static INT32 Joy2Axis(axis_input_e axissel)
 		retaxis = +JOYAXISRANGE;
 	if (!Joystick2.bGamepadStyle && axissel < AXISDEAD)
 	{
-		const INT32 jdeadzone = JOYAXISRANGE/4;
+		const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_deadzone2.value) >> FRACBITS;
 		if (-jdeadzone < retaxis && retaxis < jdeadzone)
 			return 0;
 	}
@@ -1091,7 +1097,7 @@ static INT32 Joy3Axis(axis_input_e axissel)
 		retaxis = +JOYAXISRANGE;
 	if (!Joystick3.bGamepadStyle && axissel < AXISDEAD)
 	{
-		const INT32 jdeadzone = JOYAXISRANGE/4;
+		const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_deadzone3.value) >> FRACBITS;
 		if (-jdeadzone < retaxis && retaxis < jdeadzone)
 			return 0;
 	}
@@ -1171,7 +1177,7 @@ static INT32 Joy4Axis(axis_input_e axissel)
 		retaxis = +JOYAXISRANGE;
 	if (!Joystick4.bGamepadStyle && axissel < AXISDEAD)
 	{
-		const INT32 jdeadzone = JOYAXISRANGE/4;
+		const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_deadzone4.value) >> FRACBITS;
 		if (-jdeadzone < retaxis && retaxis < jdeadzone)
 			return 0;
 	}
@@ -2534,25 +2540,12 @@ void G_PlayerReborn(INT32 player)
 	INT32 score, marescore;
 	INT32 lives;
 	INT32 continues;
-	UINT8 charability;
-	UINT8 charability2;
 	// SRB2kart
 	UINT8 kartspeed;
 	UINT8 kartweight;
 	//
-	fixed_t normalspeed;
-	fixed_t runspeed;
-	UINT8 thrustfactor;
-	UINT8 accelstart;
-	UINT8 acceleration;
 	INT32 charflags;
 	INT32 pflags;
-	UINT32 thokitem;
-	UINT32 spinitem;
-	UINT32 revitem;
-	fixed_t actionspd;
-	fixed_t mindash;
-	fixed_t maxdash;
 	INT32 ctfteam;
 	INT32 starposttime;
 	INT16 starpostx;
@@ -2560,7 +2553,6 @@ void G_PlayerReborn(INT32 player)
 	INT16 starpostz;
 	INT32 starpostnum;
 	INT32 starpostangle;
-	fixed_t jumpfactor;
 	INT32 exiting;
 	INT16 numboxes;
 	INT16 totalring;
@@ -2608,17 +2600,10 @@ void G_PlayerReborn(INT32 player)
 
 	skincolor = players[player].skincolor;
 	skin = players[player].skin;
-	charability = players[player].charability;
-	charability2 = players[player].charability2;
 	// SRB2kart
 	kartspeed = players[player].kartspeed;
 	kartweight = players[player].kartweight;
 	//
-	normalspeed = players[player].normalspeed;
-	runspeed = players[player].runspeed;
-	thrustfactor = players[player].thrustfactor;
-	accelstart = players[player].accelstart;
-	acceleration = players[player].acceleration;
 	charflags = players[player].charflags;
 
 	starposttime = players[player].starposttime;
@@ -2628,13 +2613,6 @@ void G_PlayerReborn(INT32 player)
 	starpostnum = players[player].starpostnum;
 	respawnflip = players[player].kartstuff[k_starpostflip];	//SRB2KART
 	starpostangle = players[player].starpostangle;
-	jumpfactor = players[player].jumpfactor;
-	thokitem = players[player].thokitem;
-	spinitem = players[player].spinitem;
-	revitem = players[player].revitem;
-	actionspd = players[player].actionspd;
-	mindash = players[player].mindash;
-	maxdash = players[player].maxdash;
 
 	mare = players[player].mare;
 	bot = players[player].bot;
@@ -2698,24 +2676,11 @@ void G_PlayerReborn(INT32 player)
 	// save player config truth reborn
 	p->skincolor = skincolor;
 	p->skin = skin;
-	p->charability = charability;
-	p->charability2 = charability2;
 	// SRB2kart
 	p->kartspeed = kartspeed;
 	p->kartweight = kartweight;
 	//
-	p->normalspeed = normalspeed;
-	p->runspeed = runspeed;
-	p->thrustfactor = thrustfactor;
-	p->accelstart = accelstart;
-	p->acceleration = acceleration;
 	p->charflags = charflags;
-	p->thokitem = thokitem;
-	p->spinitem = spinitem;
-	p->revitem = revitem;
-	p->actionspd = actionspd;
-	p->mindash = mindash;
-	p->maxdash = maxdash;
 
 	p->starposttime = starposttime;
 	p->starpostx = starpostx;
@@ -2723,7 +2688,6 @@ void G_PlayerReborn(INT32 player)
 	p->starpostz = starpostz;
 	p->starpostnum = starpostnum;
 	p->starpostangle = starpostangle;
-	p->jumpfactor = jumpfactor;
 	p->exiting = exiting;
 
 	p->numboxes = numboxes;
@@ -6122,7 +6086,7 @@ void G_ReadMetalTic(mobj_t *metal)
 	speed = FixedDiv(P_AproxDistance(oldmetal.momx, oldmetal.momy), metal->scale)>>FRACBITS;
 
 	// Use speed to decide an appropriate state
-	if (speed > 28) // default skin runspeed
+	if (speed > 20) // default skin runspeed
 		statetype = 2;
 	else if (speed > 1) // stopspeed
 		statetype = 1;

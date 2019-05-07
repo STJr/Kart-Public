@@ -4781,8 +4781,8 @@ void A_DetonChase(mobj_t *actor)
 		actor->reactiontime = -42;
 
 		exact = actor->movedir>>ANGLETOFINESHIFT;
-		xyspeed = FixedMul(FixedMul(actor->tracer->player->normalspeed,3*FRACUNIT/4), FINECOSINE(exact));
-		actor->momz = FixedMul(FixedMul(actor->tracer->player->normalspeed,3*FRACUNIT/4), FINESINE(exact));
+		xyspeed = FixedMul(FixedMul(K_GetKartSpeed(actor->tracer->player, false),3*FRACUNIT/4), FINECOSINE(exact));
+		actor->momz = FixedMul(FixedMul(K_GetKartSpeed(actor->tracer->player, false),3*FRACUNIT/4), FINESINE(exact));
 
 		exact = actor->angle>>ANGLETOFINESHIFT;
 		actor->momx = FixedMul(xyspeed, FINECOSINE(exact));

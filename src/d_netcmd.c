@@ -437,7 +437,6 @@ static CV_PossibleValue_t nettimeout_cons_t[] = {{TICRATE/7, "MIN"}, {60*TICRATE
 consvar_t cv_nettimeout = {"nettimeout", "105", CV_CALL|CV_SAVE, nettimeout_cons_t, NetTimeout_OnChange, 0, NULL, NULL, 0, 0, NULL};
 //static CV_PossibleValue_t jointimeout_cons_t[] = {{5*TICRATE, "MIN"}, {60*TICRATE, "MAX"}, {0, NULL}};
 consvar_t cv_jointimeout = {"jointimeout", "105", CV_CALL|CV_SAVE, nettimeout_cons_t, JoinTimeout_OnChange, 0, NULL, NULL, 0, 0, NULL};
-#ifdef NEWPING
 static CV_PossibleValue_t maxping_cons_t[] = {{0, "MIN"}, {1000, "MAX"}, {0, NULL}};
 consvar_t cv_maxping = {"maxping", "800", CV_SAVE, maxping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -448,7 +447,6 @@ consvar_t cv_pingtimeout = {"pingtimeout", "10", CV_SAVE, pingtimeout_cons_t, NU
 static CV_PossibleValue_t showping_cons_t[] = {{0, "Off"}, {1, "Always"}, {2, "Warning"}, {0, NULL}};
 consvar_t cv_showping = {"showping", "Always", CV_SAVE, showping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-#endif
 // Intermission time Tails 04-19-2002
 static CV_PossibleValue_t inttime_cons_t[] = {{0, "MIN"}, {3600, "MAX"}, {0, NULL}};
 consvar_t cv_inttime = {"inttime", "20", CV_NETVAR, inttime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -681,6 +679,14 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_maxsend);
 	CV_RegisterVar(&cv_noticedownload);
 	CV_RegisterVar(&cv_downloadspeed);
+#ifndef NONET
+	CV_RegisterVar(&cv_allownewplayer);
+#ifdef VANILLAJOINNEXTROUND
+	CV_RegisterVar(&cv_joinnextround);
+#endif
+	CV_RegisterVar(&cv_showjoinaddress);
+	CV_RegisterVar(&cv_blamecfail);
+#endif
 
 	COM_AddCommand("ping", Command_Ping_f);
 	CV_RegisterVar(&cv_nettimeout);
@@ -688,11 +694,9 @@ void D_RegisterServerCommands(void)
 
 	CV_RegisterVar(&cv_skipmapcheck);
 	CV_RegisterVar(&cv_sleep);
-#ifdef NEWPING
 	CV_RegisterVar(&cv_maxping);
 	CV_RegisterVar(&cv_pingtimeout);
 	CV_RegisterVar(&cv_showping);
-#endif
 
 #ifdef SEENAMES
 	 CV_RegisterVar(&cv_allowseenames);
@@ -877,6 +881,10 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_driftaxis2);
 	CV_RegisterVar(&cv_driftaxis3);
 	CV_RegisterVar(&cv_driftaxis4);
+	CV_RegisterVar(&cv_deadzone);
+	CV_RegisterVar(&cv_deadzone2);
+	CV_RegisterVar(&cv_deadzone3);
+	CV_RegisterVar(&cv_deadzone4);
 
 	// filesrch.c
 	CV_RegisterVar(&cv_addons_option);
@@ -2427,12 +2435,14 @@ static void Command_Map_f(void)
 	const char *mapname;
 	size_t i;
 	INT32 j, newmapnum;
-	boolean newresetplayers;
+	boolean newresetplayers, newencoremode;
 	INT32 newgametype = gametype;
 
-	// max length of command: map map03 -gametype coop -noresetplayers -force
-	//                         1    2       3       4         5           6
+	// max length of command: map map03 -gametype race -noresetplayers -force -encore
+	//                         1    2       3       4         5           6      7
 	// = 8 arg max
+	// i don't know whether this is intrinsic to the system or just someone being weird but
+	// "noresetplayers" is pretty useless for kart if it turns out this is too close to the limit
 	if (COM_Argc() < 2 || COM_Argc() > 8)
 	{
 		CONS_Printf(M_GetText("map <mapname> [-gametype <type> [-force]: warp to map\n"));
@@ -2515,6 +2525,21 @@ static void Command_Map_f(void)
 		}
 	}
 
+	// new encoremode value
+	// use cvar by default
+
+	newencoremode = (boolean)cv_kartencore.value;
+
+	if (COM_CheckParm("-encore"))
+	{
+		if (!M_SecretUnlocked(SECRET_ENCORE) && !newencoremode)
+		{
+			CONS_Alert(CONS_NOTICE, M_GetText("You haven't unlocked Encore Mode yet!\n"));
+			return;
+		}
+		newencoremode = !newencoremode;
+	}
+
 	if (!(i = COM_CheckParm("-force")) && newgametype == gametype) // SRB2Kart
 		newresetplayers = false; // if not forcing and gametypes is the same
 
@@ -2545,7 +2570,7 @@ static void Command_Map_f(void)
 	}
 
 	fromlevelselect = false;
-	D_MapChange(newmapnum, newgametype, (boolean)cv_kartencore.value, newresetplayers, 0, false, false);
+	D_MapChange(newmapnum, newgametype, newencoremode, newresetplayers, 0, false, false);
 }
 
 /** Receives a map command and changes the map.
