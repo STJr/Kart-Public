@@ -21,6 +21,7 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "d_net.h"
+#include "d_netfil.h" // fileneedednum
 #include "d_main.h"
 #include "d_event.h"
 #include "g_game.h"
@@ -1100,6 +1101,7 @@ typedef enum
 #endif
 	CL_CONNECTED,
 	CL_ABORTED,
+	CL_ASKFULLFILELIST,
 	CL_ASKDOWNLOADFILES,
 	CL_WAITDOWNLOADFILESRESPONSE,
 	CL_CHALLENGE
@@ -1110,6 +1112,7 @@ static void GetPackets(void);
 static cl_mode_t cl_mode = CL_SEARCHING;
 static boolean cl_needsdownload = false;
 
+static UINT16 cl_lastcheckedfilecount = 0;
 static UINT8 cl_challengenum = 0;
 static UINT8 cl_challengequestion[MD5_LEN+1];
 static char cl_challengepassword[65];
@@ -1227,6 +1230,9 @@ static inline void CL_DrawConnectionStatus(void)
 					cltext = M_GetText("Waiting to download game state...");
 				break;
 #endif
+			case CL_ASKFULLFILELIST:
+				cltext = M_GetText("This server has a LOT of files!");
+				break;
 			case CL_ASKJOIN:
 			case CL_WAITJOINRESPONSE:
 				cltext = M_GetText("Requesting to join...");
@@ -1285,6 +1291,14 @@ static inline void CL_DrawConnectionStatus(void)
 	}
 }
 #endif
+
+static boolean CL_AskFileList(INT32 firstfile)
+{
+	netbuffer->packettype = PT_TELLFILESNEEDED;
+	netbuffer->u.filesneedednum = firstfile;
+
+	return HSendPacket(servernode, true, 0, sizeof (INT32));
+}
 
 /** Sends a special packet to declare how many players in local
   * Used only in arbitratrenetstart()
@@ -1404,7 +1418,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 
 	netbuffer->u.serverinfo.actnum = 0; //mapheaderinfo[gamemap-1]->actnum
 
-	p = PutFileNeeded();
+	p = PutFileNeeded(0);
 
 	HSendPacket(node, false, 0, p - ((UINT8 *)&netbuffer->u));
 }
@@ -1875,6 +1889,66 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 #endif // ifndef NONET
 
+static boolean CL_FinishedFileList(void)
+{
+	INT32 i;
+	CONS_Printf(M_GetText("Checking files...\n"));
+	i = CL_CheckFiles();
+	if (i == 3) // too many files
+	{
+		D_QuitNetGame();
+		CL_Reset();
+		D_StartTitle();
+		M_StartMessage(M_GetText(
+			"You have too many WAD files loaded\n"
+			"to add ones the server is using.\n"
+			"Please restart SRB2Kart before connecting.\n\n"
+			"Press ESC\n"
+		), NULL, MM_NOTHING);
+		return false;
+	}
+	else if (i == 2) // cannot join for some reason
+	{
+		D_QuitNetGame();
+		CL_Reset();
+		D_StartTitle();
+		M_StartMessage(M_GetText(
+			"You have WAD files loaded or have\n"
+			"modified the game in some way, and\n"
+			"your file list does not match\n"
+			"the server's file list.\n"
+			"Please restart SRB2Kart before connecting.\n\n"
+			"Press ESC\n"
+		), NULL, MM_NOTHING);
+		return false;
+	}
+	else if (i == 1)
+		cl_mode = CL_ASKJOIN;
+	else
+	{
+		// must download something
+		// can we, though?
+		if (!CL_CheckDownloadable()) // nope!
+		{
+			D_QuitNetGame();
+			CL_Reset();
+			D_StartTitle();
+			M_StartMessage(M_GetText(
+				"You cannot connect to this server\n"
+				"because you cannot download the files\n"
+				"that you are missing from the server.\n\n"
+				"See the console or log file for\n"
+				"more details.\n\n"
+				"Press ESC\n"
+			), NULL, MM_NOTHING);
+			return false;
+		}
+
+		cl_mode = CL_ASKDOWNLOADFILES;
+	}
+	return true;
+}
+
 /** Called by CL_ServerConnectionTicker
   *
   * \param viams ???
@@ -1918,66 +1992,16 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 
 		if (client)
 		{
-			D_ParseFileneeded(serverlist[i].info.fileneedednum,
-				serverlist[i].info.fileneeded);
-			CONS_Printf(M_GetText("Checking files...\n"));
-			i = CL_CheckFiles();
-			if (i == 3) // too many files
+			D_ParseFileneeded(serverlist[i].info.fileneedednum, serverlist[i].info.fileneeded, 0);
+			if (serverlist[i].info.kartvars & SV_LOTSOFADDONS)
 			{
-				D_QuitNetGame();
-				CL_Reset();
-				D_StartTitle();
-				M_StartMessage(M_GetText(
-					"You have too many WAD files loaded\n"
-					"to add ones the server is using.\n"
-					"Please restart SRB2Kart before connecting.\n\n"
-					"Press ESC\n"
-				), NULL, MM_NOTHING);
-				return false;
+				cl_mode = CL_ASKFULLFILELIST;
+				cl_lastcheckedfilecount = 0;
+				return true;
 			}
-			else if (i == 2) // cannot join for some reason
-			{
-				D_QuitNetGame();
-				CL_Reset();
-				D_StartTitle();
-				M_StartMessage(M_GetText(
-					"You have WAD files loaded or have\n"
-					"modified the game in some way, and\n"
-					"your file list does not match\n"
-					"the server's file list.\n"
-					"Please restart SRB2Kart before connecting.\n\n"
-					"Press ESC\n"
-				), NULL, MM_NOTHING);
-				return false;
-			}
-			else if (i == 1)
-				cl_mode = CL_ASKJOIN;
-			else
-			{
-				// must download something
-				// can we, though?
-				if (!CL_CheckDownloadable()) // nope!
-				{
-					D_QuitNetGame();
-					CL_Reset();
-					D_StartTitle();
-					M_StartMessage(M_GetText(
-						"You cannot connect to this server\n"
-						"because you cannot download the files\n"
-						"that you are missing from the server.\n\n"
-						"See the console or log file for\n"
-						"more details.\n\n"
-						"Press ESC\n"
-					), NULL, MM_NOTHING);
-					return false;
-				}
 
-				cl_mode = CL_ASKDOWNLOADFILES;
-
-				// no problem if can't send packet, we will retry later
-				//if (CL_SendRequestFile())
-				//	cl_mode = CL_DOWNLOADFILES;
-			}
+			if (!CL_FinishedFileList())
+				return false;
 		}
 		else
 			cl_mode = CL_ASKJOIN; // files need not be checked for the server.
@@ -2026,6 +2050,22 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 		case CL_SEARCHING:
 			if (!CL_ServerConnectionSearchTicker(viams, asksent))
 				return false;
+			break;
+
+		case CL_ASKFULLFILELIST:
+			if (cl_lastcheckedfilecount == UINT16_MAX) // All files retrieved
+			{
+				if (!CL_FinishedFileList())
+					return false;
+			}
+			else if (fileneedednum != cl_lastcheckedfilecount || *asksent + NEWTICRATE < I_GetTime())
+			{
+				if (CL_AskFileList(fileneedednum))
+				{
+					cl_lastcheckedfilecount = fileneedednum;
+					*asksent = I_GetTime();
+				}
+			}
 			break;
 
 		case CL_DOWNLOADFILES:
@@ -3889,6 +3929,39 @@ static void HandlePacketFromAwayNode(SINT8 node)
 #else
 			Net_CloseConnection(node);
 #endif
+			break;
+
+		case PT_TELLFILESNEEDED:
+			if (server && serverrunning)
+			{
+				UINT8 *p;
+				INT32 firstfile = netbuffer->u.filesneedednum;
+
+				netbuffer->packettype = PT_MOREFILESNEEDED;
+				netbuffer->u.filesneededcfg.first = firstfile;
+				netbuffer->u.filesneededcfg.more = 0;
+
+				p = PutFileNeeded(firstfile);
+
+				HSendPacket(node, false, 0, p - ((UINT8 *)&netbuffer->u));
+			}
+			else // Shouldn't get this if you aren't the server...?
+				Net_CloseConnection(node);
+			break;
+
+		case PT_MOREFILESNEEDED:
+			if (server && serverrunning)
+			{ // But wait I thought I'm the server?
+				Net_CloseConnection(node);
+				break;
+			}
+			SERVERONLY
+			if (cl_mode == CL_ASKFULLFILELIST && netbuffer->u.filesneededcfg.first == fileneedednum)
+			{
+				D_ParseFileneeded(netbuffer->u.filesneededcfg.num, netbuffer->u.filesneededcfg.files, netbuffer->u.filesneededcfg.first);
+				if (!netbuffer->u.filesneededcfg.more)
+					cl_lastcheckedfilecount = UINT16_MAX; // Got the whole file list
+			}
 			break;
 
 		case PT_ASKINFO:

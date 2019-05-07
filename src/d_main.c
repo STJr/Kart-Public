@@ -74,7 +74,7 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 #include "m_cond.h" // condition initialization
 #include "fastcmp.h"
 #include "keys.h"
-#include "filesrch.h" // refreshdirmenu, mainwadstally
+#include "filesrch.h" // refreshdirmenu
 
 #ifdef CMAKECONFIG
 #include "config.h"
@@ -1232,8 +1232,6 @@ void D_SRB2Main(void)
 #endif
 
 #endif //ifndef DEVELOP
-
-	mainwadstally = packetsizetally;
 
 	//
 	// search for maps

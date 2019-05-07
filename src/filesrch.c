@@ -341,8 +341,6 @@ size_t dir_on[menudepth];
 UINT8 refreshdirmenu = 0;
 char *refreshdirname = NULL;
 
-size_t packetsizetally = 0;
-size_t mainwadstally = 0;
 
 #if defined (_XBOX) && defined (_MSC_VER)
 filestatus_t filesearch(char *filename, const char *startpath, const UINT8 *wantedmd5sum,

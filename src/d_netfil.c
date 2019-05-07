@@ -107,18 +107,38 @@ INT32 lastfilenum = -1;
   * Used to have size limiting built in - now handed via W_LoadWadFile in w_wad.c
   *
   */
-UINT8 *PutFileNeeded(void)
+UINT8 *PutFileNeeded(UINT16 firstfile)
 {
-	size_t i, count = 0;
-	UINT8 *p = netbuffer->u.serverinfo.fileneeded;
+	size_t i;
+	UINT8 count = 0;
+	UINT8 *p_start = netbuffer->packettype == PT_MOREFILESNEEDED ? netbuffer->u.filesneededcfg.files : netbuffer->u.serverinfo.fileneeded;
+	UINT8 *p = p_start;
 	char wadfilename[MAX_WADPATH] = "";
 	UINT8 filestatus;
 
-	for (i = 0; i < numwadfiles; i++)
+	for (i = mainwads; i < numwadfiles; i++)
 	{
 		// If it has only music/sound lumps, don't put it in the list
 		if (!wadfiles[i]->important)
 			continue;
+
+		if (firstfile)
+		{ // Skip files until we reach the first file.
+			firstfile--;
+			continue;
+		}
+
+		nameonly(strcpy(wadfilename, wadfiles[i]->filename));
+
+		if (p + 1 + 4 + strlen(wadfilename) + 16 > p_start + MAXFILENEEDED)
+		{
+			// Too many files to send all at once
+			if (netbuffer->packettype == PT_MOREFILESNEEDED)
+				netbuffer->u.filesneededcfg.more = 1;
+			else
+				netbuffer->u.serverinfo.kartvars |= SV_LOTSOFADDONS;
+			break;
+		}
 
 		filestatus = 1; // Importance - not really used any more, holds 1 by default for backwards compat with MS
 
@@ -134,30 +154,32 @@ UINT8 *PutFileNeeded(void)
 
 		count++;
 		WRITEUINT32(p, wadfiles[i]->filesize);
-		nameonly(strcpy(wadfilename, wadfiles[i]->filename));
 		WRITESTRINGN(p, wadfilename, MAX_WADPATH);
 		WRITEMEM(p, wadfiles[i]->md5sum, 16);
 	}
-	netbuffer->u.serverinfo.fileneedednum = (UINT8)count;
+	if (netbuffer->packettype == PT_MOREFILESNEEDED)
+		netbuffer->u.filesneededcfg.num = count;
+	else
+		netbuffer->u.serverinfo.fileneedednum = count;
 
 	return p;
 }
 
 /** Parses the serverinfo packet and fills the fileneeded table on client
   *
-  * \param fileneedednum_parm The number of files needed to join the server
+  * \param fileneedednum_parm The number of files (sent in this page) needed to join the server
   * \param fileneededstr The memory block containing the list of needed files
-  *
+  * \param firstfile The first file index to read from
   */
-void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr)
+void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr, UINT16 firstfile)
 {
 	INT32 i;
 	UINT8 *p;
 	UINT8 filestatus;
 
-	fileneedednum = fileneedednum_parm;
+	fileneedednum = firstfile + fileneedednum_parm;
 	p = (UINT8 *)fileneededstr;
-	for (i = 0; i < fileneedednum; i++)
+	for (i = firstfile; i < fileneedednum; i++)
 	{
 		fileneeded[i].status = FS_NOTFOUND; // We haven't even started looking for the file yet
 		filestatus = READUINT8(p); // The first byte is the file status
@@ -338,7 +360,8 @@ INT32 CL_CheckFiles(void)
 	// the first is the iwad (the main wad file)
 	// we don't care if it's called srb2.srb or srb2.wad.
 	// Never download the IWAD, just assume it's there and identical
-	fileneeded[0].status = FS_OPEN;
+	// ...No! Why were we sending the base wads to begin with??
+	//fileneeded[0].status = FS_OPEN;
 
 	// Modified game handling -- check for an identical file list
 	// must be identical in files loaded AND in order
@@ -346,7 +369,7 @@ INT32 CL_CheckFiles(void)
 	if (modifiedgame)
 	{
 		CONS_Debug(DBG_NETPLAY, "game is modified; only doing basic checks\n");
-		for (i = 1, j = 1; i < fileneedednum || j < numwadfiles;)
+		for (i = 0, j = mainwads; i < fileneedednum || j < numwadfiles;)
 		{
 			if (j < numwadfiles && !wadfiles[j]->important)
 			{
@@ -373,15 +396,12 @@ INT32 CL_CheckFiles(void)
 		return 1;
 	}
 
-	// See W_LoadWadFile in w_wad.c
-	packetsize = packetsizetally;
-
-	for (i = 1; i < fileneedednum; i++)
+	for (i = 0; i < fileneedednum; i++)
 	{
 		CONS_Debug(DBG_NETPLAY, "searching for '%s' ", fileneeded[i].filename);
 
 		// Check in already loaded files
-		for (j = 1; wadfiles[j]; j++)
+		for (j = mainwads; wadfiles[j]; j++)
 		{
 			nameonly(strcpy(wadfilename, wadfiles[j]->filename));
 			if (!stricmp(wadfilename, fileneeded[i].filename) &&
@@ -397,8 +417,7 @@ INT32 CL_CheckFiles(void)
 
 		packetsize += nameonlylength(fileneeded[i].filename) + 22;
 
-		if ((numwadfiles+filestoget >= MAX_WADFILES)
-		|| (packetsize > MAXFILENEEDED*sizeof(UINT8)))
+		if (mainwads+filestoget >= MAX_WADFILES)
 			return 3;
 
 		filestoget++;
