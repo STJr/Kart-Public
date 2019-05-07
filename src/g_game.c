@@ -3095,7 +3095,7 @@ void G_ExitLevel(void)
 const char *Gametype_Names[NUMGAMETYPES] =
 {
 	"Race", // GT_RACE
-	"Match" // GT_MATCH
+	"Battle" // GT_MATCH
 	
 	/*"Co-op", // GT_COOP
 	"Competition", // GT_COMPETITION
