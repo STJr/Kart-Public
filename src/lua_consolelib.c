@@ -118,14 +118,14 @@ void COM_Lua_f(void)
 		flags = (UINT8)lua_tointeger(gL, -1);
 	lua_pop(gL, 1); // pop flags
 
-	if (flags & 2) // flag 2: splitscreen player command.
+	if (flags & 2) // flag 2: splitscreen player command. TODO: support 4P
 	{
 		if (!splitscreen)
 		{
 			lua_pop(gL, 1); // pop command info table
 			return; // can't execute splitscreen command without player 2!
 		}
-		playernum = secondarydisplayplayer;
+		playernum = displayplayers[1];
 	}
 
 	if (netgame)

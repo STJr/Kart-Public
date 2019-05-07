@@ -169,10 +169,10 @@ fixed_t P_ReturnThrustY(mobj_t *mo, angle_t angle, fixed_t move)
 boolean P_AutoPause(void)
 {
 	// Don't pause even on menu-up or focus-lost in netgames or record attack
-	if (netgame || modeattacking)
+	if (netgame || modeattacking || demo.title)
 		return false;
 
-	return (menuactive || ( window_notinfocus && cv_pauseifunfocused.value ));
+	return ((menuactive && !demo.playback) || ( window_notinfocus && cv_pauseifunfocused.value ));
 }
 
 //
@@ -654,13 +654,13 @@ static void P_DeNightserizePlayer(player_t *player)
 
 	// Restore aiming angle
 	if (player == &players[consoleplayer])
-		localaiming = 0;
-	else if (player == &players[secondarydisplayplayer])
-		localaiming2 = 0;
-	else if (player == &players[thirddisplayplayer])
-		localaiming3 = 0;
-	else if (player == &players[fourthdisplayplayer])
-		localaiming4 = 0;
+		localaiming[0] = 0;
+	else if (player == &players[displayplayers[1]])
+		localaiming[1] = 0;
+	else if (player == &players[displayplayers[2]])
+		localaiming[2] = 0;
+	else if (player == &players[displayplayers[3]])
+		localaiming[3] = 0;
 
 	if (player->mo->tracer)
 		P_RemoveMobj(player->mo->tracer);
@@ -1147,29 +1147,32 @@ boolean P_EndingMusic(player_t *player)
 	if (!P_IsLocalPlayer(player)) // Only applies to a local player
 		return false;
 
+	if (multiplayer && demo.playback) // Don't play this in multiplayer replays
+		return false;
+
 	// Event - Level Finish
 	// Check for if this is valid or not
 	if (splitscreen)
 	{
-		if (!((players[displayplayer].exiting || (players[displayplayer].pflags & PF_TIMEOVER))
-			|| (players[secondarydisplayplayer].exiting || (players[secondarydisplayplayer].pflags & PF_TIMEOVER))
-			|| ((splitscreen < 2) && (players[thirddisplayplayer].exiting || (players[thirddisplayplayer].pflags & PF_TIMEOVER)))
-			|| ((splitscreen < 3) && (players[fourthdisplayplayer].exiting || (players[fourthdisplayplayer].pflags & PF_TIMEOVER)))))
+		if (!((players[displayplayers[0]].exiting || (players[displayplayers[0]].pflags & PF_TIMEOVER))
+			|| (players[displayplayers[1]].exiting || (players[displayplayers[1]].pflags & PF_TIMEOVER))
+			|| ((splitscreen < 2) && (players[displayplayers[2]].exiting || (players[displayplayers[2]].pflags & PF_TIMEOVER)))
+			|| ((splitscreen < 3) && (players[displayplayers[3]].exiting || (players[displayplayers[3]].pflags & PF_TIMEOVER)))))
 			return false;
 
-		bestlocalplayer = &players[displayplayer];
-		bestlocalpos = ((players[displayplayer].pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : players[displayplayer].kartstuff[k_position]);
+		bestlocalplayer = &players[displayplayers[0]];
+		bestlocalpos = ((players[displayplayers[0]].pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : players[displayplayers[0]].kartstuff[k_position]);
 #define setbests(p) \
 	if (((players[p].pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : players[p].kartstuff[k_position]) < bestlocalpos) \
 	{ \
 		bestlocalplayer = &players[p]; \
 		bestlocalpos = ((players[p].pflags & PF_TIMEOVER) ? MAXPLAYERS+1 : players[p].kartstuff[k_position]); \
 	}
-		setbests(secondarydisplayplayer);
+		setbests(displayplayers[1]);
 		if (splitscreen > 1)
-			setbests(thirddisplayplayer);
+			setbests(displayplayers[2]);
 		if (splitscreen > 2)
-			setbests(fourthdisplayplayer);
+			setbests(displayplayers[3]);
 #undef setbests
 	}
 	else
@@ -1250,12 +1253,12 @@ void P_RestoreMusic(player_t *player)
 		else if (players[p].kartstuff[k_invincibilitytimer] > bestlocaltimer) \
 		{ wantedmus = 1; bestlocaltimer = players[p].kartstuff[k_invincibilitytimer]; } \
 	}
-			setbests(displayplayer);
-			setbests(secondarydisplayplayer);
+			setbests(displayplayers[0]);
+			setbests(displayplayers[1]);
 			if (splitscreen > 1)
-				setbests(thirddisplayplayer);
+				setbests(displayplayers[2]);
 			if (splitscreen > 2)
-				setbests(fourthdisplayplayer);
+				setbests(displayplayers[3]);
 #undef setbests
 		}
 		else
@@ -1513,10 +1516,39 @@ fixed_t P_GetPlayerSpinHeight(player_t *player)
 //
 boolean P_IsLocalPlayer(player_t *player)
 {
-	return ((splitscreen > 2 && player == &players[fourthdisplayplayer])
-		|| (splitscreen > 1 && player == &players[thirddisplayplayer])
-		|| (splitscreen && player == &players[secondarydisplayplayer])
-		|| player == &players[consoleplayer]);
+	UINT8 i;
+
+	if (player == &players[consoleplayer])
+		return true;
+	else if (splitscreen)
+	{
+		for (i = 1; i <= splitscreen; i++) // Skip P1
+		{
+			if (player == &players[displayplayers[i]])
+				return true;
+		}
+	}
+
+	return false;
+}
+
+//
+// P_IsDisplayPlayer
+//
+// Returns true if player is
+// currently being watched.
+//
+boolean P_IsDisplayPlayer(player_t *player)
+{
+	UINT8 i;
+
+	for (i = 0; i <= splitscreen; i++) // DON'T skip P1
+	{
+		if (player == &players[displayplayers[i]])
+			return true;
+	}
+
+	return false;
 }
 
 //
@@ -1654,113 +1686,6 @@ mobj_t *P_SpawnGhostMobj(mobj_t *mobj)
 }
 
 //
-// P_SpawnThokMobj
-//
-// Spawns the appropriate thok object on the player
-//
-void P_SpawnThokMobj(player_t *player)
-{
-	mobj_t *mobj;
-	mobjtype_t type = player->thokitem;
-	fixed_t zheight;
-
-	if (player->skincolor == 0)
-		return;
-
-	if (player->spectator)
-		return;
-
-	if (type == MT_GHOST)
-		mobj = P_SpawnGhostMobj(player->mo); // virtually does everything here for us
-	else
-	{
-		if (player->mo->eflags & MFE_VERTICALFLIP)
-			zheight = player->mo->z + player->mo->height + FixedDiv(P_GetPlayerHeight(player) - player->mo->height, 3*FRACUNIT) - FixedMul(mobjinfo[type].height, player->mo->scale);
-		else
-			zheight = player->mo->z - FixedDiv(P_GetPlayerHeight(player) - player->mo->height, 3*FRACUNIT);
-
-		if (!(player->mo->eflags & MFE_VERTICALFLIP) && zheight < player->mo->floorz && !(mobjinfo[type].flags & MF_NOCLIPHEIGHT))
-			zheight = player->mo->floorz;
-		else if (player->mo->eflags & MFE_VERTICALFLIP && zheight + FixedMul(mobjinfo[type].height, player->mo->scale) > player->mo->ceilingz && !(mobjinfo[type].flags & MF_NOCLIPHEIGHT))
-			zheight = player->mo->ceilingz - FixedMul(mobjinfo[type].height, player->mo->scale);
-
-		mobj = P_SpawnMobj(player->mo->x, player->mo->y, zheight, type);
-
-		// set to player's angle, just in case
-		mobj->angle = player->mo->angle;
-
-		// color and skin
-		mobj->color = player->mo->color;
-		mobj->skin = player->mo->skin;
-
-		// vertical flip
-		if (player->mo->eflags & MFE_VERTICALFLIP)
-			mobj->flags2 |= MF2_OBJECTFLIP;
-		mobj->eflags |= (player->mo->eflags & MFE_VERTICALFLIP);
-
-		// scale
-		P_SetScale(mobj, player->mo->scale);
-		mobj->destscale = player->mo->scale;
-	}
-
-	P_SetTarget(&mobj->target, player->mo); // the one thing P_SpawnGhostMobj doesn't do
-	if (demorecording)
-		G_GhostAddThok();
-}
-
-//
-// P_SpawnSpinMobj
-//
-// Spawns the appropriate spin object on the player
-//
-void P_SpawnSpinMobj(player_t *player, mobjtype_t type)
-{
-	mobj_t *mobj;
-	fixed_t zheight;
-
-	if (player->skincolor == 0)
-		return;
-
-	if (player->spectator)
-		return;
-
-	if (type == MT_GHOST)
-		mobj = P_SpawnGhostMobj(player->mo); // virtually does everything here for us
-	else
-	{
-		if (player->mo->eflags & MFE_VERTICALFLIP)
-			zheight = player->mo->z + player->mo->height + FixedDiv(P_GetPlayerHeight(player) - player->mo->height, 3*FRACUNIT) - FixedMul(mobjinfo[type].height, player->mo->scale);
-		else
-			zheight = player->mo->z - FixedDiv(P_GetPlayerHeight(player) - player->mo->height, 3*FRACUNIT);
-
-		if (!(player->mo->eflags & MFE_VERTICALFLIP) && zheight < player->mo->floorz && !(mobjinfo[type].flags & MF_NOCLIPHEIGHT))
-			zheight = player->mo->floorz;
-		else if (player->mo->eflags & MFE_VERTICALFLIP && zheight + FixedMul(mobjinfo[type].height, player->mo->scale) > player->mo->ceilingz && !(mobjinfo[type].flags & MF_NOCLIPHEIGHT))
-			zheight = player->mo->ceilingz - FixedMul(mobjinfo[type].height, player->mo->scale);
-
-		mobj = P_SpawnMobj(player->mo->x, player->mo->y, zheight, type);
-
-		// set to player's angle, just in case
-		mobj->angle = player->mo->angle;
-
-		// color and skin
-		mobj->color = player->mo->color;
-		mobj->skin = player->mo->skin;
-
-		// vertical flip
-		if (player->mo->eflags & MFE_VERTICALFLIP)
-			mobj->flags2 |= MF2_OBJECTFLIP;
-		mobj->eflags |= (player->mo->eflags & MFE_VERTICALFLIP);
-
-		// scale
-		P_SetScale(mobj, player->mo->scale);
-		mobj->destscale = player->mo->scale;
-	}
-
-	P_SetTarget(&mobj->target, player->mo); // the one thing P_SpawnGhostMobj doesn't do
-}
-
-//
 // P_DoPlayerExit
 //
 // Player exits the map via sector trigger
@@ -1769,11 +1694,7 @@ void P_DoPlayerExit(player_t *player)
 	if (player->exiting || mapreset)
 		return;
 
-	if ((player == &players[consoleplayer]
-		|| (splitscreen && player == &players[secondarydisplayplayer])
-		|| (splitscreen > 1 && player == &players[thirddisplayplayer])
-		|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
-		&& (!player->spectator && !demoplayback))
+	if (P_IsLocalPlayer(player) && (!player->spectator && !demo.playback))
 		legitimateexit = true;
 
 	if (G_RaceGametype()) // If in Race Mode, allow
@@ -1831,6 +1752,9 @@ void P_DoPlayerExit(player_t *player)
 	player->powers[pw_underwater] = 0;
 	player->powers[pw_spacetime] = 0;
 	player->kartstuff[k_cardanimation] = 0; // srb2kart: reset battle animation
+
+	if (player == &players[consoleplayer])
+		demo.savebutton = leveltime;
 
 	/*if (playeringame[player-players] && netgame && !circuitmap)
 		CONS_Printf(M_GetText("%s has completed the level.\n"), player_names[player-players]);*/
@@ -1960,13 +1884,13 @@ static void P_CheckBustableBlocks(player_t *player)
 					// ...or are drilling in NiGHTS (or Metal Sonic)
 					if (!(rover->flags & FF_SHATTER) && !(rover->flags & FF_SPINBUST)
 						&& !((player->pflags & PF_SPINNING) && !(player->pflags & PF_JUMPED))
-						&& (player->charability != CA_GLIDEANDCLIMB && !player->powers[pw_super])
+						&& (/*player->charability != CA_GLIDEANDCLIMB &&*/ !player->powers[pw_super])
 						&& !(player->pflags & PF_DRILLING) && !metalrecording)
 						continue;
 
 					// Only Knuckles can break this rock...
-					if (!(rover->flags & FF_SHATTER) && (rover->flags & FF_ONLYKNUX) && !(player->charability == CA_GLIDEANDCLIMB))
-						continue;
+					/*if (!(rover->flags & FF_SHATTER) && (rover->flags & FF_ONLYKNUX) && !(player->charability == CA_GLIDEANDCLIMB))
+						continue;*/
 
 					topheight = P_GetFOFTopZ(player->mo, node->m_sector, rover, player->mo->x, player->mo->y, NULL);
 					bottomheight = P_GetFOFBottomZ(player->mo, node->m_sector, rover, player->mo->x, player->mo->y, NULL);
@@ -2413,12 +2337,12 @@ static void P_CheckInvincibilityTimer(player_t *player)
 				//if (player->powers[pw_shield] & SH_FIREFLOWER)
 				//{
 				//	player->mo->color = SKINCOLOR_WHITE;
-				//	G_GhostAddColor(GHC_FIREFLOWER);
+				//	G_GhostAddColor((INT32) (player - players), GHC_FIREFLOWER);
 				//}
 				//else
 				{
 					player->mo->color = player->skincolor;
-					G_GhostAddColor(GHC_NORMAL);
+					G_GhostAddColor((INT32) (player - players), GHC_NORMAL);
 				}
 			}
 
@@ -2468,7 +2392,7 @@ static void P_DoBubbleBreath(player_t *player)
 		return;
 
 	// Tails stirs up the water while flying in it
-	if (player->powers[pw_tailsfly] && (leveltime & 1) && player->charability != CA_SWIM)
+	/*if (player->powers[pw_tailsfly] && (leveltime & 1) && player->charability != CA_SWIM)
 	{
 		fixed_t radius = (3*player->mo->radius)>>1;
 		angle_t fa = ((leveltime%45)*FINEANGLES/8) & FINEMASK;
@@ -2494,7 +2418,7 @@ static void P_DoBubbleBreath(player_t *player)
 			stirwaterz, MT_SMALLBUBBLE);
 		bubble->destscale = player->mo->scale;
 		P_SetScale(bubble,bubble->destscale);
-	}
+	}*/
 }
 
 //
@@ -2509,8 +2433,7 @@ static void P_DoPlayerHeadSigns(player_t *player)
 		// If you're "IT", show a big "IT" over your head for others to see.
 		if (player->pflags & PF_TAGIT)
 		{
-			if (!(player == &players[consoleplayer] || player == &players[displayplayer] || player == &players[secondarydisplayplayer]
-				|| player == &players[thirddisplayplayer] || player == &players[fourthdisplayplayer])) // Don't display it on your own view.
+			if (!P_IsDisplayPlayer(player)) // Don't display it on your own view.
 			{
 				if (!(player->mo->eflags & MFE_VERTICALFLIP))
 					P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + player->mo->height, MT_TAG);
@@ -2998,13 +2921,13 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 	}
 
 	if (player == &players[consoleplayer])
-		localangle = player->mo->angle;
-	else if (player == &players[secondarydisplayplayer])
-		localangle2 = player->mo->angle;
-	else if (player == &players[thirddisplayplayer])
-		localangle3 = player->mo->angle;
-	else if (player == &players[fourthdisplayplayer])
-		localangle4 = player->mo->angle;
+		localangle[0] = player->mo->angle;
+	else if (player == &players[displayplayers[1]])
+		localangle[1] = player->mo->angle;
+	else if (player == &players[displayplayers[2]])
+		localangle[2] = player->mo->angle;
+	else if (player == &players[displayplayers[3]])
+		localangle[3] = player->mo->angle;
 
 	if (player->climbing == 0)
 		P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
@@ -3635,195 +3558,6 @@ static void P_DoFiring(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 */
 
 //
-// P_DoJump
-//
-// Jump routine for the player
-//
-void P_DoJump(player_t *player, boolean soundandstate)
-{
-	fixed_t factor;
-	const fixed_t dist6 = FixedMul(FixedDiv(player->speed, player->mo->scale), player->actionspd)/20;
-
-	return;
-
-	if (player->pflags & PF_JUMPSTASIS)
-		return;
-
-	if (!player->jumpfactor)
-		return;
-
-	if (player->kartstuff[k_spinouttimer]) // SRB2kart
-		return;
-
-	/* // SRB2kart - climbing in a kart?
-	if (player->climbing)
-	{
-		// Jump this high.
-		if (player->powers[pw_super])
-			player->mo->momz = 5*FRACUNIT;
-		else if (player->mo->eflags & MFE_UNDERWATER)
-			player->mo->momz = 2*FRACUNIT;
-		else
-			player->mo->momz = 15*(FRACUNIT/4);
-
-		player->mo->angle = player->mo->angle - ANGLE_180; // Turn around from the wall you were climbing.
-
-		if (player == &players[consoleplayer])
-			localangle = player->mo->angle; // Adjust the local control angle.
-		else if (player == &players[secondarydisplayplayer])
-			localangle2 = player->mo->angle;
-		else if (player == &players[thirddisplayplayer])
-			localangle3 = player->mo->angle;
-		else if (player == &players[fourthdisplayplayer])
-			localangle4 = player->mo->angle;
-
-		player->climbing = 0; // Stop climbing, duh!
-		P_InstaThrust(player->mo, player->mo->angle, FixedMul(6*FRACUNIT, player->mo->scale)); // Jump off the wall.
-	}
-	// Quicksand jumping.
-	else if (P_InQuicksand(player->mo))
-	{
-		if (player->mo->ceilingz-player->mo->floorz <= player->mo->height-1)
-			return;
-		player->mo->momz += (39*(FRACUNIT/4))>>1;
-		if (player->mo->momz >= 6*FRACUNIT)
-			player->mo->momz = 6*FRACUNIT; //max momz in quicksand
-		else if (player->mo->momz < 0) // still descending?
-			player->mo->momz = (39*(FRACUNIT/4))>>1; // just default to the jump height.
-	}
-	else*/ if (!(player->pflags & PF_JUMPED)) // Spin Attack
-	{
-		if (player->mo->ceilingz-player->mo->floorz <= player->mo->height-1)
-			return;
-
-		// Jump this high.
-		if (player->pflags & PF_CARRIED)
-		{
-			player->mo->momz = 9*FRACUNIT;
-			player->pflags &= ~PF_CARRIED;
-			/*if (player-players == consoleplayer && botingame)
-				CV_SetValue(&cv_analog2, true);*/
-		}
-		else if (player->pflags & PF_ITEMHANG)
-		{
-			player->mo->momz = 9*FRACUNIT;
-			player->pflags &= ~PF_ITEMHANG;
-		}
-		else if (player->pflags & PF_ROPEHANG)
-		{
-			player->mo->momz = 12*FRACUNIT;
-			player->pflags &= ~PF_ROPEHANG;
-			P_SetTarget(&player->mo->tracer, NULL);
-		}
-		else if (player->mo->eflags & MFE_GOOWATER)
-		{
-			player->mo->momz = 7*FRACUNIT;
-			if (player->charability == CA_JUMPBOOST && onground)
-			{
-				if (player->charability2 == CA2_MULTIABILITY)
-					player->mo->momz += FixedMul(FRACUNIT/4, dist6);
-				else
-					player->mo->momz += FixedMul(FRACUNIT/8, dist6);
-			}
-		}
-		else if (maptol & TOL_NIGHTS)
-			player->mo->momz = 24*FRACUNIT;
-		else
-			player->mo->momz = 3*FRACUNIT; // Kart jump momentum.
-		/* // SRB2kart - Okay enough of that.
-		else if (player->powers[pw_super])
-		{
-			if (player->charability == CA_FLOAT)
-				player->mo->momz = 28*FRACUNIT; //Obscene jump height anyone?
-			else if (player->charability == CA_SLOWFALL)
-				player->mo->momz = 37*(FRACUNIT/2); //Less obscene because during super, floating propells oneself upward.
-			else // Default super jump momentum.
-				player->mo->momz = 13*FRACUNIT;
-
-			// Add a boost for super characters with float/slowfall and multiability.
-			if (player->charability2 == CA2_MULTIABILITY &&
-				(player->charability == CA_FLOAT || player->charability == CA_SLOWFALL))
-				player->mo->momz += 2*FRACUNIT;
-			else if (player->charability == CA_JUMPBOOST)
-			{
-				if (player->charability2 == CA2_MULTIABILITY)
-					player->mo->momz += FixedMul(FRACUNIT/4, dist6);
-				else
-					player->mo->momz += FixedMul(FRACUNIT/8, dist6);
-			}
-		}
-		else if (player->charability2 == CA2_MULTIABILITY &&
-			(player->charability == CA_DOUBLEJUMP || player->charability == CA_FLOAT || player->charability == CA_SLOWFALL))
-		{
-			// Multiability exceptions, since some abilities cannot effectively use it and need a boost.
-			if (player->charability == CA_DOUBLEJUMP)
-				player->mo->momz = 23*(FRACUNIT/2); // Increased jump height instead of infinite jumps.
-			else if (player->charability == CA_FLOAT || player->charability == CA_SLOWFALL)
-				player->mo->momz = 12*FRACUNIT; // Increased jump height due to ineffective repeat.
-		}
-		else
-		{
-			player->mo->momz = 39*(FRACUNIT/4); // Default jump momentum.
-			if (player->charability == CA_JUMPBOOST && onground)
-			{
-				if (player->charability2 == CA2_MULTIABILITY)
-					player->mo->momz += FixedMul(FRACUNIT/4, dist6);
-				else
-					player->mo->momz += FixedMul(FRACUNIT/8, dist6);
-			}
-		}
-		*/
-
-		// Reduce player momz by 58.5% when underwater.
-		if (player->mo->eflags & MFE_UNDERWATER)
-			player->mo->momz = FixedMul(player->mo->momz, FixedDiv(117*FRACUNIT, 200*FRACUNIT));
-
-		player->jumping = 1;
-	}
-
-	factor = player->jumpfactor;
-
-	if (twodlevel || (player->mo->flags2 & MF2_TWOD))
-		factor += player->jumpfactor / 10;
-
-	P_SetObjectMomZ(player->mo, FixedMul(factor, player->mo->momz), false); // Custom height
-
-	// set just an eensy above the ground
-	if (player->mo->eflags & MFE_VERTICALFLIP)
-	{
-		player->mo->z--;
-		if (player->mo->pmomz < 0)
-			player->mo->momz += player->mo->pmomz; // Add the platform's momentum to your jump.
-		else
-			player->mo->pmomz = 0;
-	}
-	else
-	{
-		player->mo->z++;
-		if (player->mo->pmomz > 0)
-			player->mo->momz += player->mo->pmomz; // Add the platform's momentum to your jump.
-		else
-			player->mo->pmomz = 0;
-	}
-	player->mo->eflags &= ~MFE_APPLYPMOMZ;
-
-	player->pflags |= PF_JUMPED;
-
-	if (soundandstate)
-	{
-		if (!player->spectator)
-			S_StartSound(player->mo, sfx_jump); // Play jump sound!
-
-		/* // SRB2kart - don't need jump frames
-		if (!(player->charability2 == CA2_SPINDASH))
-			P_SetPlayerMobjState(player->mo, S_PLAY_SPRING);
-		else
-			P_SetPlayerMobjState(player->mo, S_PLAY_ATK1);
-		*/
-	}
-}
-
-//
 // P_DoSpinDash
 //
 // Player spindash handling
@@ -3872,8 +3606,8 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 
 				// Now spawn the color thok circle.
 				P_SpawnSpinMobj(player, player->revitem);
-				if (demorecording)
-					G_GhostAddRev();
+				if (demo.recording)
+					G_GhostAddRev((INT32) (player - players));
 			}
 		}
 		// If not moving up or down, and travelling faster than a speed of four while not holding
@@ -3946,7 +3680,7 @@ void P_DoJumpShield(player_t *player)
 		return;
 
 	player->pflags &= ~PF_JUMPED;
-	P_DoJump(player, false);
+	//P_DoJump(player, false);
 	player->pflags &= ~PF_JUMPED;
 	player->secondjump = 0;
 	player->jumping = 0;
@@ -4004,336 +3738,8 @@ void P_Telekinesis(player_t *player, fixed_t thrust, fixed_t range)
 		}
 	}
 
-	P_SpawnThokMobj(player);
+	//P_SpawnThokMobj(player);
 	player->pflags |= PF_THOKKED;
-}
-
-//
-// P_DoJumpStuff
-//
-// Handles player jumping
-//
-static void P_DoJumpStuff(player_t *player, ticcmd_t *cmd)
-{
-	if (player->pflags & PF_JUMPSTASIS)
-		return;
-
-	if (cmd->buttons & BT_BRAKE && !(player->pflags & PF_JUMPDOWN) && !player->exiting && !P_PlayerInPain(player))
-	{
-		if (onground || player->climbing || player->pflags & (PF_CARRIED|PF_ITEMHANG|PF_ROPEHANG))
-		{}
-		else if (player->pflags & PF_MACESPIN && player->mo->tracer)
-		{}
-		else if (!(player->pflags & PF_SLIDING) && ((gametype != GT_CTF) || (!player->gotflag)))
-		{
-#ifdef HAVE_BLUA
-			if (!LUAh_JumpSpinSpecial(player))
-#endif
-			switch (player->charability)
-			{
-				case CA_TELEKINESIS:
-					if (player->pflags & PF_JUMPED)
-					{
-						if (!(player->pflags & PF_THOKKED) || (player->charability2 == CA2_MULTIABILITY))
-						{
-							P_Telekinesis(player,
-								-FixedMul(player->actionspd, player->mo->scale), // -ve thrust (pulling towards player)
-								FixedMul(384*FRACUNIT, player->mo->scale));
-						}
-					}
-					break;
-				case CA_AIRDRILL:
-					if (player->pflags & PF_JUMPED)
-					{
-						if (player->pflags & PF_THOKKED) // speed up falling down
-						{
-							if (player->secondjump < 42)
-								player->secondjump ++;
-						}
-					}
-					break;
-				default:
-					break;
-			}
-		}
-	}
-
-	if (player->charability == CA_AIRDRILL)
-	{
-		if (player->pflags & PF_JUMPED)
-		{
-			if (player->flyangle > 0 && player->pflags & PF_THOKKED)
-			{
-				player->flyangle--;
-
-				P_SetObjectMomZ(player->mo, ((player->flyangle-24 - player->secondjump*3)*((player->actionspd>>FRACBITS)/12 + 1)<<FRACBITS)/7, false);
-
-				P_SpawnThokMobj(player);
-
-				if ((player->mo->eflags & MFE_UNDERWATER))
-					P_InstaThrust(player->mo, player->mo->angle, FixedMul(player->normalspeed, player->mo->scale)*(80-player->flyangle - (player->actionspd>>FRACBITS)/2)/80);
-				else
-					P_InstaThrust(player->mo, player->mo->angle, ((FixedMul(player->normalspeed - player->actionspd/4, player->mo->scale))*2)/3);
-			}
-		}
-	}
-
-	if (cmd->buttons & BT_DRIFT && !player->exiting && !P_PlayerInPain(player))
-	{
-#ifdef HAVE_BLUA
-		if (LUAh_JumpSpecial(player))
-			;
-		else
-#endif
-		if (player->pflags & PF_JUMPDOWN) // all situations below this require jump button not to be pressed already
-			;
-		else
-		// Jump S3&K style while in quicksand.
-		if (P_InQuicksand(player->mo))
-		{
-			P_DoJump(player, true);
-			player->secondjump = 0;
-			player->pflags &= ~PF_THOKKED;
-		}
-		else
-		// can't jump while in air, can't jump while jumping
-		if (onground || player->climbing || player->pflags & (PF_CARRIED|PF_ITEMHANG|PF_ROPEHANG))
-		{
-			P_DoJump(player, true);
-			player->secondjump = 0;
-			player->pflags &= ~PF_THOKKED;
-		}
-		/* // SRB2kart - no jumpy power things
-		else if (player->pflags & PF_MACESPIN && player->mo->tracer)
-		{
-			player->pflags &= ~PF_MACESPIN;
-			player->powers[pw_flashing] = TICRATE/4;
-		}
-		else if (player->pflags & PF_SLIDING || (gametype == GT_CTF && player->gotflag))
-			;
-		else if (P_SuperReady(player))
-		{
-			// If you can turn super and aren't already,
-			// and you don't have a shield, do it!
-			P_DoSuperTransformation(player, false);
-		}
-		else if (player->pflags & PF_JUMPED)
-		{
-#ifdef HAVE_BLUA
-			if (!LUAh_AbilitySpecial(player))
-#endif
-			switch (player->charability)
-			{
-				case CA_THOK:
-				case CA_HOMINGTHOK:
-				case CA_JUMPTHOK: // Credit goes to CZ64 and Sryder13 for the original
-					// Now it's Sonic's abilities turn!
-					// THOK!
-					if (!(player->pflags & PF_THOKKED) || (player->charability2 == CA2_MULTIABILITY))
-					{
-						// Catapult the player
-						fixed_t actionspd = player->actionspd;
-						if (player->mo->eflags & MFE_UNDERWATER)
-							actionspd >>= 1;
-						if ((player->charability == CA_JUMPTHOK) && !(player->pflags & PF_THOKKED))
-						{
-							player->pflags &= ~PF_JUMPED;
-							P_DoJump(player, false);
-						}
-						P_InstaThrust(player->mo, player->mo->angle, FixedMul(actionspd, player->mo->scale));
-
-						if (maptol & TOL_2D)
-						{
-							player->mo->momx /= 2;
-							player->mo->momy /= 2;
-						}
-						else if (player->charability == CA_HOMINGTHOK)
-						{
-							player->mo->momx /= 3;
-							player->mo->momy /= 3;
-						}
-
-						if (player->mo->info->attacksound && !player->spectator)
-							S_StartSound(player->mo, player->mo->info->attacksound); // Play the THOK sound
-
-						P_SpawnThokMobj(player);
-
-						if (player->charability == CA_HOMINGTHOK && !player->homing)
-						{
-							if (P_LookForEnemies(player))
-							{
-								if (player->mo->tracer)
-									player->homing = 3*TICRATE;
-							}
-						}
-
-						player->pflags &= ~(PF_SPINNING|PF_STARTDASH);
-						player->pflags |= PF_THOKKED;
-					}
-					break;
-
-				case CA_FLY:
-				case CA_SWIM: // Swim
-					// If currently in the air from a jump, and you pressed the
-					// button again and have the ability to fly, do so!
-					if (player->charability == CA_SWIM && !(player->mo->eflags & MFE_UNDERWATER))
-						; // Can't do anything if you're a fish out of water!
-					else if (!(player->pflags & PF_THOKKED) && !(player->powers[pw_tailsfly]))
-					{
-						//P_SetPlayerMobjState(player->mo, S_PLAY_ABL1); // Change to the flying animation
-
-						player->powers[pw_tailsfly] = tailsflytics + 1; // Set the fly timer
-
-						player->pflags &= ~(PF_JUMPED|PF_SPINNING|PF_STARTDASH);
-						player->pflags |= PF_THOKKED;
-					}
-					break;
-				case CA_GLIDEANDCLIMB:
-					// Now Knuckles-type abilities are checked.
-					// If you can turn super and aren't already,
-					// and you don't have a shield, do it!
-					if (!(player->pflags & PF_THOKKED) || player->charability2 == CA2_MULTIABILITY)
-					{
-						INT32 glidespeed = player->actionspd;
-
-						player->pflags |= PF_GLIDING|PF_THOKKED;
-						player->glidetime = 0;
-
-						if (player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))
-						{
-							// Glide at double speed while super.
-							glidespeed *= 2;
-							player->pflags &= ~PF_THOKKED;
-						}
-
-						//P_SetPlayerMobjState(player->mo, S_PLAY_ABL1);
-						P_InstaThrust(player->mo, player->mo->angle, FixedMul(glidespeed, player->mo->scale));
-						player->pflags &= ~(PF_SPINNING|PF_STARTDASH);
-					}
-					break;
-				case CA_DOUBLEJUMP: // Double-Jump
-					if (!(player->pflags & PF_THOKKED))
-					{
-						player->pflags &= ~PF_JUMPED;
-						P_DoJump(player, true);
-
-						// Allow infinite double jumping if super.
-						if (!player->powers[pw_super])
-							player->pflags |= PF_THOKKED;
-					}
-					break;
-				case CA_FLOAT: // Float
-				case CA_SLOWFALL: // Slow descent hover
-					if (!player->secondjump)
-						player->secondjump = 1;
-					break;
-				case CA_TELEKINESIS:
-					if (!(player->pflags & PF_THOKKED) || player->charability2 == CA2_MULTIABILITY)
-					{
-						P_Telekinesis(player,
-							FixedMul(player->actionspd, player->mo->scale), // +ve thrust (pushing away from player)
-							FixedMul(384*FRACUNIT, player->mo->scale));
-					}
-					break;
-				case CA_FALLSWITCH:
-					if (!(player->pflags & PF_THOKKED) || player->charability2 == CA2_MULTIABILITY)
-					{
-						player->mo->momz = -player->mo->momz;
-						P_SpawnThokMobj(player);
-						player->pflags |= PF_THOKKED;
-					}
-					break;
-
-				case CA_AIRDRILL:
-					if (!(player->pflags & PF_THOKKED) || player->charability2 == CA2_MULTIABILITY)
-					{
-						player->flyangle = 56 + (60-(player->actionspd>>FRACBITS))/3;
-						player->pflags |= PF_THOKKED;
-						S_StartSound(player->mo, sfx_spndsh);
-					}
-					break;
-				default:
-					break;
-			}
-		}
-		else if (player->pflags & PF_THOKKED)
-		{
-#ifdef HAVE_BLUA
-			if (!LUAh_AbilitySpecial(player))
-#endif
-			switch (player->charability)
-			{
-				case CA_FLY:
-				case CA_SWIM: // Swim
-					if (player->charability == CA_SWIM && !(player->mo->eflags & MFE_UNDERWATER))
-						; // Can't do anything if you're a fish out of water!
-					else if (player->powers[pw_tailsfly]) // If currently flying, give an ascend boost.
-					{
-						if (!player->fly1)
-							player->fly1 = 20;
-						else
-							player->fly1 = 2;
-
-						if (player->charability == CA_SWIM)
-							player->fly1 /= 2;
-
-						// Slow down!
-						if (player->speed > FixedMul(8*FRACUNIT, player->mo->scale) && player->speed > FixedMul(player->normalspeed>>1, player->mo->scale))
-							P_Thrust(player->mo, R_PointToAngle2(0,0,player->mo->momx,player->mo->momy), FixedMul(-4*FRACUNIT, player->mo->scale));
-					}
-					break;
-				default:
-					break;
-			}
-		}
-		else if ((player->powers[pw_shield] & SH_NOSTACK) == SH_JUMP && !player->powers[pw_super])
-			P_DoJumpShield(player);
-		*/
-	}
-
-	if (cmd->buttons & BT_DRIFT)
-	{
-		player->pflags |= PF_JUMPDOWN;
-
-		if ((gametype != GT_CTF || !player->gotflag) && !player->exiting)
-		{
-			if (player->secondjump == 1)
-			{
-				if (player->charability == CA_FLOAT)
-					player->mo->momz = 0;
-				else if (player->charability == CA_SLOWFALL)
-				{
-					if (player->powers[pw_super])
-					{
-						if (P_MobjFlip(player->mo)*player->mo->momz < gravity*16)
-						player->mo->momz = P_MobjFlip(player->mo)*gravity*16; //Float upward 4x as fast while super.
-					}
-					else if (P_MobjFlip(player->mo)*player->mo->momz < -gravity*4)
-						player->mo->momz = P_MobjFlip(player->mo)*-gravity*4;
-				}
-				player->pflags &= ~PF_SPINNING;
-			}
-		}
-	}
-	else // If not pressing the jump button
-	{
-		player->pflags &= ~PF_JUMPDOWN;
-
-		// Repeat abilities, but not double jump!
-		if ((player->charability2 == CA2_MULTIABILITY && player->charability != CA_DOUBLEJUMP)
-			|| (player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds])))
-			player->secondjump = 0;
-		else if (player->charability == CA_FLOAT && player->secondjump == 1)
-			player->secondjump = 2;
-
-
-		// If letting go of the jump button while still on ascent, cut the jump height.
-		if (player->pflags & PF_JUMPED && P_MobjFlip(player->mo)*player->mo->momz > 0 && player->jumping == 1)
-		{
-			player->mo->momz >>= 1;
-			player->jumping = 0;
-		}
-	}
 }
 
 boolean P_AnalogMove(player_t *player)
@@ -4359,14 +3765,14 @@ boolean P_AnalogMove(player_t *player)
 	fixed_t tempx = 0, tempy = 0;
 	angle_t tempangle, origtempangle;
 
-	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		thiscam = &camera4;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		thiscam = &camera3;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		thiscam = &camera2;
+	if (splitscreen > 2 && player == &players[displayplayers[3]])
+		thiscam = &camera[3];
+	else if (splitscreen > 1 && player == &players[displayplayers[2]])
+		thiscam = &camera[2];
+	else if (splitscreen && player == &players[displayplayers[1]])
+		thiscam = &camera[1];
 	else
-		thiscam = &camera;
+		thiscam = &camera[0];
 
 	if (!cmd->forwardmove && !cmd->sidemove)
 		return 0;
@@ -4507,13 +3913,13 @@ static void P_2dMovement(player_t *player)
 	}
 
 	if (player == &players[consoleplayer])
-		localangle = player->mo->angle;
-	else if (player == &players[secondarydisplayplayer])
-		localangle2 = player->mo->angle;
-	else if (player == &players[thirddisplayplayer])
-		localangle3 = player->mo->angle;
-	else if (player == &players[fourthdisplayplayer])
-		localangle4 = player->mo->angle;
+		localangle[0] = player->mo->angle;
+	else if (player == &players[displayplayers[1]])
+		localangle[1] = player->mo->angle;
+	else if (player == &players[displayplayers[2]])
+		localangle[2] = player->mo->angle;
+	else if (player == &players[displayplayers[3]])
+		localangle[3] = player->mo->angle;
 
 	if (player->pflags & PF_GLIDING)
 		movepushangle = player->mo->angle;
@@ -6043,13 +5449,13 @@ static void P_NiGHTSMovement(player_t *player)
 		P_SetMobjStateNF(player->mo->tracer, leveltime & 1 ? flystate : flystate+1);
 
 	if (player == &players[consoleplayer])
-		localangle = player->mo->angle;
-	else if (player == &players[secondarydisplayplayer])
-		localangle2 = player->mo->angle;
-	else if (player == &players[thirddisplayplayer])
-		localangle3 = player->mo->angle;
-	else if (player == &players[fourthdisplayplayer])
-		localangle4 = player->mo->angle;
+		localangle[0] = player->mo->angle;
+	else if (player == &players[displayplayers[1]])
+		localangle[1] = player->mo->angle;
+	else if (player == &players[displayplayers[2]])
+		localangle[2] = player->mo->angle;
+	else if (player == &players[displayplayers[3]])
+		localangle[3] = player->mo->angle;
 
 	if (still)
 	{
@@ -6076,13 +5482,13 @@ static void P_NiGHTSMovement(player_t *player)
 		movingangle = InvAngle(movingangle);
 
 	if (player == &players[consoleplayer])
-		localaiming = movingangle;
-	else if (player == &players[secondarydisplayplayer])
-		localaiming2 = movingangle;
-	else if (player == &players[thirddisplayplayer])
-		localaiming3 = movingangle;
-	else if (player == &players[fourthdisplayplayer])
-		localaiming4 = movingangle;
+		localaiming[0] = movingangle;
+	else if (player == &players[displayplayers[1]])
+		localaiming[1] = movingangle;
+	else if (player == &players[displayplayers[2]])
+		localaiming[2] = movingangle;
+	else if (player == &players[displayplayers[3]])
+		localaiming[3] = movingangle;
 
 	player->mo->tracer->angle = player->mo->angle;
 
@@ -6346,7 +5752,7 @@ static void P_MovePlayer(player_t *player)
 		{
 			if (G_IsSpecialStage(gamemap))
 			{
-				if (player == &players[displayplayer]) // only play the sound for yourself landing
+				if (player == &players[displayplayers[0]]) // only play the sound for yourself landing
 					S_StartSound(NULL, sfx_s3k6a);
 				for (i = 0; i < MAXPLAYERS; i++)
 					if (playeringame[i])
@@ -6538,14 +5944,7 @@ static void P_MovePlayer(player_t *player)
 		P_SetPlayerMobjState(player->mo, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 	}
 
-	// Cap the speed limit on a spindash
-	// Up the 60*FRACUNIT number to boost faster, you speed demon you!
-	if (player->dashspeed > FixedMul(player->maxdash, player->mo->scale))
-		player->dashspeed = FixedMul(player->maxdash, player->mo->scale);
-	else if (player->dashspeed > 0 && player->dashspeed < FixedMul(player->mindash, player->mo->scale))
-		player->dashspeed = FixedMul(player->mindash, player->mo->scale);
-
-	if (!(player->charability == CA_GLIDEANDCLIMB) || player->gotflag) // If you can't glide, then why the heck would you be gliding?
+	if (/*!(player->charability == CA_GLIDEANDCLIMB) ||*/ player->gotflag) // If you can't glide, then why the heck would you be gliding?
 	{
 		/* // SRB2kart - ???
 		if (player->pflags & PF_GLIDING || player->climbing)
@@ -6761,8 +6160,8 @@ static void P_MovePlayer(player_t *player)
 	if (player->pflags & PF_SPINNING && player->speed > FixedMul(15<<FRACBITS, player->mo->scale) && !(player->pflags & PF_JUMPED))
 	{
 		P_SpawnSpinMobj(player, player->spinitem);
-		if (demorecording)
-			G_GhostAddSpin();
+		if (demo.recording)
+			G_GhostAddSpin((INT32) (player - players));
 	}
 	*/
 
@@ -6798,7 +6197,7 @@ static void P_MovePlayer(player_t *player)
 	P_DoSpinDash(player, cmd);
 	*/
 	// jumping
-	P_DoJumpStuff(player, cmd);
+	//P_DoJumpStuff(player, cmd);
 
 	/*
 	// If you're not spinning, you'd better not be spindashing!
@@ -6854,18 +6253,18 @@ static void P_MovePlayer(player_t *player)
 		}
 		// Otherwise, face the direction you're travelling.
 		else if (player->panim == PA_WALK || player->panim == PA_RUN || player->panim == PA_ROLL
-		|| (/*(player->mo->state >= &states[S_PLAY_ABL1] && player->mo->state <= &states[S_PLAY_SPC4]) && */player->charability == CA_FLY)) // SRB2kart - idk
+		/*|| ((player->mo->state >= &states[S_PLAY_ABL1] && player->mo->state <= &states[S_PLAY_SPC4]) && player->charability == CA_FLY)*/) // SRB2kart - idk
 			player->mo->angle = R_PointToAngle2(0, 0, player->rmomx, player->rmomy);
 
 		// Update the local angle control.
 		if (player == &players[consoleplayer])
-			localangle = player->mo->angle;
-		else if (player == &players[secondarydisplayplayer])
-			localangle2 = player->mo->angle;
-		else if (player == &players[thirddisplayplayer])
-			localangle3 = player->mo->angle;
-		else if (player == &players[fourthdisplayplayer])
-			localangle4 = player->mo->angle;
+			localangle[0] = player->mo->angle;
+		else if (player == &players[displayplayers[1]])
+			localangle[1] = player->mo->angle;
+		else if (player == &players[displayplayers[2]])
+			localangle[2] = player->mo->angle;
+		else if (player == &players[displayplayers[3]])
+			localangle[3] = player->mo->angle;
 	}
 #endif
 
@@ -7044,8 +6443,8 @@ static void P_MovePlayer(player_t *player)
 
 		speed = R_PointToDist2(player->rmomx, player->rmomy, 0, 0);
 
-		if (speed > player->normalspeed-5*FRACUNIT)
-			speed = player->normalspeed-5*FRACUNIT;
+		if (speed > K_GetKartSpeed(player, false)-(5<<FRACBITS))
+			speed = K_GetKartSpeed(player, false)-(5<<FRACBITS);
 
 		if (speed >= runnyspeed)
 			player->fovadd = speed-runnyspeed;
@@ -7187,13 +6586,13 @@ static void P_DoZoomTube(player_t *player)
 		player->mo->angle = R_PointToAngle2(player->mo->x, player->mo->y, player->mo->tracer->x, player->mo->tracer->y);
 
 		if (player == &players[consoleplayer])
-			localangle = player->mo->angle;
-		else if (player == &players[secondarydisplayplayer])
-			localangle2 = player->mo->angle;
-		else if (player == &players[thirddisplayplayer])
-			localangle3 = player->mo->angle;
-		else if (player == &players[fourthdisplayplayer])
-			localangle4 = player->mo->angle;
+			localangle[0] = player->mo->angle;
+		else if (player == &players[displayplayers[1]])
+			localangle[1] = player->mo->angle;
+		else if (player == &players[displayplayers[2]])
+			localangle[2] = player->mo->angle;
+		else if (player == &players[displayplayers[3]])
+			localangle[3] = player->mo->angle;
 	}
 #if 0
 	if (player->mo->state != &states[S_KART_SPIN])
@@ -7583,13 +6982,13 @@ void P_HomingAttack(mobj_t *source, mobj_t *enemy) // Home in on your target
 	if (source->player)
 	{
 		if (source->player == &players[consoleplayer])
-			localangle = source->angle;
-		else if (source->player == &players[secondarydisplayplayer])
-			localangle2 = source->angle;
-		else if (source->player == &players[thirddisplayplayer])
-			localangle3 = source->angle;
-		else if (source->player == &players[fourthdisplayplayer])
-			localangle4 = source->angle;
+			localangle[0] = source->angle;
+		else if (source->player == &players[displayplayers[1]])
+			localangle[1] = source->angle;
+		else if (source->player == &players[displayplayers[2]])
+			localangle[2] = source->angle;
+		else if (source->player == &players[displayplayers[3]])
+			localangle[3] = source->angle;
 	}
 
 	// change slope
@@ -7600,7 +6999,7 @@ void P_HomingAttack(mobj_t *source, mobj_t *enemy) // Home in on your target
 		dist = 1;
 
 	if (source->type == MT_DETON && enemy->player) // For Deton Chase (Unused)
-		ns = FixedDiv(FixedMul(enemy->player->normalspeed, enemy->scale), FixedDiv(20*FRACUNIT,17*FRACUNIT));
+		ns = FixedDiv(FixedMul(K_GetKartSpeed(enemy->player, false), enemy->scale), FixedDiv(20*FRACUNIT,17*FRACUNIT));
 	else if (source->type != MT_PLAYER)
 	{
 		if (source->threshold == 32000)
@@ -7609,7 +7008,7 @@ void P_HomingAttack(mobj_t *source, mobj_t *enemy) // Home in on your target
 			ns = FixedMul(source->info->speed, source->scale);
 	}
 	else if (source->player)
-		ns = FixedDiv(FixedMul(source->player->actionspd, source->scale), 3*FRACUNIT/2);
+		ns = FixedDiv(FixedMul(K_GetKartSpeed(source->player, false), source->scale), 3*FRACUNIT/2);
 
 	source->momx = FixedMul(FixedDiv(enemy->x - source->x, dist), ns);
 	source->momy = FixedMul(FixedDiv(enemy->y - source->y, dist), ns);
@@ -7722,7 +7121,7 @@ notrealplayer:
 // P_MoveCamera: make sure the camera is not outside the world and looks at the player avatar
 //
 
-camera_t camera, camera2, camera3, camera4; // Four cameras, three for splitscreen
+camera_t camera[MAXSPLITSCREENPLAYERS]; // Four cameras, three for splitscreen
 
 static void CV_CamRotate_OnChange(void)
 {
@@ -7827,10 +7226,10 @@ void P_ResetCamera(player_t *player, camera_t *thiscam)
 	thiscam->y = y;
 	thiscam->z = z;
 
-	if (!(thiscam == &camera && (cv_cam_still.value || cv_analog.value))
-		&& !(thiscam == &camera2 && (cv_cam2_still.value || cv_analog2.value))
-		&& !(thiscam == &camera3 && (cv_cam3_still.value || cv_analog3.value))
-		&& !(thiscam == &camera4 && (cv_cam4_still.value || cv_analog4.value)))
+	if (!(thiscam == &camera[0] && (cv_cam_still.value || cv_analog.value))
+		&& !(thiscam == &camera[1] && (cv_cam2_still.value || cv_analog2.value))
+		&& !(thiscam == &camera[2] && (cv_cam3_still.value || cv_analog3.value))
+		&& !(thiscam == &camera[3] && (cv_cam4_still.value || cv_analog4.value)))
 	{
 		thiscam->angle = player->mo->angle;
 		thiscam->aiming = 0;
@@ -7888,46 +7287,49 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		if (player->spectator) // force cam off for spectators
 			return true;
 
-		if (!cv_chasecam.value && thiscam == &camera)
+		if (!cv_chasecam.value && thiscam == &camera[0])
 			return true;
 
-		if (!cv_chasecam2.value && thiscam == &camera2)
+		if (!cv_chasecam2.value && thiscam == &camera[1])
 			return true;
 
-		if (!cv_chasecam3.value && thiscam == &camera3)
+		if (!cv_chasecam3.value && thiscam == &camera[2])
 			return true;
 
-		if (!cv_chasecam4.value && thiscam == &camera4)
+		if (!cv_chasecam4.value && thiscam == &camera[3])
 			return true;
 	}
 
 	if (!thiscam->chase && !resetcalled)
 	{
 		if (player == &players[consoleplayer])
-			focusangle = localangle;
-		else if (player == &players[secondarydisplayplayer])
-			focusangle = localangle2;
-		else if (player == &players[thirddisplayplayer])
-			focusangle = localangle3;
-		else if (player == &players[fourthdisplayplayer])
-			focusangle = localangle4;
+			focusangle = localangle[0];
+		else if (player == &players[displayplayers[1]])
+			focusangle = localangle[1];
+		else if (player == &players[displayplayers[2]])
+			focusangle = localangle[2];
+		else if (player == &players[displayplayers[3]])
+			focusangle = localangle[3];
 		else
 			focusangle = mo->angle;
-		if (thiscam == &camera)
+
+		if (thiscam == &camera[0])
 			camrotate = cv_cam_rotate.value;
-		else if (thiscam == &camera2)
+		else if (thiscam == &camera[1])
 			camrotate = cv_cam2_rotate.value;
-		else if (thiscam == &camera3)
+		else if (thiscam == &camera[2])
 			camrotate = cv_cam3_rotate.value;
-		else if (thiscam == &camera4)
+		else if (thiscam == &camera[3])
 			camrotate = cv_cam4_rotate.value;
 		else
 			camrotate = 0;
+
 		if (leveltime < introtime) // Whoooshy camera!
 		{
 			const INT32 introcam = (introtime - leveltime);
 			camrotate += introcam*5;
 		}
+
 		thiscam->angle = focusangle + FixedAngle(camrotate*FRACUNIT);
 		P_ResetCamera(player, thiscam);
 		return true;
@@ -7941,30 +7343,30 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 //	if (leveltime > 0 && timeinmap <= 0)
 //		return true;
 
-	if (demoplayback)
+	if (demo.playback)
 	{
 		focusangle = mo->angle;
 		focusaiming = 0;
 	}
 	else if (player == &players[consoleplayer])
 	{
-		focusangle = localangle;
-		focusaiming = localaiming;
+		focusangle = localangle[0];
+		focusaiming = localaiming[0];
 	}
-	else if (player == &players[secondarydisplayplayer])
+	else if (player == &players[displayplayers[1]])
 	{
-		focusangle = localangle2;
-		focusaiming = localaiming2;
+		focusangle = localangle[1];
+		focusaiming = localaiming[1];
 	}
-	else if (player == &players[thirddisplayplayer])
+	else if (player == &players[displayplayers[2]])
 	{
-		focusangle = localangle3;
-		focusaiming = localaiming3;
+		focusangle = localangle[2];
+		focusaiming = localaiming[2];
 	}
-	else if (player == &players[fourthdisplayplayer])
+	else if (player == &players[displayplayers[3]])
 	{
-		focusangle = localangle4;
-		focusaiming = localaiming4;
+		focusangle = localangle[3];
+		focusaiming = localaiming[3];
 	}
 	else
 	{
@@ -7975,17 +7377,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (P_CameraThinker(player, thiscam, resetcalled))
 		return true;
 
-	if (thiscam == &camera)
-	{
-		num = 0;
-		camspeed = cv_cam_speed.value;
-		camstill = cv_cam_still.value;
-		camrotate = cv_cam_rotate.value;
-		camdist = FixedMul(cv_cam_dist.value, mapobjectscale);
-		camheight = FixedMul(cv_cam_height.value, mapobjectscale);
-		lookback = camspin;
-	}
-	else if (thiscam == &camera2) // Camera 2
+	
+	if (thiscam == &camera[1]) // Camera 2
 	{
 		num = 1;
 		camspeed = cv_cam2_speed.value;
@@ -7993,9 +7386,9 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camrotate = cv_cam2_rotate.value;
 		camdist = FixedMul(cv_cam2_dist.value, mapobjectscale);
 		camheight = FixedMul(cv_cam2_height.value, mapobjectscale);
-		lookback = camspin2;
+		lookback = camspin[1];
 	}
-	else if (thiscam == &camera3) // Camera 3
+	else if (thiscam == &camera[2]) // Camera 3
 	{
 		num = 2;
 		camspeed = cv_cam3_speed.value;
@@ -8003,9 +7396,9 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camrotate = cv_cam3_rotate.value;
 		camdist = FixedMul(cv_cam3_dist.value, mapobjectscale);
 		camheight = FixedMul(cv_cam3_height.value, mapobjectscale);
-		lookback = camspin3;
+		lookback = camspin[2];
 	}
-	else // Camera 4
+	else if (thiscam == &camera[3]) // Camera 4
 	{
 		num = 3;
 		camspeed = cv_cam4_speed.value;
@@ -8013,7 +7406,17 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camrotate = cv_cam4_rotate.value;
 		camdist = FixedMul(cv_cam4_dist.value, mapobjectscale);
 		camheight = FixedMul(cv_cam4_height.value, mapobjectscale);
-		lookback = camspin4;
+		lookback = camspin[3];
+	}
+	else // Camera 1
+	{
+		num = 0;
+		camspeed = cv_cam_speed.value;
+		camstill = cv_cam_still.value;
+		camrotate = cv_cam_rotate.value;
+		camdist = FixedMul(cv_cam_dist.value, mapobjectscale);
+		camheight = FixedMul(cv_cam_height.value, mapobjectscale);
+		lookback = camspin[0];
 	}
 
 	if (timeover)
@@ -8074,10 +7477,10 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 
 	if (!resetcalled && (leveltime > starttime && timeover != 2)
-		&& ((thiscam == &camera && t_cam_rotate != -42)
-		|| (thiscam == &camera2 && t_cam2_rotate != -42)
-		|| (thiscam == &camera3 && t_cam3_rotate != -42)
-		|| (thiscam == &camera4 && t_cam4_rotate != -42)))
+		&& ((thiscam == &camera[0] && t_cam_rotate != -42)
+		|| (thiscam == &camera[1] && t_cam2_rotate != -42)
+		|| (thiscam == &camera[2] && t_cam3_rotate != -42)
+		|| (thiscam == &camera[3] && t_cam4_rotate != -42)))
 	{
 		angle = FixedAngle(camrotate*FRACUNIT);
 		thiscam->angle = angle;
@@ -8472,8 +7875,8 @@ boolean P_SpectatorJoinGame(player_t *player)
 		player->playerstate = PST_REBORN;
 
 		//Reset away view
-		if (P_IsLocalPlayer(player) && displayplayer != consoleplayer)
-			displayplayer = consoleplayer;
+		if (P_IsLocalPlayer(player) && displayplayers[0] != consoleplayer)
+			displayplayers[0] = consoleplayer;
 
 		if (changeto == 1)
 			CONS_Printf(M_GetText("%s switched to the %c%s%c.\n"), player_names[player-players], '\x85', M_GetText("Red team"), '\x80');
@@ -8496,8 +7899,8 @@ boolean P_SpectatorJoinGame(player_t *player)
 		player->playerstate = PST_REBORN;
 
 		//Reset away view
-		if (P_IsLocalPlayer(player) && displayplayer != consoleplayer)
-			displayplayer = consoleplayer;
+		if (P_IsLocalPlayer(player) && displayplayers[0] != consoleplayer)
+			displayplayers[0] = consoleplayer;
 
 		HU_AddChatText(va(M_GetText("\x82*%s entered the game."), player_names[player-players]), false);
 		return true; // no more player->mo, cannot continue.
@@ -8508,9 +7911,10 @@ boolean P_SpectatorJoinGame(player_t *player)
 static void P_CalcPostImg(player_t *player)
 {
 	sector_t *sector = player->mo->subsector->sector;
-	postimg_t *type;
+	postimg_t *type = postimg_none;
 	INT32 *param;
 	fixed_t pviewheight;
+	UINT8 i;
 
 	if (player->mo->eflags & MFE_VERTICALFLIP)
 		pviewheight = player->mo->z + player->mo->height - player->viewheight;
@@ -8523,25 +7927,14 @@ static void P_CalcPostImg(player_t *player)
 		pviewheight = player->awayviewmobj->z + 20*FRACUNIT;
 	}
 
-	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+	for (i = 0; i <= splitscreen; i++)
 	{
-		type = &postimgtype4;
-		param = &postimgparam4;
-	}
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-	{
-		type = &postimgtype3;
-		param = &postimgparam3;
-	}
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-	{
-		type = &postimgtype2;
-		param = &postimgparam2;
-	}
-	else
-	{
-		type = &postimgtype;
-		param = &postimgparam;
+		if (player == &players[displayplayers[i]])
+		{
+			type = &postimgtype[i];
+			param = &postimgparam[i];
+			break;
+		}
 	}
 
 	// see if we are in heat (no, not THAT kind of heat...)
@@ -8649,11 +8042,7 @@ void P_DoTimeOver(player_t *player)
 
 	player->pflags |= PF_TIMEOVER;
 
-	if ((player == &players[consoleplayer]
-		|| (splitscreen && player == &players[secondarydisplayplayer])
-		|| (splitscreen > 1 && player == &players[thirddisplayplayer])
-		|| (splitscreen > 2 && player == &players[fourthdisplayplayer]))
-		&& !demoplayback)
+	if (P_IsLocalPlayer(player) && !demo.playback)
 		legitimateexit = true; // SRB2kart: losing a race is still seeing it through to the end :p
 
 	if (player->mo)
@@ -8700,7 +8089,7 @@ void P_PlayerThink(player_t *player)
 	}
 
 #ifdef SEENAMES
-	if (netgame && player == &players[displayplayer] && !(leveltime % (TICRATE/5)) && !splitscreen)
+	if (netgame && player == &players[displayplayers[0]] && !(leveltime % (TICRATE/5)) && !splitscreen)
 	{
 		seenplayer = NULL;
 
@@ -8761,6 +8150,19 @@ void P_PlayerThink(player_t *player)
 		player->mo->flags &= ~MF_NOCLIP;
 
 	cmd = &player->cmd;
+
+	//@TODO This fixes a one-tic latency on direction handling, AND makes behavior consistent while paused, but is not BC with 1.0.4. Do this for 1.1!
+#if 0
+	// SRB2kart
+	// Save the dir the player is holding
+	//  to allow items to be thrown forward or backward.
+	if (cmd->buttons & BT_FORWARD)
+		player->kartstuff[k_throwdir] = 1;
+	else if (cmd->buttons & BT_BACKWARD)
+		player->kartstuff[k_throwdir] = -1;
+	else
+		player->kartstuff[k_throwdir] = 0;
+#endif
 
 	// Add some extra randomization.
 	if (cmd->forwardmove)
@@ -9034,7 +8436,9 @@ void P_PlayerThink(player_t *player)
 		|| player->kartstuff[k_driftboost] || player->kartstuff[k_sneakertimer] || player->kartstuff[k_startboost]) && !player->kartstuff[k_invincibilitytimer] // SRB2kart
 		&& (player->speed + abs(player->mo->momz)) > FixedMul(20*FRACUNIT,player->mo->scale))
 	{
+		UINT8 i;
 		mobj_t *gmobj = P_SpawnGhostMobj(player->mo);
+
 		gmobj->fuse = 2;
 		if (leveltime & 1)
 		{
@@ -9042,15 +8446,17 @@ void P_PlayerThink(player_t *player)
 			gmobj->frame |= tr_trans70<<FF_TRANSSHIFT;
 		}
 
-		// Hide the mobj from our sights if we're the displayplayer and chasecam is off,
-		// or secondarydisplayplayer and chasecam2 is off.
+		// Hide the mobj from our sights if we're the displayplayer and chasecam is off.
 		// Why not just not spawn the mobj?  Well, I'd rather only flirt with
 		// consistency so much...
-		if ((player == &players[displayplayer] && !camera.chase)
-		|| (splitscreen && player == &players[secondarydisplayplayer] && !camera2.chase)
-		|| (splitscreen > 1 && player == &players[thirddisplayplayer] && !camera3.chase)
-		|| (splitscreen > 2 && player == &players[fourthdisplayplayer] && !camera4.chase))
-			gmobj->flags2 |= MF2_DONTDRAW;
+		for (i = 0; i <= splitscreen; i++)
+		{
+			if (player == &players[displayplayers[i]] && !camera[i].chase)
+			{
+				gmobj->flags2 |= MF2_DONTDRAW;
+				break;
+			}
+		}
 	}
 #endif
 
@@ -9090,7 +8496,7 @@ void P_PlayerThink(player_t *player)
 		|| (player->spectator || player->powers[pw_flashing] < K_GetKartFlashing(player))))
 		player->powers[pw_flashing]--;
 
-	if (player->powers[pw_tailsfly] && player->powers[pw_tailsfly] < UINT16_MAX && player->charability != CA_SWIM && !(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))) // tails fly counter
+	if (player->powers[pw_tailsfly] && player->powers[pw_tailsfly] < UINT16_MAX /*&& player->charability != CA_SWIM*/ && !(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))) // tails fly counter
 		player->powers[pw_tailsfly]--;
 
 	/* // SRB2kart - Can't drown.
@@ -9250,6 +8656,7 @@ void P_PlayerAfterThink(player_t *player)
 	ticcmd_t *cmd;
 	//INT32 oldweapon = player->currentweapon; // SRB2kart - unused
 	camera_t *thiscam = NULL; // if not one of the displayed players, just don't bother
+	UINT8 i;
 
 #ifdef PARANOIA
 	if (!player->mo)
@@ -9272,14 +8679,14 @@ void P_PlayerAfterThink(player_t *player)
 		P_PlayerInSpecialSector(player);
 #endif
 
-	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		thiscam = &camera4;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		thiscam = &camera3;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		thiscam = &camera2;
-	else if (player == &players[displayplayer])
-		thiscam = &camera;
+	for (i = 0; i <= splitscreen; i++)
+	{
+		if (player == &players[displayplayers[i]])
+		{
+			thiscam = &camera[i];
+			break;
+		}
+	}
 
 	if (player->playerstate == PST_DEAD)
 	{
@@ -9464,13 +8871,13 @@ void P_PlayerAfterThink(player_t *player)
 			player->mo->angle = player->mo->tracer->angle;
 
 			if (player == &players[consoleplayer])
-				localangle = player->mo->angle;
-			else if (player == &players[secondarydisplayplayer])
-				localangle2 = player->mo->angle;
-			else if (player == &players[thirddisplayplayer])
-				localangle3 = player->mo->angle;
-			else if (player == &players[fourthdisplayplayer])
-				localangle4 = player->mo->angle;
+				localangle[0] = player->mo->angle;
+			else if (player == &players[displayplayers[1]])
+				localangle[1] = player->mo->angle;
+			else if (player == &players[displayplayers[2]])
+				localangle[2] = player->mo->angle;
+			else if (player == &players[displayplayers[3]])
+				localangle[3] = player->mo->angle;
 		}
 
 		if (P_AproxDistance(player->mo->x - player->mo->tracer->x, player->mo->y - player->mo->tracer->y) > player->mo->radius)
@@ -9538,13 +8945,13 @@ void P_PlayerAfterThink(player_t *player)
 			player->mo->angle += cmd->sidemove<<ANGLETOFINESHIFT; // 2048 --> ANGLE_MAX
 
 			if (player == &players[consoleplayer])
-				localangle = player->mo->angle; // Adjust the local control angle.
-			else if (player == &players[secondarydisplayplayer])
-				localangle2 = player->mo->angle;
-			else if (player == &players[thirddisplayplayer])
-				localangle3 = player->mo->angle;
-			else if (player == &players[fourthdisplayplayer])
-				localangle4 = player->mo->angle;
+				localangle[0] = player->mo->angle; // Adjust the local control angle.
+			else if (player == &players[displayplayers[1]])
+				localangle[1] = player->mo->angle;
+			else if (player == &players[displayplayers[2]])
+				localangle[2] = player->mo->angle;
+			else if (player == &players[displayplayers[3]])
+				localangle[3] = player->mo->angle;
 		}
 	}
 

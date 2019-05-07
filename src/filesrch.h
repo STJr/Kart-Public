@@ -91,6 +91,6 @@ typedef enum
 
 void closefilemenu(boolean validsize);
 void searchfilemenu(char *tempname);
-boolean preparefilemenu(boolean samedepth);
+boolean preparefilemenu(boolean samedepth, boolean replayhut);
 
 #endif // __FILESRCH_H__

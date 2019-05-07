@@ -584,6 +584,7 @@ void F_StartCredits(void)
 	S_StopMusic();
 
 	S_ChangeMusicInternal("credit", false);
+	S_ShowMusicCredit();
 
 	finalecount = 0;
 	animtimer = 0;
@@ -927,9 +928,9 @@ void F_StartTitleScreen(void)
 	// IWAD dependent stuff.
 
 	// music is started in the ticker
-	if (!fromtitledemo) // SRB2Kart: Don't reset music if the right track is already playing
+	if (!demo.fromtitle) // SRB2Kart: Don't reset music if the right track is already playing
 		S_StopMusic();
-	fromtitledemo = false;
+	demo.fromtitle = false;
 
 	animtimer = 0;
 
@@ -1042,10 +1043,28 @@ void F_TitleScreenTicker(boolean run)
 	// is it time?
 	if (!(--demoIdleLeft))
 	{
+		//static boolean use_netreplay = false;
+
 		char dname[9];
 		lumpnum_t l;
 		const char *mapname;
 		UINT8 numstaff;
+
+		//@TODO uncomment this when this goes into vanilla
+		/*if ((use_netreplay = !use_netreplay))*/
+		{
+			numstaff = 1;
+			while ((l = W_CheckNumForName(va("TDEMO%03u", numstaff))) != LUMPERROR)
+				numstaff++;
+			numstaff--;
+
+			if (numstaff)
+			{
+				numstaff = M_RandomKey(numstaff)+1;
+				snprintf(dname, 9, "TDEMO%03u", numstaff);
+				goto loadreplay;
+			}
+		}
 
 		// prevent console spam if failed
 		demoIdleLeft = demoIdleTime;
@@ -1097,7 +1116,10 @@ void F_TitleScreenTicker(boolean run)
 			return;
 		}*/
 
-		titledemo = fromtitledemo = true;
+loadreplay:
+		demo.title = demo.fromtitle = true;
+		demo.ignorefiles = true;
+		demo.loadfiles = false;
 		G_DoPlayDemo(dname);
 	}
 }

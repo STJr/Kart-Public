@@ -163,6 +163,7 @@ static int lib_pRandomFixed(lua_State *L)
 {
 	NOHUD
 	lua_pushfixed(L, P_RandomFixed());
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -170,6 +171,7 @@ static int lib_pRandomByte(lua_State *L)
 {
 	NOHUD
 	lua_pushinteger(L, P_RandomByte());
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -181,6 +183,7 @@ static int lib_pRandomKey(lua_State *L)
 	if (a > 65536)
 		LUA_UsageWarning(L, "P_RandomKey: range > 65536 is undefined behavior");
 	lua_pushinteger(L, P_RandomKey(a));
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -198,6 +201,7 @@ static int lib_pRandomRange(lua_State *L)
 	if ((b-a+1) > 65536)
 		LUA_UsageWarning(L, "P_RandomRange: range > 65536 is undefined behavior");
 	lua_pushinteger(L, P_RandomRange(a, b));
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -207,6 +211,7 @@ static int lib_pRandom(lua_State *L)
 	NOHUD
 	LUA_Deprecated(L, "P_Random", "P_RandomByte");
 	lua_pushinteger(L, P_RandomByte());
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -214,6 +219,7 @@ static int lib_pSignedRandom(lua_State *L)
 {
 	NOHUD
 	lua_pushinteger(L, P_SignedRandom());
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -222,6 +228,7 @@ static int lib_pRandomChance(lua_State *L)
 	fixed_t p = luaL_checkfixed(L, 1);
 	NOHUD
 	lua_pushboolean(L, P_RandomChance(p));
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -945,40 +952,6 @@ static int lib_pHomingAttack(lua_State *L)
 	lua_pushboolean(L, P_SuperReady(player));
 	return 1;
 }*/
-
-static int lib_pDoJump(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	boolean soundandstate = (boolean)lua_opttrueboolean(L, 2);
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	P_DoJump(player, soundandstate);
-	return 0;
-}
-
-static int lib_pSpawnThokMobj(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	P_SpawnThokMobj(player);
-	return 0;
-}
-
-static int lib_pSpawnSpinMobj(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	mobjtype_t type = luaL_checkinteger(L, 2);
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	if (type >= NUMMOBJTYPES)
-		return luaL_error(L, "mobj type %d out of range (0 - %d)", type, NUMMOBJTYPES-1);
-	P_SpawnSpinMobj(player, type);
-	return 0;
-}
 
 static int lib_pTelekinesis(lua_State *L)
 {
@@ -2645,9 +2618,6 @@ static luaL_Reg lib[] = {
 	{"P_NukeEnemies",lib_pNukeEnemies},
 	{"P_HomingAttack",lib_pHomingAttack},
 	//{"P_SuperReady",lib_pSuperReady},
-	{"P_DoJump",lib_pDoJump},
-	{"P_SpawnThokMobj",lib_pSpawnThokMobj},
-	{"P_SpawnSpinMobj",lib_pSpawnSpinMobj},
 	{"P_Telekinesis",lib_pTelekinesis},
 
 	// p_map

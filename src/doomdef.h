@@ -157,6 +157,9 @@ extern FILE *logstream;
 // Otherwise we can't force updates!
 #endif
 
+// Maintain compatibility with 1.0.x record attack replays?
+#define DEMO_COMPAT_100
+
 // Does this version require an added patch file?
 // Comment or uncomment this as necessary.
 //#define USE_PATCH_DTA
@@ -256,22 +259,28 @@ typedef enum
 	SKINCOLOR_GREY,
 	SKINCOLOR_NICKEL,
 	SKINCOLOR_BLACK,
+	SKINCOLOR_SKUNK,
 	SKINCOLOR_FAIRY,
 	SKINCOLOR_POPCORN,
+	SKINCOLOR_ARTICHOKE,
+	SKINCOLOR_PIGEON,
 	SKINCOLOR_SEPIA,
 	SKINCOLOR_BEIGE,
+	SKINCOLOR_WALNUT,
 	SKINCOLOR_BROWN,
 	SKINCOLOR_LEATHER,
 	SKINCOLOR_SALMON,
 	SKINCOLOR_PINK,
 	SKINCOLOR_ROSE,
 	SKINCOLOR_BRICK,
+	SKINCOLOR_CINNAMON,
 	SKINCOLOR_RUBY,
 	SKINCOLOR_RASPBERRY,
 	SKINCOLOR_CHERRY,
 	SKINCOLOR_RED,
 	SKINCOLOR_CRIMSON,
 	SKINCOLOR_MAROON,
+	SKINCOLOR_LEMONADE,
 	SKINCOLOR_FLAME,
 	SKINCOLOR_SCARLET,
 	SKINCOLOR_KETCHUP,
@@ -290,8 +299,10 @@ typedef enum
 	SKINCOLOR_ROYAL,
 	SKINCOLOR_BRONZE,
 	SKINCOLOR_COPPER,
+	SKINCOLOR_QUARRY,
 	SKINCOLOR_YELLOW,
 	SKINCOLOR_MUSTARD,
+	SKINCOLOR_CROCODILE,
 	SKINCOLOR_OLIVE,
 	SKINCOLOR_VOMIT,
 	SKINCOLOR_GARDEN,
@@ -311,6 +322,7 @@ typedef enum
 	SKINCOLOR_PLAGUE,
 	SKINCOLOR_ALGAE,
 	SKINCOLOR_CARIBBEAN,
+	SKINCOLOR_AZURE,
 	SKINCOLOR_AQUA,
 	SKINCOLOR_TEAL,
 	SKINCOLOR_CYAN,
@@ -320,7 +332,9 @@ typedef enum
 	SKINCOLOR_PLATINUM,
 	SKINCOLOR_SLATE,
 	SKINCOLOR_STEEL,
+	SKINCOLOR_THUNDER,
 	SKINCOLOR_RUST,
+	SKINCOLOR_WRISTWATCH,
 	SKINCOLOR_JET,
 	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave - slender aphrodite has overcome me with longing for a girl
 	SKINCOLOR_PERIWINKLE,
@@ -600,9 +614,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 
 ///	Polyobject fake flat code
 #define POLYOBJECTS_PLANES
-
-///	Improved way of dealing with ping values and a ping limit.
-#define NEWPING
 
 ///	See name of player in your crosshair
 #define SEENAMES

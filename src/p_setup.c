@@ -65,6 +65,10 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 
+#if !defined (UNDER_CE)
+#include <time.h>
+#endif
+
 #if defined (_WIN32) || defined (_WIN32_WCE)
 #include <malloc.h>
 #include <math.h>
@@ -2265,7 +2269,7 @@ static void P_LevelInitStuff(void)
 
 	leveltime = 0;
 
-	localaiming = localaiming2 = localaiming3 = localaiming4 = 0;
+	memset(localaiming, 0, sizeof(localaiming));
 
 	// map object scale
 	mapobjectscale = mapheaderinfo[gamemap-1]->mobj_scale;
@@ -2532,29 +2536,29 @@ static void P_ForceCharacter(const char *forcecharskin)
 	{
 		if (splitscreen)
 		{
-			SetPlayerSkin(secondarydisplayplayer, forcecharskin);
-			if ((unsigned)cv_playercolor2.value != skins[players[secondarydisplayplayer].skin].prefcolor && !modeattacking)
+			SetPlayerSkin(displayplayers[1], forcecharskin);
+			if ((unsigned)cv_playercolor2.value != skins[players[displayplayers[1]].skin].prefcolor && !modeattacking)
 			{
-				CV_StealthSetValue(&cv_playercolor2, skins[players[secondarydisplayplayer].skin].prefcolor);
-				players[secondarydisplayplayer].skincolor = skins[players[secondarydisplayplayer].skin].prefcolor;
+				CV_StealthSetValue(&cv_playercolor2, skins[players[displayplayers[1]].skin].prefcolor);
+				players[displayplayers[1]].skincolor = skins[players[displayplayers[1]].skin].prefcolor;
 			}
 
 			if (splitscreen > 1)
 			{
-				SetPlayerSkin(thirddisplayplayer, forcecharskin);
-				if ((unsigned)cv_playercolor3.value != skins[players[thirddisplayplayer].skin].prefcolor && !modeattacking)
+				SetPlayerSkin(displayplayers[2], forcecharskin);
+				if ((unsigned)cv_playercolor3.value != skins[players[displayplayers[2]].skin].prefcolor && !modeattacking)
 				{
-					CV_StealthSetValue(&cv_playercolor3, skins[players[thirddisplayplayer].skin].prefcolor);
-					players[thirddisplayplayer].skincolor = skins[players[thirddisplayplayer].skin].prefcolor;
+					CV_StealthSetValue(&cv_playercolor3, skins[players[displayplayers[2]].skin].prefcolor);
+					players[displayplayers[2]].skincolor = skins[players[displayplayers[2]].skin].prefcolor;
 				}
 
 				if (splitscreen > 2)
 				{
-					SetPlayerSkin(fourthdisplayplayer, forcecharskin);
-					if ((unsigned)cv_playercolor4.value != skins[players[fourthdisplayplayer].skin].prefcolor && !modeattacking)
+					SetPlayerSkin(displayplayers[3], forcecharskin);
+					if ((unsigned)cv_playercolor4.value != skins[players[displayplayers[3]].skin].prefcolor && !modeattacking)
 					{
-						CV_StealthSetValue(&cv_playercolor4, skins[players[fourthdisplayplayer].skin].prefcolor);
-						players[fourthdisplayplayer].skincolor = skins[players[fourthdisplayplayer].skin].prefcolor;
+						CV_StealthSetValue(&cv_playercolor4, skins[players[displayplayers[3]].skin].prefcolor);
+						players[displayplayers[3]].skincolor = skins[players[displayplayers[3]].skin].prefcolor;
 					}
 				}
 			}
@@ -2725,7 +2729,7 @@ static boolean P_CanSave(void)
 	if ((cursaveslot < 0) // Playing without saving
 		|| (modifiedgame && !savemoddata) // Game is modified
 		|| (netgame || multiplayer) // Not in single-player
-		|| (demoplayback || demorecording || metalrecording) // Currently in demo
+		|| (demo.playback || demo.recording || metalrecording) // Currently in demo
 		|| (players[consoleplayer].lives <= 0) // Completely dead
 		|| (modeattacking || ultimatemode || G_IsSpecialStage(gamemap))) // Specialized instances
 		return false;
@@ -2789,7 +2793,8 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	P_LevelInitStuff();
 
-	postimgtype = postimgtype2 = postimgtype3 = postimgtype4 = postimg_none;
+	for (i = 0; i <= splitscreen; i++)
+		postimgtype[i] = postimg_none;
 
 	if (mapheaderinfo[gamemap-1]->forcecharacter[0] != '\0'
 	&& atoi(mapheaderinfo[gamemap-1]->forcecharacter) != 255)
@@ -2825,7 +2830,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Encore mode fade to pink to white
 	// This is handled BEFORE sounds are stopped.
-	if (rendermode != render_none && encoremode && !prevencoremode)
+	if (rendermode != render_none && encoremode && !prevencoremode && !demo.rewinding)
 	{
 		tic_t locstarttime, endtime, nowtime;
 
@@ -2877,7 +2882,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Let's fade to white here
 	// But only if we didn't do the encore startup wipe
-	if (rendermode != render_none && !ranspecialwipe)
+	if (rendermode != render_none && !ranspecialwipe && !demo.rewinding)
 	{
 		F_WipeStartScreen();
 		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, levelfadecol);
@@ -3109,9 +3114,9 @@ boolean P_SetupLevel(boolean skipprecip)
 			}
 		}
 
-	if (modeattacking == ATTACKING_RECORD && !demoplayback)
+	if (modeattacking == ATTACKING_RECORD && !demo.playback)
 		P_LoadRecordGhosts();
-	/*else if (modeattacking == ATTACKING_NIGHTS && !demoplayback)
+	/*else if (modeattacking == ATTACKING_NIGHTS && !demo.playback)
 		P_LoadNightsGhosts();*/
 
 	if (G_TagGametype())
@@ -3159,25 +3164,25 @@ boolean P_SetupLevel(boolean skipprecip)
 			? cv_basenumlaps.value
 			: mapheaderinfo[gamemap - 1]->numlaps);
 
+	// Start recording replay in multiplayer with a temp filename
+	//@TODO I'd like to fix dedis crashing when recording replays for the future too...
+	if (!demo.playback && multiplayer && !dedicated) {
+		static char buf[256];
+		sprintf(buf, "replay"PATHSEP"online"PATHSEP"%d-%s", (int) (time(NULL)), G_BuildMapName(gamemap));
+
+		I_mkdir(va("%s"PATHSEP"replay", srb2home), 0755);
+		I_mkdir(va("%s"PATHSEP"replay"PATHSEP"online", srb2home), 0755);
+		G_RecordDemo(buf);
+	}
+
 	// ===========
 	// landing point for netgames.
 	netgameskip:
 
 	if (!dedicated)
 	{
-		P_SetupCamera(displayplayer, &camera);
-		if (splitscreen)
-		{
-			P_SetupCamera(secondarydisplayplayer, &camera2);
-			if (splitscreen > 1)
-			{
-				P_SetupCamera(thirddisplayplayer, &camera3);
-				if (splitscreen > 2)
-				{
-					P_SetupCamera(fourthdisplayplayer, &camera4);
-				}
-			}
-		}
+		for (i = 0; i <= splitscreen; i++)
+			P_SetupCamera(displayplayers[i], &camera[i]);
 
 		// Salt: CV_ClearChangedFlags() messes with your settings :(
 		/*if (!cv_cam_height.changed)
@@ -3218,7 +3223,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		/*if (rendermode != render_none)
 			CV_Set(&cv_fov, cv_fov.defaultvalue);*/
 
-		displayplayer = consoleplayer; // Start with your OWN view, please!
+		displayplayers[0] = consoleplayer; // Start with your OWN view, please!
 	}
 
 	/*if (cv_useranalog.value)
@@ -3297,7 +3302,10 @@ boolean P_SetupLevel(boolean skipprecip)
 		savedata.lives = 0;
 	}
 
-	skyVisible = skyVisible1 = skyVisible2 = skyVisible3 = skyVisible4 = true; // assume the skybox is visible on level load.
+	// assume the skybox is visible on level load.
+	skyVisible = true;
+	memset(skyVisiblePerPlayer, true, sizeof(skyVisiblePerPlayer));
+
 	if (loadprecip) // uglier hack
 	{ // to make a newly loaded level start on the second frame.
 		INT32 buf = gametic % BACKUPTICS;
