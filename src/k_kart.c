@@ -2158,11 +2158,13 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflicto
 
 static void K_RemoveGrowShrink(player_t *player)
 {
-	player->kartstuff[k_growshrinktimer] = 0;
-	player->kartstuff[k_growcancel] = 0;
-
 	if (player->mo && !P_MobjWasRemoved(player->mo))
 	{
+		if (player->kartstuff[k_growshrinktimer] > 0) // Play Shrink noise
+			S_StartSound(player->mo, sfx_kc59);
+		else if (player->kartstuff[k_growshrinktimer] < 0) // Play Grow noise
+			S_StartSound(player->mo, sfx_kc5a);
+
 		if (player->kartstuff[k_invincibilitytimer] == 0)
 			player->mo->color = player->skincolor;
 
@@ -2171,6 +2173,9 @@ static void K_RemoveGrowShrink(player_t *player)
 		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 			player->mo->destscale = (6*player->mo->destscale)/8;
 	}
+
+	player->kartstuff[k_growshrinktimer] = 0;
+	player->kartstuff[k_growcancel] = -1;
 
 	P_RestoreMusic(player);
 }
@@ -3578,8 +3583,13 @@ static void K_DoShrink(player_t *user)
 			continue;
 		if (players[i].kartstuff[k_position] < user->kartstuff[k_position])
 		{
+			//P_FlashPal(&players[i], PAL_NUKE, 10);
+
+			// Grow should get taken away.
+			if (players[i].kartstuff[k_growshrinktimer] > 0)
+				K_RemoveGrowShrink(&players[i]);
 			// Don't hit while invulnerable!
-			if (!players[i].kartstuff[k_invincibilitytimer]
+			else if (!players[i].kartstuff[k_invincibilitytimer]
 				&& players[i].kartstuff[k_growshrinktimer] <= 0
 				&& !players[i].kartstuff[k_hyudorotimer])
 			{
@@ -3593,15 +3603,9 @@ static void K_DoShrink(player_t *user)
 					players[i].mo->destscale = (6*mapobjectscale)/8;
 					if (cv_kartdebugshrink.value && !modeattacking && !players[i].bot)
 						players[i].mo->destscale = (6*players[i].mo->destscale)/8;
+					S_StartSound(players[i].mo, sfx_kc59);
 				}
 			}
-
-			// Grow should get taken away.
-			if (players[i].kartstuff[k_growshrinktimer] > 0)
-				K_RemoveGrowShrink(&players[i]);
-
-			//P_FlashPal(&players[i], PAL_NUKE, 10);
-			S_StartSound(players[i].mo, sfx_kc59);
 		}
 	}
 }
@@ -5341,14 +5345,24 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		// Grow Canceling
 		else if (player->kartstuff[k_growshrinktimer] > 0)
 		{
-			if (cmd->buttons & BT_ATTACK)
+			if (player->kartstuff[k_growcancel] >= 0)
 			{
-				player->kartstuff[k_growcancel]++;
-				if (player->kartstuff[k_growcancel] > 26)
-					K_RemoveGrowShrink(player);
+				if (cmd->buttons & BT_ATTACK)
+				{
+					player->kartstuff[k_growcancel]++;
+					if (player->kartstuff[k_growcancel] > 26)
+						K_RemoveGrowShrink(player);
+				}
+				else
+					player->kartstuff[k_growcancel] = 0;
 			}
 			else
-				player->kartstuff[k_growcancel] = 0;
+			{
+				if ((cmd->buttons & BT_ATTACK) || (player->pflags & PF_ATTACKDOWN))
+					player->kartstuff[k_growcancel] = -1;
+				else
+					player->kartstuff[k_growcancel] = 0;
+			}
 		}
 		else if (player->kartstuff[k_itemamount] <= 0)
 		{
@@ -5604,16 +5618,21 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 					if (ATTACK_IS_DOWN && !HOLDING_ITEM && NO_HYUDORO
 						&& player->kartstuff[k_growshrinktimer] <= 0) // Grow holds the item box hostage
 					{
-						K_PlayPowerGloatSound(player->mo);
-						player->mo->scalespeed = mapobjectscale/TICRATE;
-						player->mo->destscale = (3*mapobjectscale)/2;
-						if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
-							player->mo->destscale = (6*player->mo->destscale)/8;
-						player->kartstuff[k_growshrinktimer] = itemtime+(4*TICRATE); // 12 seconds
-						P_RestoreMusic(player);
-						if (!P_IsLocalPlayer(player))
-							S_StartSound(player->mo, (cv_kartinvinsfx.value ? sfx_alarmg : sfx_kgrow));
-						S_StartSound(player->mo, sfx_kc5a);
+						if (player->kartstuff[k_growshrinktimer] < 0) // If you're shrunk, then "grow" will just make you normal again.
+							K_RemoveGrowShrink(player);
+						else
+						{
+							K_PlayPowerGloatSound(player->mo);
+							player->mo->scalespeed = mapobjectscale/TICRATE;
+							player->mo->destscale = (3*mapobjectscale)/2;
+							if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
+								player->mo->destscale = (6*player->mo->destscale)/8;
+							player->kartstuff[k_growshrinktimer] = itemtime+(4*TICRATE); // 12 seconds
+							P_RestoreMusic(player);
+							if (!P_IsLocalPlayer(player))
+								S_StartSound(player->mo, (cv_kartinvinsfx.value ? sfx_alarmg : sfx_kgrow));
+							S_StartSound(player->mo, sfx_kc5a);
+						}
 						player->kartstuff[k_itemamount]--;
 					}
 					break;
@@ -5708,7 +5727,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			player->kartstuff[k_curshield] = 0;
 
 		if (player->kartstuff[k_growshrinktimer] <= 0)
-			player->kartstuff[k_growcancel] = 0;
+			player->kartstuff[k_growcancel] = -1;
 
 		if (player->kartstuff[k_itemtype] == KITEM_SPB
 			|| player->kartstuff[k_itemtype] == KITEM_SHRINK
@@ -6893,7 +6912,7 @@ static void K_drawKartItem(void)
 		}
 		else if (stplyr->kartstuff[k_growshrinktimer] > 0)
 		{
-			if (stplyr->kartstuff[k_growcancel])
+			if (stplyr->kartstuff[k_growcancel] > 0)
 			{
 				itembar = stplyr->kartstuff[k_growcancel];
 				maxl = 26;
