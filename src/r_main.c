@@ -852,7 +852,7 @@ void R_SkyboxFrame(player_t *player)
 	{
 		for (i = 1; i <= splitscreen; i++)
 		{
-			if (player == &players[i])
+			if (player == &players[displayplayers[i]])
 			{
 				thiscam = &camera[i];
 				break;
