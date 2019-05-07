@@ -2331,25 +2331,12 @@ void G_PlayerReborn(INT32 player)
 	INT32 score, marescore;
 	INT32 lives;
 	INT32 continues;
-	UINT8 charability;
-	UINT8 charability2;
 	// SRB2kart
 	UINT8 kartspeed;
 	UINT8 kartweight;
 	//
-	fixed_t normalspeed;
-	fixed_t runspeed;
-	UINT8 thrustfactor;
-	UINT8 accelstart;
-	UINT8 acceleration;
 	INT32 charflags;
 	INT32 pflags;
-	UINT32 thokitem;
-	UINT32 spinitem;
-	UINT32 revitem;
-	fixed_t actionspd;
-	fixed_t mindash;
-	fixed_t maxdash;
 	INT32 ctfteam;
 	INT32 starposttime;
 	INT16 starpostx;
@@ -2357,7 +2344,6 @@ void G_PlayerReborn(INT32 player)
 	INT16 starpostz;
 	INT32 starpostnum;
 	INT32 starpostangle;
-	fixed_t jumpfactor;
 	INT32 exiting;
 	INT16 numboxes;
 	INT16 totalring;
@@ -2405,17 +2391,10 @@ void G_PlayerReborn(INT32 player)
 
 	skincolor = players[player].skincolor;
 	skin = players[player].skin;
-	charability = players[player].charability;
-	charability2 = players[player].charability2;
 	// SRB2kart
 	kartspeed = players[player].kartspeed;
 	kartweight = players[player].kartweight;
 	//
-	normalspeed = players[player].normalspeed;
-	runspeed = players[player].runspeed;
-	thrustfactor = players[player].thrustfactor;
-	accelstart = players[player].accelstart;
-	acceleration = players[player].acceleration;
 	charflags = players[player].charflags;
 
 	starposttime = players[player].starposttime;
@@ -2425,13 +2404,6 @@ void G_PlayerReborn(INT32 player)
 	starpostnum = players[player].starpostnum;
 	respawnflip = players[player].kartstuff[k_starpostflip];	//SRB2KART
 	starpostangle = players[player].starpostangle;
-	jumpfactor = players[player].jumpfactor;
-	thokitem = players[player].thokitem;
-	spinitem = players[player].spinitem;
-	revitem = players[player].revitem;
-	actionspd = players[player].actionspd;
-	mindash = players[player].mindash;
-	maxdash = players[player].maxdash;
 
 	mare = players[player].mare;
 	bot = players[player].bot;
@@ -2495,24 +2467,11 @@ void G_PlayerReborn(INT32 player)
 	// save player config truth reborn
 	p->skincolor = skincolor;
 	p->skin = skin;
-	p->charability = charability;
-	p->charability2 = charability2;
 	// SRB2kart
 	p->kartspeed = kartspeed;
 	p->kartweight = kartweight;
 	//
-	p->normalspeed = normalspeed;
-	p->runspeed = runspeed;
-	p->thrustfactor = thrustfactor;
-	p->accelstart = accelstart;
-	p->acceleration = acceleration;
 	p->charflags = charflags;
-	p->thokitem = thokitem;
-	p->spinitem = spinitem;
-	p->revitem = revitem;
-	p->actionspd = actionspd;
-	p->mindash = mindash;
-	p->maxdash = maxdash;
 
 	p->starposttime = starposttime;
 	p->starpostx = starpostx;
@@ -2520,7 +2479,6 @@ void G_PlayerReborn(INT32 player)
 	p->starpostz = starpostz;
 	p->starpostnum = starpostnum;
 	p->starpostangle = starpostangle;
-	p->jumpfactor = jumpfactor;
 	p->exiting = exiting;
 
 	p->numboxes = numboxes;
@@ -5537,24 +5495,21 @@ void G_BeginRecording(void)
 	demo_p += 16;
 
 	// Stats
-	WRITEUINT8(demo_p,player->charability);
-	WRITEUINT8(demo_p,player->charability2);
-	WRITEUINT8(demo_p,player->actionspd>>FRACBITS);
-	WRITEUINT8(demo_p,player->mindash>>FRACBITS);
-	WRITEUINT8(demo_p,player->maxdash>>FRACBITS);
-	// SRB2kart
+	demo_p++; // charability
+	demo_p++; // charability2
+	demo_p++; // actionspd
+	demo_p++; // mindash
+	demo_p++; // maxdash
+	// SRB2Kart
 	WRITEUINT8(demo_p,player->kartspeed);
 	WRITEUINT8(demo_p,player->kartweight);
 	//
-	WRITEUINT8(demo_p,player->normalspeed>>FRACBITS);
-	WRITEUINT8(demo_p,player->runspeed>>FRACBITS);
-	WRITEUINT8(demo_p,player->thrustfactor);
-	WRITEUINT8(demo_p,player->accelstart);
-	WRITEUINT8(demo_p,player->acceleration);
-
-	// Trying to convert it back to % causes demo desync due to precision loss.
-	// Don't do it.
-	WRITEFIXED(demo_p, player->jumpfactor);
+	demo_p++; // normalspeed
+	demo_p++; // runspeed
+	demo_p++; // thrustfactor
+	demo_p++; // accelstart
+	demo_p++; // acceleration
+	demo_p += 4; // jumpfactor
 
 	// Save netvar data (SONICCD, etc)
 	CV_SaveNetVars(&demo_p);
@@ -5767,9 +5722,8 @@ void G_DoPlayDemo(char *defdemoname)
 	UINT8 i;
 	lumpnum_t l;
 	char skin[17],color[17],*n,*pdemoname;
-	UINT8 version,subversion,charability,charability2,kartspeed,kartweight,thrustfactor,accelstart,acceleration;
+	UINT8 version,subversion,kartspeed,kartweight;
 	UINT32 randseed;
-	fixed_t actionspd,mindash,maxdash,normalspeed,runspeed,jumpfactor;
 	char msg[1024];
 #if defined(SKIPERRORS) && !defined(DEVELOP)
 	boolean skiperrors = false;
@@ -5906,21 +5860,21 @@ void G_DoPlayDemo(char *defdemoname)
 	M_Memcpy(color,demo_p,16);
 	demo_p += 16;
 
-	charability = READUINT8(demo_p);
-	charability2 = READUINT8(demo_p);
-	actionspd = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-	mindash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-	maxdash = (fixed_t)READUINT8(demo_p)<<FRACBITS;
+	demo_p++; // charability
+	demo_p++; // charability2
+	demo_p++; // actionspd
+	demo_p++; // mindash
+	demo_p++; // maxdash
 	// SRB2kart
 	kartspeed = READUINT8(demo_p);
 	kartweight = READUINT8(demo_p);
 	//
-	normalspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-	runspeed = (fixed_t)READUINT8(demo_p)<<FRACBITS;
-	thrustfactor = READUINT8(demo_p);
-	accelstart = READUINT8(demo_p);
-	acceleration = READUINT8(demo_p);
-	jumpfactor = READFIXED(demo_p);
+	demo_p++; // normalspeed
+	demo_p++; // runspeed
+	demo_p++; // thrustfactor
+	demo_p++; // accelstart
+	demo_p++; // acceleration
+	demo_p += 4; // jumpfactor
 
 	// net var data
 	CV_LoadNetVars(&demo_p);
@@ -6014,21 +5968,10 @@ void G_DoPlayDemo(char *defdemoname)
 	// Set saved attribute values
 	// No cheat checking here, because even if they ARE wrong...
 	// it would only break the replay if we clipped them.
-	players[0].charability = charability;
-	players[0].charability2 = charability2;
-	players[0].actionspd = actionspd;
-	players[0].mindash = mindash;
-	players[0].maxdash = maxdash;
 	// SRB2kart
 	players[0].kartspeed = kartspeed;
 	players[0].kartweight = kartweight;
 	//
-	players[0].normalspeed = normalspeed;
-	players[0].runspeed = runspeed;
-	players[0].thrustfactor = thrustfactor;
-	players[0].accelstart = accelstart;
-	players[0].acceleration = acceleration;
-	players[0].jumpfactor = jumpfactor;
 
 	demo_start = true;
 }

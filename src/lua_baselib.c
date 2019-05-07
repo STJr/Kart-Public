@@ -946,40 +946,6 @@ static int lib_pHomingAttack(lua_State *L)
 	return 1;
 }*/
 
-static int lib_pDoJump(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	boolean soundandstate = (boolean)lua_opttrueboolean(L, 2);
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	P_DoJump(player, soundandstate);
-	return 0;
-}
-
-static int lib_pSpawnThokMobj(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	P_SpawnThokMobj(player);
-	return 0;
-}
-
-static int lib_pSpawnSpinMobj(lua_State *L)
-{
-	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
-	mobjtype_t type = luaL_checkinteger(L, 2);
-	NOHUD
-	if (!player)
-		return LUA_ErrInvalid(L, "player_t");
-	if (type >= NUMMOBJTYPES)
-		return luaL_error(L, "mobj type %d out of range (0 - %d)", type, NUMMOBJTYPES-1);
-	P_SpawnSpinMobj(player, type);
-	return 0;
-}
-
 static int lib_pTelekinesis(lua_State *L)
 {
 	player_t *player = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
@@ -2645,9 +2611,6 @@ static luaL_Reg lib[] = {
 	{"P_NukeEnemies",lib_pNukeEnemies},
 	{"P_HomingAttack",lib_pHomingAttack},
 	//{"P_SuperReady",lib_pSuperReady},
-	{"P_DoJump",lib_pDoJump},
-	{"P_SpawnThokMobj",lib_pSpawnThokMobj},
-	{"P_SpawnSpinMobj",lib_pSpawnSpinMobj},
 	{"P_Telekinesis",lib_pTelekinesis},
 
 	// p_map
