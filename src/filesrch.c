@@ -368,9 +368,10 @@ void searchfilemenu(char *tempname)
 	return;
 }
 
-boolean preparefilemenu(boolean samedepth)
+boolean preparefilemenu(boolean samedepth, boolean replayhut)
 {
 	(void)samedepth;
+	(void)replayhut;
 	return false;
 }
 
@@ -437,9 +438,10 @@ void searchfilemenu(char *tempname)
 	return;
 }
 
-boolean preparefilemenu(boolean samedepth)
+boolean preparefilemenu(boolean samedepth, boolean replayhut)
 {
 	(void)samedepth;
+	(void)replayhut;
 	return false;
 }
 
@@ -710,7 +712,7 @@ void searchfilemenu(char *tempname)
 	}
 }
 
-boolean preparefilemenu(boolean samedepth)
+boolean preparefilemenu(boolean samedepth, boolean replayhut)
 {
 	DIR *dirhandle;
 	struct dirent *dent;
@@ -759,9 +761,13 @@ boolean preparefilemenu(boolean samedepth)
 		{
 			if (!S_ISDIR(fsstat.st_mode)) // file
 			{
-				if (!cv_addons_showall.value)
+				size_t len = strlen(dent->d_name)+1;
+				if (replayhut)
 				{
-					size_t len = strlen(dent->d_name)+1;
+					if (strcasecmp(".lmp", dent->d_name+len-5)) continue; // Not a replay
+				}
+				else if (!cv_addons_showall.value)
+				{
 					UINT8 ext;
 					for (ext = 0; ext < NUM_EXT_TABLE; ext++)
 						if (!strcasecmp(exttable[ext]+1, dent->d_name+len-(exttable[ext][0]))) break; // extension comparison
@@ -829,39 +835,48 @@ boolean preparefilemenu(boolean samedepth)
 			if (!S_ISDIR(fsstat.st_mode)) // file
 			{
 				if (!((numfolders+pos) < sizecoredirmenu)) continue; // crash prevention
-				for (; ext < NUM_EXT_TABLE; ext++)
-					if (!strcasecmp(exttable[ext]+1, dent->d_name+len-(exttable[ext][0]))) break; // extension comparison
-				if (ext == NUM_EXT_TABLE && !cv_addons_showall.value) continue; // not an addfile-able (or exec-able) file
-				ext += EXT_START; // moving to be appropriate position
 
-				if (ext >= EXT_LOADSTART)
+				if (replayhut)
 				{
-					size_t i;
-					for (i = 0; i < numwadfiles; i++)
+					if (strcasecmp(".lmp", dent->d_name+len-5)) continue; // Not a replay
+					ext = EXT_TXT; // This isn't used anywhere but better safe than sorry for messing with this...
+				}
+				else
+				{
+					for (; ext < NUM_EXT_TABLE; ext++)
+						if (!strcasecmp(exttable[ext]+1, dent->d_name+len-(exttable[ext][0]))) break; // extension comparison
+					if (ext == NUM_EXT_TABLE && !cv_addons_showall.value) continue; // not an addfile-able (or exec-able) file
+					ext += EXT_START; // moving to be appropriate position
+
+					if (ext >= EXT_LOADSTART)
 					{
-						if (!filenamebuf[i][0])
+						size_t i;
+						for (i = 0; i < numwadfiles; i++)
 						{
-							strncpy(filenamebuf[i], wadfiles[i]->filename, MAX_WADPATH);
-							filenamebuf[i][MAX_WADPATH - 1] = '\0';
-							nameonly(filenamebuf[i]);
+							if (!filenamebuf[i][0])
+							{
+								strncpy(filenamebuf[i], wadfiles[i]->filename, MAX_WADPATH);
+								filenamebuf[i][MAX_WADPATH - 1] = '\0';
+								nameonly(filenamebuf[i]);
+							}
+
+							if (strcmp(dent->d_name, filenamebuf[i]))
+								continue;
+							if (cv_addons_md5.value && !checkfilemd5(menupath, wadfiles[i]->md5sum))
+								continue;
+
+							ext |= EXT_LOADED;
 						}
-
-						if (strcmp(dent->d_name, filenamebuf[i]))
-							continue;
-						if (cv_addons_md5.value && !checkfilemd5(menupath, wadfiles[i]->md5sum))
-							continue;
-
-						ext |= EXT_LOADED;
 					}
-				}
-				else if (ext == EXT_TXT)
-				{
-					if (!strcmp(dent->d_name, "log.txt") || !strcmp(dent->d_name, "errorlog.txt"))
+					else if (ext == EXT_TXT)
+					{
+						if (!strcmp(dent->d_name, "log.txt") || !strcmp(dent->d_name, "errorlog.txt"))
+							ext |= EXT_LOADED;
+					}
+
+					if (!strcmp(dent->d_name, configfile))
 						ext |= EXT_LOADED;
 				}
-
-				if (!strcmp(dent->d_name, configfile))
-					ext |= EXT_LOADED;
 
 				folder = 0;
 			}
@@ -881,6 +896,8 @@ boolean preparefilemenu(boolean samedepth)
 				strcpy(temp+len, PATHSEP);
 				coredirmenu[folderpos++] = temp;
 			}
+			else if (replayhut) // Reverse-alphabetical on just the files; acts as a fake "most recent first" with the current filename format
+				coredirmenu[sizecoredirmenu - 1 - pos++] = temp;
 			else
 				coredirmenu[numfolders + pos++] = temp;
 		}

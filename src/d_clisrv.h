@@ -512,6 +512,7 @@ extern boolean dedicated; // For dedicated server
 extern UINT16 software_MAXPACKETLENGTH;
 extern boolean acceptnewnode;
 extern SINT8 servernode;
+extern char connectedservername[MAXSERVERNAME];
 
 void Command_Ping_f(void);
 extern tic_t connectiontimeout;
@@ -551,6 +552,7 @@ void CL_AddSplitscreenPlayer(void);
 void CL_RemoveSplitscreenPlayer(UINT8 p);
 void CL_Reset(void);
 void CL_ClearPlayer(INT32 playernum);
+void CL_RemovePlayer(INT32 playernum, INT32 reason);
 void CL_UpdateServerList(boolean internetsearch, INT32 room);
 boolean CL_Responder(event_t *ev);
 // Is there a game running

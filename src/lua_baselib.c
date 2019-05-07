@@ -163,6 +163,7 @@ static int lib_pRandomFixed(lua_State *L)
 {
 	NOHUD
 	lua_pushfixed(L, P_RandomFixed());
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -170,6 +171,7 @@ static int lib_pRandomByte(lua_State *L)
 {
 	NOHUD
 	lua_pushinteger(L, P_RandomByte());
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -181,6 +183,7 @@ static int lib_pRandomKey(lua_State *L)
 	if (a > 65536)
 		LUA_UsageWarning(L, "P_RandomKey: range > 65536 is undefined behavior");
 	lua_pushinteger(L, P_RandomKey(a));
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -198,6 +201,7 @@ static int lib_pRandomRange(lua_State *L)
 	if ((b-a+1) > 65536)
 		LUA_UsageWarning(L, "P_RandomRange: range > 65536 is undefined behavior");
 	lua_pushinteger(L, P_RandomRange(a, b));
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -207,6 +211,7 @@ static int lib_pRandom(lua_State *L)
 	NOHUD
 	LUA_Deprecated(L, "P_Random", "P_RandomByte");
 	lua_pushinteger(L, P_RandomByte());
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -214,6 +219,7 @@ static int lib_pSignedRandom(lua_State *L)
 {
 	NOHUD
 	lua_pushinteger(L, P_SignedRandom());
+	demo_writerng = 2;
 	return 1;
 }
 
@@ -222,6 +228,7 @@ static int lib_pRandomChance(lua_State *L)
 	fixed_t p = luaL_checkfixed(L, 1);
 	NOHUD
 	lua_pushboolean(L, P_RandomChance(p));
+	demo_writerng = 2;
 	return 1;
 }
 

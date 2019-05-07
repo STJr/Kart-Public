@@ -36,11 +36,61 @@ extern boolean playeringame[MAXPLAYERS];
 // ======================================
 
 // demoplaying back and demo recording
-extern boolean demoplayback, titledemo, fromtitledemo, demorecording, timingdemo;
+extern consvar_t cv_recordmultiplayerdemos, cv_netdemosyncquality;
 
-// Quit after playing a demo from cmdline.
-extern boolean singledemo;
-extern boolean demo_start;
+// Publicly-accessible demo vars
+struct demovars_s {
+	char titlename[65];
+	boolean recording, playback, timing;
+	UINT16 version; // Current file format of the demo being played
+	boolean title; // Title Screen demo can be cancelled by any key
+	boolean rewinding; // Rewind in progress
+
+	boolean loadfiles, ignorefiles; // Demo file loading options
+	boolean fromtitle; // SRB2Kart: Don't stop the music
+	boolean inreplayhut; // Go back to replayhut after demos
+	boolean quitafterplaying; // quit after playing a demo from cmdline
+	boolean deferstart; // don't start playing demo right away
+
+	tic_t savebutton; // Used to determine when the local player can choose to save the replay while the race is still going
+	enum {
+		DSM_NOTSAVING,
+		DSM_WILLAUTOSAVE,
+		DSM_TITLEENTRY,
+		DSM_WILLSAVE,
+		DSM_SAVED
+	} savemode;
+};
+
+extern struct demovars_s demo;
+
+typedef enum {
+	MD_NOTLOADED,
+	MD_LOADED,
+	MD_SUBDIR,
+	MD_OUTDATED,
+	MD_INVALID
+} menudemotype_e;
+
+typedef struct menudemo_s {
+	char filepath[256];
+	menudemotype_e type;
+
+	char title[65]; // Null-terminated for string prints
+	UINT16 map;
+	UINT8 addonstatus; // What do we need to do addon-wise to play this demo?
+	UINT8 gametype;
+	UINT8 kartspeed; // Add OR DF_ENCORE for encore mode, idk
+	UINT8 numlaps;
+
+	struct {
+		UINT8 ranking;
+		char name[17];
+		UINT8 skin, color;
+		UINT32 timeorscore;
+	} standings[MAXPLAYERS];
+} menudemo_t;
+
 
 extern mobj_t *metalplayback;
 
@@ -102,9 +152,9 @@ INT16 G_SoftwareClipAimingPitch(INT32 *aiming);
 boolean InputDown(INT32 gc, UINT8 p);
 INT32 JoyAxis(axis_input_e axissel, UINT8 p);
 
-extern angle_t localangle, localangle2, localangle3, localangle4;
-extern INT32 localaiming, localaiming2, localaiming3, localaiming4; // should be an angle_t but signed
-extern boolean camspin, camspin2, camspin3, camspin4; // SRB2Kart
+extern angle_t localangle[MAXSPLITSCREENPLAYERS];
+extern INT32 localaiming[MAXSPLITSCREENPLAYERS]; // should be an angle_t but signed
+extern boolean camspin[MAXSPLITSCREENPLAYERS]; // SRB2Kart
 
 //
 // GAME
@@ -128,6 +178,7 @@ void G_DeferedInitNew(boolean pencoremode, const char *mapname, INT32 pickedchar
 	UINT8 ssplayers, boolean FLS);
 void G_DoLoadLevel(boolean resetplayer);
 
+void G_LoadDemoInfo(menudemo_t *pdemo);
 void G_DeferedPlayDemo(const char *demo);
 
 // Can be called by the startup code or M_Responder, calls P_SetupLevel.
@@ -144,6 +195,7 @@ void G_BeginRecording(void);
 void G_BeginMetal(void);
 
 // Only called by shutdown code.
+void G_WriteStanding(UINT8 ranking, char *name, INT32 skinnum, UINT8 color, UINT32 val);
 void G_SetDemoTime(UINT32 ptime, UINT32 plap);
 UINT8 G_CmpDemoTime(char *oldname, char *newname);
 
@@ -155,19 +207,41 @@ typedef enum
 	GHC_INVINCIBLE
 } ghostcolor_t;
 
+extern UINT8 demo_extradata[MAXPLAYERS];
+extern UINT8 demo_writerng;
+#define DXD_RESPAWN 0x01 // "respawn" command in console
+#define DXD_SKIN 0x02 // skin changed
+#define DXD_NAME 0x04 // name changed
+#define DXD_COLOR 0x08 // color changed
+#define DXD_PLAYSTATE 0x10 // state changed between playing, spectating, or not in-game
+
+#define DXD_PST_PLAYING 0x01
+#define DXD_PST_SPECTATING 0x02
+#define DXD_PST_LEFT 0x03
+
 // Record/playback tics
+void G_ReadDemoExtraData(void);
+void G_WriteDemoExtraData(void);
 void G_ReadDemoTiccmd(ticcmd_t *cmd, INT32 playernum);
 void G_WriteDemoTiccmd(ticcmd_t *cmd, INT32 playernum);
-void G_GhostAddThok(void);
-void G_GhostAddSpin(void);
-void G_GhostAddRev(void);
-void G_GhostAddColor(ghostcolor_t color);
-void G_GhostAddFlip(void);
-void G_GhostAddScale(fixed_t scale);
-void G_GhostAddHit(mobj_t *victim);
-void G_WriteGhostTic(mobj_t *ghost);
-void G_ConsGhostTic(void);
+void G_GhostAddThok(INT32 playernum);
+void G_GhostAddSpin(INT32 playernum);
+void G_GhostAddRev(INT32 playernum);
+void G_GhostAddColor(INT32 playernum, ghostcolor_t color);
+void G_GhostAddFlip(INT32 playernum);
+void G_GhostAddScale(INT32 playernum, fixed_t scale);
+void G_GhostAddHit(INT32 playernum, mobj_t *victim);
+void G_WriteAllGhostTics(void);
+void G_WriteGhostTic(mobj_t *ghost, INT32 playernum);
+void G_ConsAllGhostTics(void);
+void G_ConsGhostTic(INT32 playernum);
 void G_GhostTicker(void);
+
+void G_InitDemoRewind(void);
+void G_StoreRewindInfo(void);
+void G_PreviewRewind(tic_t previewtime);
+void G_ConfirmRewind(tic_t rewindtime);
+
 void G_ReadMetalTic(mobj_t *metal);
 void G_WriteMetalTic(mobj_t *metal);
 void G_SaveMetal(UINT8 **buffer);
@@ -184,6 +258,13 @@ typedef struct demoghost {
 } demoghost;
 extern demoghost *ghosts;
 
+// G_CheckDemoExtraFiles: checks if our loaded WAD list matches the demo's.
+#define DFILE_ERROR_NOTLOADED            0x01 // Files are not loaded, but can be without a restart.
+#define DFILE_ERROR_OUTOFORDER           0x02 // Files are loaded, but out of order.
+#define DFILE_ERROR_INCOMPLETEOUTOFORDER 0x03 // Some files are loaded out of order, but others are not.
+#define DFILE_ERROR_CANNOTLOAD           0x04 // Files are missing and cannot be loaded.
+#define DFILE_ERROR_EXTRAFILES           0x05 // Extra files outside of the replay's file list are loaded.
+
 void G_DoPlayDemo(char *defdemoname);
 void G_TimeDemo(const char *name);
 void G_AddGhost(char *defdemoname);
@@ -194,6 +275,8 @@ void G_StopMetalDemo(void);
 ATTRNORETURN void FUNCNORETURN G_StopMetalRecording(void);
 void G_StopDemo(void);
 boolean G_CheckDemoStatus(void);
+void G_SaveDemo(void);
+boolean G_DemoTitleResponder(event_t *ev);
 
 boolean G_IsSpecialStage(INT32 mapnum);
 boolean G_GametypeUsesLives(void);
@@ -213,6 +296,16 @@ void G_EndGame(void); // moved from y_inter.c/h and renamed
 
 void G_Ticker(boolean run);
 boolean G_Responder(event_t *ev);
+
+boolean G_CouldView(INT32 playernum);
+boolean G_CanView(INT32 playernum, UINT8 viewnum, boolean onlyactive);
+
+INT32 G_FindView(INT32 startview, UINT8 viewnum, boolean onlyactive, boolean reverse);
+INT32 G_CountPlayersPotentiallyViewable(boolean active);
+
+void G_ResetViews(void);
+void G_ResetView(UINT8 viewnum, INT32 playernum, boolean onlyactive);
+void G_AdjustView(UINT8 viewnum, INT32 offset, boolean onlyactive);
 
 void G_AddPlayer(INT32 playernum);
 

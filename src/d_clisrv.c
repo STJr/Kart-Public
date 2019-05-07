@@ -138,6 +138,7 @@ static UINT8 localtextcmd3[MAXTEXTCMD]; // splitscreen == 2
 static UINT8 localtextcmd4[MAXTEXTCMD]; // splitscreen == 3
 static tic_t neededtic;
 SINT8 servernode = 0; // the number of the server node
+char connectedservername[MAXSERVERNAME];
 /// \brief do we accept new players?
 /// \todo WORK!
 boolean acceptnewnode = true;
@@ -1512,7 +1513,7 @@ static boolean SV_SendServerConfig(INT32 node)
 	op = p = netbuffer->u.servercfg.varlengthinputs;
 
 	CV_SavePlayerNames(&p);
-	CV_SaveNetVars(&p);
+	CV_SaveNetVars(&p, false);
 	{
 		const size_t len = sizeof (serverconfig_pak) + (size_t)(p - op);
 
@@ -1691,8 +1692,8 @@ static void CL_LoadReceivedSavegame(void)
 	}
 
 	paused = false;
-	demoplayback = false;
-	titledemo = false;
+	demo.playback = false;
+	demo.title = false;
 	automapactive = false;
 
 	// load a base level
@@ -2270,6 +2271,9 @@ static void CL_ConnectToServer(boolean viams)
 	{
 		INT32 j;
 		const char *gametypestr = NULL;
+
+		strncpy(connectedservername, serverlist[i].info.servername, MAXSERVERNAME);
+
 		CONS_Printf(M_GetText("Connecting to: %s\n"), serverlist[i].info.servername);
 		for (j = 0; gametype_cons_t[j].strvalue; j++)
 		{
@@ -2315,7 +2319,7 @@ static void CL_ConnectToServer(boolean viams)
 #endif
 	DEBFILE(va("Synchronisation Finished\n"));
 
-	displayplayer = consoleplayer;
+	displayplayers[0] = consoleplayer;
 }
 
 #ifndef NONET
@@ -2487,7 +2491,7 @@ static void Command_connect(void)
 		return;
 	}
 
-	if (Playing() || titledemo)
+	if (Playing() || demo.title)
 	{
 		CONS_Printf(M_GetText("You cannot connect while in a game. End this game first.\n"));
 		return;
@@ -2579,14 +2583,16 @@ void CL_ClearPlayer(INT32 playernum)
 //
 // Removes a player from the current game
 //
-static void CL_RemovePlayer(INT32 playernum, INT32 reason)
+void CL_RemovePlayer(INT32 playernum, INT32 reason)
 {
 	// Sanity check: exceptional cases (i.e. c-fails) can cause multiple
 	// kick commands to be issued for the same player.
 	if (!playeringame[playernum])
 		return;
 
-	if (server && !demoplayback)
+	demo_extradata[playernum] |= DXD_PLAYSTATE;
+
+	if (server && !demo.playback)
 	{
 		INT32 node = playernode[playernum];
 		//playerpernode[node] = 0; // It'd be better to remove them all at once, but ghosting happened, so continue to let CL_RemovePlayer do it one-by-one
@@ -2661,8 +2667,8 @@ static void CL_RemovePlayer(INT32 playernum, INT32 reason)
 		RemoveAdminPlayer(playernum); // don't stay admin after you're gone
 	}
 
-	if (playernum == displayplayer)
-		displayplayer = consoleplayer; // don't look through someone's view who isn't there
+	if (playernum == displayplayers[0] && !demo.playback)
+		displayplayers[0] = consoleplayer; // don't look through someone's view who isn't there
 
 #ifdef HAVE_BLUA
 	LUA_InvalidatePlayer(&players[playernum]);
@@ -2682,7 +2688,7 @@ void CL_Reset(void)
 		G_StopMetalRecording();
 	if (metalplayback)
 		G_StopMetalDemo();
-	if (demorecording)
+	if (demo.recording)
 		G_CheckDemoStatus();
 
 	// reset client/server code
@@ -3382,6 +3388,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 {
 	INT16 node, newplayernum;
 	UINT8 splitscreenplayer = 0;
+	UINT8 i;
 
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
@@ -3415,34 +3422,19 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 	if (node == mynode)
 	{
 		playernode[newplayernum] = 0; // for information only
+
 		if (splitscreenplayer)
 		{
-			if (splitscreenplayer == 1)
-			{
-				secondarydisplayplayer = newplayernum;
-				DEBFILE("spawning my brother\n");
-				if (botingame)
-					players[newplayernum].bot = 1;
-				// Same goes for player 2 when relevant
-			}
-			else if (splitscreenplayer == 2)
-			{
-				thirddisplayplayer = newplayernum;
-				DEBFILE("spawning my sister\n");
-			}
-			else if (splitscreenplayer == 3)
-			{
-				fourthdisplayplayer = newplayernum;
-				DEBFILE("spawning my trusty pet dog\n");
-			}
+			displayplayers[splitscreenplayer] = newplayernum;
+			DEBFILE(va("spawning one of my sister number %d\n", splitscreenplayer));
+			if (splitscreenplayer == 1 && botingame)
+				players[newplayernum].bot = 1;
 		}
 		else
 		{
 			consoleplayer = newplayernum;
-			displayplayer = newplayernum;
-			secondarydisplayplayer = newplayernum;
-			thirddisplayplayer = newplayernum;
-			fourthdisplayplayer = newplayernum;
+			for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+				displayplayers[i] = newplayernum;
 			DEBFILE("spawning me\n");
 		}
 		D_SendPlayerConfig();
@@ -3591,7 +3583,7 @@ boolean Playing(void)
 
 boolean SV_SpawnServer(void)
 {
-	if (demoplayback)
+	if (demo.playback)
 		G_StopDemo(); // reset engine parameter
 	if (metalplayback)
 		G_StopMetalDemo();
@@ -5177,9 +5169,9 @@ void TryRunTics(tic_t realtics)
 
 	NetUpdate();
 
-	if (demoplayback)
+	if (demo.playback)
 	{
-		neededtic = gametic + (realtics * cv_playbackspeed.value);
+		neededtic = gametic + realtics * (gamestate == GS_LEVEL ? cv_playbackspeed.value : 1);
 		// start a game after a demo
 		maketic += realtics;
 		firstticstosend = maketic;
@@ -5432,7 +5424,7 @@ FILESTAMP
 	}
 	else
 	{
-		if (!demoplayback)
+		if (!demo.playback)
 		{
 			INT32 counts;
 

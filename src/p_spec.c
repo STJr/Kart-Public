@@ -2243,7 +2243,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 	I_Assert(!mo || !P_MobjWasRemoved(mo)); // If mo is there, mo must be valid!
 
 	if (mo && mo->player && botingame)
-		bot = players[secondarydisplayplayer].mo;
+		bot = players[displayplayers[1]].mo;
 
 	// note: only commands with linedef types >= 400 && < 500 can be used
 	switch (line->special)
@@ -2381,35 +2381,21 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 
 					if (mo->player)
 					{
+						UINT8 i;
+
 						if (bot) // This might put poor Tails in a wall if he's too far behind! D: But okay, whatever! >:3
 							P_TeleportMove(bot, bot->x + x, bot->y + y, bot->z + z);
-						if (splitscreen > 2 && mo->player == &players[fourthdisplayplayer] && camera4.chase)
+
+						for (i = 0; i <= splitscreen; i++)
 						{
-							camera4.x += x;
-							camera4.y += y;
-							camera4.z += z;
-							camera4.subsector = R_PointInSubsector(camera4.x, camera4.y);
-						}
-						else if (splitscreen > 1 && mo->player == &players[thirddisplayplayer] && camera3.chase)
-						{
-							camera3.x += x;
-							camera3.y += y;
-							camera3.z += z;
-							camera3.subsector = R_PointInSubsector(camera3.x, camera3.y);
-						}
-						else if (splitscreen && mo->player == &players[secondarydisplayplayer] && camera2.chase)
-						{
-							camera2.x += x;
-							camera2.y += y;
-							camera2.z += z;
-							camera2.subsector = R_PointInSubsector(camera2.x, camera2.y);
-						}
-						else if (camera.chase && mo->player == &players[displayplayer])
-						{
-							camera.x += x;
-							camera.y += y;
-							camera.z += z;
-							camera.subsector = R_PointInSubsector(camera.x, camera.y);
+							if (mo->player == &players[displayplayers[i]] && camera[i].chase)
+							{
+								camera[i].x += x;
+								camera[i].y += y;
+								camera[i].z += z;
+								camera[i].subsector = R_PointInSubsector(camera[i].x, camera[i].y);
+								break;
+							}
 						}
 					}
 				}
@@ -2515,8 +2501,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 				if (line->flags & ML_NOCLIMB)
 				{
 					// play the sound from nowhere, but only if display player triggered it
-					if (mo && mo->player && (mo->player == &players[displayplayer] || mo->player == &players[secondarydisplayplayer]
-						|| mo->player == &players[thirddisplayplayer] || mo->player == &players[fourthdisplayplayer]))
+					if (mo && mo->player && P_IsDisplayPlayer(mo->player))
 						S_StartSound(NULL, sfxnum);
 				}
 				else if (line->flags & ML_EFFECT4)
@@ -3834,16 +3819,16 @@ DoneSection2:
 				if (player->mo->scale > mapobjectscale)
 					linespeed = FixedMul(linespeed, mapobjectscale + (player->mo->scale - mapobjectscale));
 
-				if (!demoplayback || P_AnalogMove(player))
+				if (!demo.playback || P_AnalogMove(player))
 				{
 					if (player == &players[consoleplayer])
-						localangle = player->mo->angle;
-					else if (player == &players[secondarydisplayplayer])
-						localangle2 = player->mo->angle;
-					else if (player == &players[thirddisplayplayer])
-						localangle3 = player->mo->angle;
-					else if (player == &players[fourthdisplayplayer])
-						localangle4 = player->mo->angle;
+						localangle[0] = player->mo->angle;
+					else if (player == &players[displayplayers[1]])
+						localangle[1] = player->mo->angle;
+					else if (player == &players[displayplayers[2]])
+						localangle[2] = player->mo->angle;
+					else if (player == &players[displayplayers[3]])
+						localangle[3] = player->mo->angle;
 				}
 
 				if (!(lines[i].flags & ML_EFFECT4))
@@ -7841,44 +7826,44 @@ void T_Pusher(pusher_t *p)
 				thing->player->pflags |= PF_SLIDING;
 				thing->angle = R_PointToAngle2 (0, 0, xspeed<<(FRACBITS-PUSH_FACTOR), yspeed<<(FRACBITS-PUSH_FACTOR));
 
-				if (!demoplayback || P_AnalogMove(thing->player))
+				if (!demo.playback || P_AnalogMove(thing->player))
 				{
 					if (thing->player == &players[consoleplayer])
 					{
-						if (thing->angle - localangle > ANGLE_180)
-							localangle -= (localangle - thing->angle) / 8;
+						if (thing->angle - localangle[0] > ANGLE_180)
+							localangle[0] -= (localangle[0] - thing->angle) / 8;
 						else
-							localangle += (thing->angle - localangle) / 8;
+							localangle[0] += (thing->angle - localangle[0]) / 8;
 					}
-					else if (thing->player == &players[secondarydisplayplayer])
+					else if (thing->player == &players[displayplayers[1]])
 					{
-						if (thing->angle - localangle2 > ANGLE_180)
-							localangle2 -= (localangle2 - thing->angle) / 8;
+						if (thing->angle - localangle[1] > ANGLE_180)
+							localangle[1] -= (localangle[1] - thing->angle) / 8;
 						else
-							localangle2 += (thing->angle - localangle2) / 8;
+							localangle[1] += (thing->angle - localangle[1]) / 8;
 					}
-					else if (thing->player == &players[thirddisplayplayer])
+					else if (thing->player == &players[displayplayers[2]])
 					{
-						if (thing->angle - localangle3 > ANGLE_180)
-							localangle3 -= (localangle3 - thing->angle) / 8;
+						if (thing->angle - localangle[2] > ANGLE_180)
+							localangle[2] -= (localangle[2] - thing->angle) / 8;
 						else
-							localangle3 += (thing->angle - localangle3) / 8;
+							localangle[2] += (thing->angle - localangle[2]) / 8;
 					}
-					else if (thing->player == &players[fourthdisplayplayer])
+					else if (thing->player == &players[displayplayers[3]])
 					{
-						if (thing->angle - localangle4 > ANGLE_180)
-							localangle4 -= (localangle4 - thing->angle) / 8;
+						if (thing->angle - localangle[3] > ANGLE_180)
+							localangle[3] -= (localangle[3] - thing->angle) / 8;
 						else
-							localangle4 += (thing->angle - localangle4) / 8;
+							localangle[3] += (thing->angle - localangle[3]) / 8;
 					}
 					/*if (thing->player == &players[consoleplayer])
-						localangle = thing->angle;
-					else if (thing->player == &players[secondarydisplayplayer])
-						localangle2 = thing->angle;
-					else if (thing->player == &players[thirddisplayplayer])
-						localangle3 = thing->angle;
-					else if (thing->player == &players[fourthdisplayplayer])
-						localangle4 = thing->angle;*/
+						localangle[0] = thing->angle;
+					else if (thing->player == &players[displayplayers[1]])
+						localangle[1] = thing->angle;
+					else if (thing->player == &players[displayplayers[2]])
+						localangle[2] = thing->angle;
+					else if (thing->player == &players[displayplayers[3]])
+						localangle[3] = thing->angle;*/
 				}
 			}
 

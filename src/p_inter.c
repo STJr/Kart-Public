@@ -62,11 +62,11 @@ void P_ForceConstant(const BasicFF_t *FFInfo)
 	ConstantQuake.Magnitude = FFInfo->Magnitude;
 	if (FFInfo->player == &players[consoleplayer])
 		I_Tactile(ConstantForce, &ConstantQuake);
-	else if (splitscreen && FFInfo->player == &players[secondarydisplayplayer])
+	else if (splitscreen && FFInfo->player == &players[displayplayers[1]])
 		I_Tactile2(ConstantForce, &ConstantQuake);
-	else if (splitscreen > 1 && FFInfo->player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && FFInfo->player == &players[displayplayers[2]])
 		I_Tactile3(ConstantForce, &ConstantQuake);
-	else if (splitscreen > 2 && FFInfo->player == &players[fourthdisplayplayer])
+	else if (splitscreen > 2 && FFInfo->player == &players[displayplayers[3]])
 		I_Tactile4(ConstantForce, &ConstantQuake);
 }
 void P_RampConstant(const BasicFF_t *FFInfo, INT32 Start, INT32 End)
@@ -83,11 +83,11 @@ void P_RampConstant(const BasicFF_t *FFInfo, INT32 Start, INT32 End)
 	RampQuake.End       = End;
 	if (FFInfo->player == &players[consoleplayer])
 		I_Tactile(ConstantForce, &RampQuake);
-	else if (splitscreen && FFInfo->player == &players[secondarydisplayplayer])
+	else if (splitscreen && FFInfo->player == &players[displayplayers[1]])
 		I_Tactile2(ConstantForce, &RampQuake);
-	else if (splitscreen > 1 && FFInfo->player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && FFInfo->player == &players[displayplayers[2]])
 		I_Tactile3(ConstantForce, &RampQuake);
-	else if (splitscreen > 2 && FFInfo->player == &players[fourthdisplayplayer])
+	else if (splitscreen > 2 && FFInfo->player == &players[displayplayers[3]])
 		I_Tactile4(ConstantForce, &RampQuake);
 }
 
@@ -218,7 +218,7 @@ void P_DoNightsScore(player_t *player)
 	dummymo->fuse = 3*TICRATE;
 
 	// What?! NO, don't use the camera! Scale up instead!
-	//P_InstaThrust(dummymo, R_PointToAngle2(dummymo->x, dummymo->y, camera.x, camera.y), 3*FRACUNIT);
+	//P_InstaThrust(dummymo, R_PointToAngle2(dummymo->x, dummymo->y, camera[0].x, camera[0].y), 3*FRACUNIT);
 	dummymo->scalespeed = FRACUNIT/25;
 	dummymo->destscale = 2*FRACUNIT;
 }
@@ -851,7 +851,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		// Secret emblem thingy
 		case MT_EMBLEM:
 			{
-				if (demoplayback || player->bot)
+				if (demo.playback || player->bot)
 					return;
 				emblemlocations[special->health-1].collected = true;
 
@@ -1180,13 +1180,13 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					toucher->angle = special->angle;
 
 					if (player == &players[consoleplayer])
-						localangle = toucher->angle;
-					else if (player == &players[secondarydisplayplayer])
-						localangle2 = toucher->angle;
-					else if (player == &players[thirddisplayplayer])
-						localangle3 = toucher->angle;
-					else if (player == &players[fourthdisplayplayer])
-						localangle4 = toucher->angle;
+						localangle[0] = toucher->angle;
+					else if (player == &players[displayplayers[1]])
+						localangle[1] = toucher->angle;
+					else if (player == &players[displayplayers[2]])
+						localangle[2] = toucher->angle;
+					else if (player == &players[displayplayers[3]])
+						localangle[3] = toucher->angle;
 
 					P_ResetPlayer(player);
 
@@ -1209,7 +1209,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 
 			// CECHO showing you what this item is
-			if (player == &players[displayplayer] || G_IsSpecialStage(gamemap))
+			if (player == &players[displayplayers[0]] || G_IsSpecialStage(gamemap))
 			{
 				HU_SetCEchoFlags(V_AUTOFADEOUT);
 				HU_SetCEchoDuration(4);
@@ -1231,7 +1231,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 
 			// CECHO showing you what this item is
-			if (player == &players[displayplayer] || G_IsSpecialStage(gamemap))
+			if (player == &players[displayplayers[0]] || G_IsSpecialStage(gamemap))
 			{
 				HU_SetCEchoFlags(V_AUTOFADEOUT);
 				HU_SetCEchoDuration(4);
@@ -1263,7 +1263,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 
 			// CECHO showing you what this item is
-			if (player == &players[displayplayer] || G_IsSpecialStage(gamemap))
+			if (player == &players[displayplayers[0]] || G_IsSpecialStage(gamemap))
 			{
 				HU_SetCEchoFlags(V_AUTOFADEOUT);
 				HU_SetCEchoDuration(4);
@@ -1293,7 +1293,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 
 			// CECHO showing you what this item is
-			if (player == &players[displayplayer] || G_IsSpecialStage(gamemap))
+			if (player == &players[displayplayers[0]] || G_IsSpecialStage(gamemap))
 			{
 				HU_SetCEchoFlags(V_AUTOFADEOUT);
 				HU_SetCEchoDuration(4);
@@ -1321,7 +1321,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 
 			// CECHO showing you what this item is
-			if (player == &players[displayplayer] || G_IsSpecialStage(gamemap))
+			if (player == &players[displayplayers[0]] || G_IsSpecialStage(gamemap))
 			{
 				HU_SetCEchoFlags(V_AUTOFADEOUT);
 				HU_SetCEchoDuration(4);
@@ -1433,7 +1433,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				return;
 			player->powers[pw_shield] |= SH_FIREFLOWER;
 			toucher->color = SKINCOLOR_WHITE;
-			G_GhostAddColor(GHC_FIREFLOWER);
+			G_GhostAddColor(player - players, GHC_FIREFLOWER);
 			break;
 
 // *************** //
@@ -2324,17 +2324,17 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 				AM_Stop();
 
 			//added : 22-02-98: recenter view for next life...
-			localaiming = 0;
+			localaiming[0] = 0;
 		}
-		if (target->player == &players[secondarydisplayplayer])
+		if (target->player == &players[displayplayers[1]])
 		{
 			// added : 22-02-98: recenter view for next life...
-			localaiming2 = 0;
+			localaiming[1] = 0;
 		}
-		if (target->player == &players[thirddisplayplayer])
-			localaiming3 = 0;
-		if (target->player == &players[fourthdisplayplayer])
-			localaiming4 = 0;
+		if (target->player == &players[displayplayers[2]])
+			localaiming[2] = 0;
+		if (target->player == &players[displayplayers[3]])
+			localaiming[3] = 0;
 
 		//tag deaths handled differently in suicide cases. Don't count spectators!
 		/*if (G_TagGametype()
@@ -2978,7 +2978,7 @@ void P_RemoveShield(player_t *player)
 		if (!player->powers[pw_super])
 		{
 			player->mo->color = player->skincolor;
-			G_GhostAddColor(GHC_NORMAL);
+			G_GhostAddColor((INT32) (player - players), GHC_NORMAL);
 		}
 	}
 	else if ((player->powers[pw_shield] & SH_NOSTACK) == SH_BOMB) // Give them what's coming to them!
@@ -3409,7 +3409,7 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		target->health -= damage;
 
 	if (source && source->player && target)
-		G_GhostAddHit(target);
+		G_GhostAddHit((INT32) (source->player - players), target);
 
 	if (target->health <= 0)
 	{

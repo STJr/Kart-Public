@@ -927,6 +927,13 @@ static void R_DrawVisSprite(vissprite_t *vis)
 	if (vis->x2 >= vid.width)
 		vis->x2 = vid.width-1;
 
+#if 1
+	// Something is occasionally setting 1px-wide sprites whose frac is exactly the width of the sprite, causing crashes due to
+	// accessing invalid column info. Until the cause is found, let's try to correct those manually...
+	while (frac + vis->xiscale*(vis->x2-vis->x1) > SHORT(patch->width)<<FRACBITS && vis->x2 >= vis->x1)
+		vis->x2--;
+#endif
+
 	for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale)
 	{
 		if (vis->scalestep) // currently papersprites only
@@ -1697,7 +1704,7 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 // R_AddSprites
 // During BSP traversal, this adds sprites by sector.
 //
-void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
+void R_AddSprites(sector_t *sec, INT32 lightlevel)
 {
 	mobj_t *thing;
 	precipmobj_t *precipthing; // Tails 08-25-2002
@@ -1743,19 +1750,19 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (viewnumber != 0)
+					if (viewssnum != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (viewnumber != 1)
+					if (viewssnum != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (viewnumber != 2)
+					if (viewssnum != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (viewnumber != 3)
+					if (viewssnum != 3)
 						continue;
 			}
 
@@ -1778,19 +1785,19 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (viewnumber != 0)
+					if (viewssnum != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (viewnumber != 1)
+					if (viewssnum != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (viewnumber != 2)
+					if (viewssnum != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (viewnumber != 3)
+					if (viewssnum != 3)
 						continue;
 			}
 
@@ -2652,15 +2659,15 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 		player->kartspeed = skin->kartspeed;
 		player->kartweight = skin->kartweight;
 
-		/*if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback || modeattacking))
+		/*if (!(cv_debug || devparm) && !(netgame || multiplayer || demo.playback || modeattacking))
 		{
 			if (playernum == consoleplayer)
 				CV_StealthSetValue(&cv_playercolor, skin->prefcolor);
-			else if (playernum == secondarydisplayplayer)
+			else if (playernum == displayplayers[1])
 				CV_StealthSetValue(&cv_playercolor2, skin->prefcolor);
-			else if (playernum == thirddisplayplayer)
+			else if (playernum == displayplayers[2])
 				CV_StealthSetValue(&cv_playercolor3, skin->prefcolor);
-			else if (playernum == fourthdisplayplayer)
+			else if (playernum == displayplayers[3])
 				CV_StealthSetValue(&cv_playercolor4, skin->prefcolor);
 			player->skincolor = skin->prefcolor;
 			if (player->mo)
@@ -2669,6 +2676,9 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 
 		if (player->mo)
 			P_SetScale(player->mo, player->mo->scale);
+
+		demo_extradata[playernum] |= DXD_SKIN;
+
 		return;
 	}
 

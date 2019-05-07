@@ -157,6 +157,9 @@ extern FILE *logstream;
 // Otherwise we can't force updates!
 #endif
 
+// Maintain compatibility with 1.0.x record attack replays?
+#define DEMO_COMPAT_100
+
 // Does this version require an added patch file?
 // Comment or uncomment this as necessary.
 //#define USE_PATCH_DTA

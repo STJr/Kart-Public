@@ -30,6 +30,7 @@
 #include "p_spec.h" // skyboxmo
 #include "z_zone.h"
 #include "m_random.h" // quake camera shake
+#include "doomstat.h" // MAXSPLITSCREENPLAYERS
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -65,9 +66,10 @@ size_t loopcount;
 
 fixed_t viewx, viewy, viewz;
 angle_t viewangle, aimingangle;
+UINT8 viewssnum;
 fixed_t viewcos, viewsin;
 boolean viewsky, skyVisible;
-boolean skyVisible1, skyVisible2, skyVisible3, skyVisible4; // saved values of skyVisible for P1/P2/P3/P4, for splitscreen
+boolean skyVisiblePerPlayer[MAXSPLITSCREENPLAYERS]; // saved values of skyVisible for each splitscreen player
 sector_t *viewsector;
 player_t *viewplayer;
 
@@ -193,19 +195,12 @@ void SplitScreen_OnChange(void)
 	// recompute screen size
 	R_ExecuteSetViewSize();
 
-	if (!demoplayback && !botingame)
+	if (!demo.playback && !botingame)
 	{
-		for (i = 1; i < 3; i++)
+		for (i = 1; i < MAXSPLITSCREENPLAYERS; i++)
 		{
 			if (i > splitscreen)
-			{
-				if (i == 1)
-					CL_RemoveSplitscreenPlayer(secondarydisplayplayer);
-				else if (i == 2)
-					CL_RemoveSplitscreenPlayer(thirddisplayplayer);
-				else if (i == 3)
-					CL_RemoveSplitscreenPlayer(fourthdisplayplayer);
-			}
+				CL_RemoveSplitscreenPlayer(displayplayers[i]);
 			else
 				CL_AddSplitscreenPlayer();
 		}
@@ -215,21 +210,27 @@ void SplitScreen_OnChange(void)
 	}
 	else
 	{
-		secondarydisplayplayer = consoleplayer;
-		thirddisplayplayer = consoleplayer;
-		fourthdisplayplayer = consoleplayer;
+		for (i = 1; i < MAXSPLITSCREENPLAYERS; i++)
+			displayplayers[i] = consoleplayer;
+
 		for (i = 0; i < MAXPLAYERS; i++)
+		{
 			if (playeringame[i] && i != consoleplayer)
 			{
-				if (secondarydisplayplayer == consoleplayer)
-					secondarydisplayplayer = i;
-				else if (thirddisplayplayer == consoleplayer)
-					thirddisplayplayer = i;
-				else if (fourthdisplayplayer == consoleplayer)
-					fourthdisplayplayer = i;
-				else
+				UINT8 j;
+				for (j = 1; j < MAXSPLITSCREENPLAYERS; j++)
+				{
+					if (displayplayers[j] == consoleplayer)
+					{
+						displayplayers[j] = i;
+						break;
+					}
+				}
+
+				if (j == MAXSPLITSCREENPLAYERS)
 					break;
 			}
+		}
 	}
 }
 static void Fov_OnChange(void)
@@ -844,16 +845,20 @@ static void R_SetupFreelook(void)
 
 void R_SkyboxFrame(player_t *player)
 {
-	camera_t *thiscam;
+	camera_t *thiscam = &camera[0];
+	UINT8 i;
 
-	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		thiscam = &camera4;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		thiscam = &camera3;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		thiscam = &camera2;
-	else
-		thiscam = &camera;
+	if (splitscreen)
+	{
+		for (i = 1; i <= splitscreen; i++)
+		{
+			if (player == &players[displayplayers[i]])
+			{
+				thiscam = &camera[i];
+				break;
+			}
+		}
+	}
 
 	// cut-away view stuff
 	viewsky = true;
@@ -879,27 +884,24 @@ void R_SkyboxFrame(player_t *player)
 	{
 		aimingangle = player->aiming;
 		viewangle = player->mo->angle;
-		if (/*!demoplayback && */player->playerstate != PST_DEAD)
+		if (/*!demo.playback && */player->playerstate != PST_DEAD)
 		{
 			if (player == &players[consoleplayer])
 			{
-				viewangle = localangle; // WARNING: camera uses this
-				aimingangle = localaiming;
+				viewangle = localangle[0]; // WARNING: camera uses this
+				aimingangle = localaiming[0];
 			}
-			else if (player == &players[secondarydisplayplayer])
+			else if (splitscreen)
 			{
-				viewangle = localangle2;
-				aimingangle = localaiming2;
-			}
-			else if (player == &players[thirddisplayplayer])
-			{
-				viewangle = localangle3;
-				aimingangle = localaiming3;
-			}
-			else if (player == &players[fourthdisplayplayer])
-			{
-				viewangle = localangle4;
-				aimingangle = localaiming4;
+				for (i = 1; i <= splitscreen; i++)
+				{
+					if (player == &players[displayplayers[i]])
+					{
+						viewangle = localangle[i];
+						aimingangle = localaiming[i];
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -1078,24 +1080,24 @@ void R_SetupFrame(player_t *player, boolean skybox)
 	camera_t *thiscam;
 	boolean chasecam = false;
 
-	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
+	if (splitscreen > 2 && player == &players[displayplayers[3]])
 	{
-		thiscam = &camera4;
+		thiscam = &camera[3];
 		chasecam = (cv_chasecam4.value != 0);
 	}
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
+	else if (splitscreen > 1 && player == &players[displayplayers[2]])
 	{
-		thiscam = &camera3;
+		thiscam = &camera[2];
 		chasecam = (cv_chasecam3.value != 0);
 	}
-	else if (splitscreen && player == &players[secondarydisplayplayer])
+	else if (splitscreen && player == &players[displayplayers[1]])
 	{
-		thiscam = &camera2;
+		thiscam = &camera[1];
 		chasecam = (cv_chasecam2.value != 0);
 	}
 	else
 	{
-		thiscam = &camera;
+		thiscam = &camera[0];
 		chasecam = (cv_chasecam.value != 0);
 	}
 
@@ -1141,27 +1143,25 @@ void R_SetupFrame(player_t *player, boolean skybox)
 		aimingangle = player->aiming;
 		viewangle = viewmobj->angle;
 
-		if (/*!demoplayback && */player->playerstate != PST_DEAD)
+		if (/*!demo.playback && */player->playerstate != PST_DEAD)
 		{
 			if (player == &players[consoleplayer])
 			{
-				viewangle = localangle; // WARNING: camera uses this
-				aimingangle = localaiming;
+				viewangle = localangle[0]; // WARNING: camera uses this
+				aimingangle = localaiming[0];
 			}
-			else if (player == &players[secondarydisplayplayer])
+			else if (splitscreen)
 			{
-				viewangle = localangle2;
-				aimingangle = localaiming2;
-			}
-			else if (player == &players[thirddisplayplayer])
-			{
-				viewangle = localangle3;
-				aimingangle = localaiming3;
-			}
-			else if (player == &players[fourthdisplayplayer])
-			{
-				viewangle = localangle4;
-				aimingangle = localaiming4;
+				UINT8 i;
+				for (i = 1; i <= splitscreen; i++)
+				{
+					if (player == &players[displayplayers[i]])
+					{
+						viewangle = localangle[i];
+						aimingangle = localaiming[i];
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -1323,19 +1323,10 @@ void R_RenderPlayerView(player_t *player)
 {
 	portal_pair *portal;
 	const boolean skybox = (skyboxmo[0] && cv_skybox.value);
-	UINT8 viewnumber;
-
-	if (player == &players[secondarydisplayplayer] && splitscreen)
-		viewnumber = 1;
-	else if (player == &players[thirddisplayplayer] && splitscreen > 1)
-		viewnumber = 2;
-	else if (player == &players[fourthdisplayplayer] && splitscreen > 2)
-		viewnumber = 3;
-	else
-		viewnumber = 0;
+	UINT8 i;
 
 	// if this is display player 1
-	if (cv_homremoval.value && player == &players[displayplayer])
+	if (cv_homremoval.value && player == &players[displayplayers[0]])
 	{
 		if (cv_homremoval.value == 1)
 			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31); // No HOM effect!
@@ -1343,7 +1334,7 @@ void R_RenderPlayerView(player_t *player)
 			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 128+(timeinmap&15));
 	}
 	// Draw over the fourth screen so you don't have to stare at a HOM :V
-	else if (splitscreen == 2 && player == &players[thirddisplayplayer])
+	else if (splitscreen == 2 && player == &players[displayplayers[2]])
 #if 1
 	{
 		// V_DrawPatchFill, but for the fourth screen only
@@ -1362,14 +1353,14 @@ void R_RenderPlayerView(player_t *player)
 #endif
 
 	// load previous saved value of skyVisible for the player
-	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		skyVisible = skyVisible4;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		skyVisible = skyVisible3;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		skyVisible = skyVisible2;
-	else
-		skyVisible = skyVisible1;
+	for (i = 0; i <= splitscreen; i++)
+	{
+		if (player == &players[displayplayers[i]])
+		{
+			skyVisible = skyVisiblePerPlayer[i];
+			break;
+		}
+	}
 
 	portalrender = 0;
 	portal_base = portal_cap = NULL;
@@ -1386,7 +1377,7 @@ void R_RenderPlayerView(player_t *player)
 		R_ClearVisibleFloorSplats();
 #endif
 
-		R_RenderBSPNode((INT32)numnodes - 1, viewnumber);
+		R_RenderBSPNode((INT32)numnodes - 1);
 		R_ClipSprites();
 		R_DrawPlanes();
 #ifdef FLOORSPLATS
@@ -1419,7 +1410,7 @@ void R_RenderPlayerView(player_t *player)
 	mytotal = 0;
 	ProfZeroTimer();
 #endif
-	R_RenderBSPNode((INT32)numnodes - 1, viewnumber);
+	R_RenderBSPNode((INT32)numnodes - 1);
 	R_ClipSprites();
 #ifdef TIMING
 	RDMSR(0x10, &mycount);
@@ -1444,7 +1435,7 @@ void R_RenderPlayerView(player_t *player)
 
 		validcount++;
 
-		R_RenderBSPNode((INT32)numnodes - 1, viewnumber);
+		R_RenderBSPNode((INT32)numnodes - 1);
 		R_ClipSprites();
 		//R_DrawPlanes();
 		//R_DrawMasked();
@@ -1470,16 +1461,16 @@ void R_RenderPlayerView(player_t *player)
 	// Check for new console commands.
 	NetUpdate();
 
-	// save value to skyVisible1 or skyVisible2
+	// save value to skyVisiblePerPlayer
 	// this is so that P1 can't affect whether P2 can see a skybox or not, or vice versa
-	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		skyVisible4 = skyVisible;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		skyVisible3 = skyVisible;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		skyVisible2 = skyVisible;
-	else
-		skyVisible1 = skyVisible;
+	for (i = 0; i <= splitscreen; i++)
+	{
+		if (player == &players[displayplayers[i]])
+		{
+			skyVisiblePerPlayer[i] = skyVisible;
+			break;
+		}
+	}
 }
 
 // =========================================================================

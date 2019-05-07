@@ -233,7 +233,9 @@ static char *M_GetConditionString(condition_t cond);
 menu_t SR_MainDef, SR_UnlockChecklistDef;
 
 // Misc. Main Menu
+#if 0 // Bring this back when we have actual single-player
 static void M_SinglePlayerMenu(INT32 choice);
+#endif
 static void M_Options(INT32 choice);
 static void M_Manual(INT32 choice);
 static void M_SelectableClearMenus(INT32 choice);
@@ -317,7 +319,7 @@ menu_t OP_SoundOptionsDef;
 //static void M_RestartAudio(void);
 
 //Misc
-menu_t /*OP_DataOptionsDef,*/ OP_ScreenshotOptionsDef, OP_EraseDataDef;
+menu_t OP_DataOptionsDef, OP_ScreenshotOptionsDef, OP_EraseDataDef;
 menu_t OP_HUDOptionsDef, OP_ChatOptionsDef;
 menu_t OP_GameOptionsDef, OP_ServerOptionsDef;
 #ifndef NONET
@@ -334,8 +336,29 @@ static patch_t *addonsp[NUM_EXT+5];
 
 #define numaddonsshown 4
 
+// Replay hut
+menu_t MISC_ReplayHutDef;
+menu_t MISC_ReplayOptionsDef;
+static void M_HandleReplayHutList(INT32 choice);
+static void M_DrawReplayHut(void);
+static void M_DrawReplayStartMenu(void);
+static boolean M_QuitReplayHut(void);
+static void M_HutStartReplay(INT32 choice);
+
+static void M_DrawPlaybackMenu(void);
+static void M_PlaybackRewind(INT32 choice);
+static void M_PlaybackPause(INT32 choice);
+static void M_PlaybackFastForward(INT32 choice);
+static void M_PlaybackAdvance(INT32 choice);
+static void M_PlaybackSetViews(INT32 choice);
+static void M_PlaybackAdjustView(INT32 choice);
+static void M_PlaybackQuit(INT32 choice);
+
+static UINT8 playback_enterheld = 0; // horrid hack to prevent holding the button from being extremely fucked
+
 // Drawing functions
 static void M_DrawGenericMenu(void);
+static void M_DrawGenericBackgroundMenu(void);
 static void M_DrawCenteredMenu(void);
 static void M_DrawAddons(void);
 static void M_DrawSkyRoom(void);
@@ -500,12 +523,13 @@ static consvar_t cv_dummystaff = {"dummystaff", "0", CV_HIDEN|CV_CALL, dummystaf
 // ---------
 static menuitem_t MainMenu[] =
 {
-	{IT_SUBMENU|IT_STRING, NULL, "Extras",      &SR_UnlockChecklistDef, 76},
-	{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu,     84},
-	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,            92},
-	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,             100},
-	{IT_CALL   |IT_STRING, NULL, "Addons",      M_Addons,              108},
-	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,            116},
+	{IT_SUBMENU|IT_STRING, NULL, "Extras",      &SR_MainDef,        76},
+	//{IT_CALL   |IT_STRING, NULL, "1 Player",    M_SinglePlayerMenu, 84},
+	{IT_CALL   |IT_STRING, NULL, "Time Attack", M_TimeAttack,       84},
+	{IT_SUBMENU|IT_STRING, NULL, "Multiplayer", &MP_MainDef,        92},
+	{IT_CALL   |IT_STRING, NULL, "Options",     M_Options,          100},
+	{IT_CALL   |IT_STRING, NULL, "Addons",      M_Addons,           108},
+	{IT_CALL   |IT_STRING, NULL, "Quit  Game",  M_QuitSRB2,         116},
 };
 
 typedef enum
@@ -522,6 +546,65 @@ static menuitem_t MISC_AddonsMenu[] =
 {
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "", M_HandleAddons, 0},     // dummy menuitem for the control func
 };
+
+static menuitem_t MISC_ReplayHutMenu[] =
+{
+	{IT_KEYHANDLER|IT_NOTHING, NULL, "", M_HandleReplayHutList, 0}, // Dummy menuitem for the replay list
+	{IT_NOTHING,               NULL, "", NULL,                  0}, // Dummy for handling wrapping to the top of the menu..
+};
+
+static menuitem_t MISC_ReplayStartMenu[] =
+{
+	{IT_CALL      |IT_STRING,  NULL, "Load Addons and Watch", M_HutStartReplay,   0},
+	{IT_CALL      |IT_STRING,  NULL, "Watch Without Addons",  M_HutStartReplay,   10},
+	{IT_CALL      |IT_STRING,  NULL, "Watch Replay",          M_HutStartReplay,   10},
+	{IT_SUBMENU   |IT_STRING,  NULL, "Back",                  &MISC_ReplayHutDef, 30},
+};
+
+static menuitem_t MISC_ReplayOptionsMenu[] =
+{
+	{IT_CVAR|IT_STRING, NULL, "Record Replays",      &cv_recordmultiplayerdemos, 0},
+	{IT_CVAR|IT_STRING, NULL, "Sync Check Interval", &cv_netdemosyncquality,     10},
+};
+
+static menuitem_t PlaybackMenu[] =
+{
+	{IT_CALL   | IT_STRING, "M_PHIDE",  "Hide Menu", M_SelectableClearMenus, 0},
+
+	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_PlaybackRewind,      20},
+	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,       36},
+	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Foward",   M_PlaybackFastForward, 52},
+	{IT_CALL   | IT_STRING, "M_PSTEPB", "Backup Frame",  M_PlaybackRewind,      20},
+	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,       36},
+	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,     52},
+
+	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count",  M_PlaybackSetViews, 72},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint",   M_PlaybackAdjustView, 88},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 2", M_PlaybackAdjustView, 104},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3", M_PlaybackAdjustView, 120},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4", M_PlaybackAdjustView, 136},
+
+	//{IT_CALL   | IT_STRING, "M_POPTS",  "More Options...", M_ReplayHut, 156},
+	//{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 172},
+	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 156},
+};
+typedef enum
+{
+	playback_hide,
+	playback_rewind,
+	playback_pause,
+	playback_fastforward,
+	playback_backframe,
+	playback_resume,
+	playback_advanceframe,
+	playback_viewcount,
+	playback_view1,
+	playback_view2,
+	playback_view3,
+	playback_view4,
+	//playback_moreoptions,
+	playback_quit
+} playback_e;
 
 // ---------------------------------
 // Pause Menu Mode Attacking Edition
@@ -695,7 +778,9 @@ static menuitem_t SR_PandorasBox[] =
 // Sky Room Custom Unlocks
 static menuitem_t SR_MainMenu[] =
 {
-	{IT_STRING|IT_SUBMENU,NULL, "Secrets Checklist", &SR_UnlockChecklistDef, 0},
+	{IT_STRING|IT_SUBMENU,                  NULL, "Unlockables", &SR_UnlockChecklistDef, 100},
+	{IT_CALL|IT_STRING|IT_CALL_NOTMODIFIED, NULL, "Statistics",  M_Statistics,           108},
+	{IT_CALL|IT_STRING,                     NULL, "Replay Hut",  M_ReplayHut,            116},
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom1
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom2
 	{IT_DISABLED,         NULL, "",   NULL,                 0}, // Custom3
@@ -1044,15 +1129,13 @@ static menuitem_t OP_MainMenu[] =
 	{IT_SUBMENU|IT_STRING,		NULL, "Sound Options...",		&OP_SoundOptionsDef,		 40},
 
 	{IT_SUBMENU|IT_STRING,		NULL, "HUD Options...",			&OP_HUDOptionsDef,			 60},
-	{IT_STRING|IT_CALL,			NULL, "Screenshot Options...",	M_ScreenshotOptions,		 70},
+	{IT_SUBMENU|IT_STRING,		NULL, "Gameplay Options...",	&OP_GameOptionsDef,			 70},
+	{IT_SUBMENU|IT_STRING,		NULL, "Server Options...",		&OP_ServerOptionsDef,		 80},
 
-	{IT_SUBMENU|IT_STRING,		NULL, "Gameplay Options...",	&OP_GameOptionsDef,			 90},
-	{IT_SUBMENU|IT_STRING,		NULL, "Server Options...",		&OP_ServerOptionsDef,		100},
-	{IT_STRING|IT_CALL,			NULL, "Add-on Options...",      M_AddonsOptions,			110},
+	{IT_SUBMENU|IT_STRING,		NULL, "Data Options...",		&OP_DataOptionsDef,			100},
 
-	{IT_CALL|IT_STRING,			NULL, "Tricks & Secrets (F1)",	M_Manual,					130},
-	{IT_CALL|IT_STRING,			NULL, "Play Credits",			M_Credits,					140},
-	{IT_SUBMENU|IT_STRING,		NULL, "Erase Data...",			&OP_EraseDataDef,			150},
+	{IT_CALL|IT_STRING,			NULL, "Tricks & Secrets (F1)",	M_Manual,					120},
+	{IT_CALL|IT_STRING,			NULL, "Play Credits",			M_Credits,					130},
 };
 
 static menuitem_t OP_ControlsMenu[] =
@@ -1325,12 +1408,14 @@ static menuitem_t OP_SoundOptionsMenu[] =
 	{IT_STRING|IT_CVAR,        NULL, "Play SFX While Unfocused", &cv_playsoundifunfocused, 135},
 };
 
-/*static menuitem_t OP_DataOptionsMenu[] =
+static menuitem_t OP_DataOptionsMenu[] =
 {
-	{IT_STRING | IT_CALL, NULL, "Screenshot Options...", M_ScreenshotOptions, 10},
+	{IT_STRING | IT_CALL,		NULL, "Screenshot Options...",	M_ScreenshotOptions,	 10},
+	{IT_STRING | IT_CALL,		NULL, "Add-on Options...",		M_AddonsOptions,		 20},
+	{IT_STRING | IT_SUBMENU,	NULL, "Replay Options...",		&MISC_ReplayOptionsDef,	 30},
 
-	{IT_STRING | IT_SUBMENU, NULL, "Erase Data...", &OP_EraseDataDef, 30},
-};*/
+	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 50},
+};
 
 static menuitem_t OP_ScreenshotOptionsMenu[] =
 {
@@ -1571,10 +1656,58 @@ menu_t MISC_AddonsDef =
 {
 	NULL,
 	sizeof (MISC_AddonsMenu)/sizeof (menuitem_t),
-	&MainDef,
+	&OP_DataOptionsDef,
 	MISC_AddonsMenu,
 	M_DrawAddons,
 	50, 28,
+	0,
+	NULL
+};
+
+menu_t MISC_ReplayHutDef =
+{
+	NULL,
+	sizeof (MISC_ReplayHutMenu)/sizeof (menuitem_t),
+	NULL,
+	MISC_ReplayHutMenu,
+	M_DrawReplayHut,
+	30, 80,
+	0,
+	M_QuitReplayHut
+};
+
+menu_t MISC_ReplayOptionsDef =
+{
+	"M_REPOPT",
+	sizeof (MISC_ReplayOptionsMenu)/sizeof (menuitem_t),
+	&OP_DataOptionsDef,
+	MISC_ReplayOptionsMenu,
+	M_DrawGenericMenu,
+	27, 40,
+	0,
+	NULL
+};
+
+menu_t MISC_ReplayStartDef =
+{
+	NULL,
+	sizeof (MISC_ReplayStartMenu)/sizeof (menuitem_t),
+	&MISC_ReplayHutDef,
+	MISC_ReplayStartMenu,
+	M_DrawReplayStartMenu,
+	30, 90,
+	0,
+	NULL
+};
+
+menu_t PlaybackMenuDef = {
+	NULL,
+	sizeof (PlaybackMenu)/sizeof (menuitem_t),
+	NULL,
+	PlaybackMenu,
+	M_DrawPlaybackMenu,
+	//BASEVIDWIDTH/2 - 94, 2,
+	BASEVIDWIDTH/2 - 88, 2,
 	0,
 	NULL
 };
@@ -1676,17 +1809,7 @@ menu_t SR_PandoraDef =
 	0,
 	M_ExitPandorasBox
 };
-menu_t SR_MainDef =
-{
-	"M_SECRET",
-	sizeof (SR_MainMenu)/sizeof (menuitem_t),
-	&MainDef,
-	SR_MainMenu,
-	M_DrawSkyRoom,
-	60, 40,
-	0,
-	NULL
-};
+menu_t SR_MainDef = CENTERMENUSTYLE(NULL, SR_MainMenu, &MainDef, 72);
 
 //menu_t SR_LevelSelectDef = MAPICONMENUSTYLE(NULL, SR_LevelSelectMenu, &SR_MainDef);
 
@@ -1694,7 +1817,7 @@ menu_t SR_UnlockChecklistDef =
 {
 	NULL,
 	1,
-	&MainDef, //&SR_MainDef
+	&SR_MainDef,
 	SR_UnlockChecklistMenu,
 	M_DrawChecklist,
 	280, 185,
@@ -1732,7 +1855,7 @@ menu_t SP_LevelStatsDef =
 {
 	"M_STATS",
 	1,
-	&SP_MainDef,
+	&SR_MainDef,
 	SP_LevelStatsMenu,
 	M_DrawLevelStats,
 	280, 185,
@@ -2030,10 +2153,10 @@ menu_t OP_OpenGLColorDef =
 	NULL
 };
 #endif
-//menu_t OP_DataOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_DataOptionsMenu, &OP_MainDef, 60, 30);
-menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_SCSHOT", OP_ScreenshotOptionsMenu, &OP_MainDef, 30, 30);
-menu_t OP_AddonsOptionsDef = DEFAULTMENUSTYLE("M_ADDONS", OP_AddonsOptionsMenu, &OP_MainDef, 30, 30);
-menu_t OP_EraseDataDef = DEFAULTMENUSTYLE("M_DATA", OP_EraseDataMenu, &OP_MainDef, 30, 30);
+menu_t OP_DataOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_DataOptionsMenu, &OP_MainDef, 60, 30);
+menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_SCSHOT", OP_ScreenshotOptionsMenu, &OP_DataOptionsDef, 30, 30);
+menu_t OP_AddonsOptionsDef = DEFAULTMENUSTYLE("M_ADDONS", OP_AddonsOptionsMenu, &OP_DataOptionsDef, 30, 30);
+menu_t OP_EraseDataDef = DEFAULTMENUSTYLE("M_DATA", OP_EraseDataMenu, &OP_DataOptionsDef, 30, 30);
 
 // ==========================================================================
 // CVAR ONCHANGE EVENTS GO HERE
@@ -2444,7 +2567,7 @@ boolean M_Responder(event_t *ev)
 	static INT32 lastx = 0, lasty = 0;
 	void (*routine)(INT32 choice); // for some casting problem
 
-	if (dedicated || (demoplayback && titledemo)
+	if (dedicated || (demo.playback && demo.title)
 	|| gamestate == GS_INTRO || gamestate == GS_CUTSCENE || gamestate == GS_GAMEEND
 	|| gamestate == GS_CREDITS || gamestate == GS_EVALUATION)
 		return false;
@@ -2564,8 +2687,6 @@ boolean M_Responder(event_t *ev)
 			}
 		}
 	}
-	else if (ev->type == ev_keydown) // Preserve event for other responders
-		ch = ev->data1;
 
 	if (ch == -1)
 		return false;
@@ -2711,6 +2832,19 @@ boolean M_Responder(event_t *ev)
 			routine = M_ChangeCvar;
 	}
 
+	if (currentMenu == &PlaybackMenuDef)
+	{
+		// Flip left/right with up/down for the playback menu, since it's a horizontal icon row.
+		switch (ch)
+		{
+			case KEY_LEFTARROW: ch = KEY_UPARROW; break;
+			case KEY_UPARROW: ch = KEY_RIGHTARROW; break;
+			case KEY_RIGHTARROW: ch = KEY_DOWNARROW; break;
+			case KEY_DOWNARROW: ch = KEY_LEFTARROW; break;
+			default: break;
+		}
+	}
+
 	// Keys usable within menu
 	switch (ch)
 	{
@@ -2757,6 +2891,15 @@ boolean M_Responder(event_t *ev)
 		case KEY_ENTER:
 			noFurtherInput = true;
 			currentMenu->lastOn = itemOn;
+
+			if (currentMenu == &PlaybackMenuDef)
+			{
+				boolean held = (boolean)playback_enterheld;
+				playback_enterheld = TICRATE/7;
+				if (held)
+					return true;
+			}
+
 			if (routine)
 			{
 				if (((currentMenu->menuitems[itemOn].status & IT_TYPE)==IT_CALL
@@ -2869,7 +3012,7 @@ void M_Drawer(void)
 	if (menuactive)
 	{
 		// now that's more readable with a faded background (yeah like Quake...)
-		if (!WipeInAction)
+		if (!WipeInAction && currentMenu != &PlaybackMenuDef) // Replay playback has its own background
 			V_DrawFadeScreen(0xFF00, 16);
 
 		if (currentMenu->drawroutine)
@@ -2915,14 +3058,6 @@ void M_Drawer(void)
 //
 void M_StartControlPanel(void)
 {
-	// time attack HACK
-	if (modeattacking && demoplayback)
-	{
-		G_CheckDemoStatus();
-		S_ChangeMusicInternal("racent", true);
-		return;
-	}
-
 	// intro might call this repeatedly
 	if (menuactive)
 	{
@@ -2932,7 +3067,11 @@ void M_StartControlPanel(void)
 
 	menuactive = true;
 
-	if (!Playing())
+	if (demo.playback)
+	{
+		currentMenu = &PlaybackMenuDef;
+	}
+	else if (!Playing())
 	{
 		// Secret menu!
 		//MainMenu[secrets].status = (M_AnySecretUnlocked()) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
@@ -3163,6 +3302,14 @@ void M_Ticker(void)
 
 	if (--skullAnimCounter <= 0)
 		skullAnimCounter = 8;
+
+	if (currentMenu == &PlaybackMenuDef)
+	{
+		if (playback_enterheld > 0)
+			playback_enterheld--;
+	}
+	else
+		playback_enterheld = 0;
 
 	//added : 30-01-98 : test mode for five seconds
 	if (vidm_testingmode > 0)
@@ -3678,6 +3825,12 @@ static void M_DrawGenericMenu(void)
 			W_CachePatchName("M_CURSOR", PU_CACHE));
 		V_DrawString(currentMenu->x, cursory, highlightflags, currentMenu->menuitems[itemOn].text);
 	}
+}
+
+static void M_DrawGenericBackgroundMenu(void)
+{
+	V_DrawPatchFill(W_CachePatchName("SRB2BACK", PU_CACHE));
+	M_DrawGenericMenu();
 }
 
 static void M_DrawPauseMenu(void)
@@ -4213,7 +4366,7 @@ void M_StartMessage(const char *string, void *routine,
 	M_StartControlPanel(); // can't put menuactive to true
 
 	if (currentMenu == &MessageDef) // Prevent recursion
-		MessageDef.prevMenu = &MainDef;
+		MessageDef.prevMenu = ((demo.playback) ? &PlaybackMenuDef : &MainDef);
 	else
 		MessageDef.prevMenu = currentMenu;
 
@@ -4464,7 +4617,7 @@ static void M_Addons(INT32 choice)
 	else
 		--menupathindex[menudepthleft];
 
-	if (!preparefilemenu(false))
+	if (!preparefilemenu(false, false))
 	{
 		M_StartMessage(va("No files/folders found.\n\n%s\n\n(Press a key)\n", (recommendedflags == V_SKYMAP ? LOCATIONSTRING2 : LOCATIONSTRING1)),NULL,MM_NOTHING);
 		return;
@@ -4588,7 +4741,7 @@ static void M_AddonsClearName(INT32 choice)
 // returns whether to do message draw
 static boolean M_AddonsRefresh(void)
 {
-	if ((refreshdirmenu & REFRESHDIR_NORMAL) && !preparefilemenu(true))
+	if ((refreshdirmenu & REFRESHDIR_NORMAL) && !preparefilemenu(true, false))
 	{
 		UNEXIST;
 		if (refreshdirname)
@@ -4837,7 +4990,7 @@ static void M_HandleAddons(INT32 choice)
 		if (dirmenu && dirmenu[dir_on[menudepthleft]])
 			tempname = Z_StrDup(dirmenu[dir_on[menudepthleft]]+DIR_STRING); // don't need to I_Error if can't make - not important, just QoL
 #if 0 // much slower
-		if (!preparefilemenu(true))
+		if (!preparefilemenu(true, false))
 		{
 			UNEXIST;
 			return;
@@ -4891,13 +5044,13 @@ static void M_HandleAddons(INT32 choice)
 								menupathindex[--menudepthleft] = strlen(menupath);
 								menupath[menupathindex[menudepthleft]] = 0;
 
-								if (!preparefilemenu(false))
+								if (!preparefilemenu(false, false))
 								{
 									S_StartSound(NULL, sfx_s224);
 									M_StartMessage(va("%c%s\x80\nThis folder is empty.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), M_AddonsHeaderPath()),NULL,MM_NOTHING);
 									menupath[menupathindex[++menudepthleft]] = 0;
 
-									if (!preparefilemenu(true))
+									if (!preparefilemenu(true, false))
 									{
 										UNEXIST;
 										return;
@@ -4920,7 +5073,7 @@ static void M_HandleAddons(INT32 choice)
 						case EXT_UP:
 							S_StartSound(NULL, sfx_menu1);
 							menupath[menupathindex[++menudepthleft]] = 0;
-							if (!preparefilemenu(false))
+							if (!preparefilemenu(false, false))
 							{
 								UNEXIST;
 								return;
@@ -4975,6 +5128,830 @@ static void M_HandleAddons(INT32 choice)
 		else
 			M_ClearMenus(true);
 	}
+}
+
+// ---- REPLAY HUT -----
+menudemo_t *demolist;
+
+#define DF_ENCORE       0x40
+static INT16 replayScrollTitle = 0;
+static SINT8 replayScrollDelay = TICRATE, replayScrollDir = 1;
+
+static void PrepReplayList(void)
+{
+	size_t i;
+
+	if (demolist)
+		Z_Free(demolist);
+
+	demolist = Z_Calloc(sizeof(menudemo_t) * sizedirmenu, PU_STATIC, NULL);
+
+	for (i = 0; i < sizedirmenu; i++)
+	{
+		if (dirmenu[i][DIR_TYPE] == EXT_UP)
+		{
+			demolist[i].type = MD_SUBDIR;
+			sprintf(demolist[i].title, "UP");
+		}
+		else if (dirmenu[i][DIR_TYPE] == EXT_FOLDER)
+		{
+			demolist[i].type = MD_SUBDIR;
+			strncpy(demolist[i].title, dirmenu[i] + DIR_STRING, 64);
+		}
+		else
+		{
+			demolist[i].type = MD_NOTLOADED;
+			snprintf(demolist[i].filepath, 255, "%s%s", menupath, dirmenu[i] + DIR_STRING);
+			sprintf(demolist[i].title, ".....");
+		}
+	}
+}
+
+void M_ReplayHut(INT32 choice)
+{
+	(void)choice;
+
+	if (!demo.inreplayhut)
+	{
+		snprintf(menupath, 1024, "%s"PATHSEP"replay"PATHSEP"online"PATHSEP, srb2home);
+		menupathindex[(menudepthleft = menudepth-1)] = strlen(menupath);
+	}
+	if (!preparefilemenu(false, true))
+	{
+		M_StartMessage("No replays found.\n\n(Press a key)\n", NULL, MM_NOTHING);
+		return;
+	}
+	else if (!demo.inreplayhut)
+		dir_on[menudepthleft] = 0;
+	demo.inreplayhut = true;
+
+	replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
+
+	PrepReplayList();
+
+	menuactive = true;
+	M_SetupNextMenu(&MISC_ReplayHutDef);
+	G_SetGamestate(GS_TIMEATTACK);
+
+	demo.rewinding = false;
+
+	S_ChangeMusicInternal("replst", true);
+}
+
+static void M_HandleReplayHutList(INT32 choice)
+{
+	switch (choice)
+	{
+	case KEY_UPARROW:
+		if (dir_on[menudepthleft])
+			dir_on[menudepthleft]--;
+		else
+			M_PrevOpt();
+
+		S_StartSound(NULL, sfx_menu1);
+		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
+		break;
+
+	case KEY_DOWNARROW:
+		if (dir_on[menudepthleft] < sizedirmenu-1)
+			dir_on[menudepthleft]++;
+		else
+			itemOn = 0; // Not M_NextOpt because that would take us to the extra dummy item
+
+		S_StartSound(NULL, sfx_menu1);
+		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
+		break;
+
+	case KEY_ESCAPE:
+		M_QuitReplayHut();
+		break;
+
+	case KEY_ENTER:
+		switch (dirmenu[dir_on[menudepthleft]][DIR_TYPE])
+		{
+			case EXT_FOLDER:
+				strcpy(&menupath[menupathindex[menudepthleft]],dirmenu[dir_on[menudepthleft]]+DIR_STRING);
+				if (menudepthleft)
+				{
+					menupathindex[--menudepthleft] = strlen(menupath);
+					menupath[menupathindex[menudepthleft]] = 0;
+
+					if (!preparefilemenu(false, true))
+					{
+						S_StartSound(NULL, sfx_s224);
+						M_StartMessage(va("%c%s\x80\nThis folder is empty.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), M_AddonsHeaderPath()),NULL,MM_NOTHING);
+						menupath[menupathindex[++menudepthleft]] = 0;
+
+						if (!preparefilemenu(true, true))
+						{
+							M_QuitReplayHut();
+							return;
+						}
+					}
+					else
+					{
+						S_StartSound(NULL, sfx_menu1);
+						dir_on[menudepthleft] = 1;
+						PrepReplayList();
+					}
+				}
+				else
+				{
+					S_StartSound(NULL, sfx_s26d);
+					M_StartMessage(va("%c%s\x80\nThis folder is too deep to navigate to!\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), M_AddonsHeaderPath()),NULL,MM_NOTHING);
+					menupath[menupathindex[menudepthleft]] = 0;
+				}
+				break;
+			case EXT_UP:
+				S_StartSound(NULL, sfx_menu1);
+				menupath[menupathindex[++menudepthleft]] = 0;
+				if (!preparefilemenu(false, true))
+				{
+					M_QuitReplayHut();
+					return;
+				}
+				PrepReplayList();
+				break;
+			default:
+				// We can't just use M_SetupNextMenu because that'll run ReplayDef's quitroutine and boot us back to the title screen!
+				currentMenu->lastOn = itemOn;
+				currentMenu = &MISC_ReplayStartDef;
+
+				replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
+
+				switch (demolist[dir_on[menudepthleft]].addonstatus)
+				{
+				case DFILE_ERROR_CANNOTLOAD:
+					// Only show "Watch Replay Without Addons"
+					MISC_ReplayStartMenu[0].status = IT_DISABLED;
+					MISC_ReplayStartMenu[1].status = IT_CALL|IT_STRING;
+					//MISC_ReplayStartMenu[1].alphaKey = 0;
+					MISC_ReplayStartMenu[2].status = IT_DISABLED;
+					itemOn = 1;
+					break;
+
+				case DFILE_ERROR_NOTLOADED:
+				case DFILE_ERROR_INCOMPLETEOUTOFORDER:
+					// Show "Load Addons and Watch Replay" and "Watch Replay Without Addons"
+					MISC_ReplayStartMenu[0].status = IT_CALL|IT_STRING;
+					MISC_ReplayStartMenu[1].status = IT_CALL|IT_STRING;
+					//MISC_ReplayStartMenu[1].alphaKey = 10;
+					MISC_ReplayStartMenu[2].status = IT_DISABLED;
+					itemOn = 0;
+					break;
+
+				case DFILE_ERROR_EXTRAFILES:
+				case DFILE_ERROR_OUTOFORDER:
+				default:
+					// Show "Watch Replay"
+					MISC_ReplayStartMenu[0].status = IT_DISABLED;
+					MISC_ReplayStartMenu[1].status = IT_DISABLED;
+					MISC_ReplayStartMenu[2].status = IT_CALL|IT_STRING;
+					//MISC_ReplayStartMenu[2].alphaKey = 0;
+					itemOn = 2;
+					break;
+				}
+		}
+
+		break;
+	}
+}
+
+#define SCALEDVIEWWIDTH (vid.width/vid.dupx)
+#define SCALEDVIEWHEIGHT (vid.height/vid.dupy)
+static void DrawReplayHutReplayInfo(void)
+{
+	lumpnum_t lumpnum;
+	patch_t *patch;
+	UINT8 *colormap;
+	INT32 x, y, w, h;
+
+	switch (demolist[dir_on[menudepthleft]].type)
+	{
+	case MD_NOTLOADED:
+		V_DrawCenteredString(160, 40, V_SNAPTOTOP, "Loading replay information...");
+		break;
+
+	case MD_INVALID:
+		V_DrawCenteredString(160, 40, V_SNAPTOTOP|warningflags, "This replay cannot be played.");
+		break;
+
+	case MD_SUBDIR:
+		break; // Can't think of anything to draw here right now
+
+	case MD_OUTDATED:
+		V_DrawThinString(17, 64, V_SNAPTOTOP|V_ALLOWLOWERCASE|V_TRANSLUCENT|highlightflags, "Recorded on an outdated version.");
+		/*fallthru*/
+	default:
+		// Draw level stuff
+		x = 15; y = 15;
+
+		//  A 160x100 image of the level as entry MAPxxP
+		//CONS_Printf("%d %s\n", demolist[dir_on[menudepthleft]].map, G_BuildMapName(demolist[dir_on[menudepthleft]].map));
+		lumpnum = W_CheckNumForName(va("%sP", G_BuildMapName(demolist[dir_on[menudepthleft]].map)));
+		if (lumpnum != LUMPERROR)
+			patch = W_CachePatchNum(lumpnum, PU_CACHE);
+		else
+			patch = W_CachePatchName("M_NOLVL", PU_CACHE);
+
+		if (!(demolist[dir_on[menudepthleft]].kartspeed & DF_ENCORE))
+			V_DrawSmallScaledPatch(x, y, V_SNAPTOTOP, patch);
+		else
+		{
+			w = SHORT(patch->width);
+			h = SHORT(patch->height);
+			V_DrawSmallScaledPatch(x+(w>>1), y, V_SNAPTOTOP|V_FLIP, patch);
+
+			{
+				static angle_t rubyfloattime = 0;
+				const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
+				V_DrawFixedPatch((x+(w>>2))<<FRACBITS, ((y+(h>>2))<<FRACBITS) - (rubyheight<<1), FRACUNIT, V_SNAPTOTOP, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
+				rubyfloattime += (ANGLE_MAX/NEWTICRATE);
+			}
+		}
+
+		x += 85;
+
+		if (mapheaderinfo[demolist[dir_on[menudepthleft]].map-1])
+			V_DrawString(x, y, V_SNAPTOTOP, G_BuildMapTitle(demolist[dir_on[menudepthleft]].map));
+		else
+			V_DrawString(x, y, V_SNAPTOTOP|V_ALLOWLOWERCASE|V_TRANSLUCENT, "Level is not loaded.");
+
+		if (demolist[dir_on[menudepthleft]].numlaps)
+			V_DrawThinString(x, y+9, V_SNAPTOTOP|V_ALLOWLOWERCASE, va("(%d laps)", demolist[dir_on[menudepthleft]].numlaps));
+
+		V_DrawString(x, y+20, V_SNAPTOTOP|V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].gametype == GT_RACE ?
+			va("Race (%s speed)", kartspeed_cons_t[demolist[dir_on[menudepthleft]].kartspeed & ~DF_ENCORE].strvalue) :
+			"Battle Mode");
+
+		if (!demolist[dir_on[menudepthleft]].standings[0].ranking)
+		{
+			// No standings were loaded!
+			V_DrawString(x, y+39, V_SNAPTOTOP|V_ALLOWLOWERCASE|V_TRANSLUCENT, "No standings available.");
+
+
+			break;
+		}
+
+		V_DrawThinString(x, y+29, V_SNAPTOTOP|highlightflags, "WINNER");
+		V_DrawString(x+38, y+30, V_SNAPTOTOP|V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].standings[0].name);
+
+		if (demolist[dir_on[menudepthleft]].gametype == GT_RACE)
+		{
+			V_DrawThinString(x, y+39, V_SNAPTOTOP|highlightflags, "TIME");
+			V_DrawRightAlignedString(x+84, y+40, V_SNAPTOTOP, va("%d'%02d\"%02d",
+											G_TicsToMinutes(demolist[dir_on[menudepthleft]].standings[0].timeorscore, true),
+											G_TicsToSeconds(demolist[dir_on[menudepthleft]].standings[0].timeorscore),
+											G_TicsToCentiseconds(demolist[dir_on[menudepthleft]].standings[0].timeorscore)
+			));
+		}
+		else
+		{
+			V_DrawThinString(x, y+39, V_SNAPTOTOP|highlightflags, "SCORE");
+			V_DrawString(x+32, y+40, V_SNAPTOTOP, va("%d", demolist[dir_on[menudepthleft]].standings[0].timeorscore));
+		}
+
+		// Character face!
+		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[0].skin].facewant) != LUMPERROR)
+		{
+			patch = facewantprefix[demolist[dir_on[menudepthleft]].standings[0].skin];
+			colormap = R_GetTranslationColormap(
+				demolist[dir_on[menudepthleft]].standings[0].skin,
+				demolist[dir_on[menudepthleft]].standings[0].color,
+				GTC_MENUCACHE);
+		}
+		else
+		{
+			patch = W_CachePatchName("M_NOWANT", PU_CACHE);
+			colormap = R_GetTranslationColormap(
+				TC_RAINBOW,
+				demolist[dir_on[menudepthleft]].standings[0].color,
+				GTC_MENUCACHE);
+		}
+
+		V_DrawMappedPatch(BASEVIDWIDTH-15 - SHORT(patch->width), y+20, V_SNAPTOTOP, patch, colormap);
+
+		break;
+	}
+}
+
+static void M_DrawReplayHut(void)
+{
+	INT32 x, y, cursory = 0;
+	INT16 i;
+	INT16 replaylistitem = currentMenu->numitems-2;
+	boolean processed_one_this_frame = false;
+
+	static UINT16 replayhutmenuy = 0;
+
+	V_DrawPatchFill(W_CachePatchName("SRB2BACK", PU_CACHE));
+
+	if (cv_vhseffect.value)
+		V_DrawVhsEffect(false);
+
+	// Draw menu choices
+	x = currentMenu->x;
+	y = currentMenu->y;
+
+	if (itemOn > replaylistitem)
+	{
+		itemOn = replaylistitem;
+		dir_on[menudepthleft] = sizedirmenu-1;
+		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
+	}
+	else if (itemOn < replaylistitem)
+	{
+		dir_on[menudepthleft] = 0;
+		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
+	}
+
+	if (itemOn == replaylistitem)
+	{
+		INT32 maxy;
+		// Scroll menu items if needed
+		cursory = y + currentMenu->menuitems[replaylistitem].alphaKey + dir_on[menudepthleft]*10;
+		maxy = y + currentMenu->menuitems[replaylistitem].alphaKey + sizedirmenu*10;
+
+		if (cursory > maxy - 20)
+			cursory = maxy - 20;
+
+		if (cursory - replayhutmenuy > SCALEDVIEWHEIGHT-50)
+			replayhutmenuy += (cursory-SCALEDVIEWHEIGHT-replayhutmenuy + 51)/2;
+		else if (cursory - replayhutmenuy < 110)
+			replayhutmenuy += (max(0, cursory-110)-replayhutmenuy - 1)/2;
+	}
+	else
+		replayhutmenuy /= 2;
+
+	y -= replayhutmenuy;
+
+	// Draw static menu items
+	for (i = 0; i < replaylistitem; i++)
+	{
+		INT32 localy = y + currentMenu->menuitems[i].alphaKey;
+
+		if (localy < 65)
+			continue;
+
+		if (i == itemOn)
+			cursory = localy;
+
+		if ((currentMenu->menuitems[i].status & IT_DISPLAY)==IT_STRING)
+			V_DrawString(x, localy, V_SNAPTOTOP|V_SNAPTOLEFT, currentMenu->menuitems[i].text);
+		else
+			V_DrawString(x, localy, V_SNAPTOTOP|V_SNAPTOLEFT|highlightflags, currentMenu->menuitems[i].text);
+	}
+
+	y += currentMenu->menuitems[replaylistitem].alphaKey;
+
+	for (i = 0; i < (INT16)sizedirmenu; i++)
+	{
+		INT32 localy = y+i*10;
+		INT32 localx = x;
+
+		if (localy < 65)
+			continue;
+		if (localy >= SCALEDVIEWHEIGHT)
+			break;
+
+		if (demolist[i].type == MD_NOTLOADED && !processed_one_this_frame)
+		{
+			processed_one_this_frame = true;
+			G_LoadDemoInfo(&demolist[i]);
+		}
+
+		if (demolist[i].type == MD_SUBDIR)
+		{
+			localx += 8;
+			V_DrawScaledPatch(x - 4, localy, V_SNAPTOTOP|V_SNAPTOLEFT, W_CachePatchName(dirmenu[i][DIR_TYPE] == EXT_UP ? "M_RBACK" : "M_RFLDR", PU_CACHE));
+		}
+
+		if (itemOn == replaylistitem && i == (INT16)dir_on[menudepthleft])
+		{
+			cursory = localy;
+
+			if (replayScrollDelay)
+				replayScrollDelay--;
+			else if (replayScrollDir > 0)
+			{
+				if (replayScrollTitle < (V_StringWidth(demolist[i].title, 0) - (SCALEDVIEWWIDTH - (x<<1)))<<1)
+					replayScrollTitle++;
+				else
+				{
+					replayScrollDelay = TICRATE;
+					replayScrollDir = -1;
+				}
+			}
+			else
+			{
+				if (replayScrollTitle > 0)
+					replayScrollTitle--;
+				else
+				{
+					replayScrollDelay = TICRATE;
+					replayScrollDir = 1;
+				}
+			}
+
+			V_DrawString(localx - (replayScrollTitle>>1), localy, V_SNAPTOTOP|V_SNAPTOLEFT|highlightflags|V_ALLOWLOWERCASE, demolist[i].title);
+		}
+		else
+			V_DrawString(localx, localy, V_SNAPTOTOP|V_SNAPTOLEFT|V_ALLOWLOWERCASE, demolist[i].title);
+	}
+
+	// Draw scrollbar
+	y = sizedirmenu*10 + currentMenu->menuitems[replaylistitem].alphaKey + 30;
+	if (y > SCALEDVIEWHEIGHT-80)
+	{
+		V_DrawFill(BASEVIDWIDTH-4, 75, 4, SCALEDVIEWHEIGHT-80, V_SNAPTOTOP|V_SNAPTORIGHT|239);
+		V_DrawFill(BASEVIDWIDTH-3, 76 + (SCALEDVIEWHEIGHT-80) * replayhutmenuy / y, 2, (((SCALEDVIEWHEIGHT-80) * (SCALEDVIEWHEIGHT-80))-1) / y - 1, V_SNAPTOTOP|V_SNAPTORIGHT|229);
+	}
+
+	// Draw the cursor
+	V_DrawScaledPatch(currentMenu->x - 24, cursory, V_SNAPTOTOP|V_SNAPTOLEFT,
+		W_CachePatchName("M_CURSOR", PU_CACHE));
+	V_DrawString(currentMenu->x, cursory, V_SNAPTOTOP|V_SNAPTOLEFT|highlightflags, currentMenu->menuitems[itemOn].text);
+
+	// Now draw some replay info!
+	V_DrawFill(10, 10, 300, 60, V_SNAPTOTOP|239);
+
+	if (itemOn == replaylistitem)
+	{
+		DrawReplayHutReplayInfo();
+	}
+}
+
+static void M_DrawReplayStartMenu(void)
+{
+	const char *warning;
+	UINT8 i;
+
+	M_DrawGenericBackgroundMenu();
+
+#define STARTY 62-(replayScrollTitle>>1)
+	// Draw rankings beyond first
+	for (i = 1; i < MAXPLAYERS && demolist[dir_on[menudepthleft]].standings[i].ranking; i++)
+	{
+		patch_t *patch;
+		UINT8 *colormap;
+
+		V_DrawRightAlignedString(BASEVIDWIDTH-100, STARTY + i*20, V_SNAPTOTOP|highlightflags, va("%2d", demolist[dir_on[menudepthleft]].standings[i].ranking));
+		V_DrawThinString(BASEVIDWIDTH-96, STARTY + i*20, V_SNAPTOTOP|V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].standings[i].name);
+
+		if (demolist[dir_on[menudepthleft]].standings[i].timeorscore == UINT32_MAX-1)
+			V_DrawThinString(BASEVIDWIDTH-92, STARTY + i*20 + 9, V_SNAPTOTOP, "NO CONTEST");
+		else if (demolist[dir_on[menudepthleft]].gametype == GT_RACE)
+			V_DrawRightAlignedString(BASEVIDWIDTH-40, STARTY + i*20 + 9, V_SNAPTOTOP, va("%d'%02d\"%02d",
+											G_TicsToMinutes(demolist[dir_on[menudepthleft]].standings[i].timeorscore, true),
+											G_TicsToSeconds(demolist[dir_on[menudepthleft]].standings[i].timeorscore),
+											G_TicsToCentiseconds(demolist[dir_on[menudepthleft]].standings[i].timeorscore)
+			));
+		else
+			V_DrawString(BASEVIDWIDTH-92, STARTY + i*20 + 9, V_SNAPTOTOP, va("%d", demolist[dir_on[menudepthleft]].standings[i].timeorscore));
+
+		// Character face!
+		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[i].skin].facerank) != LUMPERROR)
+		{
+			patch = facerankprefix[demolist[dir_on[menudepthleft]].standings[i].skin];
+			colormap = R_GetTranslationColormap(
+				demolist[dir_on[menudepthleft]].standings[i].skin,
+				demolist[dir_on[menudepthleft]].standings[i].color,
+				GTC_MENUCACHE);
+		}
+		else
+		{
+			patch = W_CachePatchName("M_NORANK", PU_CACHE);
+			colormap = R_GetTranslationColormap(
+				TC_RAINBOW,
+				demolist[dir_on[menudepthleft]].standings[i].color,
+				GTC_MENUCACHE);
+		}
+
+		V_DrawMappedPatch(BASEVIDWIDTH-5 - SHORT(patch->width), STARTY + i*20, V_SNAPTOTOP, patch, colormap);
+	}
+#undef STARTY
+
+	// Handle scrolling rankings
+	if (replayScrollDelay)
+		replayScrollDelay--;
+	else if (replayScrollDir > 0)
+	{
+		if (replayScrollTitle < (i*20 - SCALEDVIEWHEIGHT + 100)<<1)
+			replayScrollTitle++;
+		else
+		{
+			replayScrollDelay = TICRATE;
+			replayScrollDir = -1;
+		}
+	}
+	else
+	{
+		if (replayScrollTitle > 0)
+			replayScrollTitle--;
+		else
+		{
+			replayScrollDelay = TICRATE;
+			replayScrollDir = 1;
+		}
+	}
+
+	V_DrawFill(10, 10, 300, 60, V_SNAPTOTOP|239);
+	DrawReplayHutReplayInfo();
+
+	V_DrawString(10, 72, V_SNAPTOTOP|highlightflags|V_ALLOWLOWERCASE, demolist[dir_on[menudepthleft]].title);
+
+	// Draw a warning prompt if needed
+	switch (demolist[dir_on[menudepthleft]].addonstatus)
+	{
+	case DFILE_ERROR_CANNOTLOAD:
+		warning = "Some addons in this replay cannot be loaded.\nYou can watch anyway, but desyncs may occur.";
+		break;
+
+	case DFILE_ERROR_NOTLOADED:
+	case DFILE_ERROR_INCOMPLETEOUTOFORDER:
+		warning = "Loading addons will mark your game as modified, and record attack may be unavailable.\nYou can watch without loading addons, but desyncs may occur.";
+		break;
+
+	case DFILE_ERROR_EXTRAFILES:
+		warning = "You have addons loaded that were not present in this replay.\nYou can watch anyway, but desyncs may occur.";
+		break;
+
+	case DFILE_ERROR_OUTOFORDER:
+		warning = "You have this replay's addons loaded, but they are out of order.\nYou can watch anyway, but desyncs may occur.";
+		break;
+
+	default:
+		return;
+	}
+
+	V_DrawSmallString(4, BASEVIDHEIGHT-14, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_ALLOWLOWERCASE, warning);
+}
+
+static boolean M_QuitReplayHut(void)
+{
+	// D_StartTitle does its own wipe, since GS_TIMEATTACK is now a complete gamestate.
+	menuactive = false;
+	D_StartTitle();
+
+	if (demolist)
+		Z_Free(demolist);
+	demolist = NULL;
+
+	demo.inreplayhut = false;
+
+	return true;
+}
+
+static void M_HutStartReplay(INT32 choice)
+{
+	(void)choice;
+
+	M_ClearMenus(false);
+	demo.loadfiles = (itemOn == 0);
+	demo.ignorefiles = (itemOn != 0);
+
+	G_DoPlayDemo(demolist[dir_on[menudepthleft]].filepath);
+}
+
+void M_SetPlaybackMenuPointer(void)
+{
+	itemOn = playback_pause;
+}
+
+static void M_DrawPlaybackMenu(void)
+{
+	INT16 i;
+	patch_t *icon;
+	UINT8 *activemap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_GOLD, GTC_MENUCACHE);
+
+	// Toggle items
+	if (paused && !demo.rewinding)
+	{
+		PlaybackMenu[playback_pause].status = PlaybackMenu[playback_fastforward].status = PlaybackMenu[playback_rewind].status = IT_DISABLED;
+		PlaybackMenu[playback_resume].status = PlaybackMenu[playback_advanceframe].status = PlaybackMenu[playback_backframe].status = IT_CALL|IT_STRING;
+
+		if (itemOn >= playback_rewind && itemOn <= playback_fastforward)
+			itemOn += playback_backframe - playback_rewind;
+	}
+	else
+	{
+		PlaybackMenu[playback_pause].status = PlaybackMenu[playback_fastforward].status = PlaybackMenu[playback_rewind].status = IT_CALL|IT_STRING;
+		PlaybackMenu[playback_resume].status = PlaybackMenu[playback_advanceframe].status = PlaybackMenu[playback_backframe].status = IT_DISABLED;
+
+		if (itemOn >= playback_backframe && itemOn <= playback_advanceframe)
+			itemOn -= playback_backframe - playback_rewind;
+	}
+
+	if (modeattacking)
+	{
+		for (i = playback_viewcount; i <= playback_view4; i++)
+			PlaybackMenu[i].status = IT_DISABLED;
+
+		//PlaybackMenu[playback_moreoptions].alphaKey = 72;
+		//PlaybackMenu[playback_quit].alphaKey = 88;
+		PlaybackMenu[playback_quit].alphaKey = 72;
+
+		//currentMenu->x = BASEVIDWIDTH/2 - 52;
+		currentMenu->x = BASEVIDWIDTH/2 - 44;
+	}
+	else
+	{
+		PlaybackMenu[playback_viewcount].status = IT_ARROWS|IT_STRING;
+
+		for (i = 0; i <= splitscreen; i++)
+			PlaybackMenu[playback_view1+i].status = IT_ARROWS|IT_STRING;
+		for (i = splitscreen+1; i < 4; i++)
+			PlaybackMenu[playback_view1+i].status = IT_DISABLED;
+
+		//PlaybackMenu[playback_moreoptions].alphaKey = 156;
+		//PlaybackMenu[playback_quit].alphaKey = 172;
+		PlaybackMenu[playback_quit].alphaKey = 156;
+
+		//currentMenu->x = BASEVIDWIDTH/2 - 94;
+		currentMenu->x = BASEVIDWIDTH/2 - 88;
+	}
+
+	// wip
+	//M_DrawTextBox(currentMenu->x-68, currentMenu->y-7, 15, 15);
+	//M_DrawCenteredMenu();
+
+	for (i = 0; i < currentMenu->numitems; i++)
+	{
+		UINT8 *inactivemap = NULL;
+
+		if (i >= playback_view1 && i <= playback_view4)
+		{
+			if (modeattacking) continue;
+
+			if (splitscreen >= i - playback_view1)
+			{
+				INT32 ply = displayplayers[i - playback_view1];
+
+				icon = facerankprefix[players[ply].skin];
+				if (i != itemOn)
+					inactivemap = R_GetTranslationColormap(players[ply].skin, players[ply].skincolor, GTC_MENUCACHE);
+			}
+			else if (currentMenu->menuitems[i].patch && W_CheckNumForName(currentMenu->menuitems[i].patch) != LUMPERROR)
+				icon = W_CachePatchName(currentMenu->menuitems[i].patch, PU_CACHE);
+			else
+				icon = W_CachePatchName("PLAYRANK", PU_CACHE); // temp
+		}
+		else if (currentMenu->menuitems[i].status == IT_DISABLED)
+			continue;
+		else if (currentMenu->menuitems[i].patch && W_CheckNumForName(currentMenu->menuitems[i].patch) != LUMPERROR)
+			icon = W_CachePatchName(currentMenu->menuitems[i].patch, PU_CACHE);
+		else
+			icon = W_CachePatchName("PLAYRANK", PU_CACHE); // temp
+
+		if ((i == playback_fastforward && cv_playbackspeed.value > 1) || (i == playback_rewind && demo.rewinding))
+			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, V_SNAPTOTOP, icon, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_JAWZ, GTC_MENUCACHE));
+		else
+			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, V_SNAPTOTOP, icon, (i == itemOn) ? activemap : inactivemap);
+
+		if (i == itemOn)
+		{
+			V_DrawCharacter(currentMenu->x + currentMenu->menuitems[i].alphaKey + 4, currentMenu->y + 14,
+				'\x1A' | V_SNAPTOTOP|highlightflags, false);
+
+			V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 18, V_SNAPTOTOP|V_ALLOWLOWERCASE, currentMenu->menuitems[i].text);
+
+			if ((currentMenu->menuitems[i].status & IT_TYPE) == IT_ARROWS)
+			{
+				char *str;
+
+				if (!(i == playback_viewcount && splitscreen == 3))
+					V_DrawCharacter(BASEVIDWIDTH/2 - 4, currentMenu->y + 28 - (skullAnimCounter/5),
+						'\x1A' | V_SNAPTOTOP|highlightflags, false); // up arrow
+
+				if (!(i == playback_viewcount && splitscreen == 0))
+					V_DrawCharacter(BASEVIDWIDTH/2 - 4, currentMenu->y + 48 + (skullAnimCounter/5),
+						'\x1B' | V_SNAPTOTOP|highlightflags, false); // down arrow
+
+				switch (i)
+				{
+				case playback_viewcount:
+					str = va("%d", splitscreen+1);
+					break;
+
+				case playback_view1:
+				case playback_view2:
+				case playback_view3:
+				case playback_view4:
+					str = player_names[displayplayers[i - playback_view1]]; // 0 to 3
+					break;
+
+				default: // shouldn't ever be reached but whatever
+					continue;
+				}
+
+				V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 38, V_SNAPTOTOP|V_ALLOWLOWERCASE|highlightflags, str);
+			}
+		}
+	}
+}
+
+static void M_PlaybackRewind(INT32 choice)
+{
+	static tic_t lastconfirmtime;
+
+	(void)choice;
+
+	if (!demo.rewinding)
+	{
+		if (paused)
+		{
+			G_ConfirmRewind(leveltime-1);
+			paused = true;
+			S_PauseAudio();
+		}
+		else
+			demo.rewinding = paused = true;
+	}
+	else if (lastconfirmtime + TICRATE/2 < I_GetTime())
+	{
+		lastconfirmtime = I_GetTime();
+		G_ConfirmRewind(leveltime);
+	}
+
+	CV_SetValue(&cv_playbackspeed, 1);
+}
+
+static void M_PlaybackPause(INT32 choice)
+{
+	(void)choice;
+
+	paused = !paused;
+
+	if (demo.rewinding)
+	{
+		G_ConfirmRewind(leveltime);
+		paused = true;
+		S_PauseAudio();
+	}
+	else if (paused)
+		S_PauseAudio();
+	else
+		S_ResumeAudio();
+
+	CV_SetValue(&cv_playbackspeed, 1);
+}
+
+static void M_PlaybackFastForward(INT32 choice)
+{
+	(void)choice;
+
+	if (demo.rewinding)
+	{
+		G_ConfirmRewind(leveltime);
+		paused = false;
+		S_ResumeAudio();
+	}
+	CV_SetValue(&cv_playbackspeed, cv_playbackspeed.value == 1 ? 4 : 1);
+}
+
+static void M_PlaybackAdvance(INT32 choice)
+{
+	(void)choice;
+
+	paused = false;
+	TryRunTics(1);
+	paused = true;
+}
+
+
+static void M_PlaybackSetViews(INT32 choice)
+{
+	if (choice > 0)
+	{
+		if (splitscreen < 3)
+			G_AdjustView(splitscreen + 2, 0, true);
+	}
+	else if (splitscreen)
+	{
+		splitscreen--;
+		R_ExecuteSetViewSize();
+	}
+}
+
+static void M_PlaybackAdjustView(INT32 choice)
+{
+	G_AdjustView(itemOn - playback_viewcount, (choice > 0) ? 1 : -1, true);
+}
+
+static void M_PlaybackQuit(INT32 choice)
+{
+	(void)choice;
+	G_StopDemo();
+
+	if (demo.inreplayhut)
+		M_ReplayHut(choice);
+	else if (modeattacking)
+	{
+		M_EndModeAttackRun();
+		S_ChangeMusicInternal("racent", true);
+	}
+	else
+		D_StartTitle();
 }
 
 static void M_PandorasBox(INT32 choice)
@@ -5109,11 +6086,10 @@ static void M_Options(INT32 choice)
 	(void)choice;
 
 	// if the player is not admin or server, disable gameplay & server options
-	OP_MainMenu[5].status = OP_MainMenu[6].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+	OP_MainMenu[4].status = OP_MainMenu[5].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
-	// if the player is playing _at all_, disable the erase data & credits options
-	OP_MainMenu[9].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL);
-	OP_MainMenu[10].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
+	OP_MainMenu[8].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL); // Play credits
+	OP_DataOptionsMenu[3].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU); // Erase data
 
 	OP_GameOptionsMenu[3].status =
 		(M_SecretUnlocked(SECRET_ENCORE)) ? (IT_CVAR|IT_STRING) : IT_SECRET; // cv_kartencore
@@ -5618,6 +6594,7 @@ static void M_Credits(INT32 choice)
 // SINGLE PLAYER MENU
 // ==================
 
+#if 0 // Bring this back when we have actual single-player
 static void M_SinglePlayerMenu(INT32 choice)
 {
 	(void)choice;
@@ -5628,6 +6605,7 @@ static void M_SinglePlayerMenu(INT32 choice)
 
 	M_SetupNextMenu(&SP_MainDef);
 }
+#endif
 
 /*static void M_LoadGameLevelSelect(INT32 choice)
 {
@@ -6945,6 +7923,7 @@ static void M_HandleStaffReplay(INT32 choice)
 				break;
 			M_ClearMenus(true);
 			modeattacking = ATTACKING_RECORD;
+			demo.loadfiles = false; demo.ignorefiles = true; // Just assume that record attack replays have the files needed
 			G_DoPlayDemo(va("%sS%02u",G_BuildMapName(cv_nextmap.value),cv_dummystaff.value));
 			break;
 		default:
@@ -6965,6 +7944,7 @@ static void M_ReplayTimeAttack(INT32 choice)
 	const char *which;
 	M_ClearMenus(true);
 	modeattacking = ATTACKING_RECORD; // set modeattacking before G_DoPlayDemo so the map loader knows
+	demo.loadfiles = false; demo.ignorefiles = true; // Just assume that record attack replays have the files needed
 
 	if (currentMenu == &SP_ReplayDef)
 	{
@@ -7161,7 +8141,7 @@ static void M_ExitGameResponse(INT32 ch)
 static void M_EndGame(INT32 choice)
 {
 	(void)choice;
-	if (demoplayback || demorecording)
+	if (demo.playback)
 		return;
 
 	if (!Playing())
@@ -7587,6 +8567,8 @@ static void M_StartServer(INT32 choice)
 
 	multiplayer = true;
 
+	strncpy(connectedservername, cv_servername.string, MAXSERVERNAME);
+
 	// Still need to reset devmode
 	cv_debug = 0;
 
@@ -7595,7 +8577,7 @@ static void M_StartServer(INT32 choice)
 	else
 		joinpasswordset = false;
 
-	if (demoplayback)
+	if (demo.playback)
 		G_StopDemo();
 	if (metalrecording)
 		G_StopMetalDemo();
@@ -8489,7 +9471,7 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	strcpy (setupm_name, cv_playername2.string);
 
 	// set for splitscreen secondary player
-	setupm_player = &players[secondarydisplayplayer];
+	setupm_player = &players[displayplayers[1]];
 	setupm_cvskin = &cv_skin2;
 	setupm_cvcolor = &cv_playercolor2;
 	setupm_cvname = &cv_playername2;
@@ -8501,7 +9483,7 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	setupm_fakecolor = setupm_cvcolor->value;
 
 	// disable skin changes if we can't actually change skins
-	if (splitscreen && !CanChangeSkin(secondarydisplayplayer))
+	if (splitscreen && !CanChangeSkin(displayplayers[1]))
 		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
 	else
 		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);
@@ -8520,7 +9502,7 @@ static void M_SetupMultiPlayer3(INT32 choice)
 	strcpy(setupm_name, cv_playername3.string);
 
 	// set for splitscreen third player
-	setupm_player = &players[thirddisplayplayer];
+	setupm_player = &players[displayplayers[2]];
 	setupm_cvskin = &cv_skin3;
 	setupm_cvcolor = &cv_playercolor3;
 	setupm_cvname = &cv_playername3;
@@ -8532,7 +9514,7 @@ static void M_SetupMultiPlayer3(INT32 choice)
 	setupm_fakecolor = setupm_cvcolor->value;
 
 	// disable skin changes if we can't actually change skins
-	if (splitscreen > 1 && !CanChangeSkin(thirddisplayplayer))
+	if (splitscreen > 1 && !CanChangeSkin(displayplayers[2]))
 		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
 	else
 		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);
@@ -8551,7 +9533,7 @@ static void M_SetupMultiPlayer4(INT32 choice)
 	strcpy(setupm_name, cv_playername4.string);
 
 	// set for splitscreen fourth player
-	setupm_player = &players[fourthdisplayplayer];
+	setupm_player = &players[displayplayers[3]];
 	setupm_cvskin = &cv_skin4;
 	setupm_cvcolor = &cv_playercolor4;
 	setupm_cvname = &cv_playername4;
@@ -8563,7 +9545,7 @@ static void M_SetupMultiPlayer4(INT32 choice)
 	setupm_fakecolor = setupm_cvcolor->value;
 
 	// disable skin changes if we can't actually change skins
-	if (splitscreen > 2 && !CanChangeSkin(fourthdisplayplayer))
+	if (splitscreen > 2 && !CanChangeSkin(displayplayers[3]))
 		MP_PlayerSetupMenu[2].status = (IT_GRAYEDOUT);
 	else
 		MP_PlayerSetupMenu[2].status = (IT_KEYHANDLER | IT_STRING);
@@ -8920,7 +9902,7 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[15].status = IT_CONTROL; // Chat
 	//OP_AllControlsMenu[16].status = IT_CONTROL; // Team-chat
 	OP_AllControlsMenu[16].status = IT_CONTROL; // Rankings
-	OP_AllControlsMenu[17].status = IT_CONTROL; // Viewpoint
+	//OP_AllControlsMenu[17].status = IT_CONTROL; // Viewpoint
 	// 18 is Reset Camera, 19 is Toggle Chasecam
 	OP_AllControlsMenu[20].status = IT_CONTROL; // Pause
 	OP_AllControlsMenu[21].status = IT_CONTROL; // Screenshot
@@ -8952,7 +9934,7 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
 	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
 	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	//OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
 	// 18 is Reset Camera, 19 is Toggle Chasecam
 	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
 	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
@@ -8984,7 +9966,7 @@ static void M_Setup3PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
 	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
 	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	//OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
 	// 18 is Reset Camera, 19 is Toggle Chasecam
 	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
 	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot
@@ -9016,7 +9998,7 @@ static void M_Setup4PControlsMenu(INT32 choice)
 	OP_AllControlsMenu[15].status = IT_GRAYEDOUT2; // Chat
 	//OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Team-chat
 	OP_AllControlsMenu[16].status = IT_GRAYEDOUT2; // Rankings
-	OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
+	//OP_AllControlsMenu[17].status = IT_GRAYEDOUT2; // Viewpoint
 	// 18 is Reset Camera, 19 is Toggle Chasecam
 	OP_AllControlsMenu[20].status = IT_GRAYEDOUT2; // Pause
 	OP_AllControlsMenu[21].status = IT_GRAYEDOUT2; // Screenshot

@@ -2078,13 +2078,13 @@ static void LoadMobjThinker(actionf_p1 thinker)
 		mobj->player->mo = mobj;
 		// added for angle prediction
 		if (consoleplayer == i)
-			localangle = mobj->angle;
-		if (secondarydisplayplayer == i)
-			localangle2 = mobj->angle;
-		if (thirddisplayplayer == i)
-			localangle3 = mobj->angle;
-		if (fourthdisplayplayer == i)
-			localangle4 = mobj->angle;
+			localangle[0] = mobj->angle;
+		if (displayplayers[1] == i)
+			localangle[1] = mobj->angle;
+		if (displayplayers[2] == i)
+			localangle[2] = mobj->angle;
+		if (displayplayers[3] == i)
+			localangle[3] = mobj->angle;
 	}
 	if (diff & MD_MOVEDIR)
 		mobj->movedir = READANGLE(save_p);
@@ -3423,7 +3423,7 @@ void P_SaveNetGame(void)
 	mobj_t *mobj;
 	INT32 i = 1; // don't start from 0, it'd be confused with a blank pointer otherwise
 
-	CV_SaveNetVars(&save_p);
+	CV_SaveNetVars(&save_p, false);
 	P_NetArchiveMisc();
 
 	// Assign the mobjnumber for pointer tracking

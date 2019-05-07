@@ -2536,9 +2536,9 @@ void T_CameraScanner(elevator_t *elevator)
 		lastleveltime = leveltime;
 	}
 
-	if (players[displayplayer].mo)
+	if (players[displayplayers[0]].mo)
 	{
-		if (players[displayplayer].mo->subsector->sector == elevator->actionsector)
+		if (players[displayplayers[0]].mo->subsector->sector == elevator->actionsector)
 		{
 			if (t_cam_dist == -42)
 				t_cam_dist = cv_cam_dist.value;
@@ -2564,9 +2564,9 @@ void T_CameraScanner(elevator_t *elevator)
 		}
 	}
 
-	if (splitscreen && players[secondarydisplayplayer].mo)
+	if (splitscreen && players[displayplayers[1]].mo)
 	{
-		if (players[secondarydisplayplayer].mo->subsector->sector == elevator->actionsector)
+		if (players[displayplayers[1]].mo->subsector->sector == elevator->actionsector)
 		{
 			if (t_cam2_rotate == -42)
 				t_cam2_dist = cv_cam2_dist.value;
@@ -2592,9 +2592,9 @@ void T_CameraScanner(elevator_t *elevator)
 		}
 	}
 
-	if (splitscreen > 1 && players[thirddisplayplayer].mo)
+	if (splitscreen > 1 && players[displayplayers[2]].mo)
 	{
-		if (players[thirddisplayplayer].mo->subsector->sector == elevator->actionsector)
+		if (players[displayplayers[2]].mo->subsector->sector == elevator->actionsector)
 		{
 			if (t_cam3_rotate == -42)
 				t_cam3_dist = cv_cam3_dist.value;
@@ -2620,9 +2620,9 @@ void T_CameraScanner(elevator_t *elevator)
 		}
 	}
 
-	if (splitscreen > 2 && players[fourthdisplayplayer].mo)
+	if (splitscreen > 2 && players[displayplayers[3]].mo)
 	{
-		if (players[fourthdisplayplayer].mo->subsector->sector == elevator->actionsector)
+		if (players[displayplayers[3]].mo->subsector->sector == elevator->actionsector)
 		{
 			if (t_cam4_rotate == -42)
 				t_cam4_dist = cv_cam4_dist.value;

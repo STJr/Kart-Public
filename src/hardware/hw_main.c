@@ -63,7 +63,7 @@ struct hwdriver_s hwdriver;
 // ==========================================================================
 
 
-static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer);
+static void HWR_AddSprites(sector_t *sec);
 static void HWR_ProjectSprite(mobj_t *thing);
 #ifdef HWPRECIP
 static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing);
@@ -3389,7 +3389,7 @@ static void HWR_AddPolyObjectPlanes(void)
 //                  : Draw one or more line segments.
 // Notes            : Sets gr_cursectorlight to the light of the parent sector, to modulate wall textures
 // -----------------+
-static void HWR_Subsector(size_t num, UINT8 ssplayer)
+static void HWR_Subsector(size_t num)
 {
 	INT16 count;
 	seg_t *line;
@@ -3754,7 +3754,7 @@ static void HWR_Subsector(size_t num, UINT8 ssplayer)
 	{
 		// draw sprites first, coz they are clipped to the solidsegs of
 		// subsectors more 'in front'
-		HWR_AddSprites(gr_frontsector, ssplayer);
+		HWR_AddSprites(gr_frontsector);
 
 		//Hurdler: at this point validcount must be the same, but is not because
 		//         gr_frontsector doesn't point anymore to sub->sector due to
@@ -3806,7 +3806,7 @@ static boolean HWR_CheckHackBBox(fixed_t *bb)
 // BP: big hack for a test in lighning ref : 1249753487AB
 fixed_t *hwbbox;
 
-static void HWR_RenderBSPNode(INT32 bspnum, UINT8 ssplayer)
+static void HWR_RenderBSPNode(INT32 bspnum)
 {
 	/*//GZDoom code
 	if(bspnum == -1)
@@ -3846,12 +3846,12 @@ static void HWR_RenderBSPNode(INT32 bspnum, UINT8 ssplayer)
 		if (bspnum == -1)
 		{
 			//*(gr_drawsubsector_p++) = 0;
-			HWR_Subsector(0, ssplayer);
+			HWR_Subsector(0);
 		}
 		else
 		{
 			//*(gr_drawsubsector_p++) = bspnum&(~NF_SUBSECTOR);
-			HWR_Subsector(bspnum&(~NF_SUBSECTOR), ssplayer);
+			HWR_Subsector(bspnum&(~NF_SUBSECTOR));
 		}
 		return;
 	}
@@ -3863,14 +3863,14 @@ static void HWR_RenderBSPNode(INT32 bspnum, UINT8 ssplayer)
 	hwbbox = bsp->bbox[side];
 
 	// Recursively divide front space.
-	HWR_RenderBSPNode(bsp->children[side], ssplayer);
+	HWR_RenderBSPNode(bsp->children[side]);
 
 	// Possibly divide back space.
 	if (HWR_CheckBBox(bsp->bbox[side^1]))
 	{
 		// BP: big hack for a test in lighning ref : 1249753487AB
 		hwbbox = bsp->bbox[side^1];
-		HWR_RenderBSPNode(bsp->children[side^1], ssplayer);
+		HWR_RenderBSPNode(bsp->children[side^1]);
 	}
 }
 
@@ -4097,14 +4097,14 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 		angle_t shadowdir;
 
 		// Set direction
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			shadowdir = localangle2 + FixedAngle(cv_cam2_rotate.value);
-		else if (splitscreen > 1 && stplyr == &players[thirddisplayplayer])
-			shadowdir = localangle3 + FixedAngle(cv_cam3_rotate.value);
-		else if (splitscreen > 2 && stplyr == &players[fourthdisplayplayer])
-			shadowdir = localangle4 + FixedAngle(cv_cam4_rotate.value);
+		if (splitscreen && stplyr == &players[displayplayers[1]])
+			shadowdir = localangle[1] + FixedAngle(cv_cam2_rotate.value);
+		else if (splitscreen > 1 && stplyr == &players[displayplayers[2]])
+			shadowdir = localangle[2] + FixedAngle(cv_cam3_rotate.value);
+		else if (splitscreen > 2 && stplyr == &players[displayplayers[3]])
+			shadowdir = localangle[3] + FixedAngle(cv_cam4_rotate.value);
 		else
-			shadowdir = localangle + FixedAngle(cv_cam_rotate.value);
+			shadowdir = localangle[0] + FixedAngle(cv_cam_rotate.value);
 
 		// Find floorheight
 		floorheight = HWR_OpaqueFloorAtPos(
@@ -5283,7 +5283,7 @@ static void HWR_DrawSprites(void)
 // During BSP traversal, this adds sprites by sector.
 // --------------------------------------------------------------------------
 static UINT8 sectorlight;
-static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
+static void HWR_AddSprites(sector_t *sec)
 {
 	mobj_t *thing;
 #ifdef HWPRECIP
@@ -5316,19 +5316,19 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (ssplayer != 1)
+					if (viewssnum != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (ssplayer != 2)
+					if (viewssnum != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (ssplayer != 3)
+					if (viewssnum != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (ssplayer != 4)
+					if (viewssnum != 3)
 						continue;
 			}
 
@@ -5351,19 +5351,19 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (ssplayer != 1)
+					if (viewssnum != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (ssplayer != 2)
+					if (viewssnum != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (ssplayer != 3)
+					if (viewssnum != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (ssplayer != 4)
+					if (viewssnum != 3)
 						continue;
 			}
 
@@ -5906,33 +5906,8 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 {
 	const float fpov = FIXED_TO_FLOAT(cv_fov.value+player->fovadd);
 	postimg_t *type;
-	UINT8 ssplayer = 0;
 
-	if (splitscreen)
-	{
-		if (player == &players[secondarydisplayplayer])
-		{
-			type = &postimgtype2;
-			ssplayer = 2;
-		}
-		else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		{
-			type = &postimgtype3;
-			ssplayer = 3;
-		}
-		else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		{
-			type = &postimgtype4;
-			ssplayer = 4;
-		}
-		else
-		{
-			type = &postimgtype;
-			ssplayer = 1;
-		}
-	}
-	else
-		type = &postimgtype;
+	type = &postimgtype[viewnumber];
 
 	{
 		// do we really need to save player (is it not the same)?
@@ -6056,36 +6031,36 @@ if (0)
 
 	validcount++;
 
-	HWR_RenderBSPNode((INT32)numnodes-1, ssplayer);
+	HWR_RenderBSPNode((INT32)numnodes-1);
 
 #ifndef NEWCLIP
 	// Make a viewangle int so we can render things based on mouselook
 	if (player == &players[consoleplayer])
-		viewangle = localaiming;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		viewangle = localaiming2;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		viewangle = localaiming3;
-	else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		viewangle = localaiming4;
+		viewangle = localaiming[0];
+	else if (splitscreen && player == &players[displayplayers[1]])
+		viewangle = localaiming[1];
+	else if (splitscreen > 1 && player == &players[displayplayers[2]])
+		viewangle = localaiming[2];
+	else if (splitscreen > 2 && player == &players[displayplayers[3]])
+		viewangle = localaiming[3];
 
 	// Handle stuff when you are looking farther up or down.
 	if ((aimingangle || cv_fov.value+player->fovadd > 90*FRACUNIT))
 	{
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //left
+		HWR_RenderBSPNode((INT32)numnodes-1); //left
 
 		dup_viewangle += ANGLE_90;
 		if (((INT32)aimingangle > ANGLE_45 || (INT32)aimingangle<-ANGLE_45))
 		{
 			HWR_ClearClipSegs();
-			HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //back
+			HWR_RenderBSPNode((INT32)numnodes-1); //back
 		}
 
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //right
+		HWR_RenderBSPNode((INT32)numnodes-1); //right
 
 		dup_viewangle += ANGLE_90;
 	}
@@ -6149,38 +6124,13 @@ if (0)
 void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 {
 	const float fpov = FIXED_TO_FLOAT(cv_fov.value+player->fovadd);
-	postimg_t *type;
-	UINT8 ssplayer = 0;
+	postimg_t *type = &postimgtype[viewnumber];
 
 	const boolean skybox = (skyboxmo[0] && cv_skybox.value); // True if there's a skybox object and skyboxes are on
 
 	FRGBAFloat ClearColor;
 
-	if (splitscreen)
-	{
-		if (player == &players[secondarydisplayplayer])
-		{
-			type = &postimgtype2;
-			ssplayer = 2;
-		}
-		else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		{
-			type = &postimgtype3;
-			ssplayer = 3;
-		}
-		else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		{
-			type = &postimgtype4;
-			ssplayer = 4;
-		}
-		else
-		{
-			type = &postimgtype;
-			ssplayer = 1;
-		}
-	}
-	else
-		type = &postimgtype;
+	type = &postimgtype[viewnumber];
 
 	ClearColor.red = 0.0f;
 	ClearColor.green = 0.0f;
@@ -6315,36 +6265,36 @@ if (0)
 
 	validcount++;
 
-	HWR_RenderBSPNode((INT32)numnodes-1, ssplayer);
+	HWR_RenderBSPNode((INT32)numnodes-1);
 
 #ifndef NEWCLIP
 	// Make a viewangle int so we can render things based on mouselook
 	if (player == &players[consoleplayer])
-		viewangle = localaiming;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		viewangle = localaiming2;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		viewangle = localaiming3;
-	else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		viewangle = localaiming4;
+		viewangle = localaiming[0];
+	else if (splitscreen && player == &players[displayplayers[1]])
+		viewangle = localaiming[1];
+	else if (splitscreen > 1 && player == &players[displayplayers[2]])
+		viewangle = localaiming[2];
+	else if (splitscreen > 2 && player == &players[displayplayers[3]])
+		viewangle = localaiming[3];
 
 	// Handle stuff when you are looking farther up or down.
 	if ((aimingangle || cv_fov.value+player->fovadd > 90*FRACUNIT))
 	{
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //left
+		HWR_RenderBSPNode((INT32)numnodes-1); //left
 
 		dup_viewangle += ANGLE_90;
 		if (((INT32)aimingangle > ANGLE_45 || (INT32)aimingangle<-ANGLE_45))
 		{
 			HWR_ClearClipSegs();
-			HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //back
+			HWR_RenderBSPNode((INT32)numnodes-1); //back
 		}
 
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //right
+		HWR_RenderBSPNode((INT32)numnodes-1); //right
 
 		dup_viewangle += ANGLE_90;
 	}
@@ -6802,16 +6752,17 @@ INT32 HWR_GetTextureUsed(void)
 
 void HWR_DoPostProcessor(player_t *player)
 {
-	postimg_t *type;
+	postimg_t *type = &postimgtype[0];
+	UINT8 i;
 
-	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		type = &postimgtype4;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		type = &postimgtype3;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		type = &postimgtype2;
-	else
-		type = &postimgtype;
+	for (i = splitscreen; i > 0; i--)
+	{
+		if (player == &players[displayplayers[i]])
+		{
+			type = &postimgtype[i];
+			break;
+		}
+	}
 
 	// Armageddon Blast Flash!
 	// Could this even be considered postprocessor?

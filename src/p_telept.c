@@ -36,6 +36,7 @@ void P_MixUp(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
 			INT32 flags2)
 {
 	const INT32 takeflags2 = MF2_TWOD|MF2_OBJECTFLIP;
+	UINT8 i;
 
 	// the move is ok,
 	// so link the thing into its new position
@@ -64,23 +65,25 @@ void P_MixUp(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
 
 		// absolute angle position
 		if (thing == players[consoleplayer].mo)
-			localangle = angle;
-		if (thing == players[secondarydisplayplayer].mo)
-			localangle2 = angle;
-		if (thing == players[thirddisplayplayer].mo)
-			localangle3 = angle;
-		if (thing == players[fourthdisplayplayer].mo)
-			localangle4 = angle;
+			localangle[0] = angle;
+		else if (splitscreen)
+		{
+			for (i = 1; i <= splitscreen; i++)
+			{
+				if (thing == players[displayplayers[i]].mo)
+				{
+					localangle[i] = angle;
+					break;
+				}
+			}
+		}
 
 		// move chasecam at new player location
-		if (splitscreen > 2 && camera4.chase && thing->player == &players[fourthdisplayplayer])
-			P_ResetCamera(thing->player, &camera4);
-		else if (splitscreen > 1 && camera3.chase && thing->player == &players[thirddisplayplayer])
-			P_ResetCamera(thing->player, &camera3);
-		else if (splitscreen && camera2.chase && thing->player == &players[secondarydisplayplayer])
-			P_ResetCamera(thing->player, &camera2);
-		else if (camera.chase && thing->player == &players[displayplayer])
-			P_ResetCamera(thing->player, &camera);
+		for (i = 0; i <= splitscreen; i++)
+		{
+			if (thing->player == &players[displayplayers[i]] && camera[i].chase)
+				P_ResetCamera(thing->player, &camera[i]);
+		}
 
 		// don't run in place after a teleport
 		thing->player->cmomx = thing->player->cmomy = 0;
@@ -123,6 +126,8 @@ void P_MixUp(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
 */
 boolean P_Teleport(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle, boolean flash, boolean dontstopmove)
 {
+	UINT8 i;
+
 	if (!P_TeleportMove(thing, x, y, z))
 		return false;
 
@@ -144,24 +149,26 @@ boolean P_Teleport(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle
 			thing->reactiontime = TICRATE/2; // don't move for about half a second
 
 		// absolute angle position
-		if (thing->player == &players[consoleplayer])
-			localangle = angle;
-		if (thing->player == &players[secondarydisplayplayer])
-			localangle2 = angle;
-		if (thing->player == &players[thirddisplayplayer])
-			localangle3 = angle;
-		if (thing->player == &players[fourthdisplayplayer])
-			localangle4 = angle;
+		if (thing == players[consoleplayer].mo)
+			localangle[0] = angle;
+		else if (splitscreen)
+		{
+			for (i = 1; i <= splitscreen; i++)
+			{
+				if (thing == players[displayplayers[i]].mo)
+				{
+					localangle[i] = angle;
+					break;
+				}
+			}
+		}
 
 		// move chasecam at new player location
-		if (splitscreen > 2 && camera4.chase && thing->player == &players[fourthdisplayplayer])
-			P_ResetCamera(thing->player, &camera4);
-		else if (splitscreen > 1 && camera3.chase && thing->player == &players[thirddisplayplayer])
-			P_ResetCamera(thing->player, &camera3);
-		else if (splitscreen && camera2.chase && thing->player == &players[secondarydisplayplayer])
-			P_ResetCamera(thing->player, &camera2);
-		else if (camera.chase && thing->player == &players[displayplayer])
-			P_ResetCamera(thing->player, &camera);
+		for (i = 0; i <= splitscreen; i++)
+		{
+			if (thing->player == &players[displayplayers[i]] && camera[i].chase)
+				P_ResetCamera(thing->player, &camera[i]);
+		}
 
 		// don't run in place after a teleport
 		if (!dontstopmove)

@@ -1062,34 +1062,14 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 	}
 
 	// This makes the roulette produce the random noises.
-	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsLocalPlayer(player))
+	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsDisplayPlayer(player))
 	{
-#define PLAYROULETTESND S_StartSound(NULL, sfx_itrol1 + ((player->kartstuff[k_itemroulette] / 3) % 8));
-		if (splitscreen)
+#define PLAYROULETTESND S_StartSound(NULL, sfx_itrol1 + ((player->kartstuff[k_itemroulette] / 3) % 8))
+		for (i = 0; i <= splitscreen; i++)
 		{
-			if (players[displayplayer].kartstuff[k_itemroulette])
-			{
-				if (player == &players[displayplayer])
-					PLAYROULETTESND;
-			}
-			else if (players[secondarydisplayplayer].kartstuff[k_itemroulette])
-			{
-				if (player == &players[secondarydisplayplayer])
-					PLAYROULETTESND;
-			}
-			else if (players[thirddisplayplayer].kartstuff[k_itemroulette] && splitscreen > 1)
-			{
-				if (player == &players[thirddisplayplayer])
-					PLAYROULETTESND;
-			}
-			else if (players[fourthdisplayplayer].kartstuff[k_itemroulette] && splitscreen > 2)
-			{
-				if (player == &players[fourthdisplayplayer])
-					PLAYROULETTESND;
-			}
+			if (player == &players[displayplayers[i]] && players[displayplayers[i]].kartstuff[k_itemroulette])
+				PLAYROULETTESND;
 		}
-		else
-			PLAYROULETTESND;
 #undef PLAYROULETTESND
 	}
 
@@ -1116,7 +1096,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		//player->kartstuff[k_itemblinkmode] = 1;
 		player->kartstuff[k_itemroulette] = 0;
 		player->kartstuff[k_roulettetype] = 0;
-		if (P_IsLocalPlayer(player))
+		if (P_IsDisplayPlayer(player))
 			S_StartSound(NULL, sfx_itrole);
 		return;
 	}
@@ -1129,7 +1109,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_itemblinkmode] = 2;
 		player->kartstuff[k_itemroulette] = 0;
 		player->kartstuff[k_roulettetype] = 0;
-		if (P_IsLocalPlayer(player))
+		if (P_IsDisplayPlayer(player))
 			S_StartSound(NULL, sfx_dbgsal);
 		return;
 	}
@@ -1161,7 +1141,7 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_itemamount] = 1;
 	}
 
-	if (P_IsLocalPlayer(player))
+	if (P_IsDisplayPlayer(player))
 		S_StartSound(NULL, ((player->kartstuff[k_roulettetype] == 1) ? sfx_itrolk : (mashed ? sfx_itrolm : sfx_itrolf)));
 
 	player->kartstuff[k_itemblink] = TICRATE;
@@ -4369,10 +4349,7 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 		if (!playeringame[i] || !players[i].mo || players[i].spectator || players[i].exiting)
 			continue;
 
-		if ((i == displayplayer)
-			|| (i == secondarydisplayplayer && splitscreen)
-			|| (i == thirddisplayplayer && splitscreen > 1)
-			|| (i == fourthdisplayplayer && splitscreen > 2))
+		if (P_IsDisplayPlayer(&players[i]))
 		{
 			volumedampen += FRACUNIT; // We already know what this is gonna be, let's not waste our time.
 			continue;
@@ -5745,13 +5722,13 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 
 				if (player->kartstuff[k_hyudorotimer] >= (1*TICRATE/2) && player->kartstuff[k_hyudorotimer] <= hyudorotime-(1*TICRATE/2))
 				{
-					if (player == &players[secondarydisplayplayer])
+					if (player == &players[displayplayers[1]])
 						player->mo->eflags |= MFE_DRAWONLYFORP2;
-					else if (player == &players[thirddisplayplayer] && splitscreen > 1)
+					else if (player == &players[displayplayers[2]] && splitscreen > 1)
 						player->mo->eflags |= MFE_DRAWONLYFORP3;
-					else if (player == &players[fourthdisplayplayer] && splitscreen > 2)
+					else if (player == &players[displayplayers[3]] && splitscreen > 2)
 						player->mo->eflags |= MFE_DRAWONLYFORP4;
-					else if (player == &players[consoleplayer])
+					else if (player == &players[displayplayers[0]])
 						player->mo->eflags |= MFE_DRAWONLYFORP1;
 					else
 						player->mo->flags2 |= MF2_DONTDRAW;
@@ -5761,8 +5738,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			}
 			else
 			{
-				if (player == &players[displayplayer]
-					|| (player != &players[displayplayer] && (player->kartstuff[k_hyudorotimer] < (1*TICRATE/2) || player->kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))))
+				if (P_IsDisplayPlayer(player)
+					|| (!P_IsDisplayPlayer(player) && (player->kartstuff[k_hyudorotimer] < (1*TICRATE/2) || player->kartstuff[k_hyudorotimer] > hyudorotime-(1*TICRATE/2))))
 				{
 					if (leveltime & 1)
 						player->mo->flags2 |= MF2_DONTDRAW;
@@ -5862,7 +5839,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	}
 
 	// Play the starting countdown sounds
-	if (player == &players[displayplayer]) // Don't play louder in splitscreen
+	if (player == &players[displayplayers[0]]) // Don't play louder in splitscreen
 	{
 		if ((leveltime == starttime-(3*TICRATE)) || (leveltime == starttime-(2*TICRATE)) || (leveltime == starttime-TICRATE))
 			S_StartSound(NULL, sfx_s3ka7);
@@ -6747,17 +6724,17 @@ INT32 K_calcSplitFlags(INT32 snapflags)
 	if (splitscreen == 0)
 		return snapflags;
 
-	if (stplyr != &players[displayplayer])
+	if (stplyr != &players[displayplayers[0]])
 	{
-		if (splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
+		if (splitscreen == 1 && stplyr == &players[displayplayers[1]])
 		{
 			splitflags |= V_SPLITSCREEN;
 		}
 		else if (splitscreen > 1)
 		{
-			if (stplyr == &players[thirddisplayplayer] || stplyr == &players[fourthdisplayplayer])
+			if (stplyr == &players[displayplayers[2]] || (splitscreen == 3 && stplyr == &players[displayplayers[3]]))
 				splitflags |= V_SPLITSCREEN;
-			if (stplyr == &players[secondarydisplayplayer] || stplyr == &players[fourthdisplayplayer])
+			if (stplyr == &players[displayplayers[1]] || (splitscreen == 3 && stplyr == &players[displayplayers[3]]))
 				splitflags |= V_HORZSCREEN;
 		}
 	}
@@ -7019,25 +6996,25 @@ static void K_drawKartItem(void)
 	}
 
 	// pain and suffering defined below
-	if (splitscreen < 2)	// don't change shit for THIS splitscreen.
+	if (splitscreen < 2) // don't change shit for THIS splitscreen.
 	{
 		fx = ITEM_X;
 		fy = ITEM_Y;
 		fflags = K_calcSplitFlags(V_SNAPTOTOP|V_SNAPTOLEFT);
 	}
-	else				// now we're having a fun game.
+	else // now we're having a fun game.
 	{
-		if (stplyr == &players[displayplayer] || stplyr == &players[thirddisplayplayer])	// If we are P1 or P3...
+		if (stplyr == &players[displayplayers[0]] || stplyr == &players[displayplayers[2]]) // If we are P1 or P3...
 		{
 			fx = ITEM_X;
 			fy = ITEM_Y;
-			fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN : V_SNAPTOTOP);	// flip P3 to the bottom.
+			fflags = V_SNAPTOLEFT|((stplyr == &players[displayplayers[2]]) ? V_SPLITSCREEN : V_SNAPTOTOP); // flip P3 to the bottom.
 		}
 		else // else, that means we're P2 or P4.
 		{
 			fx = ITEM2_X;
 			fy = ITEM2_Y;
-			fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN : V_SNAPTOTOP);	// flip P4 to the bottom
+			fflags = V_SNAPTORIGHT|((stplyr == &players[displayplayers[3]]) ? V_SPLITSCREEN : V_SNAPTOTOP); // flip P4 to the bottom
 			flipamount = true;
 		}
 	}
@@ -7050,10 +7027,10 @@ static void K_drawKartItem(void)
 	// Then, the numbers:
 	if (stplyr->kartstuff[k_itemamount] >= numberdisplaymin && !stplyr->kartstuff[k_itemroulette])
 	{
-		V_DrawScaledPatch(fx + (flipamount ? 48 : 0), fy, V_HUDTRANS|fflags|(flipamount ? V_FLIP : 0), kp_itemmulsticker[offset]);	// flip this graphic for p2 and p4 in split and shift it.
+		V_DrawScaledPatch(fx + (flipamount ? 48 : 0), fy, V_HUDTRANS|fflags|(flipamount ? V_FLIP : 0), kp_itemmulsticker[offset]); // flip this graphic for p2 and p4 in split and shift it.
 		V_DrawFixedPatch(fx<<FRACBITS, fy<<FRACBITS, FRACUNIT, V_HUDTRANS|fflags, localpatch, colmap);
 		if (offset)
-			if (flipamount)	// reminder that this is for 3/4p's right end of the screen.
+			if (flipamount) // reminder that this is for 3/4p's right end of the screen.
 				V_DrawString(fx+2, fy+31, V_ALLOWLOWERCASE|V_HUDTRANS|fflags, va("x%d", stplyr->kartstuff[k_itemamount]));
 			else
 				V_DrawString(fx+24, fy+31, V_ALLOWLOWERCASE|V_HUDTRANS|fflags, va("x%d", stplyr->kartstuff[k_itemamount]));
@@ -7169,7 +7146,7 @@ void K_drawKartTimestamp(tic_t drawtime, INT32 TX, INT32 TY, INT16 emblemmap, UI
 	else if ((drawtime/TICRATE) & 1)
 		V_DrawKartString(TX, TY+3, splitflags, va("99'59\"99"));
 
-	if (emblemmap && (modeattacking || (mode == 1)) && !demoplayback) // emblem time!
+	if (emblemmap && (modeattacking || (mode == 1)) && !demo.playback) // emblem time!
 	{
 		INT32 workx = TX + 96, worky = TY+18;
 		SINT8 curemb = 0;
@@ -7280,7 +7257,7 @@ static void K_DrawKartPositionNum(INT32 num)
 	else if (splitscreen == 1)	// for this splitscreen, we'll use case by case because it's a bit different.
 	{
 		fx = POSI_X;
-		if (stplyr == &players[displayplayer])	// for player 1: display this at the top right, above the minimap.
+		if (stplyr == &players[displayplayers[0]])	// for player 1: display this at the top right, above the minimap.
 		{
 			fy = 30;
 			fflags = V_SNAPTOTOP|V_SNAPTORIGHT;
@@ -7295,11 +7272,11 @@ static void K_DrawKartPositionNum(INT32 num)
 	}
 	else
 	{
-		if (stplyr == &players[displayplayer] || stplyr == &players[thirddisplayplayer])	// If we are P1 or P3...
+		if (stplyr == &players[displayplayers[0]] || stplyr == &players[displayplayers[2]])	// If we are P1 or P3...
 		{
 			fx = POSI_X;
 			fy = POSI_Y;
-			fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
+			fflags = V_SNAPTOLEFT|((stplyr == &players[displayplayers[2]]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
 			flipdraw = true;
 			if (num && num >= 10)
 				fx += W;	// this seems dumb, but we need to do this in order for positions above 10 going off screen.
@@ -7308,7 +7285,7 @@ static void K_DrawKartPositionNum(INT32 num)
 		{
 			fx = POSI2_X;
 			fy = POSI2_Y;
-			fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
+			fflags = V_SNAPTORIGHT|((stplyr == &players[displayplayers[3]]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
 		}
 	}
 
@@ -7634,17 +7611,17 @@ static void K_drawKartLaps(void)
 		}
 		else
 		{
-			if (stplyr == &players[displayplayer] || stplyr == &players[thirddisplayplayer])	// If we are P1 or P3...
+			if (stplyr == &players[displayplayers[0]] || stplyr == &players[displayplayers[2]])	// If we are P1 or P3...
 			{
 				fx = LAPS_X;
 				fy = LAPS_Y;
-				fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
+				fflags = V_SNAPTOLEFT|((stplyr == &players[displayplayers[2]]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
 			}
 			else // else, that means we're P2 or P4.
 			{
 				fx = LAPS2_X;
 				fy = LAPS2_Y;
-				fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
+				fflags = V_SNAPTORIGHT|((stplyr == &players[displayplayers[3]]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
 				flipstring = true;	// make the string right aligned and other shit
 			}
 		}
@@ -7716,17 +7693,17 @@ static void K_drawKartBumpersOrKarma(void)
 
 		// we will reuse lap coords here since it's essentially the same shit.
 
-		if (stplyr == &players[displayplayer] || stplyr == &players[thirddisplayplayer])	// If we are P1 or P3...
+		if (stplyr == &players[displayplayers[0]] || stplyr == &players[displayplayers[2]])	// If we are P1 or P3...
 		{
 			fx = LAPS_X;
 			fy = LAPS_Y;
-			fflags = V_SNAPTOLEFT|((stplyr == &players[thirddisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
+			fflags = V_SNAPTOLEFT|((stplyr == &players[displayplayers[2]]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P3 to the bottom.
 		}
 		else // else, that means we're P2 or P4.
 		{
 			fx = LAPS2_X;
 			fy = LAPS2_Y;
-			fflags = V_SNAPTORIGHT|((stplyr == &players[fourthdisplayplayer]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
+			fflags = V_SNAPTORIGHT|((stplyr == &players[displayplayers[3]]) ? V_SPLITSCREEN|V_SNAPTOBOTTOM : 0);	// flip P4 to the bottom
 			flipstring = true;
 		}
 
@@ -7803,7 +7780,7 @@ static void K_drawKartWanted(void)
 	UINT8 *colormap = NULL;
 	INT32 basex = 0, basey = 0;
 
-	if (stplyr != &players[displayplayer])
+	if (stplyr != &players[displayplayers[0]])
 		return;
 
 	for (i = 0; i < 4; i++)
@@ -7883,7 +7860,7 @@ static void K_drawKartPlayerCheck(void)
 	if (stplyr->awayviewtics)
 		return;
 
-	if (camspin)
+	if (camspin[0])
 		return;
 
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -8029,7 +8006,7 @@ static void K_drawKartMinimap(void)
 	if (gamestate != GS_LEVEL)
 		return;
 
-	if (stplyr != &players[displayplayer])
+	if (stplyr != &players[displayplayers[0]])
 		return;
 
 	lumpnum = W_CheckNumForName(va("%sR", G_BuildMapName(gamemap)));
@@ -8103,7 +8080,7 @@ static void K_drawKartMinimap(void)
 			if (!players[i].mo || players[i].spectator)
 				continue;
 
-			if (i != displayplayer || splitscreen)
+			if (i != displayplayers[0] || splitscreen)
 			{
 				if (G_BattleGametype() && players[i].kartstuff[k_bumper] <= 0)
 					continue;
@@ -8117,7 +8094,7 @@ static void K_drawKartMinimap(void)
 				}
 			}
 
-			if (i == displayplayer || i == secondarydisplayplayer || i == thirddisplayplayer || i == fourthdisplayplayer)
+			if (P_IsDisplayPlayer(&players[i]))
 			{
 				// Draw display players on top of everything else
 				localplayers[numlocalplayers] = i;
@@ -8187,7 +8164,7 @@ static void K_drawKartFinish(void)
 		xval = (SHORT(kp_racefinish[pnum]->width)<<FRACBITS);
 		x = ((TICRATE - stplyr->kartstuff[k_cardanimation])*(xval > x ? xval : x))/TICRATE;
 
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
+		if (splitscreen && stplyr == &players[displayplayers[1]])
 			x = -x;
 
 		V_DrawFixedPatch(x + (STCD_X<<FRACBITS) - (xval>>1),
@@ -8206,9 +8183,9 @@ static void K_drawBattleFullscreen(void)
 
 	if (splitscreen)
 	{
-		if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
-			|| (splitscreen > 1 && (stplyr == &players[thirddisplayplayer]
-			|| (stplyr == &players[fourthdisplayplayer] && splitscreen > 2))))
+		if ((splitscreen == 1 && stplyr == &players[displayplayers[1]])
+			|| (splitscreen > 1 && (stplyr == &players[displayplayers[2]]
+			|| (stplyr == &players[displayplayers[3]] && splitscreen > 2))))
 		{
 			y = 232-(stplyr->kartstuff[k_cardanimation]/2);
 			splitflags = V_SNAPTOBOTTOM;
@@ -8220,8 +8197,8 @@ static void K_drawBattleFullscreen(void)
 		{
 			scale /= 2;
 
-			if (stplyr == &players[secondarydisplayplayer]
-				|| (stplyr == &players[fourthdisplayplayer] && splitscreen > 2))
+			if (stplyr == &players[displayplayers[1]]
+				|| (stplyr == &players[displayplayers[3]] && splitscreen > 2))
 				x = 3*BASEVIDWIDTH/4;
 			else
 				x = BASEVIDWIDTH/4;
@@ -8230,7 +8207,7 @@ static void K_drawBattleFullscreen(void)
 		{
 			if (stplyr->exiting)
 			{
-				if (stplyr == &players[secondarydisplayplayer])
+				if (stplyr == &players[displayplayers[1]])
 					x = BASEVIDWIDTH-96;
 				else
 					x = 96;
@@ -8242,7 +8219,7 @@ static void K_drawBattleFullscreen(void)
 
 	if (stplyr->exiting)
 	{
-		if (stplyr == &players[displayplayer])
+		if (stplyr == &players[displayplayers[0]])
 			V_DrawFadeScreen(0xFF00, 16);
 		if (stplyr->exiting < 6*TICRATE && !stplyr->spectator)
 		{
@@ -8272,9 +8249,9 @@ static void K_drawBattleFullscreen(void)
 		{
 			if (splitscreen > 1)
 				ty = (BASEVIDHEIGHT/4)+33;
-			if ((splitscreen == 1 && stplyr == &players[secondarydisplayplayer])
-				|| (stplyr == &players[thirddisplayplayer] && splitscreen > 1)
-				|| (stplyr == &players[fourthdisplayplayer] && splitscreen > 2))
+			if ((splitscreen == 1 && stplyr == &players[displayplayers[1]])
+				|| (stplyr == &players[displayplayers[2]] && splitscreen > 1)
+				|| (stplyr == &players[displayplayers[3]] && splitscreen > 2))
 				ty += (BASEVIDHEIGHT/2);
 		}
 		else
@@ -8301,7 +8278,7 @@ static void K_drawBattleFullscreen(void)
 		// check to see if there's anyone else at all
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (i == displayplayer)
+			if (i == displayplayers[0])
 				continue;
 			if (playeringame[i] && !stplyr->spectator)
 				return;
@@ -8327,11 +8304,11 @@ static void K_drawKartFirstPerson(void)
 	if (stplyr->spectator || !stplyr->mo || (stplyr->mo->flags2 & MF2_DONTDRAW))
 		return;
 
-	if (stplyr == &players[secondarydisplayplayer] && splitscreen)
+	if (stplyr == &players[displayplayers[1]] && splitscreen)
 		{ pn = pnum[1]; tn = turn[1]; dr = drift[1]; }
-	else if (stplyr == &players[thirddisplayplayer] && splitscreen > 1)
+	else if (stplyr == &players[displayplayers[2]] && splitscreen > 1)
 		{ pn = pnum[2]; tn = turn[2]; dr = drift[2]; }
-	else if (stplyr == &players[fourthdisplayplayer] && splitscreen > 2)
+	else if (stplyr == &players[displayplayers[3]] && splitscreen > 2)
 		{ pn = pnum[3]; tn = turn[3]; dr = drift[3]; }
 	else
 		{ pn = pnum[0]; tn = turn[0]; dr = drift[0]; }
@@ -8456,11 +8433,11 @@ static void K_drawKartFirstPerson(void)
 
 	V_DrawFixedPatch(x, y, scale, splitflags, kp_fpview[target], colmap);
 
-	if (stplyr == &players[secondarydisplayplayer] && splitscreen)
+	if (stplyr == &players[displayplayers[1]] && splitscreen)
 		{ pnum[1] = pn; turn[1] = tn; drift[1] = dr; }
-	else if (stplyr == &players[thirddisplayplayer] && splitscreen > 1)
+	else if (stplyr == &players[displayplayers[2]] && splitscreen > 1)
 		{ pnum[2] = pn; turn[2] = tn; drift[2] = dr; }
-	else if (stplyr == &players[fourthdisplayplayer] && splitscreen > 2)
+	else if (stplyr == &players[displayplayers[3]] && splitscreen > 2)
 		{ pnum[3] = pn; turn[3] = tn; drift[3] = dr; }
 	else
 		{ pnum[0] = pn; turn[0] = tn; drift[0] = dr; }
@@ -8482,17 +8459,10 @@ static void K_drawInput(void)
 	if (timeinmap < 113)
 	{
 		INT32 count = ((INT32)(timeinmap) - 105);
-		offs = (titledemo ? 128 : 64);
+		offs = 64;
 		while (count-- > 0)
 			offs >>= 1;
 		x += offs;
-	}
-
-	if (titledemo)
-	{
-		V_DrawTinyScaledPatch(x-54, 128, splitflags, W_CachePatchName("TTKBANNR", PU_CACHE));
-		V_DrawTinyScaledPatch(x-54, 128+25, splitflags, W_CachePatchName("TTKART", PU_CACHE));
-		return;
 	}
 
 #define BUTTW 8
@@ -8688,7 +8658,7 @@ static void K_drawDistributionDebugger(void)
 	boolean dontforcespb = false;
 	boolean spbrush = false;
 
-	if (stplyr != &players[displayplayer]) // only for p1
+	if (stplyr != &players[displayplayers[0]]) // only for p1
 		return;
 
 	// The only code duplication from the Kart, just to avoid the actual item function from calculating pingame twice
@@ -8752,7 +8722,7 @@ static void K_drawDistributionDebugger(void)
 
 static void K_drawCheckpointDebugger(void)
 {
-	if (stplyr != &players[displayplayer]) // only for p1
+	if (stplyr != &players[displayplayers[0]]) // only for p1
 		return;
 
 	if (stplyr->starpostnum >= (numstarposts - (numstarposts/2)))
@@ -8766,20 +8736,21 @@ void K_drawKartHUD(void)
 {
 	boolean isfreeplay = false;
 	boolean battlefullscreen = false;
+	UINT8 i;
 
 	// Define the X and Y for each drawn object
 	// This is handled by console/menu values
 	K_initKartHUD();
 
 	// Draw that fun first person HUD! Drawn ASAP so it looks more "real".
-	if ((stplyr == &players[displayplayer] && !camera.chase)
-		|| ((splitscreen && stplyr == &players[secondarydisplayplayer]) && !camera2.chase)
-		|| ((splitscreen > 1 && stplyr == &players[thirddisplayplayer]) && !camera3.chase)
-		|| ((splitscreen > 2 && stplyr == &players[fourthdisplayplayer]) && !camera4.chase))
-		K_drawKartFirstPerson();
+	for (i = 0; i <= splitscreen; i++)
+	{
+		if (stplyr == &players[displayplayers[i]] && !camera[i].chase)
+			K_drawKartFirstPerson();
+	}
 
 	// Draw full screen stuff that turns off the rest of the HUD
-	if (mapreset && stplyr == &players[displayplayer])
+	if (mapreset && stplyr == &players[displayplayers[0]])
 	{
 		K_drawChallengerScreen();
 		return;
@@ -8792,10 +8763,10 @@ void K_drawKartHUD(void)
 		&& comeback
 		&& stplyr->playerstate == PST_LIVE)));
 
-	if (!battlefullscreen || splitscreen)
+	if (!demo.title && (!battlefullscreen || splitscreen))
 	{
 		// Draw the CHECK indicator before the other items, so it's overlapped by everything else
-		if (cv_kartcheck.value && !splitscreen && !players[displayplayer].exiting)
+		if (cv_kartcheck.value && !splitscreen && !players[displayplayers[0]].exiting)
 			K_drawKartPlayerCheck();
 
 		// Draw WANTED status
@@ -8807,7 +8778,7 @@ void K_drawKartHUD(void)
 				K_drawKartWanted();
 		}
 
-		if (cv_kartminimap.value && !titledemo)
+		if (cv_kartminimap.value)
 		{
 #ifdef HAVE_BLUA
 			if (LUA_HudEnabled(hud_minimap))
@@ -8829,7 +8800,7 @@ void K_drawKartHUD(void)
 		K_drawKartItem();
 
 	// If not splitscreen, draw...
-	if (!splitscreen && !titledemo)
+	if (!splitscreen && !demo.title)
 	{
 		// Draw the timestamp
 #ifdef HAVE_BLUA
@@ -8849,25 +8820,44 @@ void K_drawKartHUD(void)
 
 	if (!stplyr->spectator) // Bottom of the screen elements, don't need in spectate mode
 	{
-		if (G_RaceGametype()) // Race-only elements
+		if (demo.title) // Draw title logo instead in demo.titles
 		{
-			if (!titledemo)
-			{
-				// Draw the lap counter
-#ifdef HAVE_BLUA
-				if (LUA_HudEnabled(hud_gametypeinfo))
-#endif
-					K_drawKartLaps();
+			INT32 x = BASEVIDWIDTH - 32, y = 128, offs;
 
-				if (!splitscreen)
-				{
-					// Draw the speedometer
-					// TODO: Make a better speedometer.
+			if (splitscreen == 3)
+			{
+				x = BASEVIDWIDTH/2 + 10;
+				y = BASEVIDHEIGHT/2 - 30;
+			}
+
+			if (timeinmap < 113)
+			{
+				INT32 count = ((INT32)(timeinmap) - 104);
+				offs = 256;
+				while (count-- > 0)
+					offs >>= 1;
+				x += offs;
+			}
+
+			V_DrawTinyScaledPatch(x-54, y, 0, W_CachePatchName("TTKBANNR", PU_CACHE));
+			V_DrawTinyScaledPatch(x-54, y+25, 0, W_CachePatchName("TTKART", PU_CACHE));
+		}
+		else if (G_RaceGametype()) // Race-only elements
+		{
+			// Draw the lap counter
 #ifdef HAVE_BLUA
-				if (LUA_HudEnabled(hud_speedometer))
+			if (LUA_HudEnabled(hud_gametypeinfo))
 #endif
-					K_drawKartSpeedometer();
-				}
+				K_drawKartLaps();
+
+			if (!splitscreen)
+			{
+				// Draw the speedometer
+				// TODO: Make a better speedometer.
+#ifdef HAVE_BLUA
+			if (LUA_HudEnabled(hud_speedometer))
+#endif
+				K_drawKartSpeedometer();
 			}
 
 			if (isfreeplay)
@@ -8880,7 +8870,7 @@ void K_drawKartHUD(void)
 #endif
 					K_DrawKartPositionNum(stplyr->kartstuff[k_position]);
 			}
-			else //if (!(demoplayback && hu_showscores))
+			else //if (!(demo.playback && hu_showscores))
 			{
 				// Draw the input UI
 #ifdef HAVE_BLUA

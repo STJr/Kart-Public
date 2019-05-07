@@ -273,7 +273,7 @@ boolean cht_Responder(event_t *ev)
 #define REQUIRE_OBJECTPLACE if (!objectplacing)\
 { CONS_Printf(M_GetText("OBJECTPLACE must be enabled.\n")); return; }
 
-#define REQUIRE_INLEVEL if (gamestate != GS_LEVEL || demoplayback)\
+#define REQUIRE_INLEVEL if (gamestate != GS_LEVEL || demo.playback)\
 { CONS_Printf(M_GetText("You must be in a level to use this.\n")); return; }
 
 #define REQUIRE_SINGLEPLAYER if (netgame || multiplayer)\
