@@ -1283,7 +1283,7 @@ void P_RestoreMusic(player_t *player)
 			if (G_RaceGametype() && player->laps >= (UINT8)(cv_numlaps.value - 1))
 				S_SpeedMusic(1.2f);
 #endif
-			S_ChangeMusic(mapmusname, mapmusflags, true);
+			S_ChangeMusicEx(mapmusname, mapmusflags, true, mapmusposition, 0, 0);
 		}
 	}
 }
@@ -8693,8 +8693,11 @@ void P_PlayerThink(player_t *player)
 
 	if (player->bot)
 	{
-		if (player->playerstate == PST_LIVE && B_CheckRespawn(player))
-			player->playerstate = PST_REBORN;
+		if (player->playerstate == PST_LIVE || player->playerstate == PST_DEAD)
+		{
+			if (B_CheckRespawn(player))
+				player->playerstate = PST_REBORN;
+		}
 		if (player->playerstate == PST_REBORN)
 			return;
 	}
