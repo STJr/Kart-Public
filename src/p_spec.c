@@ -2472,8 +2472,9 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 						S_SetInternalMusicVolume(fadetarget);
 					else
 						S_FadeMusicFromVolume(fadetarget, fadesource, postfadems);
-				if (!(line->flags & ML_EFFECT3))
-					S_ShowMusicCredit();
+
+					if (!(line->flags & ML_EFFECT3))
+						S_ShowMusicCredit();
 
 					if (position)
 						S_SetMusicPosition(position);
