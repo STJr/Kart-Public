@@ -636,9 +636,6 @@ void D_SRB2Loop(void)
 	if (dedicated)
 		server = true;
 
-	if (M_CheckParm("-voodoo")) // 256x256 Texture Limiter
-		COM_BufAddText("gr_voodoocompatibility on\n");
-
 	// Pushing of + parameters is now done back in D_SRB2Main, not here.
 
 	CONS_Printf("I_StartupKeyboard()...\n");
@@ -820,7 +817,6 @@ void D_StartTitle(void)
 	paused = false;
 	advancedemo = false;
 	F_StartTitleScreen();
-	CON_ToggleOff();
 
 	// Reset the palette -- SRB2Kart: actually never mind let's do this in the middle of every fade
 	/*if (rendermode != render_none)
@@ -1218,6 +1214,10 @@ void D_SRB2Main(void)
 	// Setup default unlockable conditions
 	M_SetupDefaultConditionSets();
 
+	// Setup character tables
+	// Have to be done here before files are loaded
+	M_InitCharacterTables();
+
 	// load wad, including the main wad file
 	CONS_Printf("W_InitMultipleFiles(): Adding IWAD and main PWADs.\n");
 	if (!W_InitMultipleFiles(startupwadfiles, false))
@@ -1391,10 +1391,9 @@ void D_SRB2Main(void)
 		midi_disabled = true;
 #endif
 	}
-	if (M_CheckParm("-nosound"))
-		sound_disabled = true;
-	if (M_CheckParm("-nomusic")) // combines -nomidimusic and -nodigmusic
+	if (M_CheckParm("-noaudio")) // combines -nosound and -nomusic
 	{
+		sound_disabled = true;
 		digital_disabled = true;
 #ifndef NO_MIDI
 		midi_disabled = true;
@@ -1402,12 +1401,24 @@ void D_SRB2Main(void)
 	}
 	else
 	{
+		if (M_CheckParm("-nosound"))
+			sound_disabled = true;
+		if (M_CheckParm("-nomusic")) // combines -nomidimusic and -nodigmusic
+		{
+			digital_disabled = true;
 #ifndef NO_MIDI
-		if (M_CheckParm("-nomidimusic"))
-			midi_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
+			midi_disabled = true;
 #endif
-		if (M_CheckParm("-nodigmusic"))
-			digital_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
+		}
+		else
+		{
+#ifndef NO_MIDI
+			if (M_CheckParm("-nomidimusic"))
+				midi_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
+#endif
+			if (M_CheckParm("-nodigmusic"))
+				digital_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
+		}
 	}
 	if (!( sound_disabled && digital_disabled
 #ifndef NO_MIDI
@@ -1537,13 +1548,9 @@ void D_SRB2Main(void)
 			INT16 newgametype = -1;
 			const char *sgametype = M_GetNextParm();
 
-			for (j = 0; gametype_cons_t[j].strvalue; j++)
-				if (!strcasecmp(gametype_cons_t[j].strvalue, sgametype))
-				{
-					newgametype = (INT16)gametype_cons_t[j].value;
-					break;
-				}
-			if (!gametype_cons_t[j].strvalue) // reached end of the list with no match
+			newgametype = G_GetGametypeByName(sgametype);
+
+			if (newgametype == -1) // reached end of the list with no match
 			{
 				j = atoi(sgametype); // assume they gave us a gametype number, which is okay too
 				if (j >= 0 && j < NUMGAMETYPES)
@@ -1598,12 +1605,12 @@ void D_SRB2Main(void)
 	}
 	else if (M_CheckParm("-skipintro"))
 	{
-		CON_ToggleOff();
-		CON_ClearHUD();
 		F_StartTitleScreen();
 	}
 	else
 		F_StartIntro(); // Tails 03-03-2002
+
+	CON_ToggleOff();
 
 	if (dedicated && server)
 	{

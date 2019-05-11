@@ -50,6 +50,7 @@ static void COM_Exec_f(void);
 static void COM_Wait_f(void);
 static void COM_Help_f(void);
 static void COM_Toggle_f(void);
+static void COM_Add_f(void);
 
 static void CV_EnforceExecVersion(void);
 static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr);
@@ -156,6 +157,20 @@ void COM_BufInsertText(const char *ptext)
 	}
 }
 
+/** Progress the wait timer and flush waiting console commands when ready.
+  */
+void
+COM_BufTicker(void)
+{
+	if (com_wait)
+	{
+		com_wait--;
+		return;
+	}
+
+	COM_BufExecute();
+}
+
 /** Flushes (executes) console commands in the buffer.
   */
 void COM_BufExecute(void)
@@ -164,12 +179,6 @@ void COM_BufExecute(void)
 	char *ptext;
 	char line[1024] = "";
 	INT32 quotes;
-
-	if (com_wait)
-	{
-		com_wait--;
-		return;
-	}
 
 	while (com_text.cursize)
 	{
@@ -291,6 +300,7 @@ void COM_Init(void)
 	COM_AddCommand("wait", COM_Wait_f);
 	COM_AddCommand("help", COM_Help_f);
 	COM_AddCommand("toggle", COM_Toggle_f);
+	COM_AddCommand("add", COM_Add_f);
 	RegisterNetXCmd(XD_NETVAR, Got_NetVar);
 }
 
@@ -537,10 +547,41 @@ static void COM_ExecuteString(char *ptext)
 			{
 				CONS_Alert(CONS_WARNING, M_GetText("Alias recursion cycle detected!\n"));
 				recursion = 0;
-				return;
 			}
-			recursion++;
-			COM_BufInsertText(a->value);
+			else
+			{
+				char buf[1024];
+				char *write = buf, *read = a->value, *seek = read;
+
+				while ((seek = strchr(seek, '$')) != NULL)
+				{
+					memcpy(write, read, seek-read);
+					write += seek-read;
+
+					seek++;
+
+					if (*seek >= '1' && *seek <= '9')
+					{
+						if (com_argc > (size_t)(*seek - '0'))
+						{
+							memcpy(write, com_argv[*seek - '0'], strlen(com_argv[*seek - '0']));
+							write += strlen(com_argv[*seek - '0']);
+						}
+						seek++;
+					}
+					else
+					{
+						*write = '$';
+						write++;
+					}
+
+					read = seek;
+				}
+				WRITESTRING(write, read);
+
+				recursion++;
+				COM_BufInsertText(buf);
+			}
 			return;
 		}
 	}
@@ -563,8 +604,6 @@ static void COM_ExecuteString(char *ptext)
 static void COM_Alias_f(void)
 {
 	cmdalias_t *a;
-	char cmd[1024];
-	size_t i, c;
 
 	if (COM_Argc() < 3)
 	{
@@ -577,19 +616,9 @@ static void COM_Alias_f(void)
 	com_alias = a;
 
 	a->name = Z_StrDup(COM_Argv(1));
-
-	// copy the rest of the command line
-	cmd[0] = 0; // start out with a null string
-	c = COM_Argc();
-	for (i = 2; i < c; i++)
-	{
-		strcat(cmd, COM_Argv(i));
-		if (i != c)
-			strcat(cmd, " ");
-	}
-	strcat(cmd, "\n");
-
-	a->value = Z_StrDup(cmd);
+	// Just use arg 2 if it's the only other argument, in case the alias is wrapped in quotes (backward compat, or multiple commands in one string).
+	// Otherwise pull the whole string and seek to the end of the alias name. The strctr is in case the alias is quoted.
+	a->value = Z_StrDup(COM_Argc() == 3 ? COM_Argv(2) : (strchr(COM_Args() + strlen(a->name), ' ') + 1));
 }
 
 /** Prints a line of text to the console.
@@ -853,6 +882,27 @@ static void COM_Toggle_f(void)
 	// netcvar don't change imediately
 	cvar->flags |= CV_SHOWMODIFONETIME;
 	CV_AddValue(cvar, +1);
+}
+
+/** Command variant of CV_AddValue
+  */
+static void COM_Add_f(void)
+{
+	consvar_t *cvar;
+
+	if (COM_Argc() != 3)
+	{
+		CONS_Printf(M_GetText("Add <cvar_name> <value>: Add to the value of a cvar. Negative values work too!\n"));
+		return;
+	}
+	cvar = CV_FindVar(COM_Argv(1));
+	if (!cvar)
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("%s is not a cvar\n"), COM_Argv(1));
+		return;
+	}
+
+	CV_AddValue(cvar, atoi(COM_Argv(2)));
 }
 
 // =========================================================================

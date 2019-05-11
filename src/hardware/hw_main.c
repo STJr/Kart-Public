@@ -4259,10 +4259,45 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 	}
 }
 
+// This is expecting a pointer to an array containing 4 wallVerts for a sprite
+static void HWR_RotateSpritePolyToAim(gr_vissprite_t *spr, FOutVector *wallVerts)
+{
+	if (cv_grspritebillboarding.value
+		&& spr && spr->mobj && !(spr->mobj->frame & FF_PAPERSPRITE)
+		&& wallVerts)
+	{
+		float basey = FIXED_TO_FLOAT(spr->mobj->z);
+		float lowy = wallVerts[0].y;
+		if (P_MobjFlip(spr->mobj) == -1)
+		{
+			basey = FIXED_TO_FLOAT(spr->mobj->z + spr->mobj->height);
+		}
+		// Rotate sprites to fully billboard with the camera
+		// X, Y, AND Z need to be manipulated for the polys to rotate around the
+		// origin, because of how the origin setting works I believe that should
+		// be mobj->z or mobj->z + mobj->height
+		wallVerts[2].y = wallVerts[3].y = (spr->ty - basey) * gr_viewludsin + basey;
+		wallVerts[0].y = wallVerts[1].y = (lowy - basey) * gr_viewludsin + basey;
+		// translate back to be around 0 before translating back
+		wallVerts[3].x += ((spr->ty - basey) * gr_viewludcos) * gr_viewcos;
+		wallVerts[2].x += ((spr->ty - basey) * gr_viewludcos) * gr_viewcos;
+
+		wallVerts[0].x += ((lowy - basey) * gr_viewludcos) * gr_viewcos;
+		wallVerts[1].x += ((lowy - basey) * gr_viewludcos) * gr_viewcos;
+
+		wallVerts[3].z += ((spr->ty - basey) * gr_viewludcos) * gr_viewsin;
+		wallVerts[2].z += ((spr->ty - basey) * gr_viewludcos) * gr_viewsin;
+
+		wallVerts[0].z += ((lowy - basey) * gr_viewludcos) * gr_viewsin;
+		wallVerts[1].z += ((lowy - basey) * gr_viewludcos) * gr_viewsin;
+	}
+}
+
 static void HWR_SplitSprite(gr_vissprite_t *spr)
 {
 	float this_scale = 1.0f;
 	FOutVector wallVerts[4];
+	FOutVector baseWallVerts[4]; // This is what the verts should end up as
 	GLPatch_t *gpatch;
 	FSurfaceInfo Surf;
 	const boolean hires = (spr->mobj && spr->mobj->skin && ((skin_t *)spr->mobj->skin)->flags & SF_HIRES);
@@ -4275,11 +4310,13 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 	float realtop, realbot, top, bot;
 	float towtop, towbot, towmult;
 	float bheight;
+	float realheight, heightmult;
 	const sector_t *sector = spr->mobj->subsector->sector;
 	const lightlist_t *list = sector->lightlist;
 #ifdef ESLOPE
 	float endrealtop, endrealbot, endtop, endbot;
 	float endbheight;
+	float endrealheight;
 	fixed_t temp;
 	fixed_t v1x, v1y, v2x, v2y;
 #endif
@@ -4312,16 +4349,16 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 		HWR_DrawSpriteShadow(spr, gpatch, this_scale);
 	}
 
-	wallVerts[0].x = wallVerts[3].x = spr->x1;
-	wallVerts[2].x = wallVerts[1].x = spr->x2;
-	wallVerts[0].z = wallVerts[3].z = spr->z1;
-	wallVerts[1].z = wallVerts[2].z = spr->z2;
+	baseWallVerts[0].x = baseWallVerts[3].x = spr->x1;
+	baseWallVerts[2].x = baseWallVerts[1].x = spr->x2;
+	baseWallVerts[0].z = baseWallVerts[3].z = spr->z1;
+	baseWallVerts[1].z = baseWallVerts[2].z = spr->z2;
 
-	wallVerts[2].y = wallVerts[3].y = spr->ty;
+	baseWallVerts[2].y = baseWallVerts[3].y = spr->ty;
 	if (spr->mobj && fabsf(this_scale - 1.0f) > 1.0E-36f)
-		wallVerts[0].y = wallVerts[1].y = spr->ty - gpatch->height * this_scale;
+		baseWallVerts[0].y = baseWallVerts[1].y = spr->ty - gpatch->height * this_scale;
 	else
-		wallVerts[0].y = wallVerts[1].y = spr->ty - gpatch->height;
+		baseWallVerts[0].y = baseWallVerts[1].y = spr->ty - gpatch->height;
 
 	v1x = FLOAT_TO_FIXED(spr->x1);
 	v1y = FLOAT_TO_FIXED(spr->z1);
@@ -4330,43 +4367,55 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 
 	if (spr->flip)
 	{
-		wallVerts[0].sow = wallVerts[3].sow = gpatch->max_s;
-		wallVerts[2].sow = wallVerts[1].sow = 0;
-	}else{
-		wallVerts[0].sow = wallVerts[3].sow = 0;
-		wallVerts[2].sow = wallVerts[1].sow = gpatch->max_s;
+		baseWallVerts[0].sow = baseWallVerts[3].sow = gpatch->max_s;
+		baseWallVerts[2].sow = baseWallVerts[1].sow = 0;
+	}
+	else
+	{
+		baseWallVerts[0].sow = baseWallVerts[3].sow = 0;
+		baseWallVerts[2].sow = baseWallVerts[1].sow = gpatch->max_s;
 	}
 
 	// flip the texture coords (look familiar?)
 	if (spr->vflip)
 	{
-		wallVerts[3].tow = wallVerts[2].tow = gpatch->max_t;
-		wallVerts[0].tow = wallVerts[1].tow = 0;
-	}else{
-		wallVerts[3].tow = wallVerts[2].tow = 0;
-		wallVerts[0].tow = wallVerts[1].tow = gpatch->max_t;
+		baseWallVerts[3].tow = baseWallVerts[2].tow = gpatch->max_t;
+		baseWallVerts[0].tow = baseWallVerts[1].tow = 0;
+	}
+	else
+	{
+		baseWallVerts[3].tow = baseWallVerts[2].tow = 0;
+		baseWallVerts[0].tow = baseWallVerts[1].tow = gpatch->max_t;
 	}
 
 	// if it has a dispoffset, push it a little towards the camera
 	if (spr->dispoffset) {
 		float co = -gr_viewcos*(0.05f*spr->dispoffset);
 		float si = -gr_viewsin*(0.05f*spr->dispoffset);
-		wallVerts[0].z = wallVerts[3].z = wallVerts[0].z+si;
-		wallVerts[1].z = wallVerts[2].z = wallVerts[1].z+si;
-		wallVerts[0].x = wallVerts[3].x = wallVerts[0].x+co;
-		wallVerts[1].x = wallVerts[2].x = wallVerts[1].x+co;
+		baseWallVerts[0].z = baseWallVerts[3].z = baseWallVerts[0].z+si;
+		baseWallVerts[1].z = baseWallVerts[2].z = baseWallVerts[1].z+si;
+		baseWallVerts[0].x = baseWallVerts[3].x = baseWallVerts[0].x+co;
+		baseWallVerts[1].x = baseWallVerts[2].x = baseWallVerts[1].x+co;
 	}
 
-	realtop = top = wallVerts[3].y;
-	realbot = bot = wallVerts[0].y;
-	towtop = wallVerts[3].tow;
-	towbot = wallVerts[0].tow;
+	// Let dispoffset work first since this adjust each vertex
+	HWR_RotateSpritePolyToAim(spr, baseWallVerts);
+
+	realtop = top = baseWallVerts[3].y;
+	realbot = bot = baseWallVerts[0].y;
+	towtop = baseWallVerts[3].tow;
+	towbot = baseWallVerts[0].tow;
 	towmult = (towbot - towtop) / (top - bot);
 
 #ifdef ESLOPE
-	endrealtop = endtop = wallVerts[2].y;
-	endrealbot = endbot = wallVerts[1].y;
+	endrealtop = endtop = baseWallVerts[2].y;
+	endrealbot = endbot = baseWallVerts[1].y;
 #endif
+
+	// copy the contents of baseWallVerts into the drawn wallVerts array
+	// baseWallVerts is used to know the final shape to easily get the vertex
+	// co-ordinates
+	memcpy(wallVerts, baseWallVerts, sizeof(baseWallVerts));
 
 	if (!cv_translucency.value) // translucency disabled
 	{
@@ -4494,12 +4543,55 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 		wallVerts[2].y = endtop;
 		wallVerts[0].y = bot;
 		wallVerts[1].y = endbot;
+
+		// The x and y only need to be adjusted in the case that it's not a papersprite
+		if (cv_grspritebillboarding.value
+			&& spr->mobj && !(spr->mobj->frame & FF_PAPERSPRITE))
+		{
+			// Get the x and z of the vertices so billboarding draws correctly
+			realheight = realbot - realtop;
+			endrealheight = endrealbot - endrealtop;
+			heightmult = (realtop - top) / realheight;
+			wallVerts[3].x = baseWallVerts[3].x + (baseWallVerts[3].x - baseWallVerts[0].x) * heightmult;
+			wallVerts[3].z = baseWallVerts[3].z + (baseWallVerts[3].z - baseWallVerts[0].z) * heightmult;
+
+			heightmult = (endrealtop - endtop) / endrealheight;
+			wallVerts[2].x = baseWallVerts[2].x + (baseWallVerts[2].x - baseWallVerts[1].x) * heightmult;
+			wallVerts[2].z = baseWallVerts[2].z + (baseWallVerts[2].z - baseWallVerts[1].z) * heightmult;
+
+			heightmult = (realtop - bot) / realheight;
+			wallVerts[0].x = baseWallVerts[3].x + (baseWallVerts[3].x - baseWallVerts[0].x) * heightmult;
+			wallVerts[0].z = baseWallVerts[3].z + (baseWallVerts[3].z - baseWallVerts[0].z) * heightmult;
+
+			heightmult = (endrealtop - endbot) / endrealheight;
+			wallVerts[1].x = baseWallVerts[2].x + (baseWallVerts[2].x - baseWallVerts[1].x) * heightmult;
+			wallVerts[1].z = baseWallVerts[2].z + (baseWallVerts[2].z - baseWallVerts[1].z) * heightmult;
+		}
 #else
 		wallVerts[3].tow = wallVerts[2].tow = towtop + ((realtop - top) * towmult);
 		wallVerts[0].tow = wallVerts[1].tow = towtop + ((realtop - bot) * towmult);
 
 		wallVerts[2].y = wallVerts[3].y = top;
 		wallVerts[0].y = wallVerts[1].y = bot;
+
+		// The x and y only need to be adjusted in the case that it's not a papersprite
+		if (cv_grspritebillboarding.value
+			&& spr->mobj && !(spr->mobj->frame & FF_PAPERSPRITE))
+		{
+			// Get the x and z of the vertices so billboarding draws correctly
+			realheight = realbot - realtop;
+			heightmult = (realtop - top) / realheight;
+			wallVerts[3].x = baseWallVerts[3].x + (baseWallVerts[3].x - baseWallVerts[0].x) * heightmult;
+			wallVerts[3].z = baseWallVerts[3].z + (baseWallVerts[3].z - baseWallVerts[0].z) * heightmult;
+			wallVerts[2].x = baseWallVerts[2].x + (baseWallVerts[2].x - baseWallVerts[1].x) * heightmult;
+			wallVerts[2].z = baseWallVerts[2].z + (baseWallVerts[2].z - baseWallVerts[1].z) * heightmult;
+
+			heightmult = (realtop - bot) / realheight;
+			wallVerts[0].x = baseWallVerts[3].x + (baseWallVerts[3].x - baseWallVerts[0].x) * heightmult;
+			wallVerts[0].z = baseWallVerts[3].z + (baseWallVerts[3].z - baseWallVerts[0].z) * heightmult;
+			wallVerts[1].x = baseWallVerts[2].x + (baseWallVerts[2].x - baseWallVerts[1].x) * heightmult;
+			wallVerts[1].z = baseWallVerts[2].z + (baseWallVerts[2].z - baseWallVerts[1].z) * heightmult;
+		}
 #endif
 
 		if (colormap)
@@ -4669,6 +4761,9 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 		wallVerts[1].x = wallVerts[2].x = wallVerts[1].x+co;
 	}
 
+	// Let dispoffset work first since this adjust each vertex
+	HWR_RotateSpritePolyToAim(spr, wallVerts);
+
 	// This needs to be AFTER the shadows so that the regular sprites aren't drawn completely black.
 	// sprite lighting by modulating the RGB components
 	/// \todo coloured
@@ -4749,6 +4844,9 @@ static inline void HWR_DrawPrecipitationSprite(gr_vissprite_t *spr)
 	// and the 2d map coords of start/end vertices
 	wallVerts[0].z = wallVerts[3].z = spr->z1;
 	wallVerts[1].z = wallVerts[2].z = spr->z2;
+
+	// Let dispoffset work first since this adjust each vertex
+	HWR_RotateSpritePolyToAim(spr, wallVerts);
 
 	wallVerts[0].sow = wallVerts[3].sow = 0;
 	wallVerts[2].sow = wallVerts[1].sow = gpatch->max_s;
@@ -5261,14 +5359,14 @@ static void HWR_DrawSprites(void)
 				if (spr->mobj && spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
 				{
 					// 8/1/19: Only don't display player models if no default SPR_PLAY is found.
-					if (!cv_grmd2.value || ((md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f) && (md2_models[SPR_PLAY].notfound || md2_models[SPR_PLAY].scale < 0.0f)))
+					if (!cv_grmdls.value || ((md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f) && (md2_models[SPR_PLAY].notfound || md2_models[SPR_PLAY].scale < 0.0f)))
 						HWR_DrawSprite(spr);
 					else
 						HWR_DrawMD2(spr);
 				}
 				else
 				{
-					if (!cv_grmd2.value || md2_models[spr->mobj->sprite].notfound || md2_models[spr->mobj->sprite].scale < 0.0f)
+					if (!cv_grmdls.value || md2_models[spr->mobj->sprite].notfound || md2_models[spr->mobj->sprite].scale < 0.0f)
 						HWR_DrawSprite(spr);
 					else
 						HWR_DrawMD2(spr);
@@ -5435,7 +5533,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	tz = (tr_x * gr_viewcos) + (tr_y * gr_viewsin);
 
 	// thing is behind view plane?
-	if (tz < ZCLIP_PLANE && !papersprite && (!cv_grmd2.value || md2_models[thing->sprite].notfound == true)) //Yellow: Only MD2's dont disappear
+	if (tz < ZCLIP_PLANE && !papersprite && (!cv_grmdls.value || md2_models[thing->sprite].notfound == true)) //Yellow: Only MD2's dont disappear
 		return;
 
 	// The above can stay as it works for cutting sprites that are too close
@@ -6795,11 +6893,6 @@ static void HWR_RenderWall(wallVert3D   *wallVerts, FSurfaceInfo *pSurf, FBITFIE
 #endif
 }
 
-void HWR_SetPaletteColor(INT32 palcolor)
-{
-	HWD.pfnSetSpecialState(HWD_SET_PALETTECOLOR, palcolor);
-}
-
 INT32 HWR_GetTextureUsed(void)
 {
 	return HWD.pfnGetTextureUsed();
@@ -6850,7 +6943,6 @@ void HWR_DoPostProcessor(player_t *player)
 	if (splitscreen) // Not supported in splitscreen - someone want to add support?
 		return;
 
-#ifdef SHUFFLE
 	// Drunken vision! WooOOooo~
 	if (*type == postimg_water || *type == postimg_heat)
 	{
@@ -6893,7 +6985,6 @@ void HWR_DoPostProcessor(player_t *player)
 			HWD.pfnMakeScreenTexture();
 	}
 	// Flipping of the screen isn't done here anymore
-#endif // SHUFFLE
 }
 
 void HWR_StartScreenWipe(void)
@@ -6940,7 +7031,7 @@ void HWR_DoWipe(UINT8 wipenum, UINT8 scrnnum)
 
 	HWR_GetFadeMask(lumpnum);
 
-	HWD.pfnDoScreenWipe(HWRWipeCounter); // Still send in wipecounter since old stuff might not support multitexturing
+	HWD.pfnDoScreenWipe();
 
 	HWRWipeCounter += 0.05f; // increase opacity of end screen
 

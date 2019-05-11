@@ -433,7 +433,7 @@ consvar_t cv_numlaps = {"numlaps", "3", CV_NETVAR|CV_CALL|CV_NOINIT, numlaps_con
 static CV_PossibleValue_t basenumlaps_cons_t[] = {{1, "MIN"}, {50, "MAX"}, {0, "Map default"}, {0, NULL}};
 consvar_t cv_basenumlaps = {"basenumlaps", "Map default", CV_NETVAR|CV_CALL|CV_CHEAT, basenumlaps_cons_t, BaseNumLaps_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_forceskin = {"forceskin", "-1", CV_NETVAR|CV_CALL|CV_CHEAT, NULL, ForceSkin_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_forceskin = {"forceskin", "Off", CV_NETVAR|CV_CALL|CV_CHEAT, Forceskin_cons_t, ForceSkin_OnChange, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_downloading = {"downloading", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_allowexitlevel = {"allowexitlevel", "No", CV_NETVAR, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -444,7 +444,6 @@ static CV_PossibleValue_t nettimeout_cons_t[] = {{TICRATE/7, "MIN"}, {60*TICRATE
 consvar_t cv_nettimeout = {"nettimeout", "105", CV_CALL|CV_SAVE, nettimeout_cons_t, NetTimeout_OnChange, 0, NULL, NULL, 0, 0, NULL};
 //static CV_PossibleValue_t jointimeout_cons_t[] = {{5*TICRATE, "MIN"}, {60*TICRATE, "MAX"}, {0, NULL}};
 consvar_t cv_jointimeout = {"jointimeout", "105", CV_CALL|CV_SAVE, nettimeout_cons_t, JoinTimeout_OnChange, 0, NULL, NULL, 0, 0, NULL};
-#ifdef NEWPING
 static CV_PossibleValue_t maxping_cons_t[] = {{0, "MIN"}, {1000, "MAX"}, {0, NULL}};
 consvar_t cv_maxping = {"maxping", "800", CV_SAVE, maxping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -455,7 +454,6 @@ consvar_t cv_pingtimeout = {"pingtimeout", "10", CV_SAVE, pingtimeout_cons_t, NU
 static CV_PossibleValue_t showping_cons_t[] = {{0, "Off"}, {1, "Always"}, {2, "Warning"}, {0, NULL}};
 consvar_t cv_showping = {"showping", "Always", CV_SAVE, showping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-#endif
 // Intermission time Tails 04-19-2002
 static CV_PossibleValue_t inttime_cons_t[] = {{0, "MIN"}, {3600, "MAX"}, {0, NULL}};
 consvar_t cv_inttime = {"inttime", "20", CV_NETVAR, inttime_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -524,6 +522,24 @@ const char *netxcmdnames[MAXNETXCMD - 1] =
   */
 void D_RegisterServerCommands(void)
 {
+	INT32 i;
+	Forceskin_cons_t[0].value = -1;
+	Forceskin_cons_t[0].strvalue = "Off";
+
+	for (i = 0; i < NUMGAMETYPES; i++)
+	{
+		gametype_cons_t[i].value = i;
+		gametype_cons_t[i].strvalue = Gametype_Names[i];
+	}
+	gametype_cons_t[NUMGAMETYPES].value = 0;
+	gametype_cons_t[NUMGAMETYPES].strvalue = NULL;
+
+	// Set the values to 0/NULL, it will be overwritten later when a skin is assigned to the slot.
+	for (i = 1; i < MAXSKINS; i++)
+	{
+		Forceskin_cons_t[i].value = 0;
+		Forceskin_cons_t[i].strvalue = NULL;
+	}
 	RegisterNetXCmd(XD_NAMEANDCOLOR, Got_NameAndColor);
 	RegisterNetXCmd(XD_WEAPONPREF, Got_WeaponPref);
 	RegisterNetXCmd(XD_MAP, Got_Mapcmd);
@@ -677,6 +693,14 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_maxsend);
 	CV_RegisterVar(&cv_noticedownload);
 	CV_RegisterVar(&cv_downloadspeed);
+#ifndef NONET
+	CV_RegisterVar(&cv_allownewplayer);
+#ifdef VANILLAJOINNEXTROUND
+	CV_RegisterVar(&cv_joinnextround);
+#endif
+	CV_RegisterVar(&cv_showjoinaddress);
+	CV_RegisterVar(&cv_blamecfail);
+#endif
 
 	COM_AddCommand("ping", Command_Ping_f);
 	CV_RegisterVar(&cv_nettimeout);
@@ -684,11 +708,9 @@ void D_RegisterServerCommands(void)
 
 	CV_RegisterVar(&cv_skipmapcheck);
 	CV_RegisterVar(&cv_sleep);
-#ifdef NEWPING
 	CV_RegisterVar(&cv_maxping);
 	CV_RegisterVar(&cv_pingtimeout);
 	CV_RegisterVar(&cv_showping);
-#endif
 
 #ifdef SEENAMES
 	 CV_RegisterVar(&cv_allowseenames);
@@ -2261,13 +2283,15 @@ static void Command_Map_f(void)
 {
 	const char *mapname;
 	size_t i;
-	INT32 j, newmapnum;
-	boolean newresetplayers;
+	INT32 newmapnum;
+	boolean newresetplayers, newencoremode;
 	INT32 newgametype = gametype;
 
-	// max length of command: map map03 -gametype coop -noresetplayers -force
-	//                         1    2       3       4         5           6
+	// max length of command: map map03 -gametype race -noresetplayers -force -encore
+	//                         1    2       3       4         5           6      7
 	// = 8 arg max
+	// i don't know whether this is intrinsic to the system or just someone being weird but
+	// "noresetplayers" is pretty useless for kart if it turns out this is too close to the limit
 	if (COM_Argc() < 2 || COM_Argc() > 8)
 	{
 		CONS_Printf(M_GetText("map <mapname> [-gametype <type> [-force]: warp to map\n"));
@@ -2327,27 +2351,28 @@ static void Command_Map_f(void)
 			return;
 		}
 
-		for (j = 0; gametype_cons_t[j].strvalue; j++)
-			if (!strcasecmp(gametype_cons_t[j].strvalue, COM_Argv(i+1)))
-			{
-				// Don't do any variable setting here. Wait until you get your
-				// map packet first to avoid sending the same info twice!
-				newgametype = gametype_cons_t[j].value;
-				break;
-			}
-
-		if (!gametype_cons_t[j].strvalue) // reached end of the list with no match
+		newgametype = G_GetGametypeByName(COM_Argv(i+1));
+		if (newgametype == -1) // reached end of the list with no match
 		{
-			// assume they gave us a gametype number, which is okay too
-			for (j = 0; gametype_cons_t[j].strvalue != NULL; j++)
-			{
-				if (atoi(COM_Argv(i+1)) == gametype_cons_t[j].value)
-				{
-					newgametype = gametype_cons_t[j].value;
-					break;
-				}
-			}
+			INT32 j = atoi(COM_Argv(i+1)); // assume they gave us a gametype number, which is okay too
+			if (j >= 0 && j < NUMGAMETYPES)
+				newgametype = (INT16)j;
 		}
+	}
+
+	// new encoremode value
+	// use cvar by default
+
+	newencoremode = (boolean)cv_kartencore.value;
+
+	if (COM_CheckParm("-encore"))
+	{
+		if (!M_SecretUnlocked(SECRET_ENCORE) && !newencoremode)
+		{
+			CONS_Alert(CONS_NOTICE, M_GetText("You haven't unlocked Encore Mode yet!\n"));
+			return;
+		}
+		newencoremode = !newencoremode;
 	}
 
 	if (!(i = COM_CheckParm("-force")) && newgametype == gametype) // SRB2Kart
@@ -2358,15 +2383,20 @@ static void Command_Map_f(void)
 		; // The player wants us to trek on anyway.  Do so.
 	// G_TOLFlag handles both multiplayer gametype and ignores it for !multiplayer
 	// Alternatively, bail if the map header is completely missing anyway.
-	else
+	else if (!mapheaderinfo[newmapnum-1]
+	 || !(mapheaderinfo[newmapnum-1]->typeoflevel & G_TOLFlag(newgametype)))
 	{
-		if (!mapheaderinfo[newmapnum-1]
-		 || !(mapheaderinfo[newmapnum-1]->typeoflevel & G_TOLFlag(newgametype)))
+		char gametypestring[32] = "Single Player";
+
+		if (multiplayer)
 		{
-			CONS_Alert(CONS_WARNING, M_GetText("%s doesn't support %s mode!\n(Use -force to override)\n"), mapname,
-				(multiplayer ? gametype_cons_t[newgametype].strvalue : "Single Player"));
-			return;
+			if (newgametype >= 0 && newgametype < NUMGAMETYPES
+			&& Gametype_Names[newgametype])
+				strcpy(gametypestring, Gametype_Names[newgametype]);
 		}
+
+		CONS_Alert(CONS_WARNING, M_GetText("%s doesn't support %s mode!\n(Use -force to override)\n"), mapname, gametypestring);
+		return;
 	}
 
 	// Prevent warping to locked levels
@@ -2380,7 +2410,7 @@ static void Command_Map_f(void)
 	}
 
 	fromlevelselect = false;
-	D_MapChange(newmapnum, newgametype, (boolean)cv_kartencore.value, newresetplayers, 0, false, false);
+	D_MapChange(newmapnum, newgametype, newencoremode, newresetplayers, 0, false, false);
 }
 
 /** Receives a map command and changes the map.
@@ -2450,9 +2480,6 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 			mapname, resetplayer, lastgametype, gametype, chmappending));
 		CON_LogMessage(M_GetText("Speeding off to level...\n"));
 	}
-
-	CON_ToggleOff();
-	CON_ClearHUD();
 
 	if (demoplayback && !timingdemo)
 		precache = false;
@@ -4426,12 +4453,22 @@ static void Command_ModDetails_f(void)
 //
 static void Command_ShowGametype_f(void)
 {
+	const char *gametypestr = NULL;
+
 	if (!(netgame || multiplayer)) // print "Single player" instead of "Race"
 	{
 		CONS_Printf(M_GetText("Current gametype is %s\n"), "Single Player");
 		return;
 	}
-	CONS_Printf(M_GetText("Current gametype is %s\n"), gametype_cons_t[gametype].strvalue);
+
+	// get name string for current gametype
+	if (gametype >= 0 && gametype < NUMGAMETYPES)
+		gametypestr = Gametype_Names[gametype];
+
+	if (gametypestr)
+		CONS_Printf(M_GetText("Current gametype is %s\n"), gametypestr);
+	else // string for current gametype was not found above (should never happen)
+		CONS_Printf(M_GetText("Unknown gametype set (%d)\n"), gametype);
 }
 
 /** Plays the intro.
@@ -4575,9 +4612,18 @@ static void TimeLimit_OnChange(void)
   */
 void D_GameTypeChanged(INT32 lastgametype)
 {
-	if (multiplayer)
-		CONS_Printf(M_GetText("Gametype was changed from %s to %s\n"), gametype_cons_t[lastgametype].strvalue, gametype_cons_t[gametype].strvalue);
+	if (netgame)
+	{
+		const char *oldgt = NULL, *newgt = NULL;
 
+		if (lastgametype >= 0 && lastgametype < NUMGAMETYPES)
+			oldgt = Gametype_Names[lastgametype];
+		if (gametype >= 0 && lastgametype < NUMGAMETYPES)
+			newgt = Gametype_Names[gametype];
+
+		if (oldgt && newgt)
+			CONS_Printf(M_GetText("Gametype was changed from %s to %s\n"), oldgt, newgt);
+	}
 	// Only do the following as the server, not as remote admin.
 	// There will always be a server, and this only needs to be done once.
 	if (server && (multiplayer || netgame))
@@ -5210,27 +5256,11 @@ static void Command_Archivetest_f(void)
 
 /** Makes a change to ::cv_forceskin take effect immediately.
   *
-  * \todo Move the enforcement code out of SendNameAndColor() so this hack
-  *       isn't needed.
   * \sa Command_SetForcedSkin_f, cv_forceskin, forcedskin
   * \author Graue <graue@oceanbase.org>
   */
 static void ForceSkin_OnChange(void)
 {
-	if ((server || IsPlayerAdmin(consoleplayer)) && (cv_forceskin.value < -1 || cv_forceskin.value >= numskins))
-	{
-		if (cv_forceskin.value == -2)
-			CV_SetValue(&cv_forceskin, numskins-1);
-		else
-		{
-			// hack because I can't restrict this and still allow added skins to be used with forceskin.
-			if (!menuactive)
-				CONS_Printf(M_GetText("Valid skin numbers are 0 to %d (-1 disables)\n"), numskins - 1);
-			CV_SetValue(&cv_forceskin, -1);
-		}
-		return;
-	}
-
 	// NOT in SP, silly!
 	if (!(netgame || multiplayer))
 		return;
@@ -5239,7 +5269,7 @@ static void ForceSkin_OnChange(void)
 		CONS_Printf("The server has lifted the forced skin restrictions.\n");
 	else
 	{
-		CONS_Printf("The server is restricting all players to skin \"%s\".\n",skins[cv_forceskin.value].name);
+		CONS_Printf("The server is restricting all players to skin \"%s\".\n",cv_forceskin.string);
 		ForceAllSkins(cv_forceskin.value);
 	}
 }
