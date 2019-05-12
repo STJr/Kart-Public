@@ -1346,7 +1346,7 @@ static void SendNameAndColor(void)
 			players[consoleplayer].mo->color = players[consoleplayer].skincolor;
 
 		// Update follower for local games:
-		if (cv_follower.value >= 0 && cv_follower.value != players[consoleplayer].followerskin)
+		if (cv_follower.value >= -1 && cv_follower.value != players[consoleplayer].followerskin)
 			SetFollower(consoleplayer, cv_follower.value);
 
 		if (metalrecording)
@@ -1486,7 +1486,7 @@ static void SendNameAndColor2(void)
 			players[secondplaya].mo->color = players[secondplaya].skincolor;
 
 		// Update follower for local games:
-		if (cv_follower2.value >= 0 && cv_follower2.value != players[secondplaya].followerskin)
+		if (cv_follower2.value >= -1 && cv_follower2.value != players[secondplaya].followerskin)
 			SetFollower(secondplaya, cv_follower2.value);
 
 		if ((foundskin = R_SkinAvailable(cv_skin2.string)) != -1)
@@ -1610,7 +1610,7 @@ static void SendNameAndColor3(void)
 			players[thirdplaya].mo->color = players[thirdplaya].skincolor;
 
 		// Update follower for local games:
-		if (cv_follower3.value >= 0 && cv_follower3.value != players[thirdplaya].followerskin)
+		if (cv_follower3.value >= -1 && cv_follower3.value != players[thirdplaya].followerskin)
 			SetFollower(thirdplaya, cv_follower3.value);
 
 		if ((foundskin = R_SkinAvailable(cv_skin3.string)) != -1)
@@ -1742,7 +1742,7 @@ static void SendNameAndColor4(void)
 			players[fourthplaya].mo->color = players[fourthplaya].skincolor;
 
 		// Update follower for local games:
-		if (cv_follower4.value >= 0 && cv_follower4.value != players[fourthplaya].followerskin)
+		if (cv_follower4.value >= -1 && cv_follower4.value != players[fourthplaya].followerskin)
 			SetFollower(fourthplaya, cv_follower4.value);
 
 		if ((foundskin = R_SkinAvailable(cv_skin4.string)) != -1)
