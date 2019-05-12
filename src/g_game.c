@@ -1249,7 +1249,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	if (demo.playback) return;
 
-	player = &players[displayplayers[ssplayer-1]];
+	if (ssplayer == 1)
+		player = &players[consoleplayer];
+	else
+		player = &players[displayplayers[ssplayer-1]];
+		
 	if (ssplayer == 2)
 		thiscam = (player->bot == 2 ? &camera[0] : &camera[ssplayer-1]);
 	else
