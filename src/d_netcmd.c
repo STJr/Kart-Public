@@ -5335,6 +5335,13 @@ static void Follower_OnChange(void)
 	strlwr(str);
 	if (stricmp(cpy,"0") !=0 && !atoi(cpy))	// yep, that's a string alright...
 	{
+		if (stricmp(cpy, "None") == 0)
+		{
+			CV_StealthSet(&cv_follower, "-1");
+			SendNameAndColor();
+			return;
+		}
+
 		INT32 num = R_FollowerAvailable(str);
 		char set[10];
 
