@@ -1837,6 +1837,9 @@ void P_CheckTimeLimit(void)
 					}
 				}
 
+				if (playercount > MAXPLAYERS)
+					playercount = MAXPLAYERS;
+
 				//Sort 'em.
 				for (i = 1; i < playercount; i++)
 				{

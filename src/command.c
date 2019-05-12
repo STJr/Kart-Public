@@ -157,6 +157,20 @@ void COM_BufInsertText(const char *ptext)
 	}
 }
 
+/** Progress the wait timer and flush waiting console commands when ready.
+  */
+void
+COM_BufTicker(void)
+{
+	if (com_wait)
+	{
+		com_wait--;
+		return;
+	}
+
+	COM_BufExecute();
+}
+
 /** Flushes (executes) console commands in the buffer.
   */
 void COM_BufExecute(void)
@@ -165,12 +179,6 @@ void COM_BufExecute(void)
 	char *ptext;
 	char line[1024] = "";
 	INT32 quotes;
-
-	if (com_wait)
-	{
-		com_wait--;
-		return;
-	}
 
 	while (com_text.cursize)
 	{

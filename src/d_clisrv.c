@@ -2309,20 +2309,14 @@ static void CL_ConnectToServer(boolean viams)
 
 	if (i != -1)
 	{
-		INT32 j;
+		UINT8 num = serverlist[i].info.gametype;
 		const char *gametypestr = NULL;
 
 		strncpy(connectedservername, serverlist[i].info.servername, MAXSERVERNAME);
 
 		CONS_Printf(M_GetText("Connecting to: %s\n"), serverlist[i].info.servername);
-		for (j = 0; gametype_cons_t[j].strvalue; j++)
-		{
-			if (gametype_cons_t[j].value == serverlist[i].info.gametype)
-			{
-				gametypestr = gametype_cons_t[j].strvalue;
-				break;
-			}
-		}
+		if (num < NUMGAMETYPES)
+			gametypestr = Gametype_Names[num];
 		if (gametypestr)
 			CONS_Printf(M_GetText("Gametype: %s\n"), gametypestr);
 		CONS_Printf(M_GetText("Version: %d.%d.%u\n"), serverlist[i].info.version/100,
@@ -5235,7 +5229,7 @@ void TryRunTics(tic_t realtics)
 
 	if (realtics >= 1)
 	{
-		COM_BufExecute();
+		COM_BufTicker();
 		if (mapchangepending)
 			D_MapChange(-1, 0, encoremode, false, 2, false, fromlevelselect); // finish the map change
 	}

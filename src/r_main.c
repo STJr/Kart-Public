@@ -1562,6 +1562,7 @@ void R_RegisterEngineStuff(void)
 #endif
 	CV_RegisterVar(&cv_grmdls);
 	CV_RegisterVar(&cv_grfallbackplayermodel);
+	CV_RegisterVar(&cv_grspritebillboarding);
 #endif
 
 #ifdef HWRENDER

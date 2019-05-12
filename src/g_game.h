@@ -278,6 +278,7 @@ boolean G_CheckDemoStatus(void);
 void G_SaveDemo(void);
 boolean G_DemoTitleResponder(event_t *ev);
 
+INT32 G_GetGametypeByName(const char *gametypestr);
 boolean G_IsSpecialStage(INT32 mapnum);
 boolean G_GametypeUsesLives(void);
 boolean G_GametypeHasTeams(void);
