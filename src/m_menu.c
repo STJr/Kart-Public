@@ -9318,8 +9318,8 @@ static void M_HandleSetupMultiPlayer(INT32 choice)
 	size_t   l;
 	boolean  exitmenu = false;  // exit to previous menu and send name change
 
-	if ((choice == gamecontrol[gc_lookback][0] || choice == gamecontrol[gc_lookback][1]) && itemOn == 2)
-		choice == KEY_BACKSPACE // Hack to allow resetting prefcolor on controllers
+	if ((choice == gamecontrol[gc_fire][0] || choice == gamecontrol[gc_fire][1]) && itemOn == 2)
+		choice = KEY_BACKSPACE; // Hack to allow resetting prefcolor on controllers
 
 	switch (choice)
 	{
