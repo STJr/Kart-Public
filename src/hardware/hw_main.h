@@ -142,6 +142,7 @@ extern consvar_t cv_granisotropicmode;
 extern consvar_t cv_grcorrecttricks;
 extern consvar_t cv_grfovchange;
 extern consvar_t cv_grsolvetjoin;
+extern consvar_t cv_grspritebillboarding;
 
 extern CV_PossibleValue_t granisotropicmode_cons_t[];
 
