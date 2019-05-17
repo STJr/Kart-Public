@@ -8495,8 +8495,8 @@ void P_PlayerThink(player_t *player)
 	if (player->powers[pw_invulnerability] && player->powers[pw_invulnerability] < UINT16_MAX)
 		player->powers[pw_invulnerability]--;
 
-	if (player->powers[pw_flashing] && player->powers[pw_flashing] < UINT16_MAX && ((player->pflags & PF_NIGHTSMODE)
-		|| (player->spectator || player->powers[pw_flashing] < K_GetKartFlashing(player))))
+	if (player->powers[pw_flashing] && player->powers[pw_flashing] < UINT16_MAX && 
+		(player->spectator || player->powers[pw_flashing] < K_GetKartFlashing(player)))
 		player->powers[pw_flashing]--;
 
 	if (player->powers[pw_tailsfly] && player->powers[pw_tailsfly] < UINT16_MAX /*&& player->charability != CA_SWIM*/ && !(player->powers[pw_super] && ALL7EMERALDS(player->powers[pw_emeralds]))) // tails fly counter

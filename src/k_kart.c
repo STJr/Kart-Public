@@ -4574,7 +4574,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 	{
 		player->powers[pw_flashing] = K_GetKartFlashing(player);
 	}
-	else if (player->powers[pw_flashing] == K_GetKartFlashing(player))
+	else if (player->powers[pw_flashing] >= K_GetKartFlashing(player))
 	{
 		player->powers[pw_flashing]--;
 	}
