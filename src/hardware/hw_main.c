@@ -3938,7 +3938,7 @@ void HWR_RenderDrawNodes(void)
 	} // loop++
 
 	// Okay! Let's draw it all! Woo!
-	HWD.pfnSetTransform(&atransform, aimingangle);
+	HWD.pfnSetTransform(&atransform);
 	HWD.pfnSetShader(0);
 
 	for (i = 0; i < p; i++)
@@ -4459,16 +4459,26 @@ void HWR_DrawSkyBackground(void)
 
 	angleturn = (((float)ANGLE_45-1.0f)*aspectratio)*dimensionmultiply;
 
-	if (angle > ANGLE_180) // Do this because we don't want the sky to suddenly teleport when crossing over 0 to 360 and vice versa
+	if (cv_grshearing.value)
 	{
-		angle = InvAngle(angle);
-		v[3].t = v[2].t += ((float) angle / angleturn);
-		v[0].t = v[1].t += ((float) angle / angleturn);
+		// Doesn't really make sense, but what can I do?
+		angle_t dy = FixedAngle(FixedMul(360*FRACUNIT, FixedDiv(AIMINGTODY(aimingangle), 900*FRACUNIT)));
+		v[3].t = v[2].t -= ((float) dy / angleturn);
+		v[0].t = v[1].t -= ((float) dy / angleturn);
 	}
 	else
 	{
-		v[3].t = v[2].t -= ((float) angle / angleturn);
-		v[0].t = v[1].t -= ((float) angle / angleturn);
+		if (angle > ANGLE_180) // Do this because we don't want the sky to suddenly teleport when crossing over 0 to 360 and vice versa
+		{
+			angle = InvAngle(angle);
+			v[3].t = v[2].t += ((float) angle / angleturn);
+			v[0].t = v[1].t += ((float) angle / angleturn);
+		}
+		else
+		{
+			v[3].t = v[2].t -= ((float) angle / angleturn);
+			v[0].t = v[1].t -= ((float) angle / angleturn);
+		}
 	}
 
 	HWD.pfnSetShader(7);	// sky shader
@@ -4560,12 +4570,11 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	atransform.scalez = 1;
 
 	// 14042019
-	if (!cv_grshearing.value)
-	{
-		gr_aimingangle = aimingangle;
-		atransform.shearing = false;
-	}
-	else
+	gr_aimingangle = aimingangle;
+	atransform.shearing = false;
+	atransform.viewaiming = aimingangle;
+
+	if (cv_grshearing.value)
 	{
 		gr_aimingangle = 0;
 		atransform.shearing = true;
@@ -4609,14 +4618,14 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	gld_FrustrumSetup();
 #endif
 
-	// Set transform and shader
-	HWD.pfnSetTransform(&atransform, aimingangle);
+	// Set transform.
+	HWD.pfnSetTransform(&atransform);
+
+	// Reset the shader state.
+	HWD.pfnSetSpecialState(HWD_SET_SHADERS, cv_grshaders.value);
 	HWD.pfnSetShader(0);
 
-	// Check for shaders
-	HWD.pfnSetSpecialState(HWD_SET_SHADERS, cv_grshaders.value);
-
-	// Check for fog (shader)
+	// Check if fog is enabled.
 	if (cv_grfog.value)
 		HWR_FoggingOn(); // First of all, turn it on, set the default user settings too
 	else
@@ -4639,7 +4648,7 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 		HWR_RenderDrawNodes();
 
 	// Unset transform and shader
-	HWD.pfnSetTransform(NULL, 0.0f);
+	HWD.pfnSetTransform(NULL);
 	HWD.pfnUnSetShader();
 
 	// Disable fog

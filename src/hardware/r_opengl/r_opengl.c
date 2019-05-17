@@ -2186,7 +2186,7 @@ EXPORT void HWRAPI(DrawModel) (model_t *model, INT32 frameIndex, INT32 duration,
 // -----------------+
 // SetTransform     :
 // -----------------+
-EXPORT void HWRAPI(SetTransform) (FTransform *stransform, angle_t viewaiming)
+EXPORT void HWRAPI(SetTransform) (FTransform *stransform)
 {
 	static boolean special_splitscreen;
 	GLdouble used_fov;
@@ -2232,12 +2232,8 @@ EXPORT void HWRAPI(SetTransform) (FTransform *stransform, angle_t viewaiming)
 	// https://zdoom.org/wiki/Y-shearing
 	if (shearing)
 	{
-		float tilt = (float)(viewaiming>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
-		if (tilt >= 270.0f)
-			tilt = -(90.0f - (tilt - 270.0f));
-		tilt /= 24.0f;		// ?????????
-
-		pglTranslatef(0.0f, -tilt, 0.0f);
+		float dy = FIXED_TO_FLOAT(AIMINGTODY(stransform->viewaiming)) * 2; //screen_width/BASEVIDWIDTH;
+		pglTranslatef(0.0f, -dy/BASEVIDHEIGHT, 0.0f);
 	}
 
 	if (special_splitscreen)
