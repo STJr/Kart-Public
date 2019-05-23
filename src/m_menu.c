@@ -1244,14 +1244,15 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR,	NULL,	"Weather Draw Distance",&cv_drawdist_precip,	 55},
 	//{IT_STRING | IT_CVAR,	NULL,	"Weather Density",		&cv_precipdensity,		 65},
 	{IT_STRING | IT_CVAR,	NULL,	"Skyboxes",				&cv_skybox,				 65},
+	{IT_STRING | IT_CVAR,	NULL,	"Field of View",		&cv_fov,					75},
 
-	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			 80},
-	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			 90},
+	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			 90},
+	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			100},
 
 #ifdef HWRENDER
-	{IT_STRING | IT_CVAR,	NULL,	"3D models",            &cv_grmdls,              105},
-	{IT_STRING | IT_CVAR,	NULL,	"Fallback Player 3D Model",	&cv_grfallbackplayermodel,	115},
-	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,   125},
+	{IT_STRING | IT_CVAR,	NULL,	"3D models",            &cv_grmdls,              115},
+	{IT_STRING | IT_CVAR,	NULL,	"Fallback Player 3D Model",	&cv_grfallbackplayermodel,	125},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,   135},
 #endif
 };
 
@@ -1266,6 +1267,7 @@ enum
 	op_video_wdd,
 	//op_video_wd,
 	op_video_skybox,
+	op_video_fov,
 	op_video_fps,
 	op_video_vsync,
 #ifdef HWRENDER
@@ -1286,10 +1288,9 @@ static menuitem_t OP_OpenGLOptionsMenu[] =
 	{IT_SUBMENU|IT_STRING,      NULL, "Fog...",          &OP_OpenGLFogDef,      10},
 	{IT_SUBMENU|IT_STRING,      NULL, "Gamma...",        &OP_OpenGLColorDef,    20},
 
-	{IT_STRING|IT_CVAR,         NULL, "Field of View",   &cv_fov,               35},
-	{IT_STRING|IT_CVAR,         NULL, "Quality",         &cv_scr_depth,         45},
-	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",  &cv_grfiltermode,      55},
-	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",     &cv_granisotropicmode, 65},
+	{IT_STRING|IT_CVAR,         NULL, "Quality",         &cv_scr_depth,         35},
+	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",  &cv_grfiltermode,      45},
+	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",     &cv_granisotropicmode, 55},
 /*#ifdef _WINDOWS
 	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",      &cv_fullscreen,       50},
 #endif
