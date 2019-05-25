@@ -273,6 +273,7 @@ typedef enum
 	k_boostpower,		// Base boost value, for offroad
 	k_speedboost,		// Boost value smoothing for max speed
 	k_accelboost,		// Boost value smoothing for acceleration
+	k_boostangle,		// angle set when not spun out OR boosted to determine what direction you should keep going at if you're spun out and boosted.
 	k_boostcam,			// Camera push forward on boost
 	k_destboostcam,		// Ditto
 	k_timeovercam,		// Camera timer for leaving behind or not
