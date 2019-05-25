@@ -5778,8 +5778,8 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			if (player->speed > 0 && cmd->forwardmove == 0 && player->mo->friction == 59392)
 				player->mo->friction += 4608;
-			if (player->speed > 0 && cmd->forwardmove < 0 && player->mo->friction == 59392)
-				player->mo->friction += 1608;
+			if (player->speed > 0 && cmd->forwardmove < 0)	// change friction while braking no matter what, otherwise it's not any more effective than just letting go off accel
+				player->mo->friction -= 2048;
 		}
 
 		// Karma ice physics
