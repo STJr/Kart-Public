@@ -1076,7 +1076,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				S_StartSound(tmthing, sfx_bsnipe);
 
 			// Player Damage
-			K_SpinPlayer(tmthing->player, thing->target, 0, tmthing, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD));
+			K_SpinPlayer(tmthing->player, thing->target, 0, thing, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD));
 
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
