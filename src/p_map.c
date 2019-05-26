@@ -1111,7 +1111,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(tmthing->player, thing->target, thing);
 			else
-				K_SpinPlayer(tmthing->player, thing->target, 0, tmthing, false);
+				K_SpinPlayer(tmthing->player, thing->target, 0, thing, false);
 
 			return true;
 		}

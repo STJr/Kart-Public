@@ -7377,7 +7377,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (P_CameraThinker(player, thiscam, resetcalled))
 		return true;
 
-	
+
 	if (thiscam == &camera[1]) // Camera 2
 	{
 		num = 1;
@@ -8495,7 +8495,7 @@ void P_PlayerThink(player_t *player)
 	if (player->powers[pw_invulnerability] && player->powers[pw_invulnerability] < UINT16_MAX)
 		player->powers[pw_invulnerability]--;
 
-	if (player->powers[pw_flashing] && player->powers[pw_flashing] < UINT16_MAX && 
+	if (player->powers[pw_flashing] && player->powers[pw_flashing] < UINT16_MAX &&
 		(player->spectator || player->powers[pw_flashing] < K_GetKartFlashing(player)))
 		player->powers[pw_flashing]--;
 

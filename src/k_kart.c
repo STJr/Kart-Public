@@ -8184,7 +8184,7 @@ static void K_drawBattleFullscreen(void)
 #ifdef HAVE_BLUA
 	if (!LUA_HudEnabled(hud_battlecomebacktimer))
 		drawcomebacktimer = false;
-#endif	
+#endif
 
 	if (splitscreen)
 	{
@@ -8796,13 +8796,13 @@ void K_drawKartHUD(void)
 	{
 #ifdef HAVE_BLUA
 		if (LUA_HudEnabled(hud_battlefullscreen))
-		{	
-#endif			
+		{
+#endif
 			K_drawBattleFullscreen();
 			return;
 #ifdef HAVE_BLUA
 		}	// yes we legit checked if we had lua to close a single bracket. Not my proudest code edit tbh.
-#endif		
+#endif
 	}
 
 	// Draw the item window
