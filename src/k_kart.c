@@ -3541,6 +3541,9 @@ void K_DoSneaker(player_t *player, INT32 type)
 
 	player->kartstuff[k_sneakertimer] = sneakertime;
 
+	// set angle for spun out players:
+	player->kartstuff[k_boostangle] = (INT32)player->mo->angle;
+
 	if (type != 0)
 	{
 		player->pflags |= PF_ATTACKDOWN;
@@ -4469,6 +4472,11 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 {
 	K_UpdateOffroad(player);
 	K_UpdateEngineSounds(player, cmd); // Thanks, VAda!
+
+	// update boost angle if not spun out
+	if (!player->kartstuff[k_spinouttimer] && !player->kartstuff[k_wipeoutslow])
+		player->kartstuff[k_boostangle] = (INT32)player->mo->angle;
+
 	K_GetKartBoostPower(player);
 
 	// Speed lines

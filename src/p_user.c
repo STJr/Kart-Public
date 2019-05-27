@@ -4054,6 +4054,8 @@ static void P_3dMovement(player_t *player)
 	{
 		if (player->kartstuff[k_drift] != 0)
 			movepushangle = player->mo->angle-(ANGLE_45/5)*player->kartstuff[k_drift];
+		else if (player->kartstuff[k_spinouttimer] || player->kartstuff[k_wipeoutslow])	// if spun out, use the boost angle
+			movepushangle = (angle_t)player->kartstuff[k_boostangle];
 		else
 			movepushangle = player->mo->angle;
 	}
@@ -5780,7 +5782,7 @@ static void P_MovePlayer(player_t *player)
 			|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
 			|| (player->kartstuff[k_respawn]) // Respawning
 			|| (player->spectator || objectplacing)) // Not a physical player
-			&& !(player->kartstuff[k_spinouttimer] && player->kartstuff[k_sneakertimer])) // Spinning and boosting cancels out turning
+			) // ~~Spinning and boosting cancels out turning~~ Not anymore given spinout is more slippery and more prone to get you killed because of boosters.
 		{
 			player->lturn_max[leveltime%MAXPREDICTTICS] = K_GetKartTurnValue(player, KART_FULLTURN)+1;
 			player->rturn_max[leveltime%MAXPREDICTTICS] = K_GetKartTurnValue(player, -KART_FULLTURN)-1;
@@ -7377,7 +7379,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (P_CameraThinker(player, thiscam, resetcalled))
 		return true;
 
-	
+
 	if (thiscam == &camera[1]) // Camera 2
 	{
 		num = 1;
@@ -8495,7 +8497,7 @@ void P_PlayerThink(player_t *player)
 	if (player->powers[pw_invulnerability] && player->powers[pw_invulnerability] < UINT16_MAX)
 		player->powers[pw_invulnerability]--;
 
-	if (player->powers[pw_flashing] && player->powers[pw_flashing] < UINT16_MAX && 
+	if (player->powers[pw_flashing] && player->powers[pw_flashing] < UINT16_MAX &&
 		(player->spectator || player->powers[pw_flashing] < K_GetKartFlashing(player)))
 		player->powers[pw_flashing]--;
 

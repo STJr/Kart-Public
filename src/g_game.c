@@ -1253,7 +1253,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		player = &players[consoleplayer];
 	else
 		player = &players[displayplayers[ssplayer-1]];
-		
+
 	if (ssplayer == 2)
 		thiscam = (player->bot == 2 ? &camera[0] : &camera[ssplayer-1]);
 	else
@@ -1558,8 +1558,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	if (((player->mo && player->speed > 0) // Moving
 		|| (leveltime > starttime && (cmd->buttons & BT_ACCELERATE && cmd->buttons & BT_BRAKE)) // Rubber-burn turn
 		|| (player->kartstuff[k_respawn]) // Respawning
-		|| (player->spectator || objectplacing)) // Not a physical player
-		&& !(player->kartstuff[k_spinouttimer] && player->kartstuff[k_sneakertimer])) // Spinning and boosting cancels out turning
+		|| (player->spectator || objectplacing))) // Not a physical player
 		lang += (cmd->angleturn<<16);
 
 	cmd->angleturn = (INT16)(lang >> 16);
@@ -3274,7 +3273,7 @@ const char *Gametype_Names[NUMGAMETYPES] =
 {
 	"Race", // GT_RACE
 	"Battle" // GT_MATCH
-	
+
 	/*"Co-op", // GT_COOP
 	"Competition", // GT_COMPETITION
 	"Team Match", // GT_TEAMMATCH
