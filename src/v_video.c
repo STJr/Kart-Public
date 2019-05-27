@@ -2537,8 +2537,10 @@ Unoptimized version
 		UINT8 *srcscr = screens[0];
 		INT32 y;
 
+#if 0
 		if (splitscreen > 1) // 3P/4P has trouble supporting this, anyone want to fix it? :p
 			return;
+#endif
 
 		// Make sure table is built
 		if (heatshifter == NULL || lastheight != viewheight)
