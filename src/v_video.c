@@ -292,7 +292,7 @@ void VID_BlitLinearScreen(const UINT8 *srcptr, UINT8 *destptr, INT32 width, INT3
 #ifdef HAVE_VIDCOPY
     VID_BlitLinearScreen_ASM(srcptr,destptr,width,height,srcrowbytes,destrowbytes);
 #else
-	if ((srcrowbytes == destrowbytes) && (srcrowbytes == (size_t)width))
+	if (srcrowbytes == destrowbytes)
 		M_Memcpy(destptr, srcptr, srcrowbytes * height);
 	else
 	{
