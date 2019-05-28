@@ -292,7 +292,7 @@ void VID_BlitLinearScreen(const UINT8 *srcptr, UINT8 *destptr, INT32 width, INT3
 #ifdef HAVE_VIDCOPY
     VID_BlitLinearScreen_ASM(srcptr,destptr,width,height,srcrowbytes,destrowbytes);
 #else
-	if (srcrowbytes == destrowbytes)
+	if ((srcrowbytes == destrowbytes) && (srcrowbytes == (size_t)width))
 		M_Memcpy(destptr, srcptr, srcrowbytes * height);
 	else
 	{
@@ -2404,7 +2404,7 @@ INT32 V_ThinStringWidth(const char *string, INT32 option)
 
 boolean *heatshifter = NULL;
 INT32 lastheight = 0;
-INT32 heatindex[2] = { 0, 0 };
+INT32 heatindex[MAXSPLITSCREENPLAYERS] = {0, 0, 0, 0};
 
 //
 // V_DoPostProcessor
@@ -2537,9 +2537,6 @@ Unoptimized version
 		UINT8 *srcscr = screens[0];
 		INT32 y;
 
-		if (splitscreen > 1) // 3P/4P has trouble supporting this, anyone want to fix it? :p
-			return;
-
 		// Make sure table is built
 		if (heatshifter == NULL || lastheight != viewheight)
 		{
@@ -2554,7 +2551,7 @@ Unoptimized version
 					heatshifter[y] = true;
 			}
 
-			heatindex[0] = heatindex[1] = 0;
+			heatindex[0] = heatindex[1] = heatindex[2] = heatindex[3] = 0;
 			lastheight = viewheight;
 		}
 
