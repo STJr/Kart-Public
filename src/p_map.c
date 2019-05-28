@@ -1076,7 +1076,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 				S_StartSound(tmthing, sfx_bsnipe);
 
 			// Player Damage
-			K_SpinPlayer(tmthing->player, thing->target, 0, tmthing, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD));
+			K_SpinPlayer(tmthing->player, thing->target, 0, thing, (thing->type == MT_BANANA || thing->type == MT_BANANA_SHIELD));
 
 			// Other Item Damage
 			if (thing->eflags & MFE_VERTICALFLIP)
@@ -1111,7 +1111,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			if (thing->state == &states[S_MINEEXPLOSION1])
 				K_ExplodePlayer(tmthing->player, thing->target, thing);
 			else
-				K_SpinPlayer(tmthing->player, thing->target, 0, tmthing, false);
+				K_SpinPlayer(tmthing->player, thing->target, 0, thing, false);
 
 			return true;
 		}
