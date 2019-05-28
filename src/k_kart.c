@@ -8189,6 +8189,11 @@ static void K_drawBattleFullscreen(void)
 	INT32 y = -64+(stplyr->kartstuff[k_cardanimation]); // card animation goes from 0 to 164, 164 is the middle of the screen
 	INT32 splitflags = V_SNAPTOTOP; // I don't feel like properly supporting non-green resolutions, so you can have a misuse of SNAPTO instead
 	fixed_t scale = FRACUNIT;
+	boolean drawcomebacktimer = true;	// lazy hack because it's cleaner in the long run.
+#ifdef HAVE_BLUA
+	if (!LUA_HudEnabled(hud_battlecomebacktimer))
+		drawcomebacktimer = false;
+#endif
 
 	if (splitscreen)
 	{
@@ -8240,7 +8245,7 @@ static void K_drawBattleFullscreen(void)
 		else
 			K_drawKartFinish();
 	}
-	else if (stplyr->kartstuff[k_bumper] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback && !stplyr->spectator)
+	else if (stplyr->kartstuff[k_bumper] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback && !stplyr->spectator && drawcomebacktimer)
 	{
 		UINT16 t = stplyr->kartstuff[k_comebacktimer]/(10*TICRATE);
 		INT32 txoff, adjust = (splitscreen > 1) ? 4 : 6; // normal string is 8, kart string is 12, half of that for ease
@@ -8798,7 +8803,10 @@ void K_drawKartHUD(void)
 
 	if (battlefullscreen)
 	{
-		K_drawBattleFullscreen();
+#ifdef HAVE_BLUA
+		if (LUA_HudEnabled(hud_battlefullscreen))
+#endif
+			K_drawBattleFullscreen();
 		return;
 	}
 

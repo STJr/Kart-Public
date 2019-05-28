@@ -48,6 +48,8 @@ static const char *const hud_disable_options[] = {
 	"position",
 	"minirankings",	// Gametype rankings to the left
 	"battlerankingsbumpers",	// bumper drawer for battle. Useful if you want to make a custom battle gamemode without bumpers being involved.
+	"battlefullscreen",			// battlefullscreen func (WAIT, ATTACK OR PROTECT ...)
+	"battlecomebacktimer",		// come back timer in battlefullscreen
 	"wanted",
 	"speedometer",
 	"freeplay",
@@ -381,6 +383,179 @@ static int libd_drawScaled(lua_State *L)
 	return 0;
 }
 
+// KART: draw patch on minimap from x, y coordinates on the map
+static int libd_drawOnMinimap(lua_State *L)
+{
+	fixed_t x, y, scale;	// coordinates of the object
+	patch_t *patch;	// patch we want to draw
+	const UINT8 *colormap = NULL;	// do we want to colormap this patch?
+	boolean centered;	// the patch is centered and doesn't need readjusting on x/y coordinates.
+
+	// variables used to replicate k_kart's mmap drawer:
+	INT32 lumpnum;
+	patch_t *AutomapPic;
+	INT32 mx, my;
+	INT32 splitflags, minimaptrans;
+
+	// base position of the minimap which also takes splits into account:
+	INT32 MM_X, MM_Y;
+
+	// variables used for actually drawing the icon:
+	fixed_t amnumxpos, amnumypos;
+	INT32 amxpos, amypos;
+
+	node_t *bsp = &nodes[numnodes-1];
+	fixed_t maxx, minx, maxy, miny;
+
+	fixed_t mapwidth, mapheight;
+	fixed_t xoffset, yoffset;
+	fixed_t xscale, yscale, zoom;
+	fixed_t patchw, patchh;
+
+	HUDONLY	// only run this function in hud hooks
+	x = luaL_checkinteger(L, 1);
+	y = luaL_checkinteger(L, 2);
+	scale = luaL_checkinteger(L, 3);
+	patch = *((patch_t **)luaL_checkudata(L, 4, META_PATCH));
+	if (!lua_isnoneornil(L, 5))
+		colormap = *((UINT8 **)luaL_checkudata(L, 5, META_COLORMAP));
+	centered = lua_optboolean(L, 6);
+
+	// replicate exactly what source does for its minimap drawer; AKA hardcoded garbo.
+
+	// first, check what position the mmap is supposed to be in (pasted from k_kart.c):
+	MM_X = BASEVIDWIDTH - 50;		// 270
+	MM_Y = (BASEVIDHEIGHT/2)-16; //  84
+	if (splitscreen)
+	{
+		MM_Y = (BASEVIDHEIGHT/2);
+		if (splitscreen > 1)	// 3P : bottom right
+		{
+			MM_X = (3*BASEVIDWIDTH/4);
+			MM_Y = (3*BASEVIDHEIGHT/4);
+
+			if (splitscreen > 2) // 4P: centered
+			{
+				MM_X = (BASEVIDWIDTH/2);
+				MM_Y = (BASEVIDHEIGHT/2);
+			}
+		}
+	}
+
+	// splitscreen flags
+	splitflags = (splitscreen == 3 ? 0 : V_SNAPTORIGHT);	// flags should only be 0 when it's centered (4p split)
+
+	// translucency:
+	if (timeinmap > 105)
+	{
+		minimaptrans = cv_kartminimap.value;
+		if (timeinmap <= 113)
+			minimaptrans = ((((INT32)timeinmap) - 105)*minimaptrans)/(113-105);
+		if (!minimaptrans)
+			return 0;
+	}
+	else
+		return 0;
+
+
+	minimaptrans = ((10-minimaptrans)<<FF_TRANSSHIFT);
+	splitflags |= minimaptrans;
+
+	if (!(splitscreen == 2))
+	{
+		splitflags &= ~minimaptrans;
+		splitflags |= V_HUDTRANSHALF;
+	}
+
+	splitflags &= ~V_HUDTRANSHALF;
+	splitflags |= V_HUDTRANS;
+
+	// Draw the HUD only when playing in a level.
+	// hu_stuff needs this, unlike st_stuff.
+	if (gamestate != GS_LEVEL)
+		return 0;
+
+	if (stplyr != &players[displayplayers[0]])
+		return 0;
+
+	lumpnum = W_CheckNumForName(va("%sR", G_BuildMapName(gamemap)));
+
+	if (lumpnum != -1)
+		AutomapPic = W_CachePatchName(va("%sR", G_BuildMapName(gamemap)), PU_HUDGFX);
+	else
+		return 0; // no pic, just get outta here
+
+	mx = MM_X - (AutomapPic->width/2);
+	my = MM_Y - (AutomapPic->height/2);
+
+	// let offsets transfer to the heads, too!
+	if (encoremode)
+		mx += SHORT(AutomapPic->leftoffset);
+	else
+		mx -= SHORT(AutomapPic->leftoffset);
+	my -= SHORT(AutomapPic->topoffset);
+
+	// now that we have replicated this behavior, we can draw an icon from our supplied x, y coordinates by replicating k_kart.c's totally understandable uncommented code!!!
+
+	// get map boundaries using nodes
+	maxx = maxy = INT32_MAX;
+	minx = miny = INT32_MIN;
+	minx = bsp->bbox[0][BOXLEFT];
+	maxx = bsp->bbox[0][BOXRIGHT];
+	miny = bsp->bbox[0][BOXBOTTOM];
+	maxy = bsp->bbox[0][BOXTOP];
+
+	if (bsp->bbox[1][BOXLEFT] < minx)
+		minx = bsp->bbox[1][BOXLEFT];
+	if (bsp->bbox[1][BOXRIGHT] > maxx)
+		maxx = bsp->bbox[1][BOXRIGHT];
+	if (bsp->bbox[1][BOXBOTTOM] < miny)
+		miny = bsp->bbox[1][BOXBOTTOM];
+	if (bsp->bbox[1][BOXTOP] > maxy)
+		maxy = bsp->bbox[1][BOXTOP];
+
+	// You might be wondering why these are being bitshift here
+	// it's because mapwidth and height would otherwise overflow for maps larger than half the size possible...
+	// map boundaries and sizes will ALWAYS be whole numbers thankfully
+	// later calculations take into consideration that these are actually not in terms of FRACUNIT though
+	minx >>= FRACBITS;
+	maxx >>= FRACBITS;
+	miny >>= FRACBITS;
+	maxy >>= FRACBITS;
+
+	// these are our final map boundaries:
+	mapwidth = maxx - minx;
+	mapheight = maxy - miny;
+
+	// These should always be small enough to be bitshift back right now
+	xoffset = (minx + mapwidth/2)<<FRACBITS;
+	yoffset = (miny + mapheight/2)<<FRACBITS;
+
+	xscale = FixedDiv(AutomapPic->width, mapwidth);
+	yscale = FixedDiv(AutomapPic->height, mapheight);
+	zoom = FixedMul(min(xscale, yscale), FRACUNIT-FRACUNIT/20);
+
+	amnumxpos = (FixedMul(x, zoom) - FixedMul(xoffset, zoom));
+	amnumypos = -(FixedMul(y, zoom) - FixedMul(yoffset, zoom));
+
+	if (encoremode)
+		amnumxpos = -amnumxpos;
+
+	// scale patch coords
+	patchw = patch->width*scale /2;
+	patchh = patch->height*scale /2;
+
+	if (centered)
+		patchw = patchh = 0;	// patch is supposedly already centered, don't butt in.
+
+	amxpos = amnumxpos + ((mx + AutomapPic->width/2)<<FRACBITS) - patchw;
+	amypos = amnumypos + ((my + AutomapPic->height/2)<<FRACBITS) - patchh;
+
+	// and NOW we can FINALLY DRAW OUR GOD DAMN PATCH :V
+	V_DrawFixedPatch(amxpos, amypos, scale, splitflags, patch, colormap);
+	return 0;
+}
+
 static int libd_drawNum(lua_State *L)
 {
 	INT32 x, y, flags, num;
@@ -644,6 +819,7 @@ static luaL_Reg lib_draw[] = {
 	{"dupy", libd_dupy},
 	{"renderer", libd_renderer},
 	{"localTransFlag", libd_getlocaltransflag},
+	{"drawOnMinimap", libd_drawOnMinimap},
 	{NULL, NULL}
 };
 
