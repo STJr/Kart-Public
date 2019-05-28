@@ -8386,12 +8386,12 @@ void A_SPBChase(mobj_t *actor)
 		if (actor->tracer && actor->tracer->health)
 		{
 
-			// we're tailing a player, now's a good time to regain our damage properties
-			actor->flags &=  ~MF_NOCLIPTHING;
-
 			fixed_t defspeed = wspeed;
 			fixed_t range = (160*actor->tracer->scale);
 			fixed_t cx = 0, cy =0;
+
+			// we're tailing a player, now's a good time to regain our damage properties
+			actor->flags &=  ~MF_NOCLIPTHING;
 
 			// Play the intimidating gurgle
 			if (!S_SoundPlaying(actor, actor->info->activesound))
