@@ -107,7 +107,7 @@ matrix:
               - p7zip-full
               - gcc-8
           compiler: gcc-8
-          env: WFLAGS="-Wno-tautological-compare -Wno-error=implicit-fallthrough -Wno-implicit-fallthrough -Wno-error=format-overflow" GCC81=1
+          env: WFLAGS="-Wno-tautological-compare -Wno-error=implicit-fallthrough -Wno-implicit-fallthrough -Wno-error=format-overflow -Wno-error=format-truncation" GCC81=1
           if: env(DPL_ENABLED) != "1" OR env(DPL_TERMINATE_TESTS) != "1" OR NOT branch =~ /^.*deployer.*$/
           #gcc-8 (Ubuntu 7.2.0-1ubuntu1~14.04) 8.1.0
         - os: linux
