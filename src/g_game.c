@@ -6032,7 +6032,7 @@ void G_ConfirmRewind(tic_t rewindtime)
 
 	G_DoPlayDemo(NULL); // Restart the current demo
 
-	for (j = 0; j < rewindtime && leveltime < rewindtime; i++)
+	for (j = 0; j < rewindtime && leveltime < rewindtime; j++)
 	{
 		//TryRunTics(1);
 		G_Ticker((j % NEWTICRATERATIO) == 0);

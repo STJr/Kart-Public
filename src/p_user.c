@@ -7913,7 +7913,7 @@ boolean P_SpectatorJoinGame(player_t *player)
 static void P_CalcPostImg(player_t *player)
 {
 	sector_t *sector = player->mo->subsector->sector;
-	postimg_t *type = postimg_none;
+	postimg_t *type = NULL;
 	INT32 *param;
 	fixed_t pviewheight;
 	UINT8 i;
