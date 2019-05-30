@@ -374,6 +374,9 @@ static INT32 MS_Connect(const char *ip_addr, const char *str_port, INT32 async)
 	if (!I_InitTcpDriver()) // this is done only if not already done
 		return MS_SOCKET_ERROR;
 
+	FD_ZERO(&wset);
+	select_timeout.tv_sec = 0, select_timeout.tv_usec = 0;
+
 	gaie = I_getaddrinfo(ip_addr, str_port, &hints, &ai);
 	if (gaie != 0)
 		return MS_GETHOSTBYNAME_ERROR;
@@ -385,6 +388,8 @@ static INT32 MS_Connect(const char *ip_addr, const char *str_port, INT32 async)
 		socket_fd = socket(runp->ai_family, runp->ai_socktype, runp->ai_protocol);
 		if (socket_fd != (SOCKET_TYPE)ERRSOCKET)
 		{
+			FD_SET(socket_fd, &wset);
+
 			if (async) // do asynchronous connection
 			{
 #ifdef FIONBIO
@@ -412,9 +417,6 @@ static INT32 MS_Connect(const char *ip_addr, const char *str_port, INT32 async)
 					}
 				}
 				con_state = MSCS_WAITING;
-				FD_ZERO(&wset);
-				FD_SET(socket_fd, &wset);
-				select_timeout.tv_sec = 0, select_timeout.tv_usec = 0;
 				I_freeaddrinfo(ai);
 				return 0;
 			}
