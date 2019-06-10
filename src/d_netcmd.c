@@ -2040,7 +2040,7 @@ static void Command_View_f(void)
 		return;
 	}
 
-	displayplayerp = &displayplayers[viewnum];
+	displayplayerp = &displayplayers[viewnum-1];
 
 	if (COM_Argc() > 1)/* switch to player */
 	{
