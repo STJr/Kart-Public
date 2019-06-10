@@ -739,7 +739,9 @@ EXPORT void HWRAPI(LoadShaders) (void)
 		if (gl_customfragmentshaders[i])
 			frag_shader = gl_customfragmentshaders[i];
 
-		if (i >= MAXSHADERS || i >= MAXSHADERPROGRAMS)
+		if (i >= MAXSHADERS)
+			break;
+		if (i >= MAXSHADERPROGRAMS)
 			break;
 
 		//
@@ -1590,54 +1592,53 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *f
 		if (gl_shaderprograms[gl_currentshaderprogram])
 		{
 			pglUseProgram(gl_shaderprograms[gl_currentshaderprogram]);
-
-			//
 			// set uniforms
-			//
+			{
 #define GETUNI(uniform) pglGetUniformLocation(gl_shaderprograms[gl_currentshaderprogram], uniform);
-			GLint UNIFORM_fog_mode = GETUNI("fog_mode");
-			GLint UNIFORM_fog_density = GETUNI("fog_density");
+				GLint UNIFORM_fog_mode = GETUNI("fog_mode");
+				GLint UNIFORM_fog_density = GETUNI("fog_density");
 
-			GLint UNIFORM_mix_color = GETUNI("mix_color");
-			GLint UNIFORM_fade_color = GETUNI("fade_color");
-			GLint UNIFORM_lighting = GETUNI("lighting");
+				GLint UNIFORM_mix_color = GETUNI("mix_color");
+				GLint UNIFORM_fade_color = GETUNI("fade_color");
+				GLint UNIFORM_lighting = GETUNI("lighting");
 
-			GLint UNIFORM_resolution = GETUNI("resolution");
-			GLint UNIFORM_leveltime = GETUNI("leveltime");
+				GLint UNIFORM_resolution = GETUNI("resolution");
+				GLint UNIFORM_leveltime = GETUNI("leveltime");
 #undef GETUNI
 
-			#define UNIFORM_1(uniform, a, function) \
-				if (uniform != -1) \
-					function (uniform, a);
+				#define UNIFORM_1(uniform, a, function) \
+					if (uniform != -1) \
+						function (uniform, a);
 
-			#define UNIFORM_2(uniform, a, b, function) \
-				if (uniform != -1) \
-					function (uniform, a, b);
+				#define UNIFORM_2(uniform, a, b, function) \
+					if (uniform != -1) \
+						function (uniform, a, b);
 
-			#define UNIFORM_3(uniform, a, b, c, function) \
-				if (uniform != -1) \
-					function (uniform, a, b, c);
+				#define UNIFORM_3(uniform, a, b, c, function) \
+					if (uniform != -1) \
+						function (uniform, a, b, c);
 
-			#define UNIFORM_4(uniform, a, b, c, d, function) \
-				if (uniform != -1) \
-					function (uniform, a, b, c, d);
+				#define UNIFORM_4(uniform, a, b, c, d, function) \
+					if (uniform != -1) \
+						function (uniform, a, b, c, d);
 
-			// glstate
-			UNIFORM_1(UNIFORM_fog_mode, 		glstate_fog_mode, 									pglUniform1i);
-			UNIFORM_1(UNIFORM_fog_density, 		glstate_fog_density, 								pglUniform1f);
+				// glstate
+				UNIFORM_1(UNIFORM_fog_mode, 		glstate_fog_mode, 									pglUniform1i);
+				UNIFORM_1(UNIFORM_fog_density, 		glstate_fog_density, 								pglUniform1f);
 
-			// polygon
-			UNIFORM_4(UNIFORM_mix_color, 		mix->red, mix->green, mix->blue, mix->alpha,		pglUniform4f);
-			UNIFORM_4(UNIFORM_fade_color, 		fade->red, fade->green, fade->blue, fade->alpha,	pglUniform4f);
-			UNIFORM_1(UNIFORM_lighting, 		Surface->LightInfo.light_level,						pglUniform1f);
+				// polygon
+				UNIFORM_4(UNIFORM_mix_color, 		mix->red, mix->green, mix->blue, mix->alpha,		pglUniform4f);
+				UNIFORM_4(UNIFORM_fade_color, 		fade->red, fade->green, fade->blue, fade->alpha,	pglUniform4f);
+				UNIFORM_1(UNIFORM_lighting, 		Surface->LightInfo.light_level,						pglUniform1f);
 
-			UNIFORM_2(UNIFORM_resolution, 		screen_width, screen_height,						pglUniform2f);
-			UNIFORM_1(UNIFORM_leveltime, 		(float)gl_leveltime,								pglUniform1f);
+				UNIFORM_2(UNIFORM_resolution, 		screen_width, screen_height,						pglUniform2f);
+				UNIFORM_1(UNIFORM_leveltime, 		(float)gl_leveltime,								pglUniform1f);
 
-			#undef UNIFORM_1
-			#undef UNIFORM_2
-			#undef UNIFORM_3
-			#undef UNIFORM_4
+				#undef UNIFORM_1
+				#undef UNIFORM_2
+				#undef UNIFORM_3
+				#undef UNIFORM_4
+			}
 		}
 		else
 			pglUseProgram(0);
