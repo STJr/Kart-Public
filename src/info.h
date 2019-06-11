@@ -226,7 +226,7 @@ void A_NapalmScatter();
 void A_SpawnFreshCopy();
 
 // ratio of states to sprites to mobj types is roughly 6 : 1 : 1
-#define NUMMOBJFREESLOTS 256
+#define NUMMOBJFREESLOTS 512
 #define NUMSPRITEFREESLOTS NUMMOBJFREESLOTS
 #define NUMSTATEFREESLOTS (NUMMOBJFREESLOTS*8)
 
@@ -4301,7 +4301,7 @@ typedef enum mobj_type
 
 	// Castle Eggman Scenery
 	MT_CHAIN, // CEZ Chain
-	MT_FLAME, // Flame (has corona)
+	MT_FLAME, // Flame
 	MT_EGGSTATUE, // Eggman Statue
 	MT_MACEPOINT, // Mace rotation point
 	MT_SWINGMACEPOINT, // Mace swinging point

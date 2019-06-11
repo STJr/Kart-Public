@@ -545,6 +545,9 @@ extern INT32 cv_debug;
 extern UINT8 shiftdown, ctrldown, altdown;
 extern boolean capslock;
 
+// WARNING: a should be unsigned but to add with 2048, it isn't!
+#define AIMINGTODY(a) (FINETANGENT((2048+(((INT32)a)>>ANGLETOFINESHIFT)) & FINEMASK)*160)
+
 // if we ever make our alloc stuff...
 #define ZZ_Alloc(x) Z_Malloc(x, PU_STATIC, NULL)
 
@@ -631,11 +634,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 //#define SAVEGAME_OTHERVERSIONS
 
 #if !defined (_NDS) && !defined (_PSP)
-///	Shuffle's incomplete OpenGL sorting code.
-#define SHUFFLE // This has nothing to do with sorting, why was it disabled?
-#endif
-
-#if !defined (_NDS) && !defined (_PSP)
 ///	Allow the use of the SOC RESETINFO command.
 ///	\note	Builds that are tight on memory should disable this.
 ///	    	This stops the game from storing backups of the states, sprites, and mobjinfo tables.
@@ -671,6 +669,10 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 /// on the bright side it fixes some weird issues with translucent walls
 /// \note	SRB2CB port.
 ///      	SRB2CB itself ported this from PrBoom+
-#define NEWCLIP
+//#define NEWCLIP
+
+// GL4
+#define GL_SHADERS
+//#define GL_PORTALS
 
 #endif // __DOOMDEF__

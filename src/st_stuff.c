@@ -203,7 +203,7 @@ void ST_Ticker(void)
 }
 
 // 0 is default, any others are special palettes.
-static INT32 st_palette = 0;
+INT32 st_palette = 0;
 
 void ST_doPaletteStuff(void)
 {
@@ -614,9 +614,7 @@ static void ST_drawDebugInfo(void)
 	}
 
 	if (cv_debug & DBG_MEMORY)
-	{
 		V_DrawRightAlignedString(320, height,     V_MONOSPACE, va("Heap used: %7sKB", sizeu1(Z_TagsUsage(0, INT32_MAX)>>10)));
-	}
 }
 
 /*
@@ -2039,8 +2037,6 @@ static void ST_overlayDrawer(void)
 			break;
 		}
 	}
-
-	ST_drawDebugInfo();
 }
 
 void ST_DrawDemoTitleEntry(void)
@@ -2142,4 +2138,5 @@ void ST_Drawer(void)
 		else
 			V_DrawFadeScreen(120, 15-timeinmap); // Then gradually fade out from there
 	}
+	ST_drawDebugInfo();
 }

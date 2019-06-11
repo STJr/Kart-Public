@@ -465,11 +465,7 @@ static void P_LoadRawSegs(UINT8 *data, size_t i)
 		li->length = P_SegLength(li);
 #ifdef HWRENDER
 		if (rendermode == render_opengl)
-		{
 			li->flength = P_SegLengthFloat(li);
-			//Hurdler: 04/12/2000: for now, only used in hardware mode
-			li->lightmaps = NULL; // list of static lightmap for this seg
-		}
 		li->pv1 = li->pv2 = NULL;
 #endif
 
@@ -1500,6 +1496,17 @@ static void P_LoadRawSideDefs2(void *data)
 								sec->extra_colormap->rgba += (ALPHA2INT(col[7]) << 24);
 							else
 								sec->extra_colormap->rgba += (25 << 24);
+
+							/*nearest = NearestColor(
+								(HEX2INT(col[1]) << 4) + (HEX2INT(col[2]) << 0),
+								(HEX2INT(col[3]) << 4) + (HEX2INT(col[4]) << 0),
+								(HEX2INT(col[5]) << 4) + (HEX2INT(col[6]) << 0)
+							);
+
+							sec->extra_colormap->rgba =
+								pLocalPalette[nearest].s.red +
+								(pLocalPalette[nearest].s.green << 8) +
+								(pLocalPalette[nearest].s.blue << 16);*/
 						}
 						else
 							sec->extra_colormap->rgba = 0;
@@ -3089,10 +3096,6 @@ boolean P_SetupLevel(boolean skipprecip)
 #ifdef HWRENDER // not win32 only 19990829 by Kin
 	if (rendermode != render_soft && rendermode != render_none)
 	{
-#ifdef ALAM_LIGHTING
-		// BP: reset light between levels (we draw preview frame lights on current frame)
-		HWR_ResetLights();
-#endif
 		// Correct missing sidedefs & deep water trick
 		HWR_CorrectSWTricks();
 		HWR_CreatePlanePolygons((INT32)numnodes - 1);

@@ -87,30 +87,6 @@
     <ClCompile Include="win_vid.c">
       <Filter>Win32app</Filter>
     </ClCompile>
-    <ClCompile Include="..\hardware\hw_bsp.c">
-      <Filter>Hw_Hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hardware\hw_cache.c">
-      <Filter>Hw_Hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hardware\hw_clip.c">
-      <Filter>Hw_Hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hardware\hw_draw.c">
-      <Filter>Hw_Hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hardware\hw_light.c">
-      <Filter>Hw_Hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hardware\hw_main.c">
-      <Filter>Hw_Hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hardware\hw_md2.c">
-      <Filter>Hw_Hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hardware\hw_trick.c">
-      <Filter>Hw_Hardware</Filter>
-    </ClCompile>
     <ClCompile Include="..\hardware\hw3sound.c">
       <Filter>Hw_Hardware</Filter>
     </ClCompile>
@@ -479,45 +455,6 @@
     </ClInclude>
     <ClInclude Include="win_main.h">
       <Filter>Win32app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_clip.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_data.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_defs.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_dll.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_drv.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_glide.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_glob.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_light.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_main.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_md2.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_md2load.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_md3load.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hardware\hw_model.h">
-      <Filter>Hw_Hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\hardware\hw3dsdrv.h">
       <Filter>Hw_Hardware</Filter>
