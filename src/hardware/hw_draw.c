@@ -562,11 +562,11 @@ void HWR_FadeScreenMenuBack(UINT16 color, UINT8 strength)
     }
     else // Do TRANSMAP** fade.
     {
-        Surf.PolyColor.s.rgba = pLocalPalette[color].rgba;
+        Surf.PolyColor.rgba = pLocalPalette[color].rgba;
         Surf.PolyColor.s.alpha = (UINT8)(strength*25.5f);
     }
     HWD.pfnDrawPolygon(&Surf, v, 4, PF_NoTexture|PF_Modulated|PF_Translucent|PF_NoDepthTest);
-}	
+}
 
 // Draw the console background with translucency support
 void HWR_DrawConsoleBack(UINT32 color, INT32 height)

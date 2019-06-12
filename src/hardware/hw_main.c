@@ -29,6 +29,7 @@
 #include "../p_setup.h"
 #include "../r_local.h"
 #include "../r_bsp.h"
+#include "../r_main.h"	// cv_fov
 #include "../d_clisrv.h"
 #include "../w_wad.h"
 #include "../z_zone.h"
@@ -55,9 +56,7 @@ struct hwdriver_s hwdriver;
 
 static void CV_filtermode_ONChange(void);
 static void CV_anisotropic_ONChange(void);
-static void CV_grFov_OnChange(void);
 
-static CV_PossibleValue_t grfov_cons_t[] = {{0, "MIN"}, {179*FRACUNIT, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t grfiltermode_cons_t[]= {{HWD_SET_TEXTUREFILTER_POINTSAMPLED, "Nearest"},
 	{HWD_SET_TEXTUREFILTER_BILINEAR, "Bilinear"}, {HWD_SET_TEXTUREFILTER_TRILINEAR, "Trilinear"},
 	{HWD_SET_TEXTUREFILTER_MIXED1, "Linear_Nearest"},
@@ -67,7 +66,6 @@ static CV_PossibleValue_t grfiltermode_cons_t[]= {{HWD_SET_TEXTUREFILTER_POINTSA
 CV_PossibleValue_t granisotropicmode_cons_t[] = {{1, "MIN"}, {16, "MAX"}, {0, NULL}};
 
 consvar_t cv_grrounddown = {"gr_rounddown", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_grfov = {"gr_fov", "90", CV_FLOAT|CV_CALL, grfov_cons_t, CV_grFov_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 // Unfortunately, this can no longer be saved..
 consvar_t cv_grfiltermode = {"gr_filtermode", "Nearest", CV_CALL, grfiltermode_cons_t,
@@ -162,6 +160,20 @@ void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UIN
 	fog_color.s.red = (UINT8)(((float)fog_color.s.red) * fog_alpha);
 	fog_color.s.green = (UINT8)(((float)fog_color.s.green) * fog_alpha);
 	fog_color.s.blue = (UINT8)(((float)fog_color.s.blue) * fog_alpha);
+
+	{
+		// be careful, this may get negative for high lightlevel values.
+		float fog = (fog_alpha - (light_level/255.0f))*3/2;
+		if (fog < 0)
+			fog = 0;
+
+		float red = (fog_color.s.red/255.0f) * fog / 1.0f + (final_color.s.red/255.0f) * (1.0f - fog) / 1.0f;
+		float green = (fog_color.s.green/255.0f) * fog / 1.0f + (final_color.s.green/255.0f) * (1.0f - fog) / 1.0f;
+		float blue = (fog_color.s.blue/255.0f) * fog / 1.0f + (final_color.s.blue/255.0f) * (1.0f - fog) / 1.0f;
+		final_color.s.red = (UINT8)(red*255.0f);
+		final_color.s.green = (UINT8)(green*255.0f);
+		final_color.s.blue = (UINT8)(blue*255.0f);
+	}
 
 	Surface->PolyColor.rgba = final_color.rgba;
 	Surface->FadeColor.rgba = fog_color.rgba;
@@ -2947,7 +2959,7 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 // This is expecting a pointer to an array containing 4 wallVerts for a sprite
 static void HWR_RotateSpritePolyToAim(gr_vissprite_t *spr, FOutVector *wallVerts)
 {
-	if (cv_grspritebillboarding.value && spr && spr->mobj && wallVerts)
+	if (cv_grspritebillboarding.value && spr && spr->mobj && !(spr->mobj->frame & FF_PAPERSPRITE) && wallVerts)
 	{
 		float basey = FIXED_TO_FLOAT(spr->mobj->z);
 		float lowy = wallVerts[0].y;
@@ -3225,7 +3237,7 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 		wallVerts[1].y = endbot;
 
 		// The x and y only need to be adjusted in the case that it's not a papersprite
-		if (cv_grspritebillboarding.value && spr->mobj)
+		if (cv_grspritebillboarding.value && spr->mobj && !(spr->mobj->frame & FF_PAPERSPRITE))
 		{
 			// Get the x and z of the vertices so billboarding draws correctly
 			realheight = realbot - realtop;
@@ -3254,7 +3266,7 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 		wallVerts[0].y = wallVerts[1].y = bot;
 
 		// The x and y only need to be adjusted in the case that it's not a papersprite
-		if (cv_grspritebillboarding.value && spr->mobj)
+		if (cv_grspritebillboarding.value && spr->mobj && !(spr->mobj->frame & FF_PAPERSPRITE))
 		{
 			// Get the x and z of the vertices so billboarding draws correctly
 			realheight = realbot - realtop;
@@ -4210,28 +4222,63 @@ void HWR_ProjectSprite(mobj_t *thing)
 		I_Error("sprframes NULL for sprite %d\n", thing->sprite);
 #endif
 
-	if (sprframe->rotate)
-	{
-		// choose a different rotation based on player view
-		ang = R_PointToAngle(thing->x, thing->y); // uses viewx,viewy
-		rot = (ang-thing->angle+ANGLE_202h)>>29;
-		//Fab: lumpid is the index for spritewidth,spriteoffset... tables
-		lumpoff = sprframe->lumpid[rot];
-		flip = sprframe->flip & (1<<rot);
-	}
+	if (thing->player)
+		ang = R_PointToAngle (thing->x, thing->y) - thing->player->frameangle;
 	else
+		ang = R_PointToAngle (thing->x, thing->y) - thing->angle;
+
+	if (sprframe->rotate == SRF_SINGLE)
 	{
 		// use single rotation for all views
 		rot = 0;                        //Fab: for vis->patch below
 		lumpoff = sprframe->lumpid[0];     //Fab: see note above
 		flip = sprframe->flip; // Will only be 0x00 or 0xFF
+
+		if (papersprite && ang < ANGLE_180)
+		{
+			if (flip)
+				flip = 0;
+			else
+				flip = 255;
+		}
+	}
+	else
+	{
+		// choose a different rotation based on player view
+		if ((ang < ANGLE_180) && (sprframe->rotate & SRF_RIGHT)) // See from right
+			rot = 6; // F7 slot
+		else if ((ang >= ANGLE_180) && (sprframe->rotate & SRF_LEFT)) // See from left
+			rot = 2; // F3 slot
+		else // Normal behaviour
+			rot = (ang+ANGLE_202h)>>29;
+
+		//Fab: lumpid is the index for spritewidth,spriteoffset... tables
+		lumpoff = sprframe->lumpid[rot];
+		flip = sprframe->flip & (1<<rot);
+
+		if (papersprite && ang < ANGLE_180)
+		{
+			if (flip)
+				flip = 0;
+			else
+				flip = 1<<rot;
+		}
 	}
 
 	if (thing->skin && ((skin_t *)thing->skin)->flags & SF_HIRES)
 		this_scale = this_scale * FIXED_TO_FLOAT(((skin_t *)thing->skin)->highresscale);
 
-	rightsin = FIXED_TO_FLOAT(FINESINE((viewangle + ANGLE_90)>>ANGLETOFINESHIFT));
-	rightcos = FIXED_TO_FLOAT(FINECOSINE((viewangle + ANGLE_90)>>ANGLETOFINESHIFT));
+	if (papersprite)
+	{
+		rightsin = FIXED_TO_FLOAT(FINESINE((thing->angle)>>ANGLETOFINESHIFT));
+		rightcos = FIXED_TO_FLOAT(FINECOSINE((thing->angle)>>ANGLETOFINESHIFT));
+	}
+	else
+	{
+		rightsin = FIXED_TO_FLOAT(FINESINE((viewangle + ANGLE_90)>>ANGLETOFINESHIFT));
+		rightcos = FIXED_TO_FLOAT(FINECOSINE((viewangle + ANGLE_90)>>ANGLETOFINESHIFT));
+	}
+
 	if (flip)
 	{
 		x1 = (FIXED_TO_FLOAT(spritecachedinfo[lumpoff].width - spritecachedinfo[lumpoff].offset) * this_scale);
@@ -4247,6 +4294,7 @@ void HWR_ProjectSprite(mobj_t *thing)
 	z2 = tr_y - x2 * rightsin;
 	x1 = tr_x + x1 * rightcos;
 	x2 = tr_x - x2 * rightcos;
+
 
 	if (thing->eflags & MFE_VERTICALFLIP)
 	{
@@ -4295,6 +4343,7 @@ void HWR_ProjectSprite(mobj_t *thing)
 	vis->flip = flip;
 	vis->mobj = thing;
 
+
 	//Hurdler: 25/04/2000: now support colormap in hardware mode
 	if ((vis->mobj->flags & MF_BOSS) && (vis->mobj->flags2 & MF2_FRET) && (leveltime & 1)) // Bosses "flash"
 	{
@@ -4308,16 +4357,24 @@ void HWR_ProjectSprite(mobj_t *thing)
 	else if (thing->color)
 	{
 		// New colormap stuff for skins Tails 06-07-2002
-		if (thing->skin && thing->sprite == SPR_PLAY) // This thing is a player!
+		if (thing->colorized)
+			vis->colormap = R_GetTranslationColormap(TC_RAINBOW, thing->color, GTC_CACHE);
+		else if (thing->skin && thing->sprite == SPR_PLAY) // This thing is a player!
 		{
 			size_t skinnum = (skin_t*)thing->skin-skins;
 			vis->colormap = R_GetTranslationColormap((INT32)skinnum, thing->color, GTC_CACHE);
 		}
 		else
-			vis->colormap = R_GetTranslationColormap(TC_DEFAULT, vis->mobj->color ? vis->mobj->color : SKINCOLOR_CYAN, GTC_CACHE);
+			vis->colormap = R_GetTranslationColormap(TC_DEFAULT, thing->color, GTC_CACHE);
 	}
 	else
+	{
 		vis->colormap = colormaps;
+#ifdef GLENCORE
+		if (encoremap && (thing->flags & (MF_SCENERY|MF_NOTHINK)))
+			vis->colormap += (256*32);
+#endif
+	}
 
 	// set top/bottom coords
 	vis->ty = gzt;
@@ -4431,6 +4488,11 @@ void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 
 	vis->colormap = colormaps;
 
+#ifdef GLENCORE
+	if (encoremap)
+		vis->colormap += (256*32);
+#endif
+
 	// set top/bottom coords
 	vis->ty = FIXED_TO_FLOAT(thing->z + spritecachedinfo[lumpoff].topoffset);
 
@@ -4476,7 +4538,7 @@ void HWR_DrawSkyBackground(void)
 	// The only time this will probably be an issue is when a sky wider than 1024 is used as a sky AND a regular wall texture
 
 	angle = (viewangle + xtoviewangle[0]);
-	dimensionmultiply = ((float)textures[skytexture]->width/256.0f);
+	dimensionmultiply = ((float)textures[skytexture]->width/256.0f)*2;
 
 	v[0].s = v[3].s = ((float) angle / ((ANGLE_90-1)*dimensionmultiply));
 	v[2].s = v[1].s = (-1.0f/dimensionmultiply)+((float) angle / ((ANGLE_90-1)*dimensionmultiply));
@@ -4484,6 +4546,12 @@ void HWR_DrawSkyBackground(void)
 	// Y
 	angle = aimingangle;
 	dimensionmultiply = ((float)textures[skytexture]->height/(128.0f*aspectratio));
+
+	if (atransform.mirror)
+	{
+		angle = InvAngle(angle);
+		dimensionmultiply *= -1;
+	}
 
 	if (splitscreen == 1)
 	{
@@ -4562,7 +4630,7 @@ void HWR_SetViewSize(void)
 		gr_viewheight /= 2;
 
 	if (splitscreen > 1)
-		gr_viewwidth /= 2;	
+		gr_viewwidth /= 2;
 
 	gr_centerx = gr_viewwidth / 2;
 	gr_basecentery = gr_viewheight / 2; //note: this is (gr_centerx * gr_viewheight / gr_viewwidth)
@@ -4589,7 +4657,7 @@ void HWR_SetViewSize(void)
 void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 {
 	angle_t a1;
-	const float fpov = FIXED_TO_FLOAT(cv_grfov.value+player->fovadd);
+	const float fpov = FIXED_TO_FLOAT(cv_fov.value+player->fovadd);
 	postimg_t *postprocessor;
 	INT32 i;
 
@@ -4607,7 +4675,7 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	{
 		gr_viewwindowx += gr_viewwidth;
 		gr_windowcenterx += gr_viewwidth;
-	}	
+	}
 
 	// check for new console commands.
 	NetUpdate();
@@ -4647,16 +4715,19 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	atransform.fovxangle = fpov; // Tails
 	atransform.fovyangle = fpov; // Tails
 	atransform.splitscreen = splitscreen;
-	
+
 	for (i = 0; i <= splitscreen; i++)
 	{
 		if (player == &players[displayplayers[i]])
 			postprocessor = &postimgtype[i];
-	}	
+	}
 
 	atransform.flip = false;
 	if (*postprocessor == postimg_flip)
 		atransform.flip = true;
+
+	if (*postprocessor == postimg_mirror)
+		atransform.mirror = true;
 
 	// Clear view, set viewport (glViewport), set perspective...
 	HWR_ClearView();
@@ -4731,7 +4802,6 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 {
 	const boolean skybox = (skyboxmo[0] && cv_skybox.value); // True if there's a skybox object and skyboxes are on
-
 	// Clear the color buffer, stops HOMs. Also seems to fix the skybox issue on Intel GPUs.
 	if (viewnumber == 0) // Only do it if it's the first screen being rendered
 	{
@@ -4769,12 +4839,6 @@ void HWR_FoggingOn(void)
 //                                                         3D ENGINE COMMANDS
 // ==========================================================================
 
-static void CV_grFov_OnChange(void)
-{
-	if ((netgame || multiplayer) && !cv_debug && cv_grfov.value != 90*FRACUNIT)
-		CV_Set(&cv_grfov, cv_grfov.defaultvalue);
-}
-
 // **************************************************************************
 //                                                            3D ENGINE SETUP
 // **************************************************************************
@@ -4786,7 +4850,6 @@ static void CV_grFov_OnChange(void)
 void HWR_AddCommands(void)
 {
 	CV_RegisterVar(&cv_grrounddown);
-	CV_RegisterVar(&cv_grfov);
 	CV_RegisterVar(&cv_grfiltermode);
 	CV_RegisterVar(&cv_granisotropicmode);
 	CV_RegisterVar(&cv_grcorrecttricks);
@@ -4900,7 +4963,7 @@ void HWR_DoPostProcessor(player_t *player)
 	UINT8 i;
 
 	HWD.pfnUnSetShader();
-	
+
 	for (i = splitscreen; i > 0; i--)
 	{
 		if (player == &players[displayplayers[i]])

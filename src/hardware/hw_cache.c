@@ -346,6 +346,13 @@ static void HWR_GenerateTexture(INT32 texnum, GLTexture_t *grtex)
 	grtex->mipmap.height = (UINT16)blockheight;
 	grtex->mipmap.grInfo.format = textureformat;
 
+#ifdef GLENCORE
+	grtex->mipmap.colormap = colormaps;
+
+	if (encoremode)
+		grtex->mipmap.colormap += (256*32);
+#endif
+
 	block = MakeBlock(&grtex->mipmap);
 
 	if (skyspecial) //Hurdler: not efficient, but better than holes in the sky (and it's done only at level loading)
@@ -616,6 +623,13 @@ void HWR_GetFlat(lumpnum_t flatlumpnum)
 	GLMipmap_t *grmip;
 
 	grmip = &HWR_GetCachedGLPatch(flatlumpnum)->mipmap;
+
+#ifdef GLENCORE
+	grmip->colormap = colormaps;
+
+	if (encoremode)
+		grmip->colormap += (256*32);
+#endif
 
 	if (!grmip->downloaded && !grmip->grInfo.data)
 		HWR_CacheFlat(grmip, flatlumpnum);

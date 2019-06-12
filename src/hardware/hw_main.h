@@ -28,6 +28,8 @@
 #include "../d_player.h"
 #include "../r_defs.h"
 
+#define GLENCORE
+
 // Startup & Shutdown the hardware mode renderer
 void HWR_Startup(void);
 void HWR_Shutdown(void);
@@ -42,6 +44,7 @@ void HWR_DrawFixedPatch(GLPatch_t *gpatch, fixed_t x, fixed_t y, fixed_t scale, 
 void HWR_DrawCroppedPatch(GLPatch_t *gpatch, fixed_t x, fixed_t y, fixed_t pscale, INT32 option, fixed_t sx, fixed_t sy, fixed_t w, fixed_t h);
 void HWR_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 color);
 void HWR_DrawConsoleFill(INT32 x, INT32 y, INT32 w, INT32 h, UINT32 color, INT32 options);	// Lat: separate flags from color since color needs to be an uint to work right.
+void HWR_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 color);
 void HWR_drawAMline(const fline_t *fl, INT32 color);
 void HWR_FadeScreenMenuBack(UINT16 color, UINT8 strength);
 void HWR_DrawConsoleBack(UINT32 color, INT32 height);
@@ -50,22 +53,6 @@ void HWR_DrawFlatFill(INT32 x, INT32 y, INT32 w, INT32 h, lumpnum_t flatlumpnum)
 
 UINT8 *HWR_GetScreenshot(void);
 boolean HWR_Screenshot(const char *lbmname);
-<<<<<<< HEAD
-void HWR_InitTextureMapping(void);
-void HWR_SetViewSize(void);
-void HWR_DrawPatch(GLPatch_t *gpatch, INT32 x, INT32 y, INT32 option);
-void HWR_DrawFixedPatch(GLPatch_t *gpatch, fixed_t x, fixed_t y, fixed_t scale, INT32 option, const UINT8 *colormap);
-void HWR_DrawCroppedPatch(GLPatch_t *gpatch, fixed_t x, fixed_t y, fixed_t scale, INT32 option, fixed_t sx, fixed_t sy, fixed_t w, fixed_t h);
-void HWR_MakePatch (const patch_t *patch, GLPatch_t *grPatch, GLMipmap_t *grMipmap, boolean makebitmap);
-void HWR_CreatePlanePolygons(INT32 bspnum);
-void HWR_CreateStaticLightmaps(INT32 bspnum);
-void HWR_PrepLevelCache(size_t pnumtextures);
-void HWR_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 color);
-void HWR_DrawConsoleFill(INT32 x, INT32 y, INT32 w, INT32 h, UINT32 color, INT32 options);	// Lat: separate flags from color since color needs to be an uint to work right.
-void HWR_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 color);
-void HWR_DrawPic(INT32 x,INT32 y,lumpnum_t lumpnum);
-=======
->>>>>>> e251f9c230beda984cdcdea7e903d765f1c68f6f
 
 // hw_main.c
 void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox);
@@ -85,12 +72,8 @@ UINT8 HWR_FogBlockAlpha(INT32 light, UINT32 color); // Let's see if this can wor
 void HWR_FoggingOn(void);
 
 FBITFIELD HWR_TranstableToAlpha(INT32 transtablenum, FSurfaceInfo *pSurf);
-<<<<<<< HEAD
-INT32 HWR_GetTextureUsed(void);
-=======
 
 // hw_main.c: Post-rendering
->>>>>>> e251f9c230beda984cdcdea7e903d765f1c68f6f
 void HWR_DoPostProcessor(player_t *player);
 void HWR_StartScreenWipe(void);
 void HWR_EndScreenWipe(void);
@@ -123,10 +106,6 @@ void HWR_DrawSkyBackground(void);
 #ifdef POLYOBJECTS
 void HWR_AddPolyObjectSegs(void);
 #endif
-<<<<<<< HEAD
-extern consvar_t cv_grmdls;
-extern consvar_t cv_grfallbackplayermodel;
-=======
 
 // hw_main.c: BSP
 void HWR_RenderBSPNode(INT32 bspnum);
@@ -154,8 +133,7 @@ void HWR_CorrectSWTricks(void);
 extern consvar_t cv_grshaders;
 extern consvar_t cv_grshearing;
 extern consvar_t cv_grfov;
-extern consvar_t cv_grmd2;
->>>>>>> e251f9c230beda984cdcdea7e903d765f1c68f6f
+extern consvar_t cv_grmdls;
 extern consvar_t cv_grfog;
 extern consvar_t cv_grfogdensity;
 extern consvar_t cv_grsoftwarefog;
@@ -168,26 +146,8 @@ extern consvar_t cv_grcorrecttricks;
 extern consvar_t cv_grfovchange;
 extern consvar_t cv_grsolvetjoin;
 extern consvar_t cv_grspritebillboarding;
+extern consvar_t cv_grfallbackplayermodel;
 
-<<<<<<< HEAD
-extern float gr_viewwidth, gr_viewheight, gr_baseviewwindowx, gr_baseviewwindowy;
-
-extern float gr_basewindowcenterx, gr_basewindowcentery;
-
-// BP: big hack for a test in lighting ref : 1249753487AB
-extern fixed_t *hwbbox;
-extern FTransform atransform;
-
-typedef struct
-{
-	wallVert3D    floorVerts[4];
-	FSurfaceInfo  Surf;
-	INT32           texnum;
-	INT32           blend;
-	INT32           drawcount;
-} floorinfo_t;
-=======
 extern CV_PossibleValue_t granisotropicmode_cons_t[];
->>>>>>> e251f9c230beda984cdcdea7e903d765f1c68f6f
 
 #endif
