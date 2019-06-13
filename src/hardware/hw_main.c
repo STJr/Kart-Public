@@ -387,13 +387,13 @@ void HWR_RenderPlane(extrasubsector_t *xsub, boolean isceiling, fixed_t fixedhei
 		{
 			scrollx = FIXED_TO_FLOAT(FOFsector->floor_xoffs)/fflatsize;
 			scrolly = FIXED_TO_FLOAT(FOFsector->floor_yoffs)/fflatsize;
-			angle = FOFsector->floorpic_angle>>ANGLETOFINESHIFT;
+			angle = FOFsector->floorpic_angle;
 		}
 		else // it's a ceiling
 		{
 			scrollx = FIXED_TO_FLOAT(FOFsector->ceiling_xoffs)/fflatsize;
 			scrolly = FIXED_TO_FLOAT(FOFsector->ceiling_yoffs)/fflatsize;
-			angle = FOFsector->ceilingpic_angle>>ANGLETOFINESHIFT;
+			angle = FOFsector->ceilingpic_angle;
 		}
 	}
 	else if (gr_frontsector)
@@ -402,24 +402,27 @@ void HWR_RenderPlane(extrasubsector_t *xsub, boolean isceiling, fixed_t fixedhei
 		{
 			scrollx = FIXED_TO_FLOAT(gr_frontsector->floor_xoffs)/fflatsize;
 			scrolly = FIXED_TO_FLOAT(gr_frontsector->floor_yoffs)/fflatsize;
-			angle = gr_frontsector->floorpic_angle>>ANGLETOFINESHIFT;
+			angle = gr_frontsector->floorpic_angle;
 		}
 		else // it's a ceiling
 		{
 			scrollx = FIXED_TO_FLOAT(gr_frontsector->ceiling_xoffs)/fflatsize;
 			scrolly = FIXED_TO_FLOAT(gr_frontsector->ceiling_yoffs)/fflatsize;
-			angle = gr_frontsector->ceilingpic_angle>>ANGLETOFINESHIFT;
+			angle = gr_frontsector->ceilingpic_angle;
 		}
 	}
+
 
 	if (angle) // Only needs to be done if there's an altered angle
 	{
 
+		angle = InvAngle(angle)>>ANGLETOFINESHIFT;
+
 		// This needs to be done so that it scrolls in a different direction after rotation like software
-		tempxsow = FLOAT_TO_FIXED(scrollx);
+		/*tempxsow = FLOAT_TO_FIXED(scrollx);
 		tempytow = FLOAT_TO_FIXED(scrolly);
 		scrollx = (FIXED_TO_FLOAT(FixedMul(tempxsow, FINECOSINE(angle)) - FixedMul(tempytow, FINESINE(angle))));
-		scrolly = (FIXED_TO_FLOAT(FixedMul(tempxsow, FINESINE(angle)) + FixedMul(tempytow, FINECOSINE(angle))));
+		scrolly = (FIXED_TO_FLOAT(FixedMul(tempxsow, FINESINE(angle)) + FixedMul(tempytow, FINECOSINE(angle))));*/
 
 		// This needs to be done so everything aligns after rotation
 		// It would be done so that rotation is done, THEN the translation, but I couldn't get it to rotate AND scroll like software does
@@ -428,6 +431,7 @@ void HWR_RenderPlane(extrasubsector_t *xsub, boolean isceiling, fixed_t fixedhei
 		flatxref = (FIXED_TO_FLOAT(FixedMul(tempxsow, FINECOSINE(angle)) - FixedMul(tempytow, FINESINE(angle))));
 		flatyref = (FIXED_TO_FLOAT(FixedMul(tempxsow, FINESINE(angle)) + FixedMul(tempytow, FINECOSINE(angle))));
 	}
+
 
 	for (i = 0; i < nrPlaneVerts; i++,v3d++,pv++)
 	{
@@ -4381,7 +4385,7 @@ void HWR_ProjectSprite(mobj_t *thing)
 	{
 		vis->colormap = colormaps;
 #ifdef GLENCORE
-		if (encoremap && (thing->flags & (MF_SCENERY|MF_NOTHINK)))
+		if (encoremap && (thing->flags & (MF_SCENERY|MF_NOTHINK)) && !(thing->flags & MF_DONTENCOREMAP))
 			vis->colormap += (256*32);
 #endif
 	}
@@ -4499,7 +4503,7 @@ void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	vis->colormap = colormaps;
 
 #ifdef GLENCORE
-	if (encoremap)
+	if (encoremap && !(thing->flags & MF_DONTENCOREMAP))
 		vis->colormap += (256*32);
 #endif
 

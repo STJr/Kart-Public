@@ -346,10 +346,10 @@ static void HWR_GenerateTexture(INT32 texnum, GLTexture_t *grtex)
 	grtex->mipmap.height = (UINT16)blockheight;
 	grtex->mipmap.grInfo.format = textureformat;
 
-#ifdef GLENCORE
 	grtex->mipmap.colormap = colormaps;
-
-	if (encoremode)
+	
+#ifdef GLENCORE
+	if (encoremap)
 		grtex->mipmap.colormap += (256*32);
 #endif
 
@@ -634,11 +634,11 @@ void HWR_GetFlat(lumpnum_t flatlumpnum)
 	GLMipmap_t *grmip;
 
 	grmip = &HWR_GetCachedGLPatch(flatlumpnum)->mipmap;
-
-#ifdef GLENCORE
+	
 	grmip->colormap = colormaps;
-
-	if (encoremode)
+	
+#ifdef GLENCORE
+	if (encoremap)
 		grmip->colormap += (256*32);
 #endif
 
