@@ -573,6 +573,10 @@ GLTexture_t *HWR_GetTexture(INT32 tex)
 
 static void HWR_CacheFlat(GLMipmap_t *grMipmap, lumpnum_t flatlumpnum)
 {
+#ifdef GLENCORE
+	UINT8 *flat;
+	INT32 steppy;
+#endif
 	size_t size, pflatsize;
 
 	// setup the texture info
@@ -614,6 +618,13 @@ static void HWR_CacheFlat(GLMipmap_t *grMipmap, lumpnum_t flatlumpnum)
 	// the flat raw data needn't be converted with palettized textures
 	W_ReadLump(flatlumpnum, Z_Malloc(W_LumpLength(flatlumpnum),
 		PU_HWRCACHE, &grMipmap->grInfo.data));
+
+#ifdef GLENCORE
+	flat = grMipmap->grInfo.data;
+	for (steppy = 0; steppy < size; steppy++)
+		if (flat[steppy] != HWR_PATCHES_CHROMAKEY_COLORINDEX)
+			flat[steppy] = grMipmap->colormap[flat[steppy]];
+#endif
 }
 
 

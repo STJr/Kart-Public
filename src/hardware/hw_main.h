@@ -137,6 +137,7 @@ extern consvar_t cv_grmdls;
 extern consvar_t cv_grfog;
 extern consvar_t cv_grfogdensity;
 extern consvar_t cv_grsoftwarefog;
+extern consvar_t cv_grfogfunction;
 extern consvar_t cv_grgammared;
 extern consvar_t cv_grgammagreen;
 extern consvar_t cv_grgammablue;

@@ -161,15 +161,16 @@ void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UIN
 	fog_color.s.green = (UINT8)(((float)fog_color.s.green) * fog_alpha);
 	fog_color.s.blue = (UINT8)(((float)fog_color.s.blue) * fog_alpha);
 
+	if (cv_grfog.value)
 	{
 		// be careful, this may get negative for high lightlevel values.
 		float fog = (fog_alpha - (light_level/255.0f))*3/2;
 		if (fog < 0)
 			fog = 0;
 
-		float red = (fog_color.s.red/255.0f) * fog / 1.0f + (final_color.s.red/255.0f) * (1.0f - fog) / 1.0f;
-		float green = (fog_color.s.green/255.0f) * fog / 1.0f + (final_color.s.green/255.0f) * (1.0f - fog) / 1.0f;
-		float blue = (fog_color.s.blue/255.0f) * fog / 1.0f + (final_color.s.blue/255.0f) * (1.0f - fog) / 1.0f;
+		float red = ((fog_color.s.red/255.0f) * fog) + ((final_color.s.red/255.0f) * (1.0f - fog));
+		float green = ((fog_color.s.green/255.0f) * fog) + ((final_color.s.green/255.0f) * (1.0f - fog));
+		float blue = ((fog_color.s.blue/255.0f) * fog) + ((final_color.s.blue/255.0f) * (1.0f - fog));
 		final_color.s.red = (UINT8)(red*255.0f);
 		final_color.s.green = (UINT8)(green*255.0f);
 		final_color.s.blue = (UINT8)(blue*255.0f);
@@ -4540,18 +4541,18 @@ void HWR_DrawSkyBackground(void)
 	angle = (viewangle + xtoviewangle[0]);
 	dimensionmultiply = ((float)textures[skytexture]->width/256.0f)*2;
 
+	if (atransform.mirror)
+	{
+		angle = InvAngle(angle);
+		dimensionmultiply *= -1;
+	}
+
 	v[0].s = v[3].s = ((float) angle / ((ANGLE_90-1)*dimensionmultiply));
 	v[2].s = v[1].s = (-1.0f/dimensionmultiply)+((float) angle / ((ANGLE_90-1)*dimensionmultiply));
 
 	// Y
 	angle = aimingangle;
 	dimensionmultiply = ((float)textures[skytexture]->height/(128.0f*aspectratio));
-
-	if (atransform.mirror)
-	{
-		angle = InvAngle(angle);
-		dimensionmultiply *= -1;
-	}
 
 	if (splitscreen == 1)
 	{
@@ -4726,6 +4727,7 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	if (*postprocessor == postimg_flip)
 		atransform.flip = true;
 
+	atransform.mirror = false;
 	if (*postprocessor == postimg_mirror)
 		atransform.mirror = true;
 
@@ -4832,6 +4834,7 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 void HWR_FoggingOn(void)
 {
 	HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, cv_grsoftwarefog.value ? 2 : 1);
+	HWD.pfnSetSpecialState(HWD_SET_FOG_FUNCTION, cv_grfogfunction.value);
 	HWD.pfnSetSpecialState(HWD_SET_FOG_DENSITY, cv_grfogdensity.value);
 }
 

@@ -490,6 +490,7 @@ boolean SetupGLfunc(void)
 }
 
 static INT32 glstate_fog_mode = 0;
+static INT32 glstate_fog_function = 0;
 static float glstate_fog_density = 0;
 
 INT32 gl_leveltime = 0;
@@ -572,12 +573,17 @@ static PFNglGetUniformLocation pglGetUniformLocation;
 
 #define GLSL_SHARED_FOG_MIX \
 	"float fog_distance = gl_FragCoord.z / gl_FragCoord.w;\n" \
-	"float fog_attenuation = fog(fog_distance, 0.0001 * ((256-lighting)/24), fog_density);\n" \
+	"float fog_attenuation = 0.0001 * ((256-lighting)/24);\n" \
+	"if (fog_function == 2)\n" \
+		"fog_attenuation = fog2(fog_distance, fog_attenuation, fog_density);\n" \
+	"else\n" \
+		"fog_attenuation = fog(fog_distance, fog_attenuation, fog_density);\n" \
 	"if (fog_mode == 2)\n" \
 		"fog_attenuation = floor(fog_attenuation*10)/10;\n" \
 	"vec4 fog_color = vec4(fade_color[0], fade_color[1], fade_color[2], 1.0);\n" \
 	"vec4 mixed_color = texel * mix_color;\n" \
-	"vec4 final_color = mix(mixed_color, fog_color, fog_attenuation);\n" \
+	"vec4 fog_mix = mix(mixed_color, fog_color, fog_attenuation);\n" \
+	"vec4 final_color = mix(fog_mix, fog_color, ((256-lighting)/256));\n" \
 	"final_color[3] = mixed_color[3];\n"
 
 #define GLSL_FRAGMENT_SHADER_HEADER \
@@ -586,6 +592,7 @@ static PFNglGetUniformLocation pglGetUniformLocation;
 	"uniform vec4 fade_color;\n" \
 	"uniform float lighting;\n" \
 	"uniform int fog_mode;\n" \
+	"uniform int fog_function;\n" \
 	"uniform float fog_density;\n" \
 
 #define SHARED_FRAGMENT_SHADER \
@@ -1596,6 +1603,7 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *f
 			{
 #define GETUNI(uniform) pglGetUniformLocation(gl_shaderprograms[gl_currentshaderprogram], uniform);
 				GLint UNIFORM_fog_mode = GETUNI("fog_mode");
+				GLint UNIFORM_fog_function = GETUNI("fog_function");
 				GLint UNIFORM_fog_density = GETUNI("fog_density");
 
 				GLint UNIFORM_mix_color = GETUNI("mix_color");
@@ -1624,6 +1632,7 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *f
 
 				// glstate
 				UNIFORM_1(UNIFORM_fog_mode, 		glstate_fog_mode, 									pglUniform1i);
+				UNIFORM_1(UNIFORM_fog_function, 	glstate_fog_function, 								pglUniform1i);
 				UNIFORM_1(UNIFORM_fog_density, 		glstate_fog_density, 								pglUniform1f);
 
 				// polygon
@@ -1722,6 +1731,10 @@ EXPORT void HWRAPI(SetSpecialState) (hwdspecialstate_t IdState, INT32 Value)
 
 		case HWD_SET_FOG_MODE:
 			glstate_fog_mode = Value;
+			break;
+
+		case HWD_SET_FOG_FUNCTION:
+			glstate_fog_function = Value;
 			break;
 
 		case HWD_SET_FOG_DENSITY:
