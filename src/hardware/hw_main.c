@@ -4842,8 +4842,7 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 
 void HWR_FoggingOn(void)
 {
-	HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, cv_grsoftwarefog.value ? 2 : 1);
-	HWD.pfnSetSpecialState(HWD_SET_FOG_FUNCTION, cv_grfogfunction.value);
+	HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, 1);
 	HWD.pfnSetSpecialState(HWD_SET_FOG_DENSITY, cv_grfogdensity.value);
 }
 
