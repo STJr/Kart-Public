@@ -567,7 +567,7 @@ typedef struct gl_shaderprogram_s
 {
 	GLuint program;
 	boolean custom;
-	GLuint uniforms[gluniform_max+1];
+	GLint uniforms[gluniform_max+1];
 } gl_shaderprogram_t;
 static gl_shaderprogram_t gl_shaderprograms[MAXSHADERPROGRAMS];
 
