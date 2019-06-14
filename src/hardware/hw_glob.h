@@ -34,7 +34,9 @@ void HWR_InitTextureCache(void);
 void HWR_FreeTextureCache(void);
 void HWR_FreeExtraSubsectors(void);
 
-void HWR_GetFlat(lumpnum_t flatlumpnum);
+void HWR_GetFlat(lumpnum_t flatlumpnum, boolean noencoremap);
+// ^ some flats must NOT be remapped to encore, since we remap them as we cache them for ease, adding a toggle here seems wise.
+
 GLTexture_t *HWR_GetTexture(INT32 tex);
 void HWR_GetPatch(GLPatch_t *gpatch);
 void HWR_GetMappedPatch(GLPatch_t *gpatch, const UINT8 *colormap);

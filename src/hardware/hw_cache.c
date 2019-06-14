@@ -629,7 +629,7 @@ static void HWR_CacheFlat(GLMipmap_t *grMipmap, lumpnum_t flatlumpnum)
 
 
 // Download a Doom 'flat' to the hardware cache and make it ready for use
-void HWR_GetFlat(lumpnum_t flatlumpnum)
+void HWR_GetFlat(lumpnum_t flatlumpnum, boolean noencoremap)
 {
 	GLMipmap_t *grmip;
 
@@ -638,7 +638,7 @@ void HWR_GetFlat(lumpnum_t flatlumpnum)
 	grmip->colormap = colormaps;
 	
 #ifdef GLENCORE
-	if (encoremap)
+	if (!noencoremap && encoremap)
 		grmip->colormap += (256*32);
 #endif
 

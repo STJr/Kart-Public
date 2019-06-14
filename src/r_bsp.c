@@ -37,7 +37,7 @@ drawseg_t *ds_p = NULL;
 // indicates doors closed wrt automap bugfix:
 INT32 doorclosed;
 
-static boolean R_NoEncore(sector_t *sector, boolean ceiling)
+boolean R_NoEncore(sector_t *sector, boolean ceiling)
 {
 	boolean invertencore = (GETSECSPECIAL(sector->special, 2) == 15);
 #if 0 // perfect implementation
