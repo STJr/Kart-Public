@@ -252,6 +252,9 @@ extern FILE *logstream;
 #define PLAYERSMASK (MAXPLAYERS-1)
 #define MAXPLAYERNAME 21
 
+// Master Server compatibility ONLY
+#define MSCOMPAT_MAXPLAYERS (32)
+
 typedef enum
 {
 	SKINCOLOR_NONE = 0,
