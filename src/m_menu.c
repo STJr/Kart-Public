@@ -1284,12 +1284,13 @@ static menuitem_t OP_OpenGLOptionsMenu[] =
 {
 	{IT_STRING|IT_CVAR,         NULL, "Shaders",                    &cv_grshaders,         10},
 	{IT_STRING|IT_CVAR,         NULL, "Software Perspective",       &cv_grshearing,        20},
+	{IT_STRING|IT_CVAR,         NULL, "Sprite Billboarding",      	&cv_grspritebillboarding,30},
 
-	{IT_STRING|IT_CVAR,         NULL, "Quality",                    &cv_scr_depth,         40},
-	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",             &cv_grfiltermode,      50},
-	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",                &cv_granisotropicmode, 60},
+	{IT_STRING|IT_CVAR,         NULL, "Quality",                    &cv_scr_depth,         50},
+	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",             &cv_grfiltermode,      60},
+	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",                &cv_granisotropicmode, 70},
 #ifdef _WINDOWS
-	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",                 &cv_fullscreen,        70},
+	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",                 &cv_fullscreen,        80},
 #endif
 	{IT_SUBMENU|IT_STRING,      NULL, "Fog...",                     &OP_OpenGLFogDef,      100},
 	{IT_SUBMENU|IT_STRING,      NULL, "Gamma...",                   &OP_OpenGLColorDef,    110},

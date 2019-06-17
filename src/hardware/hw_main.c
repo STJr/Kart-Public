@@ -137,7 +137,7 @@ void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UIN
 	mix_color.rgba = mixcolor;
 	fog_color.rgba = fadecolor;
 
-	mix = mix_color.s.alpha*10/4;
+	mix = mix_color.s.alpha*10/5;
 	if (mix > 25) mix = 25;
 	mix *= 255;
 	mix /= 25;
@@ -188,7 +188,7 @@ void HWR_NoColormapLighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mix
 	float fog_alpha;
 
 	// You see the problem is that darker light isn't actually as dark as it SHOULD be.
-	lightmix = 255 - ((255 - light_level)*100/96);
+	lightmix = 255 - ((255 - light_level)*10/7);
 
 	// Don't go out of bounds
 	if (lightmix < 0)
@@ -234,7 +234,7 @@ void HWR_NoColormapLighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mix
 
 	// Fog.
 	fog_color.rgba = fadecolor;
-	fog_alpha = (0xFF - fog_color.s.alpha) / 255.0f;
+	fog_alpha = (0xFF - fog_color.s.alpha*10/7) / 255.0f;
 
 	// Set the surface colors and further modulate the colors by light.
 	fog_color.s.red = (UINT8)(((float)fog_color.s.red) * fog_alpha);
@@ -243,7 +243,7 @@ void HWR_NoColormapLighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mix
 
 	Surface->PolyColor.rgba = final_color.rgba;
 	Surface->FadeColor.rgba = fog_color.rgba;
-	Surface->LightInfo.light_level = light_level;
+	Surface->LightInfo.light_level = lightmix;
 }
 
 UINT8 HWR_FogBlockAlpha(INT32 light, UINT32 color) // Let's see if this can work
@@ -1481,8 +1481,9 @@ void HWR_ProcessSeg(void) // Sort of like GLWall::Process in GZDoom
 				}
 				else // neither sectors are thok barriers
 				{
-					if ((gr_backsector->floorheight > gr_frontsector->floorheight && !gr_sidedef->bottomtexture) // no bottom texture and sector behind is higher
+					if (((gr_backsector->floorheight > gr_frontsector->floorheight && !gr_sidedef->bottomtexture) // no bottom texture and sector behind is higher
 						|| gr_backsector->floorpic != skyflatnum) // behind sector is not a sky
+						&& ABS(gr_backsector->floorheight - gr_frontsector->floorheight) > FRACUNIT*3/2)	// don't draw sky walls for VERY thin differences, this makes for horrible looking slopes sometimes!
 						HWR_DrawSkyWall(wallVerts, &Surf, INT32_MIN, depthwallheight);
 				}
 			}
@@ -3979,7 +3980,7 @@ void HWR_RenderDrawNodes(void)
 			gr_frontsector = NULL;
 
 			if (!(sortnode[sortindex[i]].plane->blend & PF_NoTexture))
-				HWR_GetFlat(sortnode[sortindex[i]].plane->lumpnum, false);
+				HWR_GetFlat(sortnode[sortindex[i]].plane->lumpnum, R_NoEncore(sortnode[sortindex[i]].plane->FOFSector, sortnode[sortindex[i]].plane->isceiling));
 			HWR_RenderPlane(sortnode[sortindex[i]].plane->xsub, sortnode[sortindex[i]].plane->isceiling, sortnode[sortindex[i]].plane->fixedheight, sortnode[sortindex[i]].plane->blend, sortnode[sortindex[i]].plane->lightlevel,
 				sortnode[sortindex[i]].plane->lumpnum, sortnode[sortindex[i]].plane->FOFSector, sortnode[sortindex[i]].plane->alpha, /*sortnode[sortindex[i]].plane->fogplane,*/ sortnode[sortindex[i]].plane->planecolormap);
 		}
@@ -3989,7 +3990,7 @@ void HWR_RenderDrawNodes(void)
 			gr_frontsector = NULL;
 
 			if (!(sortnode[sortindex[i]].polyplane->blend & PF_NoTexture))
-				HWR_GetFlat(sortnode[sortindex[i]].polyplane->lumpnum, false);
+				HWR_GetFlat(sortnode[sortindex[i]].polyplane->lumpnum, R_NoEncore(sortnode[sortindex[i]].polyplane->FOFSector, sortnode[sortindex[i]].polyplane->isceiling));
 			HWR_RenderPolyObjectPlane(sortnode[sortindex[i]].polyplane->polysector, sortnode[sortindex[i]].polyplane->isceiling, sortnode[sortindex[i]].polyplane->fixedheight, sortnode[sortindex[i]].polyplane->blend, sortnode[sortindex[i]].polyplane->lightlevel,
 				sortnode[sortindex[i]].polyplane->lumpnum, sortnode[sortindex[i]].polyplane->FOFSector, sortnode[sortindex[i]].polyplane->alpha, sortnode[sortindex[i]].polyplane->planecolormap);
 		}
