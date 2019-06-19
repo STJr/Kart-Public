@@ -5470,7 +5470,7 @@ static void HWR_AddSprites(sector_t *sec)
 	}
 
 #ifdef HWPRECIP
-	// Someone seriously wants infinite draw distance for precipitation?
+	// No to infinite precipitation draw distance.
 	if ((limit_dist = (fixed_t)cv_drawdist_precip.value << FRACBITS))
 	{
 		for (precipthing = sec->preciplist; precipthing; precipthing = precipthing->snext)
@@ -5485,13 +5485,6 @@ static void HWR_AddSprites(sector_t *sec)
 
 			HWR_ProjectPrecipitationSprite(precipthing);
 		}
-	}
-	else
-	{
-		// Draw everything in sector, no checks
-		for (precipthing = sec->preciplist; precipthing; precipthing = precipthing->snext)
-			if (!(precipthing->precipflags & PCF_INVISIBLE))
-				HWR_ProjectPrecipitationSprite(precipthing);
 	}
 #endif
 }
