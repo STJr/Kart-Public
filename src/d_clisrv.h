@@ -468,7 +468,7 @@ typedef struct
 		serverrefuse_pak serverrefuse;      //       65025 bytes (somehow I feel like those values are garbage...)
 		askinfo_pak askinfo;                //          61 bytes
 		msaskinfo_pak msaskinfo;            //          22 bytes
-		plrinfo playerinfo[MAXPLAYERS];     //         576 bytes(?)
+		plrinfo playerinfo[MSCOMPAT_MAXPLAYERS];//         576 bytes(?)
 		plrconfig playerconfig[MAXPLAYERS]; // (up to) 528 bytes(?)
 		INT32 filesneedednum;               //           4 bytes
 		filesneededconfig_pak filesneededcfg; //       ??? bytes

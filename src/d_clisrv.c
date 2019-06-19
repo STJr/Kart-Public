@@ -1428,8 +1428,14 @@ static void SV_SendPlayerInfo(INT32 node)
 	UINT8 i;
 	netbuffer->packettype = PT_PLAYERINFO;
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (i = 0; i < MSCOMPAT_MAXPLAYERS; i++)
 	{
+		if (i >= MAXPLAYERS)
+		{
+			netbuffer->u.playerinfo[i].node = 255;
+			continue;
+		}
+
 		if (!playeringame[i])
 		{
 			netbuffer->u.playerinfo[i].node = 255; // This slot is empty.
@@ -1477,7 +1483,7 @@ static void SV_SendPlayerInfo(INT32 node)
 			netbuffer->u.playerinfo[i].data |= 0x80;
 	}
 
-	HSendPacket(node, false, 0, sizeof(plrinfo) * MAXPLAYERS);
+	HSendPacket(node, false, 0, sizeof(plrinfo) * MSCOMPAT_MAXPLAYERS);
 }
 
 /** Sends a PT_SERVERCFG packet
