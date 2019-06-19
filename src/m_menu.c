@@ -8432,7 +8432,11 @@ static void M_ConnectMenu(INT32 choice)
 	// first page of servers
 	serverlistpage = 0;
 	if (ms_RoomId < 0)
+	{
 		M_RoomMenu(0); // Select a room instead of staring at an empty list
+		// This prevents us from returning to the modified game alert.
+		currentMenu->prevMenu = &MP_MainDef;
+	}
 	else
 		M_SetupNextMenu(&MP_ConnectDef);
 	itemOn = 0;
