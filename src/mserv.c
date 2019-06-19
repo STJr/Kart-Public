@@ -706,7 +706,7 @@ static INT32 AddToMasterServer(boolean firstadd)
 	haven't open a socket, and actually open it!
 	*/
 	/*if (res == ERRSOCKET)*//* wtf? no! */
-	if (socket_fd == ERRSOCKET)
+	if (socket_fd == (SOCKET_TYPE)ERRSOCKET)
 	{
 		if (MS_Connect(GetMasterServerIP(), GetMasterServerPort(), 0))
 		{
