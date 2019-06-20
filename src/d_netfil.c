@@ -130,7 +130,7 @@ UINT8 *PutFileNeeded(UINT16 firstfile)
 
 		nameonly(strcpy(wadfilename, wadfiles[i]->filename));
 
-		if (p + 1 + 4 + strlen(wadfilename) + 16 > p_start + MAXFILENEEDED)
+		if (p + 1 + 4 + strlen(wadfilename) + 1 + 16 > p_start + MAXFILENEEDED)
 		{
 			// Too many files to send all at once
 			if (netbuffer->packettype == PT_MOREFILESNEEDED)
