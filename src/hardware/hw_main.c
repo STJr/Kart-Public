@@ -1862,7 +1862,7 @@ void HWR_ProcessSeg(void) // Sort of like GLWall::Process in GZDoom
 
 // From PrBoom:
 //
-// e6y: Check whether the player can look beyond this line
+// e6y: Check whether the player can look beyond this line, rturns true if we can't
 //
 
 boolean checkforemptylines = true;
@@ -1909,11 +1909,8 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 	if (backc1 <= frontf1 && backc2 <= frontf2)
 	{
 		checkforemptylines = false;
-		if (!seg->sidedef->toptexture)
-			return false;
-
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
+		//if (!seg->sidedef->toptexture)
+		//	return false;
 
 		return true;
 	}
@@ -1921,12 +1918,8 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 	if (backf1 >= frontc1 && backf2 >= frontc2)
 	{
 		checkforemptylines = false;
-		if (!seg->sidedef->bottomtexture)
-			return false;
-
-		// properly render skies (consider door "open" if both floors are sky):
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
+		//if (!seg->sidedef->bottomtexture)
+		//	return false;
 
 		return true;
 	}
@@ -1935,7 +1928,7 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 	{
 		checkforemptylines = false;
 		// preserve a kind of transparent door/lift special effect:
-		if (backc1 < frontc1 || backc2 < frontc2)
+		/*if (backc1 < frontc1 || backc2 < frontc2)
 		{
 			if (!seg->sidedef->toptexture)
 				return false;
@@ -1944,13 +1937,7 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 		{
 			if (!seg->sidedef->bottomtexture)
 				return false;
-		}
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
-
-		if (abacksector->floorpic == skyflatnum && afrontsector->floorpic == skyflatnum)
-			return false;
-
+		}*/
 		return true;
 	}
 
