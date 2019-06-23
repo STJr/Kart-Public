@@ -522,7 +522,7 @@ static menuitem_t PlaybackMenu[] =
 
 	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_PlaybackRewind,      20},
 	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,       36},
-	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Foward",   M_PlaybackFastForward, 52},
+	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Forward",  M_PlaybackFastForward, 52},
 	{IT_CALL   | IT_STRING, "M_PSTEPB", "Backup Frame",  M_PlaybackRewind,      20},
 	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,       36},
 	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,     52},
