@@ -2378,7 +2378,7 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 
 // From PrBoom:
 //
-// e6y: Check whether the player can look beyond this line
+// e6y: Check whether the player can look beyond this line, returns true if we should stop rendering.
 //
 #ifdef NEWCLIP
 boolean checkforemptylines = true;
@@ -2425,25 +2425,12 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 	if (backc1 <= frontf1 && backc2 <= frontf2)
 	{
 		checkforemptylines = false;
-		if (!seg->sidedef->toptexture)
-			return false;
-
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
-
 		return true;
 	}
 
 	if (backf1 >= frontc1 && backf2 >= frontc2)
 	{
 		checkforemptylines = false;
-		if (!seg->sidedef->bottomtexture)
-			return false;
-
-		// properly render skies (consider door "open" if both floors are sky):
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
-
 		return true;
 	}
 
@@ -2461,12 +2448,6 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 			if (!seg->sidedef->bottomtexture)
 				return false;
 		}
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
-
-		if (abacksector->floorpic == skyflatnum && afrontsector->floorpic == skyflatnum)
-			return false;
-
 		return true;
 	}
 
