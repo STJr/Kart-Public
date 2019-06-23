@@ -134,9 +134,13 @@ static void HWR_DrawPatchInCache(GLMipmap_t *mipmap,
 
 				//Hurdler: not perfect, but better than holes
 				if (texel == HWR_PATCHES_CHROMAKEY_COLORINDEX && (mipmap->flags & TF_CHROMAKEYED))
-					texel = HWR_CHROMAKEY_EQUIVALENTCOLORINDEX;
+					alpha = 0x00;
+				
+					//texel = HWR_CHROMAKEY_EQUIVALENTCOLORINDEX;
+				// Lat:  Don't do that, some weirdos still use CYAN on their WALLTEXTURES for translucency :V
+			
 				//Hurdler: 25/04/2000: now support colormap in hardware mode
-				else if (mipmap->colormap)
+				if (mipmap->colormap)
 					texel = mipmap->colormap[texel];
 
 				// hope compiler will get this switch out of the loops (dreams...)
@@ -291,7 +295,7 @@ static UINT8 *MakeBlock(GLMipmap_t *grMipmap)
 {
 	UINT8 *block;
 	INT32 bpp, i;
-	UINT16 bu16 = ((0x00 <<8) | HWR_CHROMAKEY_EQUIVALENTCOLORINDEX);
+	UINT16 bu16 = ((0x00 <<8) | HWR_PATCHES_CHROMAKEY_COLORINDEX);
 
 	bpp =  format2bpp[grMipmap->grInfo.format];
 	block = Z_Malloc(blocksize*bpp, PU_HWRCACHE, &(grMipmap->grInfo.data));
@@ -302,8 +306,8 @@ static UINT8 *MakeBlock(GLMipmap_t *grMipmap)
 		case 2:
 				// fill background with chromakey, alpha = 0
 				for (i = 0; i < blocksize; i++)
-				//[segabor]
 					memcpy(block+i*sizeof(UINT16), &bu16, sizeof(UINT16));
+				
 				break;
 		case 4: memset(block, 0x00, blocksize*sizeof(UINT32)); break;
 	}
