@@ -259,6 +259,11 @@ static boolean R_AddSingleSpriteDef(const char *sprname, spritedef_t *spritedef,
 			//BP: we cannot use special tric in hardware mode because feet in ground caused by z-buffer
 			if (rendermode != render_none) // not for psprite
 				spritecachedinfo[numspritelumps].topoffset += 4<<FRACBITS;
+			
+			// Idea, how about we do it like literally every hardware renderer ever?
+			if (rendermode == render_opengl)
+				spritecachedinfo[numspritelumps].topoffset += 5<<FRACBITS;
+				
 			// Being selective with this causes bad things. :( Like the special stage tokens breaking apart.
 			/*if (rendermode != render_none // not for psprite
 			 && SHORT(patch.topoffset)>0 && SHORT(patch.topoffset)<SHORT(patch.height))
