@@ -34,8 +34,10 @@
 void HWR_Startup(void);
 void HWR_Shutdown(void);
 
-extern float gr_viewwidth, gr_viewheight, gr_baseviewwindowy;
-extern float gr_viewwindowx, gr_basewindowcentery;
+extern float gr_viewwidth, gr_viewheight, gr_baseviewwindowx, gr_baseviewwindowy;
+
+extern float gr_basewindowcenterx, gr_basewindowcentery;
+
 extern FTransform atransform;
 
 // hw_draw.c

@@ -91,15 +91,22 @@ static void CV_anisotropic_ONChange(void)
 
 // base values set at SetViewSize
 static float gr_basecentery;
+static float gr_basecenterx;
 
 float gr_baseviewwindowy, gr_basewindowcentery;
+float gr_baseviewwindowx, gr_basewindowcenterx;
 float gr_viewwidth, gr_viewheight; // viewport clipping boundaries (screen coords)
-float gr_viewwindowx;
 
-static float gr_centerx, gr_centery;
-static float gr_viewwindowy; // top left corner of view window
+static float gr_centerx;
+static float gr_viewwindowx;
 static float gr_windowcenterx; // center of view window, for projection
+
+static float gr_centery;
+static float gr_viewwindowy; // top left corner of view window
 static float gr_windowcentery;
+
+static float gr_pspritexscale, gr_pspriteyscale;
+
 
 static seg_t *gr_curline;
 static side_t *gr_sidedef;
@@ -1905,39 +1912,44 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 		backc1 = backc2 = abacksector->ceilingheight;
 	}
 
+
 	// now check for closed sectors!
+
+	// here we're talking about a CEILING lower than a floor. ...yeah we don't even need to bother.
 	if (backc1 <= frontf1 && backc2 <= frontf2)
 	{
 		checkforemptylines = false;
-		//if (!seg->sidedef->toptexture)
-		//	return false;
-
 		return true;
 	}
 
+	// here we're talking about floors higher than ceilings, don't even bother either.
 	if (backf1 >= frontc1 && backf2 >= frontc2)
 	{
 		checkforemptylines = false;
-		//if (!seg->sidedef->bottomtexture)
-		//	return false;
-
 		return true;
 	}
+
+	// Lat: Ok, here's what we need to do, we want to draw thok barriers. Let's define what a thok barrier is;
+	// -Must have ceilheight <= floorheight
+	// -ceilpic must be skyflatnum
+	// -an adjacant sector needs to have a ceilingheight or a floor height different than the one we have, otherwise, it's just a huge ass wall, we shouldn't render past it.
+	// -said adjacant sector cannot also be a thok barrier, because that's also dumb and we could render far more than we need to as a result :V
 
 	if (backc1 <= backf1 && backc2 <= backf2)
 	{
 		checkforemptylines = false;
-		// preserve a kind of transparent door/lift special effect:
-		/*if (backc1 < frontc1 || backc2 < frontc2)
-		{
-			if (!seg->sidedef->toptexture)
-				return false;
-		}
+
+		// before we do anything, if both sectors are thok barriers, GET ME OUT OF HERE!
+		if (frontc1 <= backc1 && frontc2 <= frontc2)
+			return true;	// STOP RENDERING.
+
+		// draw floors at the top of thok barriers:
+		if (backc1 < frontc1 || backc2 < frontc2)
+			return false;
+
 		if (backf1 > frontf1 || backf2 > frontf2)
-		{
-			if (!seg->sidedef->bottomtexture)
-				return false;
-		}*/
+			return false;
+
 		return true;
 	}
 
@@ -4539,8 +4551,8 @@ void HWR_DrawSkyBackground(void)
 	// software doesn't draw any further than 1024 for skies anyway, but this doesn't overlap properly
 	// The only time this will probably be an issue is when a sky wider than 1024 is used as a sky AND a regular wall texture
 
-	angle = (viewangle + xtoviewangle[0]);
-	dimensionmultiply = ((float)textures[skytexture]->width/256.0f)*2;
+	angle = (viewangle/2 + xtoviewangle[0]);
+	dimensionmultiply = ((float)textures[skytexture]->width/256.0f);
 
 	if (atransform.mirror)
 	{
@@ -4634,24 +4646,21 @@ void HWR_SetViewSize(void)
 	if (splitscreen > 1)
 		gr_viewwidth /= 2;
 
-	gr_centerx = gr_viewwidth / 2;
-	gr_basecentery = gr_viewheight / 2; //note: this is (gr_centerx * gr_viewheight / gr_viewwidth)
+	gr_basecenterx = gr_viewwidth / 2;
+	gr_basecentery = gr_viewheight / 2;
 
-	gr_viewwindowx = (vid.width - gr_viewwidth) / 2;
-	gr_windowcenterx = (float)(vid.width / 2);
-	if (fabsf(gr_viewwidth - vid.width) < 1.0E-36f)
-	{
-		gr_baseviewwindowy = 0;
-		gr_basewindowcentery = gr_viewheight / 2;               // window top left corner at 0,0
-	}
-	else
-	{
-		gr_baseviewwindowy = (vid.height-gr_viewheight) / 2;
-		gr_basewindowcentery = (float)(vid.height / 2);
-	}
+	gr_baseviewwindowy = 0;
+	gr_basewindowcentery = (float)(gr_viewheight / 2);
+
+	gr_baseviewwindowx = 0;
+	gr_basewindowcenterx = (float)(gr_viewwidth / 2);
+
+	gr_pspritexscale = ((vid.width*gr_pspriteyscale*BASEVIDHEIGHT)/BASEVIDWIDTH)/vid.height;
+	gr_pspriteyscale = ((vid.height*gr_pspritexscale*BASEVIDWIDTH)/BASEVIDHEIGHT)/vid.width;
 
 	HWD.pfnFlushScreenTextures();
 }
+
 
 // ==========================================================================
 // Render the current frame.
@@ -4664,13 +4673,17 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	INT32 i;
 
 	// set window position
+	gr_centerx = gr_basecenterx;
+	gr_viewwindowx = gr_baseviewwindowx;
+	gr_windowcenterx = gr_basewindowcenterx;
 	gr_centery = gr_basecentery;
 	gr_viewwindowy = gr_baseviewwindowy;
 	gr_windowcentery = gr_basewindowcentery;
-	if (splitscreen && viewnumber == 1)
+
+	if ((splitscreen == 1 && viewnumber == 1) || (splitscreen > 1 && viewnumber > 1))
 	{
-		gr_viewwindowy += (vid.height/2);
-		gr_windowcentery += (vid.height/2);
+		gr_viewwindowy += gr_viewheight;
+		gr_windowcentery += gr_viewheight;
 	}
 
 	if (splitscreen > 1 && viewnumber & 1)
@@ -4678,6 +4691,7 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 		gr_viewwindowx += gr_viewwidth;
 		gr_windowcenterx += gr_viewwidth;
 	}
+
 
 	// check for new console commands.
 	NetUpdate();
@@ -4815,6 +4829,9 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 		ClearColor.alpha = 1.0f;
 		HWD.pfnClearBuffer(true, false, &ClearColor);
 	}
+
+	if (viewnumber > 3)
+		return;
 
 	// Render the skybox if there is one.
 	drewsky = false;

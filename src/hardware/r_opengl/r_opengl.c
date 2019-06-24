@@ -583,7 +583,7 @@ static gl_shaderprogram_t gl_shaderprograms[MAXSHADERPROGRAMS];
 	"float fog(const float dist, const float density,  const float globaldensity) {\n" \
 		"const float LOG2 = -1.442695;\n" \
 		"float d = density * dist;\n" \
-		"return 1.0 - clamp(exp2(d * d * globaldensity * LOG2), 0.0, 1.0);\n" \
+		"return 1.0 - clamp(exp2(d * sqrt(d) * globaldensity * LOG2), 0.0, 1.0);\n" \
 	"}\n"
 
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_gpu_shader_fp64.txt

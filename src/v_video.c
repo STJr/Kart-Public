@@ -58,11 +58,11 @@ static void CV_Gammaxxx_ONChange(void);
 // - You can change them in software,
 // but they won't do anything.
 static CV_PossibleValue_t grgamma_cons_t[] = {{1, "MIN"}, {255, "MAX"}, {0, NULL}};
-static CV_PossibleValue_t grfogdensity_cons_t[] = {{FRACUNIT/4, "MIN"}, {FRACUNIT*2, "MAX"}, {0, NULL}};
+static CV_PossibleValue_t grfogdensity_cons_t[] = {{FRACUNIT/8, "MIN"}, {FRACUNIT*2, "MAX"}, {0, NULL}};
 
 consvar_t cv_grshaders = {"gr_shaders", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_grfog = {"gr_fog", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_grfogdensity = {"gr_fogdensity", "0.60", CV_SAVE|CV_FLOAT, grfogdensity_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_grfogdensity = {"gr_fogdensity", "0.30", CV_SAVE|CV_FLOAT, grfogdensity_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_grfovchange = {"gr_fovchange", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_grgammared = {"gr_gammared", "127", CV_SAVE|CV_CALL, grgamma_cons_t,
                            CV_Gammaxxx_ONChange, 0, NULL, NULL, 0, 0, NULL};

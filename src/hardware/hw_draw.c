@@ -195,7 +195,10 @@ void HWR_DrawFixedPatch(GLPatch_t *gpatch, fixed_t x, fixed_t y, fixed_t pscale,
 	}
 
 	if (option & V_SPLITSCREEN)
-		cy /= 2;
+		cy += FIXED_TO_FLOAT((BASEVIDHEIGHT/2)<<FRACBITS);
+
+	if (option & V_HORZSCREEN)
+		cx += FIXED_TO_FLOAT((BASEVIDWIDTH/2)<<FRACBITS);
 
 	if (!(option & V_NOSCALESTART))
 	{
@@ -625,7 +628,7 @@ void HWR_DrawViewBorder(INT32 clearlines)
 	baseviewwidth =  FixedInt(FixedDiv(FLOAT_TO_FIXED(gr_viewwidth), vid.fdupx)); //(cv_viewsize.value * BASEVIDWIDTH/10)&~7;
 	baseviewheight = FixedInt(FixedDiv(FLOAT_TO_FIXED(gr_viewheight), vid.fdupy));
 	top = FixedInt(FixedDiv(FLOAT_TO_FIXED(gr_baseviewwindowy), vid.fdupy));
-	side = FixedInt(FixedDiv(FLOAT_TO_FIXED(gr_viewwindowx), vid.fdupx));
+	side = FixedInt(FixedDiv(FLOAT_TO_FIXED(gr_baseviewwindowx), vid.fdupx));
 
 	// top
 	HWR_DrawFlatFill(0, 0,
@@ -723,6 +726,7 @@ void HWR_DrawViewBorder(INT32 clearlines)
 			basewindowx + baseviewwidth,
 			basewindowy + baseviewheight, 0);
 }
+
 
 
 // ==========================================================================
@@ -901,6 +905,11 @@ void HWR_DrawConsoleFill(INT32 x, INT32 y, INT32 w, INT32 h, UINT32 color, INT32
 			else if (!(options & V_SNAPTOTOP))
 				fy += ((float)vid.height - ((float)BASEVIDHEIGHT * dupy)) / 2;
 		}
+		if (options & V_SPLITSCREEN)
+			fy += ((float)BASEVIDHEIGHT * dupy)/2;
+		if (options & V_HORZSCREEN)
+			fx += ((float)BASEVIDWIDTH * dupx)/2;
+		
 	}
 
 	if (fx >= vid.width || fy >= vid.height)
@@ -1004,6 +1013,11 @@ void HWR_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 color)
 			else if (!(color & V_SNAPTOTOP))
 				fy += ((float)vid.height - ((float)BASEVIDHEIGHT * dupy)) / 2;
 		}
+		if (color & V_SPLITSCREEN)
+			fy += ((float)BASEVIDHEIGHT * dupy)/2;
+		if (color & V_HORZSCREEN)
+			fx += ((float)BASEVIDWIDTH * dupx)/2;
+		
 	}
 
 	if (fx >= vid.width || fy >= vid.height)
