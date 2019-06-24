@@ -2381,7 +2381,7 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 // e6y: Check whether the player can look beyond this line
 //
 #ifdef NEWCLIP
-boolean checkforemptylines = true;
+static boolean checkforemptylines = true;
 // Don't modify anything here, just check
 // Kalaron: Modified for sloped linedefs
 static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacksector)
