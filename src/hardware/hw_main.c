@@ -2421,62 +2421,47 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 		backc1 = backc2 = abacksector->ceilingheight;
 	}
 
-	// now check for closed sectors!
-	if (backc1 <= frontf1 && backc2 <= frontf2)
+	if (viewsector != abacksector && viewsector != afrontsector)
 	{
-		checkforemptylines = false;
-		if (!seg->sidedef->toptexture)
-			return false;
+		boolean mydoorclosed = false; // My door? Closed!? (doorclosed is actually otherwise unused in openGL)
 
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
-
-		return true;
-	}
-
-	if (backf1 >= frontc1 && backf2 >= frontc2)
-	{
-		checkforemptylines = false;
-		if (!seg->sidedef->bottomtexture)
-			return false;
-
-		// properly render skies (consider door "open" if both floors are sky):
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
-
-		return true;
-	}
-
-	if (backc1 <= backf1 && backc2 <= backf2)
-	{
-		checkforemptylines = false;
-		// preserve a kind of transparent door/lift special effect:
-		if (backc1 < frontc1 || backc2 < frontc2)
-		{
-			if (!seg->sidedef->toptexture)
-				return false;
-		}
-		if (backf1 > frontf1 || backf2 > frontf2)
-		{
-			if (!seg->sidedef->bottomtexture)
-				return false;
-		}
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
-
-		if (abacksector->floorpic == skyflatnum && afrontsector->floorpic == skyflatnum)
-			return false;
-
-		return true;
-	}
-
-	if (backc1 != frontc1 || backc2 != frontc2
-		|| backf1 != frontf1 || backf2 != frontf2)
+		// If the sector behind the line blocks all kinds of view past it
+		// (back ceiling is lower than close floor, or back floor is higher than close ceiling)
+		if ((backc1 <= frontf1 && backc2 <= frontf2)
+			|| (backf1 >= frontc1 && backf2 >= frontc2))
 		{
 			checkforemptylines = false;
-			return false;
+			return true;
 		}
 
+		// The door is closed if:
+		// backsector is 0 height or less and
+		// back ceiling is higher than close ceiling or we need to render a top texture and
+		// back floor is lower than close floor or we need to render a bottom texture and
+		// neither front or back sectors are using the sky ceiling
+		mydoorclosed = (backc1 <= backf1 && backc2 <= backf2
+		&& ((backc1 >= frontc1 && backc2 >= frontc2) || seg->sidedef->toptexture)
+		&& ((backf1 <= frontf1 && backf2 >= frontf2) || seg->sidedef->bottomtexture)
+		&& (abacksector->ceilingpic != skyflatnum || afrontsector->ceilingpic != skyflatnum));
+
+		if (mydoorclosed)
+		{
+			checkforemptylines = false;
+			return true;
+		}
+	}
+
+	// Window.
+	// We know it's a window when the above isn't true and the back and front sectors don't match
+	if (backc1 != frontc1 || backc2 != frontc2
+		|| backf1 != frontf1 || backf2 != frontf2)
+	{
+		checkforemptylines = false;
+		return false;
+	}
+
+	// In this case we just need to check whether there is actually a need to render any lines, so checkforempty lines
+	// stays true
 	return false;
 }
 #else
