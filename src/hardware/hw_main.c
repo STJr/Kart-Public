@@ -2378,9 +2378,9 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 
 // From PrBoom:
 //
-// e6y: Check whether the player can look beyond this line, returns true if we should stop rendering.
+// e6y: Check whether the player can look beyond this line, rturns true if we can't
 //
-#ifdef NEWCLIP
+
 boolean checkforemptylines = true;
 // Don't modify anything here, just check
 // Kalaron: Modified for sloped linedefs
@@ -2420,34 +2420,45 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 		backf1 = backf2 = abacksector->floorheight;
 		backc1 = backc2 = abacksector->ceilingheight;
 	}
+	
 
 	// now check for closed sectors!
+
+	// here we're talking about a CEILING lower than a floor. ...yeah we don't even need to bother.
 	if (backc1 <= frontf1 && backc2 <= frontf2)
 	{
 		checkforemptylines = false;
 		return true;
 	}
-
+	
+	// here we're talking about floors higher than ceilings, don't even bother either.
 	if (backf1 >= frontc1 && backf2 >= frontc2)
 	{
 		checkforemptylines = false;
 		return true;
 	}
-
+	
+	// Lat: Ok, here's what we need to do, we want to draw thok barriers. Let's define what a thok barrier is;
+	// -Must have ceilheight <= floorheight
+	// -ceilpic must be skyflatnum
+	// -an adjacant sector needs to have a ceilingheight or a floor height different than the one we have, otherwise, it's just a huge ass wall, we shouldn't render past it.
+	// -said adjacant sector cannot also be a thok barrier, because that's also dumb and we could render far more than we need to as a result :V
+	
 	if (backc1 <= backf1 && backc2 <= backf2)
 	{
 		checkforemptylines = false;
-		// preserve a kind of transparent door/lift special effect:
+		
+		// before we do anything, if both sectors are thok barriers, GET ME OUT OF HERE!
+		if (frontc1 <= backc1 && frontc2 <= frontc2)
+			return true;	// STOP RENDERING.
+		
+		// draw floors at the top of thok barriers:
 		if (backc1 < frontc1 || backc2 < frontc2)
-		{
-			if (!seg->sidedef->toptexture)
-				return false;
-		}
+			return false;
+		
 		if (backf1 > frontf1 || backf2 > frontf2)
-		{
-			if (!seg->sidedef->bottomtexture)
-				return false;
-		}
+			return false;
+		
 		return true;
 	}
 
