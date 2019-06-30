@@ -29,7 +29,9 @@
 
 // SOME numpty changed all the gametype constants and it fell out of sync with vanilla and now we have to pretend to be vanilla when talking to the master server...
 #define VANILLA_GT_RACE 2
-#if VERSION < 210
+// Woah, what do these numbers mean? 200 refers to SRB2 2.0, 246 refers to
+// SRB2Riders. Both use the old 2.0 gametype numbers.
+#if VERSION == 200 || VERSION == 246
 #define VANILLA_GT_MATCH 1
 #else
 #define VANILLA_GT_MATCH 3
