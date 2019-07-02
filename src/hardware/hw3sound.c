@@ -296,7 +296,7 @@ static void HW3S_FillSourceParameters
 	data->max_distance = MAX_DISTANCE;
 	data->min_distance = MIN_DISTANCE;
 
-	if (origin && origin != players[displayplayer].mo)
+	if (origin && origin != players[displayplayers[0]].mo)
 	{
 		data->head_relative = false;
 
@@ -356,10 +356,10 @@ INT32 HW3S_I_StartSound(const void *origin_p, source3D_data_t *source_parm, chan
 	source3D_data_t source3d_data;
 	INT32             s_num = 0;
 	source_t        *source = NULL;
-	mobj_t *listenmobj = players[displayplayer].mo;
+	mobj_t *listenmobj = players[displayplayers[0]].mo; // TODO: Kart 4P does not support sounds properly here
 	mobj_t *listenmobj2 = NULL;
 
-	if (splitscreen) listenmobj2 = players[secondarydisplayplayer].mo;
+	if (splitscreen) listenmobj2 = players[displayplayers[1]].mo;
 
 	if (sound_disabled)
 		return -1;
@@ -876,12 +876,12 @@ static void HW3S_Update3DSource(source_t *src)
 
 void HW3S_UpdateSources(void)
 {
-	mobj_t *listener = players[displayplayer].mo;
+	mobj_t *listener = players[displayplayers[0]].mo;
 	mobj_t *listener2 = NULL;
 	source_t    *src;
 	INT32 audible, snum, volume, sep, pitch;
 
-	if (splitscreen) listener2 = players[secondarydisplayplayer].mo;
+	if (splitscreen) listener2 = players[displayplayers[1]].mo;
 
 	HW3S_UpdateListener2(listener2);
 	HW3S_UpdateListener(listener);

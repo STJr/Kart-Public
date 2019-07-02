@@ -21,6 +21,8 @@ enum hud {
 	hud_position,
 	hud_minirankings,	// Rankings to the left
 	hud_battlebumpers,	// mini rankings battle bumpers.
+	hud_battlefullscreen,	// battle huge text (WAIT, WIN, LOSE ...) + karma comeback time
+	hud_battlecomebacktimer,	// comeback timer in battlefullscreen. separated for ease of use.
 	hud_wanted,
 	hud_speedometer,
 	hud_freeplay,

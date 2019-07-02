@@ -13,6 +13,7 @@
 
 #include "doomstat.h"
 #include "g_game.h"
+#include "g_input.h"
 #include "p_local.h"
 #include "z_zone.h"
 #include "s_sound.h"
@@ -582,7 +583,7 @@ void P_Ticker(boolean run)
 		{
 			P_MapStart();
 			OP_ObjectplaceMovement(&players[0]);
-			P_MoveChaseCamera(&players[0], &camera, false);
+			P_MoveChaseCamera(&players[0], &camera[0], false);
 			P_MapEnd();
 			return;
 		}
@@ -590,18 +591,60 @@ void P_Ticker(boolean run)
 
 	// Check for pause or menu up in single player
 	if (paused || P_AutoPause())
-		return;
+	{
+		if (demo.rewinding && leveltime > 0)
+		{
+			leveltime = (leveltime-1) & ~3;
+			G_PreviewRewind(leveltime);
+		}
 
-	postimgtype = postimgtype2 = postimgtype3 = postimgtype4 = postimg_none;
+		return;
+	}
+
+	for (i = 0; i <= splitscreen; i++)
+		postimgtype[i] = postimg_none;
 
 	P_MapStart();
 
 	if (run)
 	{
-		if (demorecording)
-			G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
-		if (demoplayback)
-			G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
+		if (demo.recording)
+		{
+			G_WriteDemoExtraData();
+			for (i = 0; i < MAXPLAYERS; i++)
+				if (playeringame[i])
+					G_WriteDemoTiccmd(&players[i].cmd, i);
+		}
+		if (demo.playback)
+		{
+
+#ifdef DEMO_COMPAT_100
+			if (demo.version == 0x0001)
+			{
+				G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
+			}
+			else
+			{
+#endif
+				G_ReadDemoExtraData();
+				for (i = 0; i < MAXPLAYERS; i++)
+					if (playeringame[i])
+					{
+						//@TODO all this throwdir stuff shouldn't be here! But it's added to maintain 1.0.4 compat for now...
+						// Remove for 1.1!
+						if (players[i].cmd.buttons & BT_FORWARD)
+							players[i].kartstuff[k_throwdir] = 1;
+						else if (players[i].cmd.buttons & BT_BACKWARD)
+							players[i].kartstuff[k_throwdir] = -1;
+						else
+							players[i].kartstuff[k_throwdir] = 0;
+
+						G_ReadDemoTiccmd(&players[i].cmd, i);
+					}
+#ifdef DEMO_COMPAT_100
+			}
+#endif
+		}
 
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
@@ -609,7 +652,7 @@ void P_Ticker(boolean run)
 	}
 
 	// Keep track of how long they've been playing!
-	if (!demoplayback) // Don't increment if a demo is playing.
+	if (!demo.playback) // Don't increment if a demo is playing.
 		totalplaytime++;
 
 	/*if (!useNightsSS && G_IsSpecialStage(gamemap))
@@ -705,10 +748,25 @@ void P_Ticker(boolean run)
 			G_ReadMetalTic(metalplayback);
 		if (metalrecording)
 			G_WriteMetalTic(players[consoleplayer].mo);
-		if (demorecording)
-			G_WriteGhostTic(players[consoleplayer].mo);
-		if (demoplayback) // Use Ghost data for consistency checks.
-			G_ConsGhostTic();
+
+		if (demo.recording)
+		{
+			G_WriteAllGhostTics();
+
+			if (cv_recordmultiplayerdemos.value && (demo.savemode == DSM_NOTSAVING || demo.savemode == DSM_WILLAUTOSAVE))
+				if (demo.savebutton && demo.savebutton + 3*TICRATE < leveltime && InputDown(gc_lookback, 1))
+					demo.savemode = DSM_TITLEENTRY;
+		}
+		else if (demo.playback) // Use Ghost data for consistency checks.
+		{
+#ifdef DEMO_COMPAT_100
+			if (demo.version == 0x0001)
+				G_ConsGhostTic(0);
+			else
+#endif
+			G_ConsAllGhostTics();
+		}
+
 		if (modeattacking)
 			G_GhostTicker();
 
@@ -719,16 +777,16 @@ void P_Ticker(boolean run)
 	}
 
 	// Always move the camera.
-	if (camera.chase)
-		P_MoveChaseCamera(&players[displayplayer], &camera, false);
-	if (splitscreen && camera2.chase)
-		P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
-	if (splitscreen > 1 && camera3.chase)
-		P_MoveChaseCamera(&players[thirddisplayplayer], &camera3, false);
-	if (splitscreen > 2 && camera4.chase)
-		P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
+	for (i = 0; i <= splitscreen; i++)
+	{
+		if (camera[i].chase)
+			P_MoveChaseCamera(&players[displayplayers[i]], &camera[i], false);
+	}
 
 	P_MapEnd();
+
+	if (demo.playback)
+		G_StoreRewindInfo();
 
 //	Z_CheckMemCleanup();
 }
@@ -739,7 +797,8 @@ void P_PreTicker(INT32 frames)
 	INT32 i,framecnt;
 	ticcmd_t temptic;
 
-	postimgtype = postimgtype2 = postimgtype3 = postimgtype4 = postimg_none;
+	for (i = 0; i <= splitscreen; i++)
+		postimgtype[i] = postimg_none;
 
 	for (framecnt = 0; framecnt < frames; ++framecnt)
 	{

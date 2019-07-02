@@ -22,6 +22,7 @@
 #include "p_tick.h"
 #include "r_defs.h"
 #include "p_maputl.h"
+#include "doomstat.h" // MAXSPLITSCREENPLAYERS
 
 #define FLOATSPEED (FRACUNIT*4)
 
@@ -108,7 +109,7 @@ typedef struct camera_s
 	fixed_t pan;
 } camera_t;
 
-extern camera_t camera, camera2, camera3, camera4;
+extern camera_t camera[MAXSPLITSCREENPLAYERS];
 extern consvar_t cv_cam_dist, cv_cam_still, cv_cam_height;
 extern consvar_t cv_cam_speed, cv_cam_rotate, cv_cam_rotspeed;
 
@@ -137,6 +138,7 @@ boolean P_PlayerInPain(player_t *player);
 void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor);
 void P_ResetPlayer(player_t *player);
 boolean P_IsLocalPlayer(player_t *player);
+boolean P_IsDisplayPlayer(player_t *player);
 boolean P_SpectatorJoinGame(player_t *player);
 
 boolean P_IsObjectInGoop(mobj_t *mo);
@@ -178,7 +180,6 @@ boolean P_LookForEnemies(player_t *player);
 void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius);
 void P_HomingAttack(mobj_t *source, mobj_t *enemy); /// \todo doesn't belong in p_user
 //boolean P_SuperReady(player_t *player);
-void P_DoJump(player_t *player, boolean soundandstate);
 boolean P_AnalogMove(player_t *player);
 /*boolean P_TransferToNextMare(player_t *player);
 UINT8 P_FindLowestMare(void);*/
@@ -187,8 +188,6 @@ UINT8 P_FindHighestLap(void);
 void P_FindEmerald(void);
 //void P_TransferToAxis(player_t *player, INT32 axisnum);
 boolean P_PlayerMoving(INT32 pnum);
-void P_SpawnThokMobj(player_t *player);
-void P_SpawnSpinMobj(player_t *player, mobjtype_t type);
 void P_Telekinesis(player_t *player, fixed_t thrust, fixed_t range);
 
 void P_PlayLivesJingle(player_t *player);

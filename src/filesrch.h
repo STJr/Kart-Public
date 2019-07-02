@@ -42,9 +42,6 @@ extern size_t dir_on[menudepth];
 extern UINT8 refreshdirmenu;
 extern char *refreshdirname;
 
-extern size_t packetsizetally;
-extern size_t mainwadstally;
-
 typedef enum
 {
 	EXT_FOLDER = 0,
@@ -94,6 +91,6 @@ typedef enum
 
 void closefilemenu(boolean validsize);
 void searchfilemenu(char *tempname);
-boolean preparefilemenu(boolean samedepth);
+boolean preparefilemenu(boolean samedepth, boolean replayhut);
 
 #endif // __FILESRCH_H__

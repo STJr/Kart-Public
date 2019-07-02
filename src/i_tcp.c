@@ -813,6 +813,8 @@ static SOCKET_TYPE UDP_Bind(int family, struct sockaddr *addr, socklen_t addrlen
 #endif
 #endif
 	mysockaddr_t straddr;
+	struct sockaddr_in sin;
+	socklen_t len = sizeof(sin);
 
 	if (s == (SOCKET_TYPE)ERRSOCKET)
 		return (SOCKET_TYPE)ERRSOCKET;
@@ -906,12 +908,16 @@ static SOCKET_TYPE UDP_Bind(int family, struct sockaddr *addr, socklen_t addrlen
 			CONS_Printf(M_GetText("Network system buffer set to: %dKb\n"), opt>>10);
 	}
 
+	if (getsockname(s, (struct sockaddr *)&sin, &len) == -1)
+		CONS_Alert(CONS_WARNING, M_GetText("Failed to get port number\n"));
+	else
+		current_port = (UINT16)ntohs(sin.sin_port);
+
 	return s;
 }
 
 static boolean UDP_Socket(void)
 {
-	const char *sock_port = NULL;
 	size_t s;
 	struct my_addrinfo *ai, *runp, hints;
 	int gaie;
@@ -933,20 +939,11 @@ static boolean UDP_Socket(void)
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
 
-	if (M_CheckParm("-clientport"))
-	{
-		if (!M_IsNextParm())
-			I_Error("syntax: -clientport <portnum>");
-		sock_port = M_GetNextParm();
-	}
-	else
-		sock_port = port_name;
-
 	if (M_CheckParm("-bindaddr"))
 	{
 		while (M_IsNextParm())
 		{
-			gaie = I_getaddrinfo(M_GetNextParm(), sock_port, &hints, &ai);
+			gaie = I_getaddrinfo(M_GetNextParm(), port_name, &hints, &ai);
 			if (gaie == 0)
 			{
 				runp = ai;
@@ -967,7 +964,7 @@ static boolean UDP_Socket(void)
 	}
 	else
 	{
-		gaie = I_getaddrinfo("0.0.0.0", sock_port, &hints, &ai);
+		gaie = I_getaddrinfo("0.0.0.0", port_name, &hints, &ai);
 		if (gaie == 0)
 		{
 			runp = ai;
@@ -982,8 +979,8 @@ static boolean UDP_Socket(void)
 #ifdef HAVE_MINIUPNPC
 					if (UPNP_support)
 					{
-						I_UPnP_rem(sock_port, "UDP");
-						I_UPnP_add(NULL, sock_port, "UDP");
+						I_UPnP_rem(port_name, "UDP");
+						I_UPnP_add(NULL, port_name, "UDP");
 					}
 #endif
 				}
@@ -1000,7 +997,7 @@ static boolean UDP_Socket(void)
 		{
 			while (M_IsNextParm())
 			{
-				gaie = I_getaddrinfo(M_GetNextParm(), sock_port, &hints, &ai);
+				gaie = I_getaddrinfo(M_GetNextParm(), port_name, &hints, &ai);
 				if (gaie == 0)
 				{
 					runp = ai;
@@ -1021,7 +1018,7 @@ static boolean UDP_Socket(void)
 		}
 		else
 		{
-			gaie = I_getaddrinfo("::", sock_port, &hints, &ai);
+			gaie = I_getaddrinfo("::", port_name, &hints, &ai);
 			if (gaie == 0)
 			{
 				runp = ai;
@@ -1478,14 +1475,15 @@ boolean I_InitTcpNetwork(void)
 	if (!I_InitTcpDriver())
 		return false;
 
-	if (M_CheckParm("-udpport"))
+	if (M_CheckParm("-port"))
+	// Combined -udpport and -clientport into -port
+	// As it was really redundant having two seperate parms that does the same thing
 	{
 		if (M_IsNextParm())
 			strcpy(port_name, M_GetNextParm());
 		else
 			strcpy(port_name, "0");
 	}
-	current_port = (UINT16)atoi(port_name);
 
 	// parse network game options,
 	if (M_CheckParm("-server") || dedicated)

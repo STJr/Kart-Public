@@ -1600,7 +1600,7 @@ void R_PrecacheLevel(void)
 	thinker_t *th;
 	spriteframe_t *sf;
 
-	if (demoplayback)
+	if (demo.playback)
 		return;
 
 	// do not flush the memory, Z_Malloc twice with same user will cause error in Z_CheckHeap()

@@ -33,8 +33,10 @@
 extern INT16 gamemap;
 extern char mapmusname[7];
 extern UINT16 mapmusflags;
+extern UINT32 mapmusposition;
 #define MUSIC_TRACKMASK   0x0FFF // ----************
 #define MUSIC_RELOADRESET 0x8000 // *---------------
+#define MUSIC_FORCERESET  0x4000 // -*--------------
 // Use other bits if necessary.
 
 extern INT16 maptol;
@@ -77,7 +79,10 @@ extern boolean addedtogame; // true after the server has added you
 extern boolean multiplayer;
 
 extern INT16 gametype;
+
+#define MAXSPLITSCREENPLAYERS 4 // Max number of players on a single computer
 extern UINT8 splitscreen;
+
 extern boolean circuitmap; // Does this level have 'circuit mode'?
 extern boolean fromlevelselect;
 extern boolean forceresetplayers, deferencoremode;
@@ -106,14 +111,8 @@ extern UINT8 window_notinfocus; // are we in focus? (backend independant -- hand
 extern boolean nodrawers;
 extern boolean noblit;
 extern boolean lastdraw;
-extern postimg_t postimgtype;
-extern INT32 postimgparam;
-extern postimg_t postimgtype2;
-extern INT32 postimgparam2;
-extern postimg_t postimgtype3;
-extern INT32 postimgparam3;
-extern postimg_t postimgtype4;
-extern INT32 postimgparam4;
+extern postimg_t postimgtype[MAXSPLITSCREENPLAYERS];
+extern INT32 postimgparam[MAXSPLITSCREENPLAYERS];
 
 extern INT32 viewwindowx, viewwindowy;
 extern INT32 viewwidth, scaledviewwidth;
@@ -122,10 +121,7 @@ extern boolean gamedataloaded;
 
 // Player taking events, and displaying.
 extern INT32 consoleplayer;
-extern INT32 displayplayer;
-extern INT32 secondarydisplayplayer; // for splitscreen
-extern INT32 thirddisplayplayer;
-extern INT32 fourthdisplayplayer;
+extern INT32 displayplayers[MAXSPLITSCREENPLAYERS];
 
 // Maps of special importance
 extern INT16 spstage_start;
@@ -156,6 +152,7 @@ typedef struct
 
 	char   musswitch[7];
 	UINT16 musswitchflags;
+	UINT32 musswitchposition;
 
 	UINT8 fadecolor; // Color number for fade, 0 means don't do the first fade
 	UINT8 fadeinid;  // ID of the first fade, to a color -- ignored if fadecolor is 0
@@ -227,6 +224,7 @@ typedef struct
 	INT16 nextlevel;       ///< Map number of next level, or 1100-1102 to end.
 	char musname[7];       ///< Music track to play. "" for no music.
 	UINT16 mustrack;       ///< Subsong to play. Only really relevant for music modules and specific formats supported by GME. 0 to ignore.
+	UINT32 muspos;    ///< Music position to jump to.
 	char forcecharacter[17];  ///< (SKINNAMESIZE+1) Skin to switch to or "" to disable.
 	UINT8 weather;         ///< 0 = sunny day, 1 = storm, 2 = snow, 3 = rain, 4 = blank, 5 = thunder w/o rain, 6 = rain w/o lightning, 7 = heat wave.
 	INT16 skynum;          ///< Sky number to use.
@@ -259,6 +257,10 @@ typedef struct
 	// SRB2kart
 	//boolean automap;    ///< Displays a level's white map outline in modified games
 	fixed_t mobj_scale; ///< Replacement for TOL_ERZ3
+
+	// Music stuff.
+	UINT32 musinterfadeout;  ///< Fade out level music on intermission screen in milliseconds
+	char musintername[7];    ///< Intermission screen music.
 
 	// Lua stuff.
 	// (This is not ifdeffed so the map header structure can stay identical, just in case.)
@@ -330,7 +332,10 @@ enum GameType // SRB2Kart
 	GT_HIDEANDSEEK,
 	GT_CTF
 };
-// If you alter this list, update gametype_cons_t in m_menu.c
+// If you alter this list, update dehacked.c, and Gametype_Names in g_game.c
+
+// String names for gametypes
+extern const char *Gametype_Names[NUMGAMETYPES];
 
 extern tic_t totalplaytime;
 extern UINT32 matchesplayed;
@@ -543,9 +548,7 @@ extern consvar_t cv_forceskin; // force clients to use the server's skin
 extern consvar_t cv_downloading; // allow clients to downloading WADs.
 extern consvar_t cv_nettimeout; // SRB2Kart: Advanced server options menu
 extern consvar_t cv_jointimeout;
-#ifdef NEWPING
 extern consvar_t cv_maxping;
-#endif
 extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 extern INT32 serverplayer;
 extern INT32 adminplayers[MAXPLAYERS];

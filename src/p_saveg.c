@@ -265,25 +265,11 @@ static void P_NetArchivePlayers(void)
 		if (flags & AWAYVIEW)
 			WRITEUINT32(save_p, players[i].awayviewmobj->mobjnum);
 
-		WRITEUINT8(save_p, players[i].charability);
-		WRITEUINT8(save_p, players[i].charability2);
 		WRITEUINT32(save_p, players[i].charflags);
-		WRITEUINT32(save_p, (UINT32)players[i].thokitem);
-		WRITEUINT32(save_p, (UINT32)players[i].spinitem);
-		WRITEUINT32(save_p, (UINT32)players[i].revitem);
-		WRITEFIXED(save_p, players[i].actionspd);
-		WRITEFIXED(save_p, players[i].mindash);
-		WRITEFIXED(save_p, players[i].maxdash);
 		// SRB2kart
 		WRITEUINT8(save_p, players[i].kartspeed);
 		WRITEUINT8(save_p, players[i].kartweight);
 		//
-		WRITEFIXED(save_p, players[i].normalspeed);
-		WRITEFIXED(save_p, players[i].runspeed);
-		WRITEUINT8(save_p, players[i].thrustfactor);
-		WRITEUINT8(save_p, players[i].accelstart);
-		WRITEUINT8(save_p, players[i].acceleration);
-		WRITEFIXED(save_p, players[i].jumpfactor);
 
 		for (j = 0; j < MAXPREDICTTICS; j++)
 		{
@@ -447,25 +433,11 @@ static void P_NetUnArchivePlayers(void)
 		players[i].viewheight = 32<<FRACBITS;
 
 		//SetPlayerSkinByNum(i, players[i].skin);
-		players[i].charability = READUINT8(save_p);
-		players[i].charability2 = READUINT8(save_p);
 		players[i].charflags = READUINT32(save_p);
-		players[i].thokitem = (mobjtype_t)READUINT32(save_p);
-		players[i].spinitem = (mobjtype_t)READUINT32(save_p);
-		players[i].revitem = (mobjtype_t)READUINT32(save_p);
-		players[i].actionspd = READFIXED(save_p);
-		players[i].mindash = READFIXED(save_p);
-		players[i].maxdash = READFIXED(save_p);
 		// SRB2kart
 		players[i].kartspeed = READUINT8(save_p);
 		players[i].kartweight = READUINT8(save_p);
 		//
-		players[i].normalspeed = READFIXED(save_p);
-		players[i].runspeed = READFIXED(save_p);
-		players[i].thrustfactor = READUINT8(save_p);
-		players[i].accelstart = READUINT8(save_p);
-		players[i].acceleration = READUINT8(save_p);
-		players[i].jumpfactor = READFIXED(save_p);
 
 		for (j = 0; j < MAXPREDICTTICS; j++)
 		{
@@ -2106,13 +2078,13 @@ static void LoadMobjThinker(actionf_p1 thinker)
 		mobj->player->mo = mobj;
 		// added for angle prediction
 		if (consoleplayer == i)
-			localangle = mobj->angle;
-		if (secondarydisplayplayer == i)
-			localangle2 = mobj->angle;
-		if (thirddisplayplayer == i)
-			localangle3 = mobj->angle;
-		if (fourthdisplayplayer == i)
-			localangle4 = mobj->angle;
+			localangle[0] = mobj->angle;
+		if (displayplayers[1] == i)
+			localangle[1] = mobj->angle;
+		if (displayplayers[2] == i)
+			localangle[2] = mobj->angle;
+		if (displayplayers[3] == i)
+			localangle[3] = mobj->angle;
 	}
 	if (diff & MD_MOVEDIR)
 		mobj->movedir = READANGLE(save_p);
@@ -3451,7 +3423,7 @@ void P_SaveNetGame(void)
 	mobj_t *mobj;
 	INT32 i = 1; // don't start from 0, it'd be confused with a blank pointer otherwise
 
-	CV_SaveNetVars(&save_p);
+	CV_SaveNetVars(&save_p, false);
 	P_NetArchiveMisc();
 
 	// Assign the mobjnumber for pointer tracking
