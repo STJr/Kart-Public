@@ -26,6 +26,9 @@
 // Called by main loop.
 void ST_Ticker(void);
 
+// Called when naming a replay.
+void ST_DrawDemoTitleEntry(void);
+
 // Called by main loop.
 void ST_Drawer(void);
 

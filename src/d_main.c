@@ -74,7 +74,7 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 #include "m_cond.h" // condition initialization
 #include "fastcmp.h"
 #include "keys.h"
-#include "filesrch.h" // refreshdirmenu, mainwadstally
+#include "filesrch.h" // refreshdirmenu
 
 #ifdef CMAKECONFIG
 #include "config.h"
@@ -118,14 +118,8 @@ boolean devparm = false; // started game with -devparm
 boolean singletics = false; // timedemo
 boolean lastdraw = false;
 
-postimg_t postimgtype = postimg_none;
-INT32 postimgparam;
-postimg_t postimgtype2 = postimg_none;
-INT32 postimgparam2;
-postimg_t postimgtype3 = postimg_none;
-INT32 postimgparam3;
-postimg_t postimgtype4 = postimg_none;
-INT32 postimgparam4;
+postimg_t postimgtype[MAXSPLITSCREENPLAYERS];
+INT32 postimgparam[MAXSPLITSCREENPLAYERS];
 
 // These variables are only true if
 // whether the respective sound system is disabled
@@ -248,6 +242,12 @@ void D_ProcessEvents(void)
 				continue;
 		}
 
+		if (demo.savemode == DSM_TITLEENTRY)
+		{
+			if (G_DemoTitleResponder(ev))
+				continue;
+		}
+
 		// Menu input
 		if (M_Responder(ev))
 			continue; // menu ate the event
@@ -274,6 +274,7 @@ static void D_Display(void)
 	boolean forcerefresh = false;
 	static boolean wipe = false;
 	INT32 wipedefindex = 0;
+	UINT8 i;
 
 	if (dedicated)
 		return;
@@ -422,109 +423,77 @@ static void D_Display(void)
 		// draw the view directly
 		if (cv_renderview.value && !automapactive)
 		{
-			if (players[displayplayer].mo || players[displayplayer].playerstate == PST_DEAD)
+			for (i = 0; i <= splitscreen; i++)
 			{
-				viewwindowy = 0;
-				viewwindowx = 0;
-
-				topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
-				objectsdrawn = 0;
-#ifdef HWRENDER
-				if (rendermode != render_soft)
-					HWR_RenderPlayerView(0, &players[displayplayer]);
-				else
-#endif
-				if (rendermode != render_none)
-					R_RenderPlayerView(&players[displayplayer]);
-			}
-
-			// render the second screen
-			if (splitscreen && players[secondarydisplayplayer].mo)
-			{
-#ifdef HWRENDER
-				if (rendermode != render_soft)
-					HWR_RenderPlayerView(1, &players[secondarydisplayplayer]);
-				else
-#endif
-				if (rendermode != render_none)
+				if (players[displayplayers[i]].mo || players[displayplayers[i]].playerstate == PST_DEAD)
 				{
-					if (splitscreen > 1)
+					if (i == 0) // Initialize for P1
 					{
-						viewwindowx = viewwidth;
 						viewwindowy = 0;
-					}
-					else
-					{
 						viewwindowx = 0;
-						viewwindowy = viewheight;
+
+						topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
+						objectsdrawn = 0;
 					}
 
-					M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
+					viewssnum = i;
 
-					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
-
-					R_RenderPlayerView(&players[secondarydisplayplayer]);
-
-					viewwindowy = 0;
-					M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
-				}
-			}
-
-			// render the third screen
-			if (splitscreen > 1 && players[thirddisplayplayer].mo)
-			{
 #ifdef HWRENDER
-				if (rendermode != render_soft)
-					HWR_RenderPlayerView(2, &players[thirddisplayplayer]);
-				else
+					if (rendermode != render_soft)
+						HWR_RenderPlayerView(i, &players[displayplayers[i]]);
+					else
 #endif
-				if (rendermode != render_none)
-				{
-					viewwindowx = 0;
-					viewwindowy = viewheight;
-					M_Memcpy(ylookup, ylookup3, viewheight*sizeof (ylookup[0]));
+					if (rendermode != render_none)
+					{
+						if (i > 0) // Splitscreen-specific
+						{
+							switch (i) 
+							{
+								case 1:
+									if (splitscreen > 1)
+									{
+										viewwindowx = viewwidth;
+										viewwindowy = 0;
+									}
+									else
+									{
+										viewwindowx = 0;
+										viewwindowy = viewheight;
+									}
+									M_Memcpy(ylookup, ylookup2, viewheight*sizeof (ylookup[0]));
+									break;
+								case 2:
+									viewwindowx = 0;
+									viewwindowy = viewheight;
+									M_Memcpy(ylookup, ylookup3, viewheight*sizeof (ylookup[0]));
+									break;
+								case 3:
+									viewwindowx = viewwidth;
+									viewwindowy = viewheight;
+									M_Memcpy(ylookup, ylookup4, viewheight*sizeof (ylookup[0]));
+								default:
+									break;
+							}
 
-					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
+							
+							topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
+						}
 
-					R_RenderPlayerView(&players[thirddisplayplayer]);
+						R_RenderPlayerView(&players[displayplayers[i]]);
 
-					viewwindowy = 0;
-					M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
-				}
-			}
-
-			if (splitscreen > 2 && players[fourthdisplayplayer].mo) // render the fourth screen
-			{
-#ifdef HWRENDER
-				if (rendermode != render_soft)
-					HWR_RenderPlayerView(3, &players[fourthdisplayplayer]);
-				else
-#endif
-				if (rendermode != render_none)
-				{
-					viewwindowx = viewwidth;
-					viewwindowy = viewheight;
-					M_Memcpy(ylookup, ylookup4, viewheight*sizeof (ylookup[0]));
-
-					topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
-
-					R_RenderPlayerView(&players[fourthdisplayplayer]);
-
-					viewwindowy = 0;
-					M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
+						if (i > 0)
+							M_Memcpy(ylookup, ylookup1, viewheight*sizeof (ylookup[0]));
+					}
 				}
 			}
 
 			if (rendermode == render_soft)
 			{
-				if (postimgtype)
-					V_DoPostProcessor(0, postimgtype, postimgparam);
-				if (postimgtype2)
-					V_DoPostProcessor(1, postimgtype2, postimgparam2);
-				if (postimgtype3)
-					V_DoPostProcessor(2, postimgtype3, postimgparam3);
-				if (postimgtype4)
-					V_DoPostProcessor(3, postimgtype4, postimgparam4);
+				for (i = 0; i <= splitscreen; i++)
+				{
+					if (postimgtype[i])
+						V_DoPostProcessor(i, postimgtype[i], postimgparam[i]);
+				}
 			}
 		}
 
@@ -550,7 +519,7 @@ static void D_Display(void)
 	wipegamestate = gamestate;
 
 	// draw pause pic
-	if (paused && cv_showhud.value)
+	if (paused && cv_showhud.value && !demo.playback)
 	{
 		INT32 py;
 		patch_t *patch;
@@ -561,6 +530,9 @@ static void D_Display(void)
 		patch = W_CachePatchName("M_PAUSE", PU_CACHE);
 		V_DrawScaledPatch(viewwindowx + (BASEVIDWIDTH - SHORT(patch->width))/2, py, 0, patch);
 	}
+
+	if (demo.rewinding)
+		V_DrawFadeScreen(TC_RAINBOW, (leveltime & 0x20) ? SKINCOLOR_PASTEL : SKINCOLOR_MOONSLAM);
 
 	// vid size change is now finished if it was on...
 	vid.recalc = 0;
@@ -619,6 +591,9 @@ static void D_Display(void)
 			V_DrawRightAlignedString(BASEVIDWIDTH, BASEVIDHEIGHT-ST_HEIGHT-10, V_YELLOWMAP, s);
 		}
 
+		if (cv_shittyscreen.value)
+			V_DrawVhsEffect(cv_shittyscreen.value == 2);
+
 		I_FinishUpdate(); // page flip or blit buffer
 	}
 }
@@ -635,9 +610,6 @@ void D_SRB2Loop(void)
 
 	if (dedicated)
 		server = true;
-
-	if (M_CheckParm("-voodoo")) // 256x256 Texture Limiter
-		COM_BufAddText("gr_voodoocompatibility on\n");
 
 	// Pushing of + parameters is now done back in D_SRB2Main, not here.
 
@@ -735,7 +707,7 @@ void D_SRB2Loop(void)
 				M_DoScreenShot();
 		}
 
-		// consoleplayer -> displayplayer (hear sounds from viewpoint)
+		// consoleplayer -> displayplayers (hear sounds from viewpoint)
 		S_UpdateSounds(); // move positional sounds
 
 		// check for media change, loop music..
@@ -814,13 +786,13 @@ void D_StartTitle(void)
 	maptol = 0;
 
 	gameaction = ga_nothing;
-	displayplayer = consoleplayer = 0;
+	memset(displayplayers, 0, sizeof(displayplayers));
+	consoleplayer = 0;
 	//demosequence = -1;
 	gametype = GT_RACE; // SRB2kart
 	paused = false;
 	advancedemo = false;
 	F_StartTitleScreen();
-	CON_ToggleOff();
 
 	// Reset the palette -- SRB2Kart: actually never mind let's do this in the middle of every fade
 	/*if (rendermode != render_none)
@@ -1217,6 +1189,10 @@ void D_SRB2Main(void)
 	// Setup default unlockable conditions
 	M_SetupDefaultConditionSets();
 
+	// Setup character tables
+	// Have to be done here before files are loaded
+	M_InitCharacterTables();
+
 	// load wad, including the main wad file
 	CONS_Printf("W_InitMultipleFiles(): Adding IWAD and main PWADs.\n");
 	if (!W_InitMultipleFiles(startupwadfiles, false))
@@ -1256,8 +1232,6 @@ void D_SRB2Main(void)
 #endif
 
 #endif //ifndef DEVELOP
-
-	mainwadstally = packetsizetally;
 
 	//
 	// search for maps
@@ -1513,7 +1487,7 @@ void D_SRB2Main(void)
 
 		if (M_CheckParm("-playdemo"))
 		{
-			singledemo = true; // quit after one demo
+			demo.quitafterplaying = true; // quit after one demo
 			G_DeferedPlayDemo(tmp);
 		}
 		else
@@ -1540,6 +1514,8 @@ void D_SRB2Main(void)
 		// as having been modified for the first game.
 		M_PushSpecialParameters(); // push all "+" parameter at the command buffer
 
+		strncpy(connectedservername, cv_servername.string, MAXSERVERNAME);
+
 		if (M_CheckParm("-gametype") && M_IsNextParm())
 		{
 			// from Command_Map_f
@@ -1547,13 +1523,9 @@ void D_SRB2Main(void)
 			INT16 newgametype = -1;
 			const char *sgametype = M_GetNextParm();
 
-			for (j = 0; gametype_cons_t[j].strvalue; j++)
-				if (!strcasecmp(gametype_cons_t[j].strvalue, sgametype))
-				{
-					newgametype = (INT16)gametype_cons_t[j].value;
-					break;
-				}
-			if (!gametype_cons_t[j].strvalue) // reached end of the list with no match
+			newgametype = G_GetGametypeByName(sgametype);
+
+			if (newgametype == -1) // reached end of the list with no match
 			{
 				j = atoi(sgametype); // assume they gave us a gametype number, which is okay too
 				if (j >= 0 && j < NUMGAMETYPES)
@@ -1608,12 +1580,12 @@ void D_SRB2Main(void)
 	}
 	else if (M_CheckParm("-skipintro"))
 	{
-		CON_ToggleOff();
-		CON_ClearHUD();
 		F_StartTitleScreen();
 	}
 	else
 		F_StartIntro(); // Tails 03-03-2002
+
+	CON_ToggleOff();
 
 	if (dedicated && server)
 	{

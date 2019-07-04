@@ -149,13 +149,17 @@ extern FILE *logstream;
 // most interface strings are ignored in development mode.
 // we use comprevision and compbranch instead.
 #else
-#define VERSION    100 // Game version
-#define SUBVERSION 4 // more precise version number
-#define VERSIONSTRING "v1.0.4"
-#define VERSIONSTRINGW L"v1.0.4"
-// Hey! If you change this, add 1 to the MODVERSION below!
-// Otherwise we can't force updates!
+#define VERSION    110 // Game version
+#define SUBVERSION 0 // more precise version number
+#define VERSIONSTRING "v1.1"
+#define VERSIONSTRINGW L"v1.1"
+// Hey! If you change this, add 1 to the MODVERSION below! Otherwise we can't force updates!
+// And change CMakeLists.txt, for CMake users!
+// AND appveyor.yml, for the build bots!
 #endif
+
+// Maintain compatibility with 1.0.x record attack replays?
+#define DEMO_COMPAT_100
 
 // Does this version require an added patch file?
 // Comment or uncomment this as necessary.
@@ -221,7 +225,7 @@ extern FILE *logstream;
 // it's only for detection of the version the player is using so the MS can alert them of an update.
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.1.0 is not version "1".
-#define MODVERSION 4
+#define MODVERSION 5
 
 // Filter consvars by version
 // To version config.cfg, MAJOREXECVERSION is set equal to MODVERSION automatically.
@@ -248,6 +252,9 @@ extern FILE *logstream;
 #define PLAYERSMASK (MAXPLAYERS-1)
 #define MAXPLAYERNAME 21
 
+// Master Server compatibility ONLY
+#define MSCOMPAT_MAXPLAYERS (32)
+
 typedef enum
 {
 	SKINCOLOR_NONE = 0,
@@ -256,22 +263,28 @@ typedef enum
 	SKINCOLOR_GREY,
 	SKINCOLOR_NICKEL,
 	SKINCOLOR_BLACK,
+	SKINCOLOR_SKUNK,
 	SKINCOLOR_FAIRY,
 	SKINCOLOR_POPCORN,
+	SKINCOLOR_ARTICHOKE,
+	SKINCOLOR_PIGEON,
 	SKINCOLOR_SEPIA,
 	SKINCOLOR_BEIGE,
+	SKINCOLOR_WALNUT,
 	SKINCOLOR_BROWN,
 	SKINCOLOR_LEATHER,
 	SKINCOLOR_SALMON,
 	SKINCOLOR_PINK,
 	SKINCOLOR_ROSE,
 	SKINCOLOR_BRICK,
+	SKINCOLOR_CINNAMON,
 	SKINCOLOR_RUBY,
 	SKINCOLOR_RASPBERRY,
 	SKINCOLOR_CHERRY,
 	SKINCOLOR_RED,
 	SKINCOLOR_CRIMSON,
 	SKINCOLOR_MAROON,
+	SKINCOLOR_LEMONADE,
 	SKINCOLOR_FLAME,
 	SKINCOLOR_SCARLET,
 	SKINCOLOR_KETCHUP,
@@ -290,8 +303,10 @@ typedef enum
 	SKINCOLOR_ROYAL,
 	SKINCOLOR_BRONZE,
 	SKINCOLOR_COPPER,
+	SKINCOLOR_QUARRY,
 	SKINCOLOR_YELLOW,
 	SKINCOLOR_MUSTARD,
+	SKINCOLOR_CROCODILE,
 	SKINCOLOR_OLIVE,
 	SKINCOLOR_VOMIT,
 	SKINCOLOR_GARDEN,
@@ -311,6 +326,7 @@ typedef enum
 	SKINCOLOR_PLAGUE,
 	SKINCOLOR_ALGAE,
 	SKINCOLOR_CARIBBEAN,
+	SKINCOLOR_AZURE,
 	SKINCOLOR_AQUA,
 	SKINCOLOR_TEAL,
 	SKINCOLOR_CYAN,
@@ -320,7 +336,9 @@ typedef enum
 	SKINCOLOR_PLATINUM,
 	SKINCOLOR_SLATE,
 	SKINCOLOR_STEEL,
+	SKINCOLOR_THUNDER,
 	SKINCOLOR_RUST,
+	SKINCOLOR_WRISTWATCH,
 	SKINCOLOR_JET,
 	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave - slender aphrodite has overcome me with longing for a girl
 	SKINCOLOR_PERIWINKLE,
@@ -417,6 +435,8 @@ typedef enum
 #define TICRATE 35
 #define NEWTICRATERATIO 1 // try 4 for 140 fps :)
 #define NEWTICRATE (TICRATE*NEWTICRATERATIO)
+
+#define MUSICRATE 1000 // sound timing is calculated by milliseconds
 
 #define RING_DIST 1280*FRACUNIT // how close you need to be to a ring to attract it
 
@@ -600,9 +620,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 
 ///	Polyobject fake flat code
 #define POLYOBJECTS_PLANES
-
-///	Improved way of dealing with ping values and a ping limit.
-#define NEWPING
 
 ///	See name of player in your crosshair
 #define SEENAMES

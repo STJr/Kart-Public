@@ -3079,7 +3079,7 @@ void A_Invincibility(mobj_t *actor)
 	{
 		S_StopMusic();
 		if (mariomode)
-			G_GhostAddColor(GHC_INVINCIBLE);
+			G_GhostAddColor((INT32) (player - players), GHC_INVINCIBLE);
 		S_ChangeMusicInternal((mariomode) ? "minvnc" : "invinc", false);
 	}
 }
@@ -4174,12 +4174,12 @@ void A_OverlayThink(mobj_t *actor)
 	{
 		angle_t viewingangle;
 
-		if (players[displayplayer].awayviewtics)
-			viewingangle = R_PointToAngle2(actor->target->x, actor->target->y, players[displayplayer].awayviewmobj->x, players[displayplayer].awayviewmobj->y);
-		else if (!camera.chase && players[displayplayer].mo)
-			viewingangle = R_PointToAngle2(actor->target->x, actor->target->y, players[displayplayer].mo->x, players[displayplayer].mo->y);
+		if (players[displayplayers[0]].awayviewtics)
+			viewingangle = R_PointToAngle2(actor->target->x, actor->target->y, players[displayplayers[0]].awayviewmobj->x, players[displayplayers[0]].awayviewmobj->y);
+		else if (!camera[0].chase && players[displayplayers[0]].mo)
+			viewingangle = R_PointToAngle2(actor->target->x, actor->target->y, players[displayplayers[0]].mo->x, players[displayplayers[0]].mo->y);
 		else
-			viewingangle = R_PointToAngle2(actor->target->x, actor->target->y, camera.x, camera.y);
+			viewingangle = R_PointToAngle2(actor->target->x, actor->target->y, camera[0].x, camera[0].y);
 
 		destx = actor->target->x + P_ReturnThrustX(actor->target, viewingangle, FixedMul(FRACUNIT, actor->scale));
 		desty = actor->target->y + P_ReturnThrustY(actor->target, viewingangle, FixedMul(FRACUNIT, actor->scale));
@@ -4781,8 +4781,8 @@ void A_DetonChase(mobj_t *actor)
 		actor->reactiontime = -42;
 
 		exact = actor->movedir>>ANGLETOFINESHIFT;
-		xyspeed = FixedMul(FixedMul(actor->tracer->player->normalspeed,3*FRACUNIT/4), FINECOSINE(exact));
-		actor->momz = FixedMul(FixedMul(actor->tracer->player->normalspeed,3*FRACUNIT/4), FINESINE(exact));
+		xyspeed = FixedMul(FixedMul(K_GetKartSpeed(actor->tracer->player, false),3*FRACUNIT/4), FINECOSINE(exact));
+		actor->momz = FixedMul(FixedMul(K_GetKartSpeed(actor->tracer->player, false),3*FRACUNIT/4), FINESINE(exact));
 
 		exact = actor->angle>>ANGLETOFINESHIFT;
 		actor->momx = FixedMul(xyspeed, FINECOSINE(exact));
@@ -8355,6 +8355,7 @@ void A_SPBChase(mobj_t *actor)
 		actor->lastlook = -1;
 		spbplace = -1;
 		P_InstaThrust(actor, actor->angle, wspeed);
+		actor->flags &=  ~MF_NOCLIPTHING;	// just in case.
 		return;
 	}
 
@@ -8384,9 +8385,13 @@ void A_SPBChase(mobj_t *actor)
 	{
 		if (actor->tracer && actor->tracer->health)
 		{
+
 			fixed_t defspeed = wspeed;
 			fixed_t range = (160*actor->tracer->scale);
 			fixed_t cx = 0, cy =0;
+
+			// we're tailing a player, now's a good time to regain our damage properties
+			actor->flags &=  ~MF_NOCLIPTHING;
 
 			// Play the intimidating gurgle
 			if (!S_SoundPlaying(actor, actor->info->activesound))
@@ -8434,6 +8439,9 @@ void A_SPBChase(mobj_t *actor)
 				wspeed = (3*defspeed)/2;
 			if (wspeed < 20*actor->tracer->scale)
 				wspeed = 20*actor->tracer->scale;
+			if (actor->tracer->player->pflags & PF_SLIDING)
+				wspeed = actor->tracer->player->speed/2;
+			//  ^^^^ current section: These are annoying, and grand metropolis in particular needs this.
 
 			hang = R_PointToAngle2(actor->x, actor->y, actor->tracer->x, actor->tracer->y);
 			vang = R_PointToAngle2(0, actor->z, dist, actor->tracer->z);
@@ -8512,6 +8520,9 @@ void A_SPBChase(mobj_t *actor)
 	{
 		actor->momx = actor->momy = actor->momz = 0; // Stoooop
 
+		// don't hurt players that have nothing to do with this:
+		actor->flags |= MF_NOCLIPTHING;
+
 		if (actor->lastlook != -1
 			&& playeringame[actor->lastlook]
 			&& !players[actor->lastlook].spectator
@@ -8547,6 +8558,10 @@ void A_SPBChase(mobj_t *actor)
 		}
 
 		// Found someone, now get close enough to initiate the slaughter...
+
+		// don't hurt players that have nothing to do with this:
+		actor->flags |= MF_NOCLIPTHING;
+
 		P_SetTarget(&actor->tracer, player->mo);
 		spbplace = bestrank;
 

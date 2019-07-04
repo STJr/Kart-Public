@@ -45,6 +45,9 @@ void COM_ImmedExecute(const char *ptext);
 // Execute commands in buffer, flush them
 void COM_BufExecute(void);
 
+// As above; and progress the wait timer.
+void COM_BufTicker(void);
+
 // setup command buffer, at game tartup
 void COM_Init(void);
 
@@ -161,7 +164,7 @@ void CV_AddValue(consvar_t *var, INT32 increment);
 void CV_SaveVariables(FILE *f);
 
 // load/save gamesate (load and save option and for network join in game)
-void CV_SaveNetVars(UINT8 **p);
+void CV_SaveNetVars(UINT8 **p, boolean isdemorecording);
 void CV_LoadNetVars(UINT8 **p);
 
 // reset cheat netvars after cheats is deactivated
