@@ -1311,7 +1311,7 @@ static SINT8 SOCK_NetMakeNodewPort(const char *address, const char *port)
 	int gaie;
 
 	 if (!port || !port[0])
-		port = port_name;
+		port = DEFAULTPORT;
 
 	DEBFILE(va("Creating new node: %s@%s\n", address, port));
 
