@@ -433,6 +433,8 @@ void Net_SendAcks(INT32 node)
 #ifdef NONET
 	(void)node;
 #else
+	if (mustbereentrant)
+		return;
 	netbuffer->packettype = PT_NOTHING;
 	M_Memcpy(netbuffer->u.textcmd, nodes[node].acktosend, MAXACKTOSEND);
 	HSendPacket(node, false, 0, MAXACKTOSEND);
@@ -607,7 +609,10 @@ void Net_WaitAllAckReceived(UINT32 timeout)
 #ifdef NONET
 	(void)timeout;
 #else
-	tic_t tictac = I_GetTime();
+	tic_t tictac;
+	if (mustbereentrant)
+		return;
+	tictac = I_GetTime();
 	timeout = tictac + timeout*NEWTICRATE;
 
 	HGetPacket();
@@ -1004,6 +1009,8 @@ boolean HSendPacket(INT32 node, boolean reliable, UINT8 acknum, size_t packetlen
 	doomcom->datalength = (INT16)(packetlength + BASEPACKETSIZE);
 	if (node == 0) // Packet is to go back to us
 	{
+		if (mustbereentrant)
+			return false;
 		if ((rebound_head+1) % MAXREBOUND == rebound_tail)
 		{
 #ifdef PARANOIA
@@ -1111,6 +1118,8 @@ boolean HGetPacket(void)
 	// Get a packet from self
 	if (rebound_tail != rebound_head)
 	{
+		if (mustbereentrant)
+			return false;
 		M_Memcpy(netbuffer, &reboundstore[rebound_tail], reboundsize[rebound_tail]);
 		doomcom->datalength = reboundsize[rebound_tail];
 		if (netbuffer->packettype == PT_NODETIMEOUT)
@@ -1200,7 +1209,7 @@ static boolean Internal_Get(void)
 	return false;
 }
 
-FUNCNORETURN static ATTRNORETURN void Internal_Send(void)
+static void Internal_Send(void)
 {
 	I_Error("Send without netgame\n");
 }

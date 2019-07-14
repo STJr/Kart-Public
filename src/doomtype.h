@@ -259,20 +259,20 @@ size_t strlcpy(char *dst, const char *src, size_t siz);
 		#elif (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4) // >= GCC 4.4
 			#define FUNCPRINTF __attribute__ ((format(ms_printf, 1, 2)))
 			#define FUNCDEBUG  __attribute__ ((format(ms_printf, 2, 3)))
-			#define FUNCIERROR __attribute__ ((format(ms_printf, 1, 2),noreturn))
+			#define FUNCIERROR __attribute__ ((format(ms_printf, 1, 2),/*noreturn*/))
 		#else
 			#define FUNCPRINTF __attribute__ ((format(printf, 1, 2)))
 			#define FUNCDEBUG  __attribute__ ((format(printf, 2, 3)))
-			#define FUNCIERROR __attribute__ ((format(printf, 1, 2),noreturn))
+			#define FUNCIERROR __attribute__ ((format(printf, 1, 2),/*noreturn*/))
 		#endif
 	#else
 		#define FUNCPRINTF __attribute__ ((format(printf, 1, 2)))
 		#define FUNCDEBUG  __attribute__ ((format(printf, 2, 3)))
-		#define FUNCIERROR __attribute__ ((format(printf, 1, 2),noreturn))
+		#define FUNCIERROR __attribute__ ((format(printf, 1, 2),/*noreturn*/))
 	#endif
 
 	#ifndef FUNCIERROR
-		#define FUNCIERROR __attribute__ ((noreturn))
+		#define FUNCIERROR __attribute__ ((/*noreturn*/))
 	#endif
 
 	#define FUNCMATH __attribute__((const))

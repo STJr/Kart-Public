@@ -246,14 +246,16 @@ SDL_bool framebuffer = SDL_FALSE;
 
 UINT8 keyboard_started = false;
 
-FUNCNORETURN static ATTRNORETURN void signal_handler(INT32 num)
+/*
+I hope you know that you can only call reentrant functions in signal handlers.
+If your function doesn't do that, check here that false before you do anything.
+*/
+boolean mustbereentrant = false;
+
+void I_ReportSignal(INT32 num)
 {
-	//static char msg[] = "oh no! back to reality!\r\n";
 	const char *      sigmsg;
 	char        sigdef[32];
-
-	D_QuitNetGame(); // Fix server freezes
-
 	switch (num)
 	{
 //	case SIGINT:
@@ -287,10 +289,23 @@ FUNCNORETURN static ATTRNORETURN void signal_handler(INT32 num)
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 		"Signal caught",
 		sigmsg, NULL);
-	I_ShutdownSystem();
+}
+
+static void signal_handler(INT32 num)
+{
+	mustbereentrant = true;/* and we about to die anyway */
+
+	D_QuitNetGame(); // Fix server freezes
+
+	/*
+	On Windows raising a signal seems to disable a dialogue box from showing.
+	*/
+#ifndef _WIN32
 	signal(num, SIG_DFL);               //default signal action
 	raise(num);
-	I_Quit();
+#endif
+
+	mustbereentrant = false;/* ytho */
 }
 
 FUNCNORETURN static ATTRNORETURN void quit_handler(int num)
@@ -3117,6 +3132,13 @@ void I_Error(const char *error, ...)
 {
 	va_list argptr;
 	char buffer[8192];
+
+	/*
+	For now; there's a way to print from within
+	signal handlers, but you're not going to like it!
+	*/
+	if (mustbereentrant)
+		return;
 
 	// recursive error detecting
 	if (shutdowning)

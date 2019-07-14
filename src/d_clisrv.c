@@ -476,6 +476,9 @@ void D_ResetTiccmds(void)
 {
 	INT32 i;
 
+	if (mustbereentrant)
+		return;
+
 	memset(&localcmds, 0, sizeof(ticcmd_t));
 	memset(&localcmds2, 0, sizeof(ticcmd_t));
 	memset(&localcmds3, 0, sizeof(ticcmd_t));

@@ -143,6 +143,7 @@ void P_RunDynamicSlopes(void) {
 
 		default:
 			I_Error("P_RunDynamicSlopes: slope has invalid type!");
+			return;
 		}
 
 		if (slope->zdelta != FixedDiv(zdelta, slope->extent)) {

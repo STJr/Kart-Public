@@ -643,7 +643,7 @@ static const char *Newsnapshotfile(const char *pathname, const char *ext)
 #endif
 
 #ifdef HAVE_PNG
-FUNCNORETURN static void PNG_error(png_structp PNG, png_const_charp pngtext)
+static void PNG_error(png_structp PNG, png_const_charp pngtext)
 {
 	//CONS_Debug(DBG_RENDER, "libpng error at %p: %s", PNG, pngtext);
 	I_Error("libpng error at %p: %s", PNG, pngtext);
