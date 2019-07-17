@@ -6477,10 +6477,10 @@ void G_WriteStanding(UINT8 ranking, char *name, INT32 skinnum, UINT8 color, UINT
 {
 	char temp[16];
 
-	if (demoinfo_p && (UINT32)(*demoinfo_p) == 0)
+	if (demoinfo_p && *(UINT32 *)demoinfo_p == 0)
 	{
 		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
-		WRITEUINT32(demoinfo_p, demo_p - demobuffer);
+		*(UINT32 *)demoinfo_p = demo_p - demobuffer;
 	}
 
 	WRITEUINT8(demo_p, DW_STANDING);
@@ -8172,16 +8172,17 @@ boolean G_CheckDemoStatus(void)
 
 void G_SaveDemo(void)
 {
-	UINT8 *p = demobuffer+16; // checksum position
+	UINT8 *p = demobuffer+16; // after version
+	UINT32 length;
 #ifdef NOMD5
 	UINT8 i;
 #endif
 
 	// Ensure extrainfo pointer is always available, even if no info is present.
-	if (demoinfo_p && (UINT32)(*demoinfo_p) == 0)
+	if (demoinfo_p && *(UINT32 *)demoinfo_p == 0)
 	{
 		WRITEUINT8(demo_p, DEMOMARKER); // add the demo end marker
-		WRITEUINT32(demoinfo_p, (UINT32)(demo_p - demobuffer));
+		*(UINT32 *)demoinfo_p = demo_p - demobuffer;
 	}
 	WRITEUINT8(demo_p, DW_END); // Mark end of demo extra data.
 
@@ -8227,12 +8228,14 @@ void G_SaveDemo(void)
 		sprintf(writepoint, "%s.lmp", demo_slug);
 	}
 
+	length = *(UINT32 *)demoinfo_p;
+	WRITEUINT32(demoinfo_p, length);
 #ifdef NOMD5
 	for (i = 0; i < 16; i++, p++)
 		*p = M_RandomByte(); // This MD5 was chosen by fair dice roll and most likely < 50% correct.
 #else
 	// Make a checksum of everything after the checksum in the file up to the end of the standard data. Extrainfo is freely modifiable.
-	md5_buffer((char *)p+16, (demobuffer + (UINT32)*demoinfo_p) - (p+16), p);
+	md5_buffer((char *)p+16, (demobuffer + length) - (p+16), p);
 #endif
 
 
