@@ -805,9 +805,6 @@ static const char *packettypename[NUMPACKETTYPE] =
 	"CLIENT4MIS",
 	"BASICKEEPALIVE",
 
-	"JOINCHALLENGE",
-	"DOWNLOADFILESOKAY",
-
 	"FILEFRAGMENT",
 	"TEXTCMD",
 	"TEXTCMD2",
@@ -833,7 +830,7 @@ static void DebugPrintpacket(const char *header)
 			break;
 		case PT_CLIENTJOIN:
 			fprintf(debugfile, "    number %d mode %d\n", netbuffer->u.clientcfg.localplayers,
-				netbuffer->u.clientcfg.needsdownload);
+				netbuffer->u.clientcfg.mode);
 			break;
 		case PT_SERVERTICS:
 		{
