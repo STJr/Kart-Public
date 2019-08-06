@@ -75,6 +75,7 @@ typedef struct filetx_s
 	} id;
 	UINT32 size; // Size of the file
 	UINT8 fileid;
+	boolean dummy;/* For custom can't download notice; we don't actually send the file! */
 	INT32 node; // Destination
 	struct filetx_s *next; // Next file in the list
 } filetx_t;
@@ -144,12 +145,15 @@ UINT8 *PutFileNeeded(UINT16 firstfile)
 		filestatus = 1; // Importance - not really used any more, holds 1 by default for backwards compat with MS
 
 		// Store in the upper four bits
-		if (!cv_downloading.value)
-			filestatus += (2 << 4); // Won't send
-		else if ((wadfiles[i]->filesize <= (UINT32)cv_maxsend.value * 1024))
-			filestatus += (1 << 4); // Will send if requested
-		// else
-			// filestatus += (0 << 4); -- Won't send, too big
+		if (*cv_nodownloads.string)
+			filestatus += (1 << 4);/* This is a hack to get the client to ask for files. */
+		else
+		{
+			if (!cv_downloading.value)
+				filestatus += (2 << 4); // Won't send
+			else if ((wadfiles[i]->filesize <= (UINT32)cv_maxsend.value * 1024))
+				filestatus += (1 << 4); // Will send if requested
+		}
 
 		WRITEUINT8(p, filestatus);
 
@@ -494,9 +498,6 @@ static boolean SV_SendFile(INT32 node, const char *filename, UINT8 fileid)
 	INT32 i;
 	char wadfilename[MAX_WADPATH];
 
-	if (cv_noticedownload.value)
-		CONS_Printf("Sending file \"%s\" to node %d (%s)\n", filename, node, I_GetNodeAddress(node));
-
 	// Find the last file in the list and set a pointer to its "next" field
 	q = &transfer[node].txlist;
 	while (*q)
@@ -548,16 +549,29 @@ static boolean SV_SendFile(INT32 node, const char *filename, UINT8 fileid)
 	}
 
 	// Handle huge file requests (i.e. bigger than cv_maxsend.value KB)
-	if (wadfiles[i]->filesize > (UINT32)cv_maxsend.value * 1024)
+	if (!cv_downloading.value || wadfiles[i]->filesize > (UINT32)cv_maxsend.value * 1024)
 	{
-		// Too big
-		// Don't inform client (client sucks, man)
-		DEBFILE(va("Client %d request %s: file too big, not sending\n", node, filename));
-		free(p->id.filename);
-		free(p);
-		*q = NULL;
-		return false; // cancel the rest of the requests
+		if (*cv_nodownloads.string)
+		{
+			p->dummy = true;
+			nodedownloadrefuse[node] = true;
+		}
+		else
+		{
+			// Too big
+			// Don't inform client (client sucks, man)
+			DEBFILE(va("Client %d request %s: file too big, not sending\n", node, filename));
+			free(p->id.filename);
+			free(p);
+			*q = NULL;
+			return false; // cancel the rest of the requests
+		}
 	}
+	else
+		p->dummy = false;
+
+	if (cv_noticedownload.value)
+		CONS_Printf("Sending file \"%s\" to node %d (%s)\n", filename, node, I_GetNodeAddress(node));
 
 	DEBFILE(va("Sending file %s (id=%d) to %d\n", filename, fileid, node));
 	p->ram = SF_FILE; // It's a file, we need to close it and free its name once we're done sending it
@@ -622,7 +636,7 @@ static void SV_EndFileSend(INT32 node)
 		case SF_FILE: // It's a file, close it and free its filename
 			if (cv_noticedownload.value)
 				CONS_Printf("Ending file transfer for node %d\n", node);
-			if (transfer[node].currentfile)
+			if (transfer[node].currentfile && !p->dummy)
 				fclose(transfer[node].currentfile);
 			free(p->id.filename);
 			break;
@@ -710,25 +724,33 @@ void SV_FileSendTicker(void)
 			{
 				long filesize;
 
-				transfer[i].currentfile =
-					fopen(f->id.filename, "rb");
+				if (f->dummy)
+				{
+					f->size = 1;/* client expects at least one byte */
+					transfer[i].currentfile = (FILE *)1;/* (see below) */
+				}
+				else
+				{
+					transfer[i].currentfile =
+						fopen(f->id.filename, "rb");
 
-				if (!transfer[i].currentfile)
-					I_Error("File %s does not exist",
-						f->id.filename);
+					if (!transfer[i].currentfile)
+						I_Error("File %s does not exist",
+								f->id.filename);
 
-				fseek(transfer[i].currentfile, 0, SEEK_END);
-				filesize = ftell(transfer[i].currentfile);
+					fseek(transfer[i].currentfile, 0, SEEK_END);
+					filesize = ftell(transfer[i].currentfile);
 
-				// Nobody wants to transfer a file bigger
-				// than 4GB!
-				if (filesize >= LONG_MAX)
-					I_Error("filesize of %s is too large", f->id.filename);
-				if (filesize == -1)
-					I_Error("Error getting filesize of %s", f->id.filename);
+					// Nobody wants to transfer a file bigger
+					// than 4GB!
+					if (filesize >= LONG_MAX)
+						I_Error("filesize of %s is too large", f->id.filename);
+					if (filesize == -1)
+						I_Error("Error getting filesize of %s", f->id.filename);
 
-				f->size = (UINT32)filesize;
-				fseek(transfer[i].currentfile, 0, SEEK_SET);
+					f->size = (UINT32)filesize;
+					fseek(transfer[i].currentfile, 0, SEEK_SET);
+				}
 			}
 			else // Sending RAM
 				transfer[i].currentfile = (FILE *)1; // Set currentfile to a non-null value to indicate that it is open
@@ -742,6 +764,8 @@ void SV_FileSendTicker(void)
 			size = f->size-transfer[i].position;
 		if (ram)
 			M_Memcpy(p->data, &f->id.ram[transfer[i].position], size);
+		else if (f->dummy)
+			p->data[0] = '\n';
 		else if (fread(p->data, 1, size, transfer[i].currentfile) != size)
 			I_Error("SV_FileSendTicker: can't read %s byte on %s at %d because %s", sizeu1(size), f->id.filename, transfer[i].position, strerror(ferror(transfer[i].currentfile)));
 		p->position = LONG(transfer[i].position);
@@ -760,7 +784,7 @@ void SV_FileSendTicker(void)
 		}
 		else
 		{ // Not sent for some odd reason, retry at next call
-			if (!ram)
+			if (!ram && !f->dummy)
 				fseek(transfer[i].currentfile,transfer[i].position, SEEK_SET);
 			// Exit the while (can't send this one so why should i send the next?)
 			break;
@@ -891,6 +915,7 @@ void SV_AbortSendFiles(INT32 node)
 {
 	while (transfer[node].txlist)
 		SV_EndFileSend(node);
+	nodedownloadrefuse[node] = false;
 }
 
 void CloseNetFile(void)

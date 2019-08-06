@@ -102,6 +102,9 @@ SINT8 nodetoplayer3[MAXNETNODES]; // say the numplayer for this node if any (spl
 SINT8 nodetoplayer4[MAXNETNODES]; // say the numplayer for this node if any (splitscreen == 3)
 UINT8 playerpernode[MAXNETNODES]; // used specialy for splitscreen
 boolean nodeingame[MAXNETNODES]; // set false as nodes leave game
+
+boolean nodedownloadrefuse[MAXNETNODES];
+
 static tic_t nettics[MAXNETNODES]; // what tic the client have received
 static tic_t supposedtics[MAXNETNODES]; // nettics prevision for smaller packet
 static UINT8 nodewaiting[MAXNETNODES];
@@ -3743,6 +3746,20 @@ static void HandleConnect(SINT8 node)
 		SV_SendRefuse(node, M_GetText("Too many players from\nthis node."));
 	else if (netgame && !netbuffer->u.clientcfg.localplayers) // Stealth join?
 		SV_SendRefuse(node, M_GetText("No players from\nthis node."));
+	else if (nodedownloadrefuse[node])
+	{
+		char *s;
+		char *p;
+		if (!( s = strdup(cv_nodownloads.string) ))
+			SV_SendRefuse(node, "You can't download files from this server.\nGo home.");
+		else
+		{
+			for (p = s; ( p = strchr(p, '\\') ); ++p)
+				*p = '\n';
+			SV_SendRefuse(node, s);
+			free(s);
+		}
+	}
 	else
 	{
 #ifndef NONET
@@ -4159,7 +4176,7 @@ static void HandlePacketFromAwayNode(SINT8 node)
 		case PT_REQUESTFILE:
 			if (server)
 			{
-				if (!cv_downloading.value || !Got_RequestFilePak(node))
+				if (( !cv_downloading.value && !*cv_nodownloads.string ) || !Got_RequestFilePak(node))
 					Net_CloseConnection(node); // close connection if one of the requested files could not be sent, or you disabled downloading anyway
 			}
 			else
