@@ -714,7 +714,10 @@ void Net_CloseConnection(INT32 node)
 		}
 
 	InitNode(&nodes[node]);
+#if 0
 	SV_AbortSendFiles(node);
+#endif
+	CloseNetFile();/* Hack to hopefully reduce lock outs. */
 	I_NetFreeNodenum(node);
 #endif
 }
