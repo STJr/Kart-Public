@@ -553,6 +553,8 @@ extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
 extern INT32 serverplayer;
 extern INT32 adminplayers[MAXPLAYERS];
 
+extern boolean alreadyresetdownloads;
+
 /// \note put these in d_clisrv outright?
 
 #endif //__DOOMSTAT__

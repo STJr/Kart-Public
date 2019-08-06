@@ -472,6 +472,8 @@ UINT8 splitscreen = 0;
 boolean circuitmap = true; // SRB2kart
 INT32 adminplayers[MAXPLAYERS];
 
+boolean alreadyresetdownloads;
+
 /// \warning Keep this up-to-date if you add/remove/rename net text commands
 const char *netxcmdnames[MAXNETXCMD - 1] =
 {
@@ -5790,5 +5792,8 @@ Command_resetdownloads_f (void)
 {
 	CloseNetFile();
 	if (server)
+	{
 		COM_ImmedExecute("say \"Downloads have been reset.\"");
+		alreadyresetdownloads = true;
+	}
 }

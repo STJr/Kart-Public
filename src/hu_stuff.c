@@ -645,7 +645,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	UINT8 flags;
 	const char *dispname;
 	char *msg;
-	boolean action = false;
+	int action = 0;
 	char *ptr;
 	INT32 spam_eatmsg = 0;
 
@@ -729,8 +729,10 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	if (target == 0 && strlen(msg) > 4 && strnicmp(msg, "/me ", 4) == 0)
 	{
 		msg += 4;
-		action = true;
+		action = 1;
 	}
+	else if (strnicmp(msg, "/resetdownloads", 15) == 0)
+		action = 2;
 
 	if (flags & HU_SERVER_SAY)
 		dispname = "SERVER";
@@ -943,7 +945,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		// Each format includes four strings: color start, display
 		// name, color end, and the message itself.
 		// '\4' makes the message yellow and beeps; '\3' just beeps.
-		if (action)
+		if (action == 1)
 			fmt2 = "* %s%s%s%s \x82%s%s";
 		else if (target-1 == consoleplayer) // To you
 		{
@@ -976,6 +978,12 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		}*/
 
 		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, textcolor, msg), cv_chatnotifications.value); // add to chat
+
+		if (action == 2)
+		{
+			if (server && !alreadyresetdownloads)
+				COM_ImmedExecute("resetdownloads");
+		}
 
 		if (tempchar)
 			Z_Free(tempchar);
