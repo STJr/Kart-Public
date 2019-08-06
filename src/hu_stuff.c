@@ -981,7 +981,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 
 		if (action == 2)
 		{
-			if (server && !alreadyresetdownloads)
+			if (server && ( IsPlayerAdmin(playernum) || !alreadyresetdownloads ))
 				COM_ImmedExecute("resetdownloads");
 		}
 
