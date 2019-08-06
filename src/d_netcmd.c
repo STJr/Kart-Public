@@ -121,6 +121,8 @@ static void KartEliminateLast_OnChange(void);
 static void Fishcake_OnChange(void);
 #endif
 
+static void Command_resetdownloads_f (void);
+
 static void Command_Playdemo_f(void);
 static void Command_Timedemo_f(void);
 static void Command_Stopdemo_f(void);
@@ -552,6 +554,8 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_SETUPVOTE, Got_SetupVotecmd);
 	RegisterNetXCmd(XD_MODIFYVOTE, Got_ModifyVotecmd);
 	RegisterNetXCmd(XD_PICKVOTE, Got_PickVotecmd);
+
+	COM_AddCommand("resetdownloads", Command_resetdownloads_f);
 
 	// Remote Administration
 	CV_RegisterVar(&cv_dummyjoinpassword);
@@ -5779,4 +5783,12 @@ static void KartEliminateLast_OnChange(void)
 {
 	if (G_RaceGametype() && cv_karteliminatelast.value)
 		P_CheckRacers();
+}
+
+static void
+Command_resetdownloads_f (void)
+{
+	CloseNetFile();
+	if (server)
+		COM_ImmedExecute("say \"Downloads have been reset.\"");
 }
