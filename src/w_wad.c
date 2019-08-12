@@ -150,9 +150,15 @@ FILE *W_OpenWadFile(const char **filename, boolean useerrors)
 {
 	FILE *handle;
 
-	strncpy(filenamebuf, *filename, MAX_WADPATH);
-	filenamebuf[MAX_WADPATH - 1] = '\0';
-	*filename = filenamebuf;
+	// Officially, strncpy should not have overlapping buffers, since W_VerifyNMUSlumps is called after this, and it
+	// changes filename to point at filenamebuf, it would technically be doing that. I doubt any issue will occur since
+	// they point to the same location, but it's better to be safe and this is a simple change.
+	if (filenamebuf != *filename)
+	{
+		strncpy(filenamebuf, *filename, MAX_WADPATH);
+		filenamebuf[MAX_WADPATH - 1] = '\0';
+		*filename = filenamebuf;
+	}
 
 	// open wad file
 	if ((handle = fopen(*filename, "rb")) == NULL)
@@ -335,7 +341,6 @@ static restype_t ResourceFileDetect (const char* filename)
 static lumpinfo_t* ResGetLumpsStandalone (FILE* handle, UINT16* numlumps, const char* lumpname)
 {
 	lumpinfo_t* lumpinfo = Z_Calloc(sizeof (*lumpinfo), PU_STATIC, NULL);
-	lumpinfo = Z_Calloc(sizeof (*lumpinfo), PU_STATIC, NULL);
 	lumpinfo->position = 0;
 	fseek(handle, 0, SEEK_END);
 	lumpinfo->size = ftell(handle);
@@ -567,14 +572,14 @@ static lumpinfo_t* ResGetLumpsZip (FILE* handle, UINT16* nlmp)
 		{
 			CONS_Alert(CONS_ERROR, "Failed to read central directory (%s)\n", strerror(ferror(handle)));
 			Z_Free(lumpinfo);
-			free(zentry);
+			free(zentries);
 			return NULL;
 		}
 		if (memcmp(zentry->signature, pat_central, 4))
 		{
 			CONS_Alert(CONS_ERROR, "Central directory is corrupt\n");
 			Z_Free(lumpinfo);
-			free(zentry);
+			free(zentries);
 			return NULL;
 		}
 
@@ -587,7 +592,7 @@ static lumpinfo_t* ResGetLumpsZip (FILE* handle, UINT16* nlmp)
 		{
 			CONS_Alert(CONS_ERROR, "Unable to read lumpname (%s)\n", strerror(ferror(handle)));
 			Z_Free(lumpinfo);
-			free(zentry);
+			free(zentries);
 			free(fullname);
 			return NULL;
 		}
@@ -628,6 +633,8 @@ static lumpinfo_t* ResGetLumpsZip (FILE* handle, UINT16* nlmp)
 			break;
 		}
 	}
+
+	free(zentries);
 
 	*nlmp = numlumps;
 	return lumpinfo;
@@ -1314,8 +1321,9 @@ size_t W_ReadLumpHeaderPwad(UINT16 wad, UINT16 lump, void *dest, size_t size, si
 				{
 					size = 0;
 					zerr(zErr);
-					(void)inflateEnd(&strm);
 				}
+
+				(void)inflateEnd(&strm);
 			}
 			else
 			{

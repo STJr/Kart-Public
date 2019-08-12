@@ -532,7 +532,6 @@ static void COM_ExecuteString(char *ptext)
 	{
 		if (!stricmp(com_argv[0], cmd->name)) //case insensitive now that we have lower and uppercase!
 		{
-			recursion = 0;
 			cmd->function();
 			return;
 		}
@@ -544,10 +543,7 @@ static void COM_ExecuteString(char *ptext)
 		if (!stricmp(com_argv[0], a->name))
 		{
 			if (recursion > MAX_ALIAS_RECURSION)
-			{
 				CONS_Alert(CONS_WARNING, M_GetText("Alias recursion cycle detected!\n"));
-				recursion = 0;
-			}
 			else
 			{
 				char buf[1024];
@@ -581,12 +577,11 @@ static void COM_ExecuteString(char *ptext)
 
 				recursion++;
 				COM_BufInsertText(buf);
+				recursion--;
 			}
 			return;
 		}
 	}
-
-	recursion = 0;
 
 	// check cvars
 	// Hurdler: added at Ebola's request ;)

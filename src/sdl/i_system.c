@@ -2960,7 +2960,7 @@ static void I_ShutdownTimer(void)
 	pfntimeGetTime = NULL;
 	if (winmm)
 	{
-		p_timeEndPeriod pfntimeEndPeriod = (p_timeEndPeriod)GetProcAddress(winmm, "timeEndPeriod");
+		p_timeEndPeriod pfntimeEndPeriod = (p_timeEndPeriod)(LPVOID)GetProcAddress(winmm, "timeEndPeriod");
 		if (pfntimeEndPeriod)
 			pfntimeEndPeriod(1);
 		FreeLibrary(winmm);
@@ -3005,10 +3005,10 @@ void I_StartupTimer(void)
 	winmm = LoadLibraryA("winmm.dll");
 	if (winmm)
 	{
-		p_timeEndPeriod pfntimeBeginPeriod = (p_timeEndPeriod)GetProcAddress(winmm, "timeBeginPeriod");
+		p_timeEndPeriod pfntimeBeginPeriod = (p_timeEndPeriod)(LPVOID)GetProcAddress(winmm, "timeBeginPeriod");
 		if (pfntimeBeginPeriod)
 			pfntimeBeginPeriod(1);
-		pfntimeGetTime = (p_timeGetTime)GetProcAddress(winmm, "timeGetTime");
+		pfntimeGetTime = (p_timeGetTime)(LPVOID)GetProcAddress(winmm, "timeGetTime");
 	}
 	I_AddExitFunc(I_ShutdownTimer);
 #endif
@@ -3307,7 +3307,7 @@ void I_GetDiskFreeSpace(INT64 *freespace)
 
 	if (!testwin95)
 	{
-		pfnGetDiskFreeSpaceEx = (p_GetDiskFreeSpaceExA)GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetDiskFreeSpaceExA");
+		pfnGetDiskFreeSpaceEx = (p_GetDiskFreeSpaceExA)(LPVOID)GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetDiskFreeSpaceExA");
 		testwin95 = true;
 	}
 	if (pfnGetDiskFreeSpaceEx)
@@ -3331,7 +3331,7 @@ void I_GetDiskFreeSpace(INT64 *freespace)
 
 char *I_GetUserName(void)
 {
-	static char username[MAXPLAYERNAME];
+	static char username[MAXPLAYERNAME+1];
 	char *p;
 #ifdef _WIN32
 	DWORD i = MAXPLAYERNAME;
@@ -3827,7 +3827,7 @@ const CPUInfoFlags *I_CPUInfo(void)
 #if defined (_WIN32)
 	static CPUInfoFlags WIN_CPUInfo;
 	SYSTEM_INFO SI;
-	p_IsProcessorFeaturePresent pfnCPUID = (p_IsProcessorFeaturePresent)GetProcAddress(GetModuleHandleA("kernel32.dll"), "IsProcessorFeaturePresent");
+	p_IsProcessorFeaturePresent pfnCPUID = (p_IsProcessorFeaturePresent)(LPVOID)GetProcAddress(GetModuleHandleA("kernel32.dll"), "IsProcessorFeaturePresent");
 
 	ZeroMemory(&WIN_CPUInfo,sizeof (WIN_CPUInfo));
 	if (pfnCPUID)

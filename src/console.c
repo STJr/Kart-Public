@@ -1112,13 +1112,7 @@ boolean CON_Responder(event_t *ev)
 	else if (key == KEY_KPADSLASH)
 		key = '/';
 
-	// same capslock code as hu_stuff.c's HU_responder. Check there for details.
-	if ((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z'))
-	{
-		if (shiftdown ^ capslock)
-			key = shiftxform[key];
-	}
-	else
+	if (key >= 'a' && key <= 'z')
 	{
 		if (shiftdown)
 			key = shiftxform[key];
