@@ -2117,7 +2117,6 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflicto
 	if (player->kartstuff[k_spinouttype] <= 0) // type 0 is spinout, type 1 is wipeout
 	{
 		// At spinout, player speed is increased to 1/4 their regular speed, moving them forward
-		
 		if (player->speed < K_GetKartSpeed(player, true)/4)
 			P_InstaThrust(player->mo, player->mo->angle, FixedMul(K_GetKartSpeed(player, true)/4, player->mo->scale));
 		S_StartSound(player->mo, sfx_slip);
@@ -5821,11 +5820,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 			if (player->kartstuff[k_wipeoutslow] == 1)
 				player->mo->friction -= 9824;
 		}
-		
+
 		// Band-aid to make sure we never get any weird shit (tm) happening on us.
 		if (player->mo->friction < 0)
 			player->mo->friction = 0;
-		
+
 	}
 
 	K_KartDrift(player, onground);
