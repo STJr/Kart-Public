@@ -329,7 +329,7 @@ boolean Got_RequestFilePak(INT32 node)
 	char wad[MAX_WADPATH+1];
 	UINT8 *p = netbuffer->u.textcmd;
 	UINT8 id;
-	while (p < netbuffer->u.textcmd + MAXTEXTCMD-1) // Don't allow hacked client to overflow
+	while (p < netbuffer->u.textcmd + ( sizeof (doomdata_t) - BASEPACKETSIZE )) // Yeah fuck you
 	{
 		id = READUINT8(p);
 		if (id == 0xFF)
