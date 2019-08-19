@@ -6083,7 +6083,7 @@ void P_RunOverlays(void)
 		{
 			angle_t viewingangle;
 
-			if (players[displayplayers[0]].awayviewtics)
+			if (players[displayplayers[0]].awayviewtics && players[displayplayers[0]].awayviewmobj != NULL && !P_MobjWasRemoved(players[displayplayers[0]].awayviewmobj))
 				viewingangle = R_PointToAngle2(mo->target->x, mo->target->y, players[displayplayers[0]].awayviewmobj->x, players[displayplayers[0]].awayviewmobj->y);
 			else if (!camera[0].chase && players[displayplayers[0]].mo)
 				viewingangle = R_PointToAngle2(mo->target->x, mo->target->y, players[displayplayers[0]].mo->x, players[displayplayers[0]].mo->y);

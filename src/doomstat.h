@@ -136,6 +136,7 @@ extern UINT8 skincolor_redteam, skincolor_blueteam, skincolor_redring, skincolor
 
 extern tic_t countdowntimer;
 extern boolean countdowntimeup;
+extern boolean exitfadestarted;
 
 typedef struct
 {

@@ -16,6 +16,7 @@
 #include "d_main.h"
 #include "d_clisrv.h"
 #include "d_player.h"
+#include "d_clisrv.h"
 #include "f_finale.h"
 #include "filesrch.h" // for refreshdirmenu
 #include "p_setup.h"
@@ -135,6 +136,7 @@ UINT8 skincolor_bluering = SKINCOLOR_STEEL;
 
 tic_t countdowntimer = 0;
 boolean countdowntimeup = false;
+boolean exitfadestarted = false;
 
 cutscene_t *cutscenes[128];
 
@@ -1848,7 +1850,9 @@ boolean G_Responder(event_t *ev)
 
 		if (F_CreditResponder(ev))
 		{
-			F_StartGameEvaluation();
+			// Skip credits for everyone
+			if (!netgame || server || IsPlayerAdmin(consoleplayer))
+				SendNetXCmd(XD_EXITLEVEL, NULL, 0);
 			return true;
 		}
 	}
@@ -3266,6 +3270,10 @@ void G_ExitLevel(void)
 
 		// Don't save demos immediately here! Let standings write first
 	}
+	else if (gamestate == GS_CREDITS)
+	{
+		F_StartGameEvaluation();
+	}
 }
 
 // See also the enum GameType in doomstat.h
@@ -4583,7 +4591,7 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 	{
 		// Clear a bunch of variables
 		tokenlist = token = sstimer = redscore = bluescore = lastmap = 0;
-		countdown = countdown2 = mapreset = 0;
+		countdown = countdown2 = mapreset = exitfadestarted = 0;
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{

@@ -1864,7 +1864,8 @@ void T_PolyObjWaypoint(polywaypoint_t *th)
 		po->lines[0]->backsector->floorheight = target->z - amtz;
 		po->lines[0]->backsector->ceilingheight = target->z + amtz;
 		// Sal: Remember to check your sectors!
-		P_CheckSector(po->lines[0]->frontsector, (boolean)(po->damage));
+		// Monster Iestyn: we only need to bother with the back sector, now that P_CheckSector automatically checks the blockmap
+		//  updating objects in the front one too just added teleporting to ground bugs
 		P_CheckSector(po->lines[0]->backsector, (boolean)(po->damage));
 		// Apply action to mirroring polyobjects as well
 		start = 0;
@@ -1878,7 +1879,8 @@ void T_PolyObjWaypoint(polywaypoint_t *th)
 			po->lines[0]->backsector->floorheight += diffz; // move up/down by same amount as the parent did
 			po->lines[0]->backsector->ceilingheight += diffz;
 			// Sal: Remember to check your sectors!
-			P_CheckSector(po->lines[0]->frontsector, (boolean)(po->damage));
+			// Monster Iestyn: we only need to bother with the back sector, now that P_CheckSector automatically checks the blockmap
+			//  updating objects in the front one too just added teleporting to ground bugs
 			P_CheckSector(po->lines[0]->backsector, (boolean)(po->damage));
 		}
 
@@ -2041,8 +2043,9 @@ void T_PolyObjWaypoint(polywaypoint_t *th)
 	po->lines[0]->backsector->floorheight += momz;
 	po->lines[0]->backsector->ceilingheight += momz;
 	// Sal: Remember to check your sectors!
-	P_CheckSector(po->lines[0]->frontsector, (boolean)(po->damage)); // frontsector is NEEDED for crushing
-	P_CheckSector(po->lines[0]->backsector, (boolean)(po->damage)); // backsector may not be necessary, but just in case
+	// Monster Iestyn: we only need to bother with the back sector, now that P_CheckSector automatically checks the blockmap
+	//  updating objects in the front one too just added teleporting to ground bugs
+	P_CheckSector(po->lines[0]->backsector, (boolean)(po->damage));
 
 	// Apply action to mirroring polyobjects as well
 	start = 0;
@@ -2056,7 +2059,8 @@ void T_PolyObjWaypoint(polywaypoint_t *th)
 		po->lines[0]->backsector->floorheight += momz;
 		po->lines[0]->backsector->ceilingheight += momz;
 		// Sal: Remember to check your sectors!
-		P_CheckSector(po->lines[0]->frontsector, (boolean)(po->damage));
+		// Monster Iestyn: we only need to bother with the back sector, now that P_CheckSector automatically checks the blockmap
+		//  updating objects in the front one too just added teleporting to ground bugs
 		P_CheckSector(po->lines[0]->backsector, (boolean)(po->damage));
 	}
 }
