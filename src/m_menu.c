@@ -231,7 +231,6 @@ static void M_HandleStaffReplay(INT32 choice);
 static void M_ReplayTimeAttack(INT32 choice);
 static void M_ChooseTimeAttack(INT32 choice);
 //static void M_ChooseNightsAttack(INT32 choice);
-static void M_ModeAttackRetry(INT32 choice);
 static void M_ModeAttackEndGame(INT32 choice);
 static void M_SetGuestReplay(INT32 choice);
 //static void M_ChoosePlayer(INT32 choice);
@@ -8085,7 +8084,7 @@ static void M_SetGuestReplay(INT32 choice)
 		which(0);
 }
 
-static void M_ModeAttackRetry(INT32 choice)
+void M_ModeAttackRetry(INT32 choice)
 {
 	(void)choice;
 	G_CheckDemoStatus(); // Cancel recording

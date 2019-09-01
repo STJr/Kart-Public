@@ -689,7 +689,10 @@ void P_Ticker(boolean run)
 
 	if (run)
 		leveltime++;
-	timeinmap++;
+
+	// as this is mostly used for HUD stuff, add the record attack specific hack to it as well!
+	if (!(modeattacking && !demo.playback) || leveltime >= starttime - TICRATE*4)
+		timeinmap++;
 
 	/*if (G_TagGametype())
 		P_DoTagStuff();

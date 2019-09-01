@@ -2320,6 +2320,12 @@ void G_Ticker(boolean run)
 	UINT32 i;
 	INT32 buf;
 	ticcmd_t *cmd;
+	UINT32 ra_timeskip = (modeattacking && !demo.playback && leveltime < starttime - TICRATE*4) ? 0 : (starttime - TICRATE*4 - 1);
+	// starttime - TICRATE*4 is where we want RA to start when we PLAY IT, so we will loop the main thinker on RA start to get it to this point,
+	// the reason this is done is to ensure that ghosts won't look out of synch with other map elements (objects, moving platforms...)
+	// when we REPLAY, don't skip, let the camera spin, do its thing etc~
+
+	// also the -1 is to ensure that the thinker runs in the loop below.
 
 	P_MapStart();
 	// do player reborns if needed
@@ -2392,12 +2398,16 @@ void G_Ticker(boolean run)
 	switch (gamestate)
 	{
 		case GS_LEVEL:
-			if (demo.title)
-				F_TitleDemoTicker();
-			P_Ticker(run); // tic the game
-			ST_Ticker();
-			AM_Ticker();
-			HU_Ticker();
+
+			for (; ra_timeskip < starttime - TICRATE*4; ra_timeskip++)	// this looks weird but this is done to not break compability with older demos for now.
+			{
+				if (demo.title)
+					F_TitleDemoTicker();
+				P_Ticker(run); // tic the game
+				ST_Ticker();
+				AM_Ticker();
+				HU_Ticker();
+			}
 			break;
 
 		case GS_INTERMISSION:
