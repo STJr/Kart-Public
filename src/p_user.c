@@ -29,6 +29,7 @@
 #include "m_random.h"
 #include "m_misc.h"
 #include "i_video.h"
+#include "i_joy.h"
 #include "p_slopes.h"
 #include "p_spec.h"
 #include "r_splats.h"
@@ -7204,6 +7205,220 @@ fixed_t t_cam4_rotate = -42;
 
 #define MAXCAMERADIST 140*FRACUNIT // Max distance the camera can be in front of the player (2D mode)
 
+// Heavily simplified version of G_BuildTicCmd that only takes the local first player's control input and converts it to readable ticcmd_t
+// we then throw that ticcmd garbage in the camera and make it move
+
+// redefine this
+static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
+static fixed_t sidemove[2] = {2<<FRACBITS>>16, 4<<FRACBITS>>16};
+static fixed_t angleturn[3] = {KART_FULLTURN/2, KART_FULLTURN, KART_FULLTURN/4}; // + slow turn
+
+static ticcmd_t cameracmd;
+
+struct demofreecam_s democam;
+
+// called by m_menu to reinit cam input every time it's toggled 
+void P_InitCameraCmd(void)
+{
+	memset(&cameracmd, 0, sizeof(ticcmd_t));	// initialize cmd
+}	
+
+static ticcmd_t *P_CameraCmd(camera_t *cam)
+{
+	INT32 laim, th, tspeed, forward, side, axis; //i
+	const INT32 speed = 1;
+	// these ones used for multiple conditions
+	boolean turnleft, turnright, mouseaiming;
+	boolean invertmouse, lookaxis, usejoystick, kbl;
+	angle_t lang;
+	
+	ticcmd_t *cmd = &cameracmd;
+	
+	if (!demo.playback)
+		return cmd;	// empty cmd, no.
+	
+	lang = democam.localangle;
+	laim = democam.localaiming;
+	th = democam.turnheld;
+	kbl = democam.keyboardlook;
+	
+	G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
+
+	cmd->angleturn = (INT16)(lang >> 16);
+	cmd->aiming = G_ClipAimingPitch(&laim);
+
+	mouseaiming = true;
+	invertmouse = cv_invertmouse.value;
+	lookaxis = cv_lookaxis.value;
+
+	usejoystick = true;
+	turnright = InputDown(gc_turnright, 1);
+	turnleft = InputDown(gc_turnleft, 1);
+
+	axis = JoyAxis(AXISTURN, 1);
+
+	if (encoremode)
+	{
+		turnright ^= turnleft; // swap these using three XORs
+		turnleft ^= turnright;
+		turnright ^= turnleft;
+		axis = -axis;
+	}
+
+	if (axis != 0)
+	{
+		turnright = turnright || (axis > 0);
+		turnleft = turnleft || (axis < 0);
+	}
+	forward = side = 0;
+
+	// use two stage accelerative turning
+	// on the keyboard and joystick
+	if (turnleft || turnright)
+		th += 1;
+	else
+		th = 0;
+
+	if (th < SLOWTURNTICS)
+		tspeed = 2; // slow turn
+	else
+		tspeed = speed;
+
+	// let movement keys cancel each other out
+	if (turnright && !(turnleft))
+	{
+		cmd->angleturn = (INT16)(cmd->angleturn - (angleturn[tspeed]));
+		side += sidemove[1];
+	}
+	else if (turnleft && !(turnright))
+	{
+		cmd->angleturn = (INT16)(cmd->angleturn + (angleturn[tspeed]));
+		side -= sidemove[1];
+	}
+	
+	cmd->angleturn = (INT16)(cmd->angleturn - ((mousex*(encoremode ? -1 : 1)*8)));
+
+	axis = JoyAxis(AXISMOVE, 1);
+	if (InputDown(gc_accelerate, 1) || (usejoystick && axis > 0))
+		cmd->buttons |= BT_ACCELERATE;
+	axis = JoyAxis(AXISBRAKE, 1);
+	if (InputDown(gc_brake, 1) || (usejoystick && axis > 0))
+		cmd->buttons |= BT_BRAKE;
+	axis = JoyAxis(AXISAIM, 1);
+	if (InputDown(gc_aimforward, 1) || (usejoystick && axis < 0))
+		forward += forwardmove[1];
+	if (InputDown(gc_aimbackward, 1) || (usejoystick && axis > 0))
+		forward -= forwardmove[1];
+
+
+	// spectator aiming shit, ahhhh...
+	INT32 player_invert = invertmouse ? -1 : 1;
+	INT32 screen_invert = 1;	// nope
+
+	// mouse look stuff (mouse look is not the same as mouse aim)
+	kbl = false;
+
+	// looking up/down
+	laim += (mlooky<<19)*player_invert*screen_invert;
+
+	axis = JoyAxis(AXISLOOK, 1);
+
+	// spring back if not using keyboard neither mouselookin'
+	if (!kbl && !lookaxis && !mouseaiming)
+		laim = 0;
+
+	if (InputDown(gc_lookup, 1) || (axis < 0))
+	{
+		laim += KB_LOOKSPEED * screen_invert;
+		kbl = true;
+	}
+	else if (InputDown(gc_lookdown, 1) || (axis > 0))
+	{
+		laim -= KB_LOOKSPEED * screen_invert;
+		kbl = true;
+	}
+
+	if (InputDown(gc_centerview, 1)) // No need to put a spectator limit on this one though :V
+		laim = 0;
+
+	cmd->aiming = G_ClipAimingPitch(&laim);
+	
+	mousex = mousey = mlooky = 0;
+
+	if (forward > MAXPLMOVE)
+		forward = MAXPLMOVE;
+	else if (forward < -MAXPLMOVE)
+		forward = -MAXPLMOVE;
+
+	if (side > MAXPLMOVE)
+		side = MAXPLMOVE;
+	else if (side < -MAXPLMOVE)
+		side = -MAXPLMOVE;
+
+	if (forward || side)
+	{
+		cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
+		cmd->sidemove = (SINT8)(cmd->sidemove + side);
+	}
+
+	lang += (cmd->angleturn<<16);
+	
+	democam.localangle = lang;
+	democam.localaiming = laim;
+	democam.turnheld = th;
+	democam.keyboardlook = kbl;
+	
+	return cmd;
+}
+
+void P_DemoCameraMovement(camera_t *cam)
+{
+	ticcmd_t *cmd;	
+	angle_t thrustangle;
+	
+	// update democam stuff with what we got here:
+	democam.cam = cam;
+	democam.localangle = cam->angle;
+	democam.localaiming = cam->aiming;
+	
+	democam.rewindx = cam->x;
+	democam.rewindy = cam->y;
+	democam.rewindz = cam->z;
+	
+	// first off we need to get button input
+	cmd = P_CameraCmd(cam);
+	
+	cam->aiming = cmd->aiming<<FRACBITS;
+	cam->angle = cmd->angleturn<<16;
+	
+	// camera movement:
+
+	if (cmd->buttons & BT_ACCELERATE)
+		cam->z += 32*mapobjectscale;
+	else if (cmd->buttons & BT_BRAKE)
+		cam->z -= 32*mapobjectscale;
+
+	
+	cam->momx = cam->momy = cam->momz = 0;
+	if (cmd->forwardmove != 0)
+	{
+		
+		thrustangle = cam->angle >> ANGLETOFINESHIFT;
+
+		cam->momx += FixedMul(cmd->forwardmove*mapobjectscale, FINECOSINE(thrustangle));
+		cam->momy += FixedMul(cmd->forwardmove*mapobjectscale, FINESINE(thrustangle));
+		cam->momz += FixedMul(cmd->forwardmove*mapobjectscale, AIMINGTOSLOPE(cam->aiming));
+		
+		//funny thing cameras aren't mobjs so we gotta handle this ourselves;
+		cam->x += cam->momx;
+		cam->y += cam->momy;
+		cam->z += cam->momz;
+		
+		// this.......... doesn't actually check for floors and walls and whatnot but the function to do that is a pure mess so fuck that.
+		// besides freecam going inside walls sounds pretty cool on paper.
+	}
+}	
+
 void P_ResetCamera(player_t *player, camera_t *thiscam)
 {
 	tic_t tries = 0;
@@ -7262,7 +7477,13 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	boolean cameranoclip;
 	subsector_t *newsubsec;
 #endif
-
+	
+	if (demo.freecam)
+	{	
+		P_DemoCameraMovement(thiscam);
+		return true;
+	}	
+	
 	// We probably shouldn't move the camera if there is no player or player mobj somehow
 	if (!player || !player->mo)
 		return true;

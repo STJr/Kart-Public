@@ -1868,7 +1868,7 @@ boolean G_Responder(event_t *ev)
 
 	// allow spy mode changes even during the demo
 	if (gamestate == GS_LEVEL && ev->type == ev_keydown
-		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]))
+		&& (ev->data1 == KEY_F12 || ev->data1 == gamecontrol[gc_viewpoint][0] || ev->data1 == gamecontrol[gc_viewpoint][1]) && !demo.freecam)
 	{
 		if (!demo.playback && (splitscreen || !netgame))
 			displayplayers[0] = consoleplayer;
@@ -1884,7 +1884,7 @@ boolean G_Responder(event_t *ev)
 		}
 	}
 
-	if (gamestate == GS_LEVEL && ev->type == ev_keydown && multiplayer && demo.playback)
+	if (gamestate == GS_LEVEL && ev->type == ev_keydown && multiplayer && demo.playback && !demo.freecam)
 	{
 		if (ev->data1 == gamecontrolbis[gc_viewpoint][0] || ev->data1 == gamecontrolbis[gc_viewpoint][1])
 		{
@@ -1928,11 +1928,8 @@ boolean G_Responder(event_t *ev)
 			return true;
 		}
 
-		// Anything else opens the menu if not already open, except for a few keys...
-		if (!(
-			// Rankings
-			ev->data1 == gamecontrol[gc_scores][0] || ev->data1 == gamecontrol[gc_scores][1]
-		))
+		// open menu but only w/ esc
+		if (ev->data1 == 32)
 		{
 			M_StartControlPanel();
 
@@ -6005,6 +6002,9 @@ void G_PreviewRewind(tic_t previewtime)
 			players[i].kartstuff[j] = info->playerinfo[i].player.kartstuff[j];
 	}
 
+	if (demo.freecam)
+		return;	// nope
+
 	for (i = splitscreen; i >= 0; i--)
 		P_ResetCamera(&players[displayplayers[i]], &camera[i]);
 }
@@ -6045,6 +6045,9 @@ void G_ConfirmRewind(tic_t rewindtime)
 	wipegamestate = gamestate; // No fading back in!
 
 	COM_BufInsertText("renderview on\n");
+
+	if (demo.freecam)
+		return;	// don't touch from there
 
 	splitscreen = oldss;
 	displayplayers[0] = olddp1;

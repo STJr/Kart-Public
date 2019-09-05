@@ -252,6 +252,11 @@ void D_ProcessEvents(void)
 		if (M_Responder(ev))
 			continue; // menu ate the event
 
+		// Demo input:
+		if (demo.playback)
+			if (M_DemoResponder(ev))
+				continue;	// demo ate the event
+
 		// console input
 		if (CON_Responder(ev))
 			continue; // ate the event
@@ -447,7 +452,7 @@ static void D_Display(void)
 					{
 						if (i > 0) // Splitscreen-specific
 						{
-							switch (i) 
+							switch (i)
 							{
 								case 1:
 									if (splitscreen > 1)
@@ -475,7 +480,7 @@ static void D_Display(void)
 									break;
 							}
 
-							
+
 							topleft = screens[0] + viewwindowy*vid.width + viewwindowx;
 						}
 

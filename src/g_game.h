@@ -60,6 +60,9 @@ struct demovars_s {
 		DSM_WILLSAVE,
 		DSM_SAVED
 	} savemode;
+	
+	boolean freecam;
+	
 };
 
 extern struct demovars_s demo;

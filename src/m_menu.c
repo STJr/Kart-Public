@@ -319,6 +319,7 @@ static void M_PlaybackFastForward(INT32 choice);
 static void M_PlaybackAdvance(INT32 choice);
 static void M_PlaybackSetViews(INT32 choice);
 static void M_PlaybackAdjustView(INT32 choice);
+static void M_PlaybackToggleFreecam(INT32 choice);
 static void M_PlaybackQuit(INT32 choice);
 
 static UINT8 playback_enterheld = 0; // horrid hack to prevent holding the button from being extremely fucked
@@ -518,24 +519,23 @@ static menuitem_t MISC_ReplayOptionsMenu[] =
 
 static menuitem_t PlaybackMenu[] =
 {
-	{IT_CALL   | IT_STRING, "M_PHIDE",  "Hide Menu", M_SelectableClearMenus, 0},
+	{IT_CALL   | IT_STRING, "M_PHIDE",  "Hide Menu (Esc)", M_SelectableClearMenus, 0},
 
-	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_PlaybackRewind,      20},
-	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,       36},
-	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Forward",  M_PlaybackFastForward, 52},
-	{IT_CALL   | IT_STRING, "M_PSTEPB", "Backup Frame",  M_PlaybackRewind,      20},
+	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind ([)",        M_PlaybackRewind,      20},
+	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause (\\)",         M_PlaybackPause,       36},
+	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Forward (])",  M_PlaybackFastForward, 52},
+	{IT_CALL   | IT_STRING, "M_PSTEPB", "Backup Frame ([)",  M_PlaybackRewind,      20},
 	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,       36},
-	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,     52},
+	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame (])", M_PlaybackAdvance,     52},
 
-	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count",  M_PlaybackSetViews, 72},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint",   M_PlaybackAdjustView, 88},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 2", M_PlaybackAdjustView, 104},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3", M_PlaybackAdjustView, 120},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4", M_PlaybackAdjustView, 136},
+	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count (- and =)",  M_PlaybackSetViews, 72},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint (1)",   M_PlaybackAdjustView, 88},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 2 (2)", M_PlaybackAdjustView, 104},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3 (3)", M_PlaybackAdjustView, 120},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4 (4)", M_PlaybackAdjustView, 136},
 
-	//{IT_CALL   | IT_STRING, "M_POPTS",  "More Options...", M_ReplayHut, 156},
-	//{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 172},
-	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 156},
+	{IT_CALL   | IT_STRING, "M_PVIEWS", "Toggle Free Camera (')",	M_PlaybackToggleFreecam, 156},
+	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 172},
 };
 typedef enum
 {
@@ -551,6 +551,7 @@ typedef enum
 	playback_view2,
 	playback_view3,
 	playback_view4,
+	playback_freecamera,
 	//playback_moreoptions,
 	playback_quit
 } playback_e;
@@ -2792,6 +2793,56 @@ boolean M_Responder(event_t *ev)
 			case KEY_UPARROW: ch = KEY_RIGHTARROW; break;
 			case KEY_RIGHTARROW: ch = KEY_DOWNARROW; break;
 			case KEY_DOWNARROW: ch = KEY_LEFTARROW; break;
+
+			// arbitrary keyboard shortcuts because fuck you
+
+			case '\'':	// toggle freecam
+				M_PlaybackToggleFreecam(0);
+				break;
+
+			case ']':	// ffw / advance frame (depends on if paused or not)
+				if (paused)
+					M_PlaybackAdvance(0);
+				else
+					M_PlaybackFastForward(0);
+				break;
+
+			case '[':	// rewind /backupframe, uses the same function
+				M_PlaybackRewind(0);
+				break;
+
+			case '\\':	// pause
+				M_PlaybackPause(0);
+				break;
+
+			// viewpoints, an annoyance (tm)
+			case '-':	// viewpoint minus
+				M_PlaybackSetViews(-1);	// yeah lol.
+				break;
+
+			case '=':	// viewpoint plus
+				M_PlaybackSetViews(1);	// yeah lol.
+				break;
+
+			// switch viewpoints:
+			case '1':	// viewpoint for p1 (also f12)
+				// maximum laziness:
+				if (!demo.freecam)
+					G_AdjustView(1, 1, true);
+				break;
+			case '2':	// viewpoint for p2
+				if (!demo.freecam)
+					G_AdjustView(2, 1, true);
+				break;
+			case '3':	// viewpoint for p3
+				if (!demo.freecam)
+					G_AdjustView(3, 1, true);
+				break;
+			case '4':	// viewpoint for p4
+				if (!demo.freecam)
+					G_AdjustView(4, 1, true);
+				break;
+
 			default: break;
 		}
 	}
@@ -2949,6 +3000,93 @@ boolean M_Responder(event_t *ev)
 
 	return true;
 }
+
+// special responder for demos
+boolean M_DemoResponder(event_t *ev)
+{
+
+	INT32 ch = -1;	// cur event data
+	boolean eatinput = false;	// :omnom:
+
+	//should be accounted for beforehand but just to be safe...
+	if (!demo.playback || demo.title)
+		return false;
+
+	if (noFurtherInput)
+	{
+		// Ignore input after enter/escape/other buttons
+		// (but still allow shift keyup so caps doesn't get stuck)
+		return false;
+	}
+	else if (ev->type == ev_keydown)
+	{
+		ch = ev->data1;
+		// since this is ONLY for demos, there isn't MUCH for us to do.
+		// mirrored from m_responder
+
+		switch (ch)
+		{
+			// arbitrary keyboard shortcuts because fuck you
+
+			case '\'':	// toggle freecam
+				M_PlaybackToggleFreecam(0);
+				eatinput = true;
+				break;
+
+			case ']':	// ffw / advance frame (depends on if paused or not)
+				if (paused)
+					M_PlaybackAdvance(0);
+				else
+					M_PlaybackFastForward(0);
+				eatinput = true;
+				break;
+
+			case '[':	// rewind /backupframe, uses the same function
+				M_PlaybackRewind(0);
+				break;
+
+			case '\\':	// pause
+				M_PlaybackPause(0);
+				eatinput = true;
+				break;
+
+			// viewpoints, an annoyance (tm)
+			case '-':	// viewpoint minus
+				M_PlaybackSetViews(-1);	// yeah lol.
+				eatinput = true;
+				break;
+
+			case '=':	// viewpoint plus
+				M_PlaybackSetViews(1);	// yeah lol.
+				eatinput = true;
+				break;
+
+			// switch viewpoints:
+			case '1':	// viewpoint for p1 (also f12)
+				// maximum laziness:
+				if (!demo.freecam)
+					G_AdjustView(1, 1, true);
+				break;
+			case '2':	// viewpoint for p2
+				if (!demo.freecam)
+					G_AdjustView(2, 1, true);
+				break;
+			case '3':	// viewpoint for p3
+				if (!demo.freecam)
+					G_AdjustView(3, 1, true);
+				break;
+			case '4':	// viewpoint for p4
+				if (!demo.freecam)
+					G_AdjustView(4, 1, true);
+				break;
+
+			default: break;
+		}
+
+	}
+	return eatinput;
+}
+
 
 //
 // M_Drawer
@@ -5745,13 +5883,10 @@ static void M_DrawPlaybackMenu(void)
 	{
 		for (i = playback_viewcount; i <= playback_view4; i++)
 			PlaybackMenu[i].status = IT_DISABLED;
+		PlaybackMenu[playback_freecamera].alphaKey = 72;
+		PlaybackMenu[playback_quit].alphaKey = 88;
 
-		//PlaybackMenu[playback_moreoptions].alphaKey = 72;
-		//PlaybackMenu[playback_quit].alphaKey = 88;
-		PlaybackMenu[playback_quit].alphaKey = 72;
-
-		//currentMenu->x = BASEVIDWIDTH/2 - 52;
-		currentMenu->x = BASEVIDWIDTH/2 - 44;
+		currentMenu->x = BASEVIDWIDTH/2 - 52;
 	}
 	else
 	{
@@ -5762,11 +5897,8 @@ static void M_DrawPlaybackMenu(void)
 		for (i = splitscreen+1; i < 4; i++)
 			PlaybackMenu[playback_view1+i].status = IT_DISABLED;
 
-		//PlaybackMenu[playback_moreoptions].alphaKey = 156;
-		//PlaybackMenu[playback_quit].alphaKey = 172;
-		PlaybackMenu[playback_quit].alphaKey = 156;
-
-		//currentMenu->x = BASEVIDWIDTH/2 - 94;
+		PlaybackMenu[playback_freecamera].alphaKey = 156;
+		PlaybackMenu[playback_quit].alphaKey = 172;
 		currentMenu->x = BASEVIDWIDTH/2 - 88;
 	}
 
@@ -5920,6 +6052,10 @@ static void M_PlaybackAdvance(INT32 choice)
 
 static void M_PlaybackSetViews(INT32 choice)
 {
+
+	if (demo.freecam)
+		return;	// not here.
+
 	if (choice > 0)
 	{
 		if (splitscreen < 3)
@@ -5936,6 +6072,33 @@ static void M_PlaybackAdjustView(INT32 choice)
 {
 	G_AdjustView(itemOn - playback_viewcount, (choice > 0) ? 1 : -1, true);
 }
+
+// this one's rather tricky
+static void M_PlaybackToggleFreecam(INT32 choice)
+{
+	(void)choice;
+	M_ClearMenus(true);
+
+	// remove splitscreen:
+	splitscreen = 0;
+	R_ExecuteSetViewSize();
+
+	P_InitCameraCmd();	// init camera controls
+	if (!demo.freecam)	// toggle on
+	{
+		demo.freecam = true;
+		democam.cam = &camera[0];	// this is rather useful
+	}
+	else	// toggle off
+	{
+		demo.freecam = false;
+		// reset democam vars:
+		democam.cam = NULL;
+		democam.turnheld = false;
+		democam.keyboardlook = false;	// reset only these. localangle / aiming gets set before the cam does anything anyway
+	}
+}
+
 
 static void M_PlaybackQuit(INT32 choice)
 {

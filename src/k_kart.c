@@ -8750,6 +8750,7 @@ void K_drawKartHUD(void)
 {
 	boolean isfreeplay = false;
 	boolean battlefullscreen = false;
+	boolean freecam = demo.freecam;	//disable some hud elements w/ freecam
 	UINT8 i;
 
 	// Define the X and Y for each drawn object
@@ -8759,7 +8760,7 @@ void K_drawKartHUD(void)
 	// Draw that fun first person HUD! Drawn ASAP so it looks more "real".
 	for (i = 0; i <= splitscreen; i++)
 	{
-		if (stplyr == &players[displayplayers[i]] && !camera[i].chase)
+		if (stplyr == &players[displayplayers[i]] && !camera[i].chase && !freecam)
 			K_drawKartFirstPerson();
 	}
 
@@ -8780,7 +8781,7 @@ void K_drawKartHUD(void)
 	if (!demo.title && (!battlefullscreen || splitscreen))
 	{
 		// Draw the CHECK indicator before the other items, so it's overlapped by everything else
-		if (cv_kartcheck.value && !splitscreen && !players[displayplayers[0]].exiting)
+		if (cv_kartcheck.value && !splitscreen && !players[displayplayers[0]].exiting && !freecam)
 			K_drawKartPlayerCheck();
 
 		// Draw WANTED status
@@ -8801,7 +8802,7 @@ void K_drawKartHUD(void)
 		}
 	}
 
-	if (battlefullscreen)
+	if (battlefullscreen && !freecam)
 	{
 #ifdef HAVE_BLUA
 		if (LUA_HudEnabled(hud_battlefullscreen))
@@ -8812,7 +8813,7 @@ void K_drawKartHUD(void)
 
 	// Draw the item window
 #ifdef HAVE_BLUA
-	if (LUA_HudEnabled(hud_item))
+	if (LUA_HudEnabled(hud_item) && !freecam)
 #endif
 		K_drawKartItem();
 
@@ -8835,7 +8836,7 @@ void K_drawKartHUD(void)
 		}
 	}
 
-	if (!stplyr->spectator) // Bottom of the screen elements, don't need in spectate mode
+	if (!stplyr->spectator && !demo.freecam) // Bottom of the screen elements, don't need in spectate mode
 	{
 		if (demo.title) // Draw title logo instead in demo.titles
 		{
@@ -8924,7 +8925,7 @@ void K_drawKartHUD(void)
 	}
 
 	// Race overlays
-	if (G_RaceGametype())
+	if (G_RaceGametype() && !freecam)
 	{
 		if (stplyr->exiting)
 			K_drawKartFinish();
@@ -8932,7 +8933,7 @@ void K_drawKartHUD(void)
 			K_drawLapStartAnim();
 	}
 
-	if (modeattacking) // everything after here is MP and debug only
+	if (modeattacking || freecam) // everything after here is MP and debug only
 		return;
 
 	if (G_BattleGametype() && !splitscreen && (stplyr->kartstuff[k_yougotem] % 2)) // * YOU GOT EM *

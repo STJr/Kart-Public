@@ -597,6 +597,8 @@ void P_Ticker(boolean run)
 			leveltime = (leveltime-1) & ~3;
 			G_PreviewRewind(leveltime);
 		}
+		else if (demo.freecam && democam.cam)	// special case: allow freecam to MOVE during pause!
+			P_DemoCameraMovement(democam.cam);
 
 		return;
 	}

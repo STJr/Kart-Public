@@ -2040,6 +2040,9 @@ static void Command_View_f(void)
 		return;
 	}
 
+	if (demo.freecam)
+		return;
+
 	displayplayerp = &displayplayers[viewnum-1];
 
 	if (COM_Argc() > 1)/* switch to player */

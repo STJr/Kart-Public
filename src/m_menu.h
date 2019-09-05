@@ -29,6 +29,9 @@
 // Does all the real work of the menu interaction.
 boolean M_Responder(event_t *ev);
 
+// Called by main loop, runs for demo playback. If this returns true, nullify any further user input.
+boolean M_DemoResponder(event_t *ev);
+
 // Called by main loop, only used for menu (skull cursor) animation.
 void M_Ticker(void);
 
