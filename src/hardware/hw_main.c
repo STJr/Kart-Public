@@ -5436,6 +5436,9 @@ static void HWR_AddSprites(sector_t *sec)
 #endif
 	fixed_t approx_dist, limit_dist;
 
+	INT32 splitflags;
+	boolean split_drawsprite;	// drawing with splitscreen flags
+
 	// BSP is traversed by subsector.
 	// A sector might have been split into several
 	//  subsectors during BSP building.
@@ -5455,27 +5458,37 @@ static void HWR_AddSprites(sector_t *sec)
 	{
 		for (thing = sec->thinglist; thing; thing = thing->snext)
 		{
+
+			split_drawsprite = false;
+
 			if (thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW)
 				continue;
 
-			if (splitscreen)
+			splitflags = thing->eflags & (MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
+
+			if (splitscreen && splitflags)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (viewssnum != 0)
-						continue;
+					if (viewssnum == 0)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (viewssnum != 1)
-						continue;
+					if (viewssnum == 1)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (viewssnum != 2)
-						continue;
+					if (viewssnum == 2)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (viewssnum != 3)
-						continue;
+					if (viewssnum == 3)
+						split_drawsprite = true;
 			}
+			else
+				split_drawsprite = true;
+
+			if (!split_drawsprite)
+				continue;
 
 			approx_dist = P_AproxDistance(viewx-thing->x, viewy-thing->y);
 
@@ -5490,27 +5503,37 @@ static void HWR_AddSprites(sector_t *sec)
 		// Draw everything in sector, no checks
 		for (thing = sec->thinglist; thing; thing = thing->snext)
 		{
+
+			split_drawsprite = false;
+
 			if (thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW)
 				continue;
 
-			if (splitscreen)
+			splitflags = thing->eflags & (MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
+
+			if (splitscreen && splitflags)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (viewssnum != 0)
-						continue;
+					if (viewssnum == 0)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (viewssnum != 1)
-						continue;
+					if (viewssnum == 1)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (viewssnum != 2)
-						continue;
+					if (viewssnum == 2)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (viewssnum != 3)
-						continue;
+					if (viewssnum == 3)
+						split_drawsprite = true;
 			}
+			else
+				split_drawsprite = true;
+
+			if (!split_drawsprite)
+				continue;
 
 			HWR_ProjectSprite(thing);
 		}
