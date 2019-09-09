@@ -442,7 +442,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 	listener_t listener3 = {0,0,0,0};
 	listener_t listener4 = {0,0,0,0};
 
-	mobj_t *listenmobj = players[displayplayers[0]].mo;
+	mobj_t *listenmobj = democam.soundmobj ? : players[displayplayers[0]].mo;
 	mobj_t *listenmobj2 = NULL;
 	mobj_t *listenmobj3 = NULL;
 	mobj_t *listenmobj4 = NULL;
@@ -903,7 +903,7 @@ void S_UpdateSounds(void)
 	listener_t listener3;
 	listener_t listener4;
 
-	mobj_t *listenmobj = players[displayplayers[0]].mo;
+	mobj_t *listenmobj = democam.soundmobj ? : players[displayplayers[0]].mo;
 	mobj_t *listenmobj2 = NULL;
 	mobj_t *listenmobj3 = NULL;
 	mobj_t *listenmobj4 = NULL;

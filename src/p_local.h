@@ -113,11 +113,8 @@ typedef struct camera_s
 struct demofreecam_s {
 
 	camera_t *cam;	// this is useful when the game is paused, notably
-
-	fixed_t rewindx;
-	fixed_t rewindy;
-	fixed_t rewindz;	// when rewinding, this is used to make sure the cam doesn't reset
-
+	mobj_t *soundmobj;	// mobj to play sound from, used in s_sound
+	
 	angle_t localangle;	// keeps track of the cam angle for cmds
 	angle_t localaiming;	// ditto with aiming
 	boolean turnheld;	// holding turn button for gradual turn speed

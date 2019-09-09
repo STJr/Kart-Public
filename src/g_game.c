@@ -6002,9 +6002,6 @@ void G_PreviewRewind(tic_t previewtime)
 			players[i].kartstuff[j] = info->playerinfo[i].player.kartstuff[j];
 	}
 
-	if (demo.freecam)
-		return;	// nope
-
 	for (i = splitscreen; i >= 0; i--)
 		P_ResetCamera(&players[displayplayers[i]], &camera[i]);
 }
