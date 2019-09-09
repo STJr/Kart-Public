@@ -1902,7 +1902,8 @@ static boolean CL_FinishedFileList(void)
 			return false;
 		}
 
-		cl_mode = CL_DOWNLOADFILES;
+		if (CL_SendRequestFile())
+			cl_mode = CL_DOWNLOADFILES;
 	}
 	return true;
 }
