@@ -43,6 +43,7 @@
 #include "y_inter.h"
 #include "v_video.h"
 #include "dehacked.h" // get_number (for ghost thok)
+#include "lua_script.h"	// LUA_ArchiveDemo and LUA_UnArchiveDemo
 #include "lua_hook.h"
 #include "b_bot.h"
 #include "m_cond.h" // condition sets
@@ -287,7 +288,8 @@ UINT32 timesBeatenWithEmeralds;
 //@TODO put these all in a struct for namespacing purposes?
 static char demoname[128];
 static UINT8 *demobuffer = NULL;
-static UINT8 *demo_p, *demotime_p, *demoinfo_p;
+static UINT8 *demotime_p, *demoinfo_p;
+UINT8 *demo_p;
 static UINT8 *demoend;
 static UINT8 demoflags;
 static boolean demosynced = true; // console warning message
@@ -4734,6 +4736,11 @@ char *G_BuildMapTitle(INT32 mapnum)
 #define DF_RECORDATTACK 0x02 // This demo is from record attack and contains its final completion time!
 #define DF_NIGHTSATTACK 0x04 // This demo is from NiGHTS attack and contains its time left, score, and mares!
 #define DF_ATTACKMASK   0x06 // This demo is from ??? attack and contains ???
+
+#ifdef HAVE_BLUA
+#define DF_LUAVARS		0x20 // this demo contains extra lua vars; this is mostly used for backwards compability
+#endif
+
 #define DF_ATTACKSHIFT  1
 #define DF_ENCORE       0x40
 #define DF_MULTIPLAYER  0x80 // This demo was recorded in multiplayer mode!
@@ -6321,6 +6328,10 @@ void G_BeginRecording(void)
 	if (encoremode)
 		demoflags |= DF_ENCORE;
 
+#ifdef HAVE_BLUA
+	demoflags |= DF_LUAVARS;
+#endif
+
 	// Setup header.
 	M_Memcpy(demo_p, DEMOHEADER, 12); demo_p += 12;
 	WRITEUINT8(demo_p,VERSION);
@@ -6417,10 +6428,16 @@ void G_BeginRecording(void)
 			// Kart speed and weight
 			WRITEUINT8(demo_p, skins[player->skin].kartspeed);
 			WRITEUINT8(demo_p, skins[player->skin].kartweight);
+
 		}
 	}
 
 	WRITEUINT8(demo_p, 0xFF); // Denote the end of the player listing
+
+#ifdef HAVE_BLUA
+	// player lua vars, always saved even if empty
+	LUA_ArchiveDemo();
+#endif
 
 	memset(&oldcmd,0,sizeof(oldcmd));
 	memset(&oldghost,0,sizeof(oldghost));
@@ -7478,6 +7495,13 @@ void G_DoPlayDemo(char *defdemoname)
 		// Look for the next player
 		p = READUINT8(demo_p);
 	}
+
+// end of player read (the 0xFF marker)
+// so this is where we are to read our lua variables (if possible!)
+#ifdef HAVE_BLUA
+	if (demoflags & DF_LUAVARS)	// again, used for compability, lua shit will be saved to replays regardless of if it's even been loaded
+		LUA_UnArchiveDemo();
+#endif
 
 	splitscreen = 0;
 

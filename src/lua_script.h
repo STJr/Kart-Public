@@ -51,6 +51,10 @@ void LUA_InvalidatePlayer(player_t *player);
 void LUA_Step(void);
 void LUA_Archive(void);
 void LUA_UnArchive(void);
+
+void LUA_ArchiveDemo(void);
+void LUA_UnArchiveDemo(void);
+
 void Got_Luacmd(UINT8 **cp, INT32 playernum); // lua_consolelib.c
 void LUA_CVarChanged(const char *name); // lua_consolelib.c
 int Lua_optoption(lua_State *L, int narg,
