@@ -1404,7 +1404,7 @@ static int NetUnArchive(lua_State *L)
 	return n;
 }
 
-static void UnArchiveTables()
+static void UnArchiveTables(void)
 {
 	int TABLESINDEX;
 	UINT16 i, n;
@@ -1436,7 +1436,7 @@ static void UnArchiveTables()
 	}
 }
 
-static void UnArchiveTablesDemo()
+static void UnArchiveTablesDemo(void)
 {
 	int TABLESINDEX;
 	UINT16 i, n;
