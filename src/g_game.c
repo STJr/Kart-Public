@@ -8115,6 +8115,15 @@ void G_StopDemo(void)
 	demo.timing = false;
 	singletics = false;
 
+	demo.freecam = false;
+	// reset democam shit too:
+	democam.cam = NULL;
+	democam.soundmobj = NULL;
+	democam.localangle = 0;
+	democam.localaiming = 0;
+	democam.turnheld = false;
+	democam.keyboardlook = false;
+
 	CV_SetValue(&cv_playbackspeed, 1);
 	demo.rewinding = false;
 
