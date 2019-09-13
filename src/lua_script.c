@@ -1352,7 +1352,7 @@ static void UnArchiveExtVars(void *pointer)
 
 	for (i = 0; i < field_count; i++)
 	{
-		READSTRING(demo_p, field);
+		READSTRING(save_p, field);
 		UnArchiveValue(TABLESINDEX);
 		lua_setfield(gL, -2, field);
 	}
