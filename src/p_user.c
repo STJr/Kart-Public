@@ -7418,6 +7418,9 @@ void P_DemoCameraMovement(camera_t *cam)
 	awayviewmobj_hack->flags2 |= MF2_DONTDRAW;
 
 	democam.soundmobj = awayviewmobj_hack;
+	
+	// update subsector to avoid crashes;
+	thiscam->subsector = R_PointInSubsector(cam->x, cam->y);
 }
 
 void P_ResetCamera(player_t *player, camera_t *thiscam)
@@ -7485,12 +7488,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 
 	democam.soundmobj = NULL;	// reset this each frame, we don't want the game crashing for stupid reasons now do we
 
-	if (demo.freecam)
-	{
-		P_DemoCameraMovement(thiscam);
-		return true;
-	}
-
 	// We probably shouldn't move the camera if there is no player or player mobj somehow
 	if (!player || !player->mo)
 		return true;
@@ -7499,6 +7496,12 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	if (thiscam->subsector == NULL || thiscam->subsector->sector == NULL)
 		return true;
 
+	if (demo.freecam)
+	{
+		P_DemoCameraMovement(thiscam);
+		return true;
+	}	
+	
 	mo = player->mo;
 
 #ifndef NOCLIPCAM

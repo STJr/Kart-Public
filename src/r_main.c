@@ -1176,7 +1176,7 @@ void R_SetupFrame(player_t *player, boolean skybox)
 		viewx += quake.x;
 		viewy += quake.y;
 
-		if (thiscam->subsector)
+		if (thiscam->subsector && thiscam->subsector->sector)
 			viewsector = thiscam->subsector->sector;
 		else
 			viewsector = R_PointInSubsector(viewx, viewy)->sector;
@@ -1188,7 +1188,7 @@ void R_SetupFrame(player_t *player, boolean skybox)
 		viewx += quake.x;
 		viewy += quake.y;
 
-		if (viewmobj->subsector)
+		if (viewmobj->subsector && thiscam->subsector->sector)
 			viewsector = viewmobj->subsector->sector;
 		else
 			viewsector = R_PointInSubsector(viewx, viewy)->sector;
