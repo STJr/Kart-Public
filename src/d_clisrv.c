@@ -1244,6 +1244,7 @@ static inline void CL_DrawConnectionStatus(void)
 			case CL_ASKDOWNLOADFILES:
 			case CL_WAITDOWNLOADFILESRESPONSE:
 				cltext = M_GetText("Waiting to download files...");
+				/* FALLTHRU */
 			default:
 				cltext = M_GetText("Connecting to server...");
 				break;

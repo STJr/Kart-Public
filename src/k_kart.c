@@ -898,6 +898,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 				newodds = 0;
 			else
 				POWERITEMODDS(newodds);
+			/* FALLTHRU */
 		case KITEM_HYUDORO:
 			if ((hyubgone > 0) || COOLDOWNONSTART)
 				newodds = 0;
