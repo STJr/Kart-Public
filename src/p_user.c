@@ -7418,9 +7418,9 @@ void P_DemoCameraMovement(camera_t *cam)
 	awayviewmobj_hack->flags2 |= MF2_DONTDRAW;
 
 	democam.soundmobj = awayviewmobj_hack;
-	
+
 	// update subsector to avoid crashes;
-	thiscam->subsector = R_PointInSubsector(cam->x, cam->y);
+	cam->subsector = R_PointInSubsector(cam->x, cam->y);
 }
 
 void P_ResetCamera(player_t *player, camera_t *thiscam)
@@ -7500,8 +7500,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	{
 		P_DemoCameraMovement(thiscam);
 		return true;
-	}	
-	
+	}
+
 	mo = player->mo;
 
 #ifndef NOCLIPCAM
