@@ -1468,7 +1468,6 @@ static void P_LoadRawSideDefs2(void *data)
 						else
 							sd->bottomtexture = num;
 					}
-					break;
 				}
 #ifdef HWRENDER
 				else
@@ -1541,9 +1540,9 @@ static void P_LoadRawSideDefs2(void *data)
 						else
 							sd->bottomtexture = num;
 					}
-					break;
 				}
 #endif
+				break;
 
 			case 413: // Change music
 			{
