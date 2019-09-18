@@ -3751,7 +3751,7 @@ static void M_DrawGenericMenu(void)
 									y += 16;
 									break;
 								}
-								/* fallthru */
+								/* FALLTHRU */
 							case IT_CV_STRING:
 								M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
 								V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, cv->string);
@@ -5340,7 +5340,7 @@ static void DrawReplayHutReplayInfo(void)
 
 	case MD_OUTDATED:
 		V_DrawThinString(17, 64, V_SNAPTOTOP|V_ALLOWLOWERCASE|V_TRANSLUCENT|highlightflags, "Recorded on an outdated version.");
-		/*fallthru*/
+		/*FALLTHRU*/
 	default:
 		// Draw level stuff
 		x = 15; y = 15;
