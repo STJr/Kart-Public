@@ -24,6 +24,7 @@
 #include "p_tick.h"
 #include "p_local.h"
 #include "p_polyobj.h"
+#include "r_fps.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "r_defs.h"
@@ -2367,6 +2368,9 @@ INT32 EV_DoPolyObjRotate(polyrotdata_t *prdata)
 
 	oldpo = po;
 
+	// interpolation
+	R_CreateInterpolator_Polyobj(&th->thinker, po);
+
 	th->turnobjs = prdata->turnobjs;
 
 	// apply action to mirroring polyobjects as well
@@ -2428,6 +2432,9 @@ INT32 EV_DoPolyObjMove(polymovedata_t *pmdata)
 
 	oldpo = po;
 
+	// interpolation
+	R_CreateInterpolator_Polyobj(&th->thinker, po);
+
 	// apply action to mirroring polyobjects as well
 	start = 0;
 	while ((po = Polyobj_GetChild(oldpo, &start)))
@@ -2443,12 +2450,14 @@ INT32 EV_DoPolyObjMove(polymovedata_t *pmdata)
 INT32 EV_DoPolyObjWaypoint(polywaypointdata_t *pwdata)
 {
 	polyobj_t *po;
+	polyobj_t *oldpo;
 	polywaypoint_t *th;
 	mobj_t *mo2;
 	mobj_t *first = NULL;
 	mobj_t *last = NULL;
 	mobj_t *target = NULL;
 	thinker_t *wp;
+	INT32 start;
 
 	if (!(po = Polyobj_GetForNum(pwdata->polyObjNum)))
 	{
@@ -2594,6 +2603,26 @@ INT32 EV_DoPolyObjWaypoint(polywaypointdata_t *pwdata)
 		return 0;
 	}
 
+	// interpolation
+	R_CreateInterpolator_Polyobj(&th->thinker, po);
+	// T_PolyObjWaypoint is the only polyobject movement
+	// that can adjust z, so we add these ones too.
+	R_CreateInterpolator_SectorPlane(&th->thinker, po->lines[0]->backsector, false); 
+	R_CreateInterpolator_SectorPlane(&th->thinker, po->lines[0]->backsector, true);
+
+	// Most other polyobject functions handle children by recursively
+	// giving each child another thinker. T_PolyObjWaypoint handles
+	// it manually though, which means we need to manually give them
+	// interpolation here instead.
+	start = 0;
+	oldpo = po;
+	while ((po = Polyobj_GetChild(oldpo, &start)))
+	{
+		R_CreateInterpolator_Polyobj(&th->thinker, po);
+		R_CreateInterpolator_SectorPlane(&th->thinker, po->lines[0]->backsector, false);
+		R_CreateInterpolator_SectorPlane(&th->thinker, po->lines[0]->backsector, true);
+	}
+
 	// Set pointnum
 	th->pointnum = target->health;
 
@@ -2645,6 +2674,9 @@ static void Polyobj_doSlideDoor(polyobj_t *po, polydoordata_t *doordata)
 
 	oldpo = po;
 
+	// interpolation
+	R_CreateInterpolator_Polyobj(&th->thinker, po);
+
 	// start action on mirroring polyobjects as well
 	start = 0;
 	while ((po = Polyobj_GetChild(oldpo, &start)))
@@ -2684,6 +2716,9 @@ static void Polyobj_doSwingDoor(polyobj_t *po, polydoordata_t *doordata)
 	// TODO: sound sequence start event
 
 	oldpo = po;
+
+	// interpolation
+	R_CreateInterpolator_Polyobj(&th->thinker, po);
 
 	// start action on mirroring polyobjects as well
 	start = 0;
@@ -2755,6 +2790,9 @@ INT32 EV_DoPolyObjDisplace(polydisplacedata_t *prdata)
 	th->dy = prdata->dy;
 
 	oldpo = po;
+
+	// interpolation
+	R_CreateInterpolator_Polyobj(&th->thinker, po);
 
 	// apply action to mirroring polyobjects as well
 	start = 0;
@@ -2858,6 +2896,9 @@ INT32 EV_DoPolyObjFlag(line_t *pfdata)
 		po->tmpVerts[i] = *(po->vertices[i]);
 
 	oldpo = po;
+
+	// interpolation
+	R_CreateInterpolator_Polyobj(&th->thinker, po);
 
 	// apply action to mirroring polyobjects as well
 	start = 0;

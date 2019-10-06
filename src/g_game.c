@@ -20,6 +20,7 @@
 #include "filesrch.h" // for refreshdirmenu
 #include "p_setup.h"
 #include "p_saveg.h"
+#include "i_time.h"
 #include "i_system.h"
 #include "am_map.h"
 #include "m_random.h"
@@ -50,6 +51,7 @@
 #include "m_cond.h" // condition sets
 #include "md5.h" // demo checksums
 #include "k_kart.h" // SRB2kart
+#include "r_fps.h" // frame interpolation/uncapped
 
 #ifdef HAVE_DISCORDRPC
 #include "discord.h"
@@ -2413,6 +2415,10 @@ void G_Ticker(boolean run)
 				ST_Ticker();
 				AM_Ticker();
 				HU_Ticker();
+				if (run)
+				{
+					R_UpdateViewInterpolation();
+				}
 			}
 			break;
 
@@ -6131,7 +6137,7 @@ void G_ReadMetalTic(mobj_t *metal)
 	// Read changes from the tic
 	if (ziptic & GZT_XYZ)
 	{
-		P_TeleportMove(metal, READFIXED(metal_p), READFIXED(metal_p), READFIXED(metal_p));
+		P_MoveOrigin(metal, READFIXED(metal_p), READFIXED(metal_p), READFIXED(metal_p));
 		oldmetal.x = metal->x;
 		oldmetal.y = metal->y;
 		oldmetal.z = metal->z;

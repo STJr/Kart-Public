@@ -587,6 +587,7 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/r_bsp.o    \
 		$(OBJDIR)/r_data.o   \
 		$(OBJDIR)/r_draw.o   \
+		$(OBJDIR)/r_fps.o    \
 		$(OBJDIR)/r_main.o   \
 		$(OBJDIR)/r_plane.o  \
 		$(OBJDIR)/r_segs.o   \
@@ -602,6 +603,7 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/mserv.o    \
 		$(OBJDIR)/http-mserv.o\
 		$(OBJDIR)/i_tcp.o    \
+		$(OBJDIR)/i_time.o   \
 		$(OBJDIR)/lzf.o	     \
 		$(OBJDIR)/vid_copy.o \
 		$(OBJDIR)/b_bot.o \

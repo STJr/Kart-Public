@@ -154,6 +154,7 @@ extern boolean R_SSE2;
 // ----------------
 extern viddef_t vid;
 extern INT32 setmodeneeded; // mode number to set if needed, or 0
+extern double averageFPS;
 
 extern INT32 scr_bpp;
 extern UINT8 *scr_borderpatch; // patch used to fill the view borders
@@ -161,6 +162,7 @@ extern UINT8 *scr_borderpatch; // patch used to fill the view borders
 extern consvar_t cv_scr_width, cv_scr_height, cv_scr_depth, cv_renderview, cv_fullscreen, cv_vhseffect, cv_shittyscreen;
 // wait for page flipping to end or not
 extern consvar_t cv_vidwait;
+extern consvar_t cv_timescale;
 
 // quick fix for tall/short skies, depending on bytesperpixel
 extern void (*walldrawerfunc)(void);
@@ -175,6 +177,8 @@ void SCR_CheckDefaultMode(void);
 void SCR_SetDefaultMode (void);
 
 void SCR_Startup (void);
+
+void SCR_CalculateFPS(void);
 
 FUNCMATH boolean SCR_IsAspectCorrect(INT32 width, INT32 height);
 

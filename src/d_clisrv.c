@@ -17,6 +17,7 @@
 #include <unistd.h> //for unlink
 #endif
 
+#include "i_time.h"
 #include "i_net.h"
 #include "i_system.h"
 #include "i_video.h"
@@ -2502,7 +2503,10 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 #endif
 	}
 	else
-		I_Sleep();
+	{
+		I_Sleep(cv_sleep.value);
+		I_UpdateTime(cv_timescale.value);
+	}
 
 	return true;
 }
@@ -5540,8 +5544,10 @@ static void SV_Maketic(void)
 	maketic++;
 }
 
-void TryRunTics(tic_t realtics)
+boolean TryRunTics(tic_t realtics)
 {
+	boolean ticking;
+
 	// the machine has lagged but it is not so bad
 	if (realtics > TICRATE/7) // FIXME: consistency failure!!
 	{
@@ -5593,10 +5599,17 @@ void TryRunTics(tic_t realtics)
 	if (player_joining)
 	{
 		hu_stopped = true;
-		return;
+		return false;
 	}
 
-	if (neededtic > gametic)
+	ticking = neededtic > gametic;
+
+	if (player_joining)
+	{
+		return false;
+	}
+
+	if (ticking)
 	{
 		if (advancedemo)
 			D_StartTitle();
@@ -5620,6 +5633,8 @@ void TryRunTics(tic_t realtics)
 	{
 		hu_stopped = true;
 	}
+
+	return ticking;
 }
 
 

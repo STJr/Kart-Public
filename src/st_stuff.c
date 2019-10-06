@@ -42,7 +42,11 @@
 
 #ifdef HAVE_BLUA
 #include "lua_hud.h"
+#include "lua_hudlib_drawlist.h"
+#include "lua_hook.h"
 #endif
+
+#include "r_fps.h"
 
 UINT16 objectsdrawn = 0;
 
@@ -174,6 +178,10 @@ hudinfo_t hudinfo[NUMHUDITEMS] =
 	{ 152,  24}, // HUD_GRAVBOOTSICO
 	{ 240, 160}, // HUD_LAP
 };
+
+#ifdef HAVE_BLUA
+static huddrawlist_h luahuddrawlist_game;
+#endif
 
 //
 // STATUS BAR CODE
@@ -422,6 +430,10 @@ void ST_Init(void)
 		return;
 
 	ST_LoadGraphics();
+
+#ifdef HAVE_BLUA
+	luahuddrawlist_game = LUA_HUD_CreateDrawList();
+#endif
 }
 
 // change the status bar too, when pressing F12 while viewing a demo.
@@ -1952,7 +1964,14 @@ static void ST_overlayDrawer(void)
 
 #ifdef HAVE_BLUA
 	if (!(netgame || multiplayer) || !hu_showscores)
-		LUAh_GameHUD(stplyr);
+	{
+		if (renderisnewtic)
+		{
+			LUA_HUD_ClearDrawList(luahuddrawlist_game);
+			LUAh_GameHUD(stplyr, luahuddrawlist_game);
+		}
+		LUA_HUD_DrawList(luahuddrawlist_game);
+	}
 #endif
 
 	// draw level title Tails

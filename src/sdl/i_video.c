@@ -1351,11 +1351,14 @@ void I_UpdateNoBlit(void)
 // from PrBoom's src/SDL/i_video.c
 static inline boolean I_SkipFrame(void)
 {
-#if 0
+#if 1
+	// While I fixed the FPS counter bugging out with this,
+	// I actually really like being able to pause and
+	// use perfstats to measure rendering performance
+	// without game logic changes.
+	return false;
+#else
 	static boolean skip = false;
-
-	if (rendermode != render_soft)
-		return false;
 
 	skip = !skip;
 
@@ -1371,16 +1374,19 @@ static inline boolean I_SkipFrame(void)
 			return false;
 	}
 #endif
-	return false;
 }
 
 //
 // I_FinishUpdate
 //
+static SDL_Rect src_rect = { 0, 0, 0, 0 };
+
 void I_FinishUpdate(void)
 {
 	if (rendermode == render_none)
 		return; //Alam: No software or OpenGl surface
+
+	SCR_CalculateFPS();
 
 	if (I_SkipFrame())
 		return;
@@ -1398,27 +1404,22 @@ void I_FinishUpdate(void)
 
 	if (rendermode == render_soft && screens[0])
 	{
-		SDL_Rect rect;
-
-		rect.x = 0;
-		rect.y = 0;
-		rect.w = vid.width;
-		rect.h = vid.height;
-
 		if (!bufSurface) //Double-Check
 		{
 			Impl_VideoSetupSDLBuffer();
 		}
+
 		if (bufSurface)
 		{
-			SDL_BlitSurface(bufSurface, NULL, vidSurface, &rect);
+			SDL_BlitSurface(bufSurface, &src_rect, vidSurface, &src_rect);
 			// Fury -- there's no way around UpdateTexture, the GL backend uses it anyway
 			SDL_LockSurface(vidSurface);
-			SDL_UpdateTexture(texture, &rect, vidSurface->pixels, vidSurface->pitch);
+			SDL_UpdateTexture(texture, &src_rect, vidSurface->pixels, vidSurface->pitch);
 			SDL_UnlockSurface(vidSurface);
 		}
+
 		SDL_RenderClear(renderer);
-		SDL_RenderCopy(renderer, texture, NULL, NULL);
+		SDL_RenderCopy(renderer, texture, &src_rect, NULL);
 		SDL_RenderPresent(renderer);
 	}
 
@@ -1428,6 +1429,7 @@ void I_FinishUpdate(void)
 		OglSdlFinishUpdate(cv_vidwait.value);
 	}
 #endif
+
 	exposevideo = SDL_FALSE;
 }
 
@@ -1666,6 +1668,27 @@ INT32 VID_SetMode(INT32 modeNum)
 	}
 
 	return SDL_TRUE;
+}
+
+static UINT32 refresh_rate;
+static UINT32 VID_GetRefreshRate(void)
+{
+	int index = SDL_GetWindowDisplayIndex(window);
+	SDL_DisplayMode m;
+
+	if (SDL_WasInit(SDL_INIT_VIDEO) == 0)
+	{
+		// Video not init yet.
+		return 0;
+	}
+
+	if (SDL_GetCurrentDisplayMode(index, &m) != 0)
+	{
+		// Error has occurred.
+		return 0;
+	}
+
+	return m.refresh_rate;
 }
 
 static SDL_bool Impl_CreateWindow(SDL_bool fullscreen)
@@ -2057,4 +2080,15 @@ void I_ShutdownGraphics(void)
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	framebuffer = SDL_FALSE;
 }
+
+UINT32 I_GetRefreshRate(void)
+{
+	// Moved to VID_GetRefreshRate.
+	// Precalculating it like that won't work as
+	// well for windowed mode since you can drag
+	// the window around, but very slow PCs might have
+	// trouble querying mode over and over again.
+	return refresh_rate;
+}
+
 #endif
