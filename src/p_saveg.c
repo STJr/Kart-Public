@@ -21,6 +21,7 @@
 #include "p_local.h"
 #include "p_setup.h"
 #include "p_saveg.h"
+#include "r_fps.h"
 #include "r_things.h"
 #include "r_state.h"
 #include "w_wad.h"
@@ -2163,6 +2164,8 @@ static void LoadMobjThinker(actionf_p1 thinker)
 		P_SetTarget(&waypointcap, mobj);
 
 	mobj->info = (mobjinfo_t *)next; // temporarily, set when leave this function
+
+	R_AddMobjInterpolator(mobj);
 }
 
 //

@@ -20,6 +20,7 @@
 #include "d_net.h"
 #include "g_game.h"
 #include "p_local.h"
+#include "r_fps.h"
 #include "r_main.h"
 #include "s_sound.h"
 #include "r_things.h"
@@ -1682,6 +1683,12 @@ mobj_t *P_SpawnGhostMobj(mobj_t *mobj)
 
 	if (!(mobj->flags & MF_DONTENCOREMAP))
 		mobj->flags &= ~MF_DONTENCOREMAP;
+
+	// Copy interpolation data :)
+	ghost->old_x = mobj->old_x2;
+	ghost->old_y = mobj->old_y2;
+	ghost->old_z = mobj->old_z2;
+	ghost->old_angle = (mobj->player ? mobj->player->old_frameangle2 : mobj->old_angle2);
 
 	return ghost;
 }
@@ -9081,7 +9088,7 @@ void P_PlayerAfterThink(player_t *player)
 		player->mo->momx = (player->mo->tracer->x - player->mo->x)*2;
 		player->mo->momy = (player->mo->tracer->y - player->mo->y)*2;
 		player->mo->momz = (player->mo->tracer->z - (player->mo->height-player->mo->tracer->height/2) - player->mo->z)*2;
-		P_TeleportMove(player->mo, player->mo->tracer->x, player->mo->tracer->y, player->mo->tracer->z - (player->mo->height-player->mo->tracer->height/2));
+		P_MoveOrigin(player->mo, player->mo->tracer->x, player->mo->tracer->y, player->mo->tracer->z - (player->mo->height-player->mo->tracer->height/2));
 		player->pflags |= PF_JUMPED;
 		player->secondjump = 0;
 		player->pflags &= ~PF_THOKKED;

@@ -48,6 +48,7 @@
 
 #ifdef HAVE_BLUA
 #include "lua_hud.h"
+#include "lua_hudlib_drawlist.h"
 #include "lua_hook.h"
 #endif
 
@@ -89,6 +90,10 @@ static size_t c_input = 0; // let's try to make the chat input less shitty.
 static boolean headsupactive = false;
 boolean hu_showscores; // draw rankings
 static char hu_tick;
+
+#ifdef HAVE_BLUA
+static huddrawlist_h luahuddrawlist_scores;
+#endif
 
 patch_t *rflagico;
 patch_t *bflagico;
@@ -175,6 +180,8 @@ static INT32 cechoflags = 0;
 //======================================================================
 //                          HEADS UP INIT
 //======================================================================
+
+static tic_t resynch_ticker = 0;
 
 #ifndef NONET
 // just after
@@ -385,12 +392,12 @@ static INT16 addy = 0; // use this to make the messages scroll smoothly when one
 
 static void HU_removeChatText_Mini(void)
 {
-    // MPC: Don't create new arrays, just iterate through an existing one
+	// MPC: Don't create new arrays, just iterate through an existing one
 	size_t i;
-    for(i=0;i<chat_nummsg_min-1;i++) {
-        strcpy(chat_mini[i], chat_mini[i+1]);
-        chat_timers[i] = chat_timers[i+1];
-    }
+	for(i=0;i<chat_nummsg_min-1;i++) {
+		strcpy(chat_mini[i], chat_mini[i+1]);
+		chat_timers[i] = chat_timers[i+1];
+	}
 	chat_nummsg_min--; // lost 1 msg.
 
 	// use addy and make shit slide smoothly af.
@@ -403,10 +410,10 @@ static void HU_removeChatText_Log(void)
 {
 	// MPC: Don't create new arrays, just iterate through an existing one
 	size_t i;
-    for(i=0;i<chat_nummsg_log-1;i++) {
-        strcpy(chat_log[i], chat_log[i+1]);
-    }
-    chat_nummsg_log--; // lost 1 msg.
+	for(i=0;i<chat_nummsg_log-1;i++) {
+		strcpy(chat_log[i], chat_log[i+1]);
+	}
+	chat_nummsg_log--; // lost 1 msg.
 }
 #endif
 
@@ -1071,6 +1078,15 @@ void HU_Ticker(void)
 		hu_showscores = !chat_on;
 	else
 		hu_showscores = false;
+
+	if (chat_on)
+	{
+		// count down the scroll timer.
+		if (chat_scrolltime > 0)
+			chat_scrolltime--;
+	}
+
+	if (cechotimer > 0) --cechotimer;
 }
 
 #ifndef NONET
@@ -2204,8 +2220,6 @@ static void HU_DrawCEcho(void)
 		echoptr = line;
 		echoptr++;
 	}
-
-	--cechotimer;
 }
 
 //
@@ -2305,9 +2319,6 @@ void HU_Drawer(void)
 	// draw chat string plus cursor
 	if (chat_on)
 	{
-		// count down the scroll timer.
-		if (chat_scrolltime > 0)
-			chat_scrolltime--;
 		if (!OLDCHAT)
 			HU_DrawChat();
 		else
@@ -2317,29 +2328,9 @@ void HU_Drawer(void)
 	{
 		typelines = 1;
 		chat_scrolltime = 0;
+
 		if (!OLDCHAT && cv_consolechat.value < 2 && netgame) // Don't display minimized chat if you set the mode to Window (Hidden)
 			HU_drawMiniChat(); // draw messages in a cool fashion.
-	}
-
-	if (netgame) // would handle that in hu_drawminichat, but it's actually kinda awkward when you're typing a lot of messages. (only handle that in netgames duh)
-	{
-		size_t i = 0;
-
-		// handle spam while we're at it:
-		for(; (i<MAXPLAYERS); i++)
-		{
-			if (stop_spamming[i] > 0)
-				stop_spamming[i]--;
-		}
-
-		// handle chat timers
-		for (i=0; (i<chat_nummsg_min); i++)
-		{
-			if (chat_timers[i] > 0)
-				chat_timers[i]--;
-			else
-				HU_removeChatText_Mini();
-		}
 	}
 #endif
 
@@ -2363,7 +2354,12 @@ void HU_Drawer(void)
 #endif
 				HU_DrawRankings();
 #ifdef HAVE_BLUA
-		LUAh_ScoresHUD();
+		if (renderisnewtic)
+		{
+			LUA_HUD_ClearDrawList(luahuddrawlist_scores);
+			LUAh_ScoresHUD(luahuddrawlist_scores);
+		}
+		LUA_HUD_DrawList(luahuddrawlist_scores);
 #endif
 		}
 		if (demo.playback)
@@ -2398,12 +2394,9 @@ void HU_Drawer(void)
 	// draw desynch text
 	if (hu_resynching)
 	{
-		static UINT32 resynch_ticker = 0;
 		char resynch_text[14];
 		UINT32 i;
 
-		// Animate the dots
-		resynch_ticker++;
 		strcpy(resynch_text, "Resynching");
 		for (i = 0; i < (resynch_ticker / 16) % 4; i++)
 			strcat(resynch_text, ".");

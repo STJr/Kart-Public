@@ -23,6 +23,7 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 #include "k_kart.h"
+#include "r_fps.h"
 
 // Object place
 #include "m_cheat.h"
@@ -610,6 +611,8 @@ void P_Ticker(boolean run)
 
 	if (run)
 	{
+		R_UpdateMobjInterpolators();
+
 		if (demo.recording)
 		{
 			G_WriteDemoExtraData();
@@ -786,6 +789,11 @@ void P_Ticker(boolean run)
 	{
 		if (camera[i].chase)
 			P_MoveChaseCamera(&players[displayplayers[i]], &camera[i], false);
+	}
+
+	if (run)
+	{
+		R_UpdateLevelInterpolators();
 	}
 
 	P_MapEnd();

@@ -21,6 +21,7 @@
 #include "p_spec.h"
 #include "p_saveg.h"
 
+#include "i_time.h"
 #include "i_sound.h" // for I_PlayCD()..
 #include "i_video.h" // for I_FinishUpdate()..
 #include "r_sky.h"
@@ -30,6 +31,7 @@
 #include "r_things.h"
 #include "r_sky.h"
 #include "r_draw.h"
+#include "r_fps.h" // R_ResetViewInterpolation in level load
 
 #include "s_sound.h"
 #include "st_stuff.h"
@@ -2909,7 +2911,10 @@ boolean P_SetupLevel(boolean skipprecip)
 		{
 			// wait loop
 			while (!((nowtime = I_GetTime()) - lastwipetic))
-				I_Sleep();
+			{
+				I_Sleep(cv_sleep.value);
+				I_UpdateTime(cv_timescale.value);
+			}
 			lastwipetic = nowtime;
 			if (moviemode) // make sure we save frames for the white hold too
 				M_SaveFrame();
@@ -2988,7 +2993,10 @@ boolean P_SetupLevel(boolean skipprecip)
 	R_ClearLevelSplats();
 #endif
 
+	R_InitializeLevelInterpolators();
+
 	P_InitThinkers();
+	R_InitMobjInterpolators();
 	P_InitCachedActions();
 
 	/// \note for not spawning precipitation, etc. when loading netgame snapshots
@@ -3374,6 +3382,10 @@ boolean P_SetupLevel(boolean skipprecip)
 	}
 
 	G_AddMapToBuffer(gamemap-1);
+
+	R_ResetViewInterpolation();
+	R_ResetViewInterpolation();
+	R_UpdateMobjInterpolators();
 
 	return true;
 }

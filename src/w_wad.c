@@ -55,6 +55,7 @@
 #include "g_game.h" // G_LoadGameData
 #include "filesrch.h"
 
+#include "i_time.h"
 #include "i_video.h" // rendermode
 #include "d_netfil.h"
 #include "dehacked.h"
