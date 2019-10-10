@@ -2347,12 +2347,12 @@ static void Command_Map_f(void)
 		G_SetGameModified(false, true);
 	}
 
-	arg_gametype = COM_Argv(parm_gametype + 1);
-
 	// new gametype value
 	// use current one by default
 	if (parm_gametype)
 	{
+		arg_gametype = COM_Argv(parm_gametype + 1);
+
 		for (i = 0; gametype_cons_t[i].strvalue; i++)
 			if (!strcasecmp(gametype_cons_t[i].strvalue, arg_gametype))
 			{
