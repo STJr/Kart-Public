@@ -103,7 +103,9 @@ SINT8 nodetoplayer4[MAXNETNODES]; // say the numplayer for this node if any (spl
 UINT8 playerpernode[MAXNETNODES]; // used specialy for splitscreen
 boolean nodeingame[MAXNETNODES]; // set false as nodes leave game
 
-boolean nodedownloadrefuse[MAXNETNODES];
+boolean     nodedownloadrefuse[MAXNETNODES];
+int         nodedownloads     [MAXNETNODES];
+const char *nodedownloadfiles [MAXNETNODES][MAX_WADFILES];
 
 static tic_t nettics[MAXNETNODES]; // what tic the client have received
 static tic_t supposedtics[MAXNETNODES]; // nettics prevision for smaller packet
@@ -3710,6 +3712,96 @@ static void SV_SendRefuse(INT32 node, const char *reason)
 	Net_CloseConnection(node);
 }
 
+/* Macros here 'cause I'm lazy! */
+#define MAXVA      1024/* see m_misc.c's va function */
+#define MAXMSGLINE  256/* see m_menu.c's M_DrawMessageMenu */
+
+/*
+Send a refuse message (like SV_SendRefuse) and include a file list with it.
+WARNING: File names will not be truncated, simply left out. The usual message
+box background will not display either, due to epic hack.
+*/
+static void
+SV_SendDownloadRefuse (
+		INT32           node,
+		const char  * reason,
+		int            filec,
+		const char **  filev)
+{
+	char filename[MAX_WADPATH];
+	char     text[MAXVA];
+	char *      p;
+	int     right;
+
+	int i;
+	int n;
+
+#define SUBTRACT ( p += n, right -= n )
+
+	/*
+	Insert same number of linefeeds before message as after (from the file
+	list) so that the text doesn't render too high--completely off screen.
+	*/
+
+	n = filec;
+	memset(text, '\n', n);
+
+	/* Initial values for these */
+	p      =        text + n;
+	right  = sizeof text - n;/* Count terminating byte anyway, see below. */
+
+	/* This is the only text that'll render. */
+	n      = sprintf(p, "%s\n", reason);
+	SUBTRACT;
+
+	/*
+	Fill max line length of text box line. This causes the text box drawing
+	function to fail and print the message to console instead. The text before
+	this line still renders. This is a very convenient coincidence, and so
+	I've given myself a pat of the back for this one.
+	*/
+
+	memset(p, '\t', MAXMSGLINE);
+	p[MAXMSGLINE] = '\n';/* This line can go on forever */
+
+	n      = MAXMSGLINE + 1;
+	SUBTRACT;
+
+	/*
+	Now just iterate over the files and put them into a list,
+	with a linefeed after each one, except the last.
+	*/
+
+	for (i = 0; i < filec; ++i)
+	{
+		nameonly(strcpy(filename, filev[i]));
+
+		n = strlen(filename) + 1;/* plus linefeed */
+
+		/* Don't truncate file names, just leave them out. */
+		if (n > right)
+			break;
+
+		/*
+		The terminating byte is counted because
+		truncation here will erase the linefeed.
+		*/
+		snprintf(p, right, "%s\n", filename);
+
+		SUBTRACT;
+	}
+
+	if (right)/* not if filled out, snprintf did it */
+		p[-1] = '\0';/* we don't need an extra linefeed */
+
+	SV_SendRefuse(node, text);
+
+#undef  SUBTRACT
+}
+
+#undef  MAXMSGLINE
+#undef  MAXVA
+
 // used at txtcmds received to check packetsize bound
 static size_t TotalTextCmdPerTic(tic_t tic)
 {
@@ -3755,17 +3847,23 @@ static void HandleConnect(SINT8 node)
 		SV_SendRefuse(node, M_GetText("No players from\nthis node."));
 	else if (nodedownloadrefuse[node])
 	{
+		const char *reason;
 		char *s;
 		char *p;
-		if (!( s = strdup(cv_nodownloads.string) ))
-			SV_SendRefuse(node, "You can't download files from this server.\nGo home.");
-		else
+
+		if (( s = strdup(cv_nodownloads.string) ))
 		{
+			reason = s;
 			for (p = s; ( p = strchr(p, '\\') ); ++p)
 				*p = '\n';
-			SV_SendRefuse(node, s);
-			free(s);
 		}
+		else
+			reason = "You can't download files from this server.\nGo home.";
+
+		SV_SendDownloadRefuse(node, reason,
+				nodedownloads[node], nodedownloadfiles[node]);
+
+		free(s);
 	}
 	else
 	{

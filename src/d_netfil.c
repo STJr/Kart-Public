@@ -555,6 +555,9 @@ static boolean SV_SendFile(INT32 node, const char *filename, UINT8 fileid)
 		{
 			p->dummy = true;
 			nodedownloadrefuse[node] = true;
+			/* Save file name, we need this */
+			nodedownloadfiles[node][nodedownloads[node]++] =
+				wadfiles[i]->filename;
 		}
 		else
 		{
@@ -916,6 +919,7 @@ void SV_AbortSendFiles(INT32 node)
 	while (transfer[node].txlist)
 		SV_EndFileSend(node);
 	nodedownloadrefuse[node] = false;
+	nodedownloads[node] = 0;
 }
 
 void CloseNetFile(void)
