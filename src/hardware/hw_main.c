@@ -63,7 +63,7 @@ struct hwdriver_s hwdriver;
 // ==========================================================================
 
 
-static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer);
+static void HWR_AddSprites(sector_t *sec);
 static void HWR_ProjectSprite(mobj_t *thing);
 #ifdef HWPRECIP
 static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing);
@@ -1319,7 +1319,7 @@ static void HWR_SplitWall(sector_t *sector, wallVert3D *wallVerts, INT32 texnum,
 
 // HWR_DrawSkyWalls
 // Draw walls into the depth buffer so that anything behind is culled properly
-static void HWR_DrawSkyWall(wallVert3D *wallVerts, FSurfaceInfo *Surf, fixed_t bottom, fixed_t top)
+static void HWR_DrawSkyWall(wallVert3D *wallVerts, FSurfaceInfo *Surf)
 {
 	HWD.pfnSetTexture(NULL);
 	// no texture
@@ -1327,9 +1327,6 @@ static void HWR_DrawSkyWall(wallVert3D *wallVerts, FSurfaceInfo *Surf, fixed_t b
 	wallVerts[0].t = wallVerts[1].t = 0;
 	wallVerts[0].s = wallVerts[3].s = 0;
 	wallVerts[2].s = wallVerts[1].s = 0;
-	// set top/bottom coords
-	wallVerts[2].y = wallVerts[3].y = FIXED_TO_FLOAT(top); // No real way to find the correct height of this
-	wallVerts[0].y = wallVerts[1].y = FIXED_TO_FLOAT(bottom); // worldlow/bottom because it needs to cover up the lower thok barrier wall
 	HWR_ProjectWall(wallVerts, Surf, PF_Invisible|PF_Clip|PF_NoTexture, 255, NULL);
 	// PF_Invisible so it's not drawn into the colour buffer
 	// PF_NoTexture for no texture
@@ -1461,6 +1458,111 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 		worldhigh = gr_backsector->ceilingheight;
 		worldlow  = gr_backsector->floorheight;
 #endif
+
+		// Sky culling
+		if (!gr_curline->polyseg) // Don't do it for polyobjects
+		{
+			// Sky Ceilings
+			wallVerts[3].y = wallVerts[2].y = FIXED_TO_FLOAT(INT32_MAX);
+
+			if (gr_frontsector->ceilingpic == skyflatnum)
+			{
+				if (gr_backsector->ceilingpic == skyflatnum)
+				{
+					// Both front and back sectors are sky, needs skywall from the frontsector's ceiling, but only if the
+					// backsector is lower
+					if ((worldhigh <= worldtop)
+#ifdef ESLOPE
+					&& (worldhighslope <= worldtopslope)
+#endif
+					)
+					{
+#ifdef ESLOPE
+						wallVerts[0].y = FIXED_TO_FLOAT(worldhigh);
+						wallVerts[1].y = FIXED_TO_FLOAT(worldhighslope);
+#else
+						wallVerts[0].y = wallVerts[1].y = FIXED_TO_FLOAT(worldhigh);
+#endif
+						HWR_DrawSkyWall(wallVerts, &Surf);
+					}
+				}
+				else
+				{
+					// Only the frontsector is sky, just draw a skywall from the front ceiling
+#ifdef ESLOPE
+					wallVerts[0].y = FIXED_TO_FLOAT(worldtop);
+					wallVerts[1].y = FIXED_TO_FLOAT(worldtopslope);
+#else
+					wallVerts[0].y = wallVerts[1].y = FIXED_TO_FLOAT(worldtop);
+#endif
+					HWR_DrawSkyWall(wallVerts, &Surf);
+				}
+			}
+			else if (gr_backsector->ceilingpic == skyflatnum)
+			{
+				// Only the backsector is sky, just draw a skywall from the front ceiling
+#ifdef ESLOPE
+				wallVerts[0].y = FIXED_TO_FLOAT(worldtop);
+				wallVerts[1].y = FIXED_TO_FLOAT(worldtopslope);
+#else
+				wallVerts[0].y = wallVerts[1].y = FIXED_TO_FLOAT(worldtop);
+#endif
+				HWR_DrawSkyWall(wallVerts, &Surf);
+			}
+
+
+			// Sky Floors
+			wallVerts[0].y = wallVerts[1].y = FIXED_TO_FLOAT(INT32_MIN);
+
+			if (gr_frontsector->floorpic == skyflatnum)
+			{
+				if (gr_backsector->floorpic == skyflatnum)
+				{
+					// Both front and back sectors are sky, needs skywall from the backsector's floor, but only if the
+					// it's higher, also needs to check for bottomtexture as the floors don't usually move down
+					// when both sides are sky floors
+					if ((worldlow >= worldbottom)
+#ifdef ESLOPE
+					&& (worldlowslope >= worldbottomslope)
+#endif
+					&& !(gr_sidedef->bottomtexture))
+					{
+#ifdef ESLOPE
+						wallVerts[3].y = FIXED_TO_FLOAT(worldlow);
+						wallVerts[2].y = FIXED_TO_FLOAT(worldlowslope);
+#else
+						wallVerts[3].y = wallVerts[2].y = FIXED_TO_FLOAT(worldlow);
+#endif
+
+						HWR_DrawSkyWall(wallVerts, &Surf);
+					}
+				}
+				else
+				{
+					// Only the backsector has sky, just draw a skywall from the back floor
+#ifdef ESLOPE
+					wallVerts[3].y = FIXED_TO_FLOAT(worldbottom);
+					wallVerts[2].y = FIXED_TO_FLOAT(worldbottomslope);
+#else
+					wallVerts[3].y = wallVerts[2].y = FIXED_TO_FLOAT(worldbottom);
+#endif
+
+					HWR_DrawSkyWall(wallVerts, &Surf);
+				}
+			}
+			else if ((gr_backsector->floorpic == skyflatnum) && !(gr_sidedef->bottomtexture))
+			{
+				// Only the backsector has sky, just draw a skywall from the back floor if there's no bottomtexture
+#ifdef ESLOPE
+				wallVerts[3].y = FIXED_TO_FLOAT(worldlow);
+				wallVerts[2].y = FIXED_TO_FLOAT(worldlowslope);
+#else
+				wallVerts[3].y = wallVerts[2].y = FIXED_TO_FLOAT(worldlow);
+#endif
+
+				HWR_DrawSkyWall(wallVerts, &Surf);
+			}
+		}
 
 		// hack to allow height changes in outdoor areas
 		// This is what gets rid of the upper textures if there should be sky
@@ -1914,85 +2016,6 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 				Surf.FlatColor.rgba = 0xffffffff;
 			}*/
 		}
-
-		// Isn't this just the most lovely mess
-		if (!gr_curline->polyseg) // Don't do it for polyobjects
-		{
-			if (gr_frontsector->ceilingpic == skyflatnum || gr_backsector->ceilingpic == skyflatnum)
-			{
-				fixed_t depthwallheight;
-
-				if (!gr_sidedef->toptexture || (gr_frontsector->ceilingpic == skyflatnum && gr_backsector->ceilingpic == skyflatnum)) // when both sectors are sky, the top texture isn't drawn
-					depthwallheight = gr_frontsector->ceilingheight < gr_backsector->ceilingheight ? gr_frontsector->ceilingheight : gr_backsector->ceilingheight;
-				else
-					depthwallheight = gr_frontsector->ceilingheight > gr_backsector->ceilingheight ? gr_frontsector->ceilingheight : gr_backsector->ceilingheight;
-
-				if (gr_frontsector->ceilingheight-gr_frontsector->floorheight <= 0) // current sector is a thok barrier
-				{
-					if (gr_backsector->ceilingheight-gr_backsector->floorheight <= 0) // behind sector is also a thok barrier
-					{
-						if (!gr_sidedef->bottomtexture) // Only extend further down if there's no texture
-							HWR_DrawSkyWall(wallVerts, &Surf, worldbottom < worldlow ? worldbottom : worldlow, INT32_MAX);
-						else
-							HWR_DrawSkyWall(wallVerts, &Surf, worldbottom > worldlow ? worldbottom : worldlow, INT32_MAX);
-					}
-					// behind sector is not a thok barrier
-					else if (gr_backsector->ceilingheight <= gr_frontsector->ceilingheight) // behind sector ceiling is lower or equal to current sector
-						HWR_DrawSkyWall(wallVerts, &Surf, depthwallheight, INT32_MAX);
-						// gr_front/backsector heights need to be used here because of the worldtop being set to worldhigh earlier on
-				}
-				else if (gr_backsector->ceilingheight-gr_backsector->floorheight <= 0) // behind sector is a thok barrier, current sector is not
-				{
-					if (gr_backsector->ceilingheight >= gr_frontsector->ceilingheight // thok barrier ceiling height is equal to or greater than current sector ceiling height
-						|| gr_backsector->floorheight <= gr_frontsector->floorheight // thok barrier ceiling height is equal to or less than current sector floor height
-						|| gr_backsector->ceilingpic != skyflatnum) // thok barrier is not a sky
-						HWR_DrawSkyWall(wallVerts, &Surf, depthwallheight, INT32_MAX);
-				}
-				else // neither sectors are thok barriers
-				{
-					if ((gr_backsector->ceilingheight < gr_frontsector->ceilingheight && !gr_sidedef->toptexture) // no top texture and sector behind is lower
-						|| gr_backsector->ceilingpic != skyflatnum) // behind sector is not a sky
-						HWR_DrawSkyWall(wallVerts, &Surf, depthwallheight, INT32_MAX);
-				}
-			}
-			// And now for sky floors!
-			if (gr_frontsector->floorpic == skyflatnum || gr_backsector->floorpic == skyflatnum)
-			{
-				fixed_t depthwallheight;
-
-				if (!gr_sidedef->bottomtexture)
-					depthwallheight = worldbottom > worldlow ? worldbottom : worldlow;
-				else
-					depthwallheight = worldbottom < worldlow ? worldbottom : worldlow;
-
-				if (gr_frontsector->ceilingheight-gr_frontsector->floorheight <= 0) // current sector is a thok barrier
-				{
-					if (gr_backsector->ceilingheight-gr_backsector->floorheight <= 0) // behind sector is also a thok barrier
-					{
-						if (!gr_sidedef->toptexture) // Only extend up if there's no texture
-							HWR_DrawSkyWall(wallVerts, &Surf, INT32_MIN, worldtop > worldhigh ? worldtop : worldhigh);
-						else
-							HWR_DrawSkyWall(wallVerts, &Surf, INT32_MIN, worldtop < worldhigh ? worldtop : worldhigh);
-					}
-					// behind sector is not a thok barrier
-					else if (gr_backsector->floorheight >= gr_frontsector->floorheight) // behind sector floor is greater or equal to current sector
-						HWR_DrawSkyWall(wallVerts, &Surf, INT32_MIN, depthwallheight);
-				}
-				else if (gr_backsector->ceilingheight-gr_backsector->floorheight <= 0) // behind sector is a thok barrier, current sector is not
-				{
-					if (gr_backsector->floorheight <= gr_frontsector->floorheight // thok barrier floor height is equal to or less than current sector floor height
-						|| gr_backsector->ceilingheight >= gr_frontsector->ceilingheight // thok barrier floor height is equal to or greater than current sector ceiling height
-						|| gr_backsector->floorpic != skyflatnum) // thok barrier is not a sky
-						HWR_DrawSkyWall(wallVerts, &Surf, INT32_MIN, depthwallheight);
-				}
-				else // neither sectors are thok barriers
-				{
-					if ((gr_backsector->floorheight > gr_frontsector->floorheight && !gr_sidedef->bottomtexture) // no bottom texture and sector behind is higher
-						|| gr_backsector->floorpic != skyflatnum) // behind sector is not a sky
-						HWR_DrawSkyWall(wallVerts, &Surf, INT32_MIN, depthwallheight);
-				}
-			}
-		}
 	}
 	else
 	{
@@ -2060,13 +2083,52 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 					HWR_ProjectWall(wallVerts, &Surf, PF_Masked, lightnum, colormap);
 			}
 		}
+		else
+		{
+#ifdef ESLOPE
+			//Set textures properly on single sided walls that are sloped
+			wallVerts[3].y = FIXED_TO_FLOAT(worldtop);
+			wallVerts[0].y = FIXED_TO_FLOAT(worldbottom);
+			wallVerts[2].y = FIXED_TO_FLOAT(worldtopslope);
+			wallVerts[1].y = FIXED_TO_FLOAT(worldbottomslope);
+#else
+			// set top/bottom coords
+			wallVerts[2].y = wallVerts[3].y = FIXED_TO_FLOAT(worldtop);
+			wallVerts[0].y = wallVerts[1].y = FIXED_TO_FLOAT(worldbottom);
+#endif
 
+			// When there's no midtexture, draw a skywall to prevent rendering behind it
+			HWR_DrawSkyWall(wallVerts, &Surf);
+		}
+
+
+		// Single sided lines are simple for skywalls, just need to draw from the top or bottom of the sector if there's
+		// a sky flat
 		if (!gr_curline->polyseg)
 		{
 			if (gr_frontsector->ceilingpic == skyflatnum) // It's a single-sided line with sky for its sector
-				HWR_DrawSkyWall(wallVerts, &Surf, worldtop, INT32_MAX);
+			{
+				wallVerts[3].y = wallVerts[2].y = FIXED_TO_FLOAT(INT32_MAX);
+#ifdef ESLOPE
+				wallVerts[0].y = FIXED_TO_FLOAT(worldtop);
+				wallVerts[1].y = FIXED_TO_FLOAT(worldtopslope);
+#else
+				wallVerts[0].y = wallVerts[1].y = FIXED_TO_FLOAT(worldtop);
+#endif
+				HWR_DrawSkyWall(wallVerts, &Surf);
+			}
 			if (gr_frontsector->floorpic == skyflatnum)
-				HWR_DrawSkyWall(wallVerts, &Surf, INT32_MIN, worldbottom);
+			{
+#ifdef ESLOPE
+				wallVerts[3].y = FIXED_TO_FLOAT(worldbottom);
+				wallVerts[2].y = FIXED_TO_FLOAT(worldbottomslope);
+#else
+				wallVerts[3].y = wallVerts[2].y = FIXED_TO_FLOAT(worldbottom);
+#endif
+				wallVerts[0].y = wallVerts[1].y = FIXED_TO_FLOAT(INT32_MIN);
+
+				HWR_DrawSkyWall(wallVerts, &Surf);
+			}
 		}
 	}
 
@@ -2381,7 +2443,7 @@ static void HWR_StoreWallRange(double startfrac, double endfrac)
 // e6y: Check whether the player can look beyond this line
 //
 #ifdef NEWCLIP
-boolean checkforemptylines = true;
+static boolean checkforemptylines = true;
 // Don't modify anything here, just check
 // Kalaron: Modified for sloped linedefs
 static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacksector)
@@ -2421,62 +2483,47 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 		backc1 = backc2 = abacksector->ceilingheight;
 	}
 
-	// now check for closed sectors!
-	if (backc1 <= frontf1 && backc2 <= frontf2)
+	if (viewsector != abacksector && viewsector != afrontsector)
 	{
-		checkforemptylines = false;
-		if (!seg->sidedef->toptexture)
-			return false;
+		boolean mydoorclosed = false; // My door? Closed!? (doorclosed is actually otherwise unused in openGL)
 
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
-
-		return true;
-	}
-
-	if (backf1 >= frontc1 && backf2 >= frontc2)
-	{
-		checkforemptylines = false;
-		if (!seg->sidedef->bottomtexture)
-			return false;
-
-		// properly render skies (consider door "open" if both floors are sky):
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
-
-		return true;
-	}
-
-	if (backc1 <= backf1 && backc2 <= backf2)
-	{
-		checkforemptylines = false;
-		// preserve a kind of transparent door/lift special effect:
-		if (backc1 < frontc1 || backc2 < frontc2)
-		{
-			if (!seg->sidedef->toptexture)
-				return false;
-		}
-		if (backf1 > frontf1 || backf2 > frontf2)
-		{
-			if (!seg->sidedef->bottomtexture)
-				return false;
-		}
-		if (abacksector->ceilingpic == skyflatnum && afrontsector->ceilingpic == skyflatnum)
-			return false;
-
-		if (abacksector->floorpic == skyflatnum && afrontsector->floorpic == skyflatnum)
-			return false;
-
-		return true;
-	}
-
-	if (backc1 != frontc1 || backc2 != frontc2
-		|| backf1 != frontf1 || backf2 != frontf2)
+		// If the sector behind the line blocks all kinds of view past it
+		// (back ceiling is lower than close floor, or back floor is higher than close ceiling)
+		if ((backc1 <= frontf1 && backc2 <= frontf2)
+			|| (backf1 >= frontc1 && backf2 >= frontc2))
 		{
 			checkforemptylines = false;
-			return false;
+			return true;
 		}
 
+		// The door is closed if:
+		// backsector is 0 height or less and
+		// back ceiling is higher than close ceiling or we need to render a top texture and
+		// back floor is lower than close floor or we need to render a bottom texture and
+		// neither front or back sectors are using the sky ceiling
+		mydoorclosed = (backc1 <= backf1 && backc2 <= backf2
+		&& ((backc1 >= frontc1 && backc2 >= frontc2) || seg->sidedef->toptexture)
+		&& ((backf1 <= frontf1 && backf2 >= frontf2) || seg->sidedef->bottomtexture)
+		&& (abacksector->ceilingpic != skyflatnum || afrontsector->ceilingpic != skyflatnum));
+
+		if (mydoorclosed)
+		{
+			checkforemptylines = false;
+			return true;
+		}
+	}
+
+	// Window.
+	// We know it's a window when the above isn't true and the back and front sectors don't match
+	if (backc1 != frontc1 || backc2 != frontc2
+		|| backf1 != frontf1 || backf2 != frontf2)
+	{
+		checkforemptylines = false;
+		return false;
+	}
+
+	// In this case we just need to check whether there is actually a need to render any lines, so checkforempty lines
+	// stays true
 	return false;
 }
 #else
@@ -3389,7 +3436,7 @@ static void HWR_AddPolyObjectPlanes(void)
 //                  : Draw one or more line segments.
 // Notes            : Sets gr_cursectorlight to the light of the parent sector, to modulate wall textures
 // -----------------+
-static void HWR_Subsector(size_t num, UINT8 ssplayer)
+static void HWR_Subsector(size_t num)
 {
 	INT16 count;
 	seg_t *line;
@@ -3754,7 +3801,7 @@ static void HWR_Subsector(size_t num, UINT8 ssplayer)
 	{
 		// draw sprites first, coz they are clipped to the solidsegs of
 		// subsectors more 'in front'
-		HWR_AddSprites(gr_frontsector, ssplayer);
+		HWR_AddSprites(gr_frontsector);
 
 		//Hurdler: at this point validcount must be the same, but is not because
 		//         gr_frontsector doesn't point anymore to sub->sector due to
@@ -3806,7 +3853,7 @@ static boolean HWR_CheckHackBBox(fixed_t *bb)
 // BP: big hack for a test in lighning ref : 1249753487AB
 fixed_t *hwbbox;
 
-static void HWR_RenderBSPNode(INT32 bspnum, UINT8 ssplayer)
+static void HWR_RenderBSPNode(INT32 bspnum)
 {
 	/*//GZDoom code
 	if(bspnum == -1)
@@ -3846,12 +3893,12 @@ static void HWR_RenderBSPNode(INT32 bspnum, UINT8 ssplayer)
 		if (bspnum == -1)
 		{
 			//*(gr_drawsubsector_p++) = 0;
-			HWR_Subsector(0, ssplayer);
+			HWR_Subsector(0);
 		}
 		else
 		{
 			//*(gr_drawsubsector_p++) = bspnum&(~NF_SUBSECTOR);
-			HWR_Subsector(bspnum&(~NF_SUBSECTOR), ssplayer);
+			HWR_Subsector(bspnum&(~NF_SUBSECTOR));
 		}
 		return;
 	}
@@ -3863,14 +3910,14 @@ static void HWR_RenderBSPNode(INT32 bspnum, UINT8 ssplayer)
 	hwbbox = bsp->bbox[side];
 
 	// Recursively divide front space.
-	HWR_RenderBSPNode(bsp->children[side], ssplayer);
+	HWR_RenderBSPNode(bsp->children[side]);
 
 	// Possibly divide back space.
 	if (HWR_CheckBBox(bsp->bbox[side^1]))
 	{
 		// BP: big hack for a test in lighning ref : 1249753487AB
 		hwbbox = bsp->bbox[side^1];
-		HWR_RenderBSPNode(bsp->children[side^1], ssplayer);
+		HWR_RenderBSPNode(bsp->children[side^1]);
 	}
 }
 
@@ -4097,14 +4144,14 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 		angle_t shadowdir;
 
 		// Set direction
-		if (splitscreen && stplyr == &players[secondarydisplayplayer])
-			shadowdir = localangle2 + FixedAngle(cv_cam2_rotate.value);
-		else if (splitscreen > 1 && stplyr == &players[thirddisplayplayer])
-			shadowdir = localangle3 + FixedAngle(cv_cam3_rotate.value);
-		else if (splitscreen > 2 && stplyr == &players[fourthdisplayplayer])
-			shadowdir = localangle4 + FixedAngle(cv_cam4_rotate.value);
+		if (splitscreen && stplyr == &players[displayplayers[1]])
+			shadowdir = localangle[1] + FixedAngle(cv_cam2_rotate.value);
+		else if (splitscreen > 1 && stplyr == &players[displayplayers[2]])
+			shadowdir = localangle[2] + FixedAngle(cv_cam3_rotate.value);
+		else if (splitscreen > 2 && stplyr == &players[displayplayers[3]])
+			shadowdir = localangle[3] + FixedAngle(cv_cam4_rotate.value);
 		else
-			shadowdir = localangle + FixedAngle(cv_cam_rotate.value);
+			shadowdir = localangle[0] + FixedAngle(cv_cam_rotate.value);
 
 		// Find floorheight
 		floorheight = HWR_OpaqueFloorAtPos(
@@ -4259,10 +4306,45 @@ static void HWR_DrawSpriteShadow(gr_vissprite_t *spr, GLPatch_t *gpatch, float t
 	}
 }
 
+// This is expecting a pointer to an array containing 4 wallVerts for a sprite
+static void HWR_RotateSpritePolyToAim(gr_vissprite_t *spr, FOutVector *wallVerts)
+{
+	if (cv_grspritebillboarding.value
+		&& spr && spr->mobj && !(spr->mobj->frame & FF_PAPERSPRITE)
+		&& wallVerts)
+	{
+		float basey = FIXED_TO_FLOAT(spr->mobj->z);
+		float lowy = wallVerts[0].y;
+		if (P_MobjFlip(spr->mobj) == -1)
+		{
+			basey = FIXED_TO_FLOAT(spr->mobj->z + spr->mobj->height);
+		}
+		// Rotate sprites to fully billboard with the camera
+		// X, Y, AND Z need to be manipulated for the polys to rotate around the
+		// origin, because of how the origin setting works I believe that should
+		// be mobj->z or mobj->z + mobj->height
+		wallVerts[2].y = wallVerts[3].y = (spr->ty - basey) * gr_viewludsin + basey;
+		wallVerts[0].y = wallVerts[1].y = (lowy - basey) * gr_viewludsin + basey;
+		// translate back to be around 0 before translating back
+		wallVerts[3].x += ((spr->ty - basey) * gr_viewludcos) * gr_viewcos;
+		wallVerts[2].x += ((spr->ty - basey) * gr_viewludcos) * gr_viewcos;
+
+		wallVerts[0].x += ((lowy - basey) * gr_viewludcos) * gr_viewcos;
+		wallVerts[1].x += ((lowy - basey) * gr_viewludcos) * gr_viewcos;
+
+		wallVerts[3].z += ((spr->ty - basey) * gr_viewludcos) * gr_viewsin;
+		wallVerts[2].z += ((spr->ty - basey) * gr_viewludcos) * gr_viewsin;
+
+		wallVerts[0].z += ((lowy - basey) * gr_viewludcos) * gr_viewsin;
+		wallVerts[1].z += ((lowy - basey) * gr_viewludcos) * gr_viewsin;
+	}
+}
+
 static void HWR_SplitSprite(gr_vissprite_t *spr)
 {
 	float this_scale = 1.0f;
 	FOutVector wallVerts[4];
+	FOutVector baseWallVerts[4]; // This is what the verts should end up as
 	GLPatch_t *gpatch;
 	FSurfaceInfo Surf;
 	const boolean hires = (spr->mobj && spr->mobj->skin && ((skin_t *)spr->mobj->skin)->flags & SF_HIRES);
@@ -4275,11 +4357,13 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 	float realtop, realbot, top, bot;
 	float towtop, towbot, towmult;
 	float bheight;
+	float realheight, heightmult;
 	const sector_t *sector = spr->mobj->subsector->sector;
 	const lightlist_t *list = sector->lightlist;
 #ifdef ESLOPE
 	float endrealtop, endrealbot, endtop, endbot;
 	float endbheight;
+	float endrealheight;
 	fixed_t temp;
 	fixed_t v1x, v1y, v2x, v2y;
 #endif
@@ -4312,16 +4396,16 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 		HWR_DrawSpriteShadow(spr, gpatch, this_scale);
 	}
 
-	wallVerts[0].x = wallVerts[3].x = spr->x1;
-	wallVerts[2].x = wallVerts[1].x = spr->x2;
-	wallVerts[0].z = wallVerts[3].z = spr->z1;
-	wallVerts[1].z = wallVerts[2].z = spr->z2;
+	baseWallVerts[0].x = baseWallVerts[3].x = spr->x1;
+	baseWallVerts[2].x = baseWallVerts[1].x = spr->x2;
+	baseWallVerts[0].z = baseWallVerts[3].z = spr->z1;
+	baseWallVerts[1].z = baseWallVerts[2].z = spr->z2;
 
-	wallVerts[2].y = wallVerts[3].y = spr->ty;
+	baseWallVerts[2].y = baseWallVerts[3].y = spr->ty;
 	if (spr->mobj && fabsf(this_scale - 1.0f) > 1.0E-36f)
-		wallVerts[0].y = wallVerts[1].y = spr->ty - gpatch->height * this_scale;
+		baseWallVerts[0].y = baseWallVerts[1].y = spr->ty - gpatch->height * this_scale;
 	else
-		wallVerts[0].y = wallVerts[1].y = spr->ty - gpatch->height;
+		baseWallVerts[0].y = baseWallVerts[1].y = spr->ty - gpatch->height;
 
 	v1x = FLOAT_TO_FIXED(spr->x1);
 	v1y = FLOAT_TO_FIXED(spr->z1);
@@ -4330,43 +4414,55 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 
 	if (spr->flip)
 	{
-		wallVerts[0].sow = wallVerts[3].sow = gpatch->max_s;
-		wallVerts[2].sow = wallVerts[1].sow = 0;
-	}else{
-		wallVerts[0].sow = wallVerts[3].sow = 0;
-		wallVerts[2].sow = wallVerts[1].sow = gpatch->max_s;
+		baseWallVerts[0].sow = baseWallVerts[3].sow = gpatch->max_s;
+		baseWallVerts[2].sow = baseWallVerts[1].sow = 0;
+	}
+	else
+	{
+		baseWallVerts[0].sow = baseWallVerts[3].sow = 0;
+		baseWallVerts[2].sow = baseWallVerts[1].sow = gpatch->max_s;
 	}
 
 	// flip the texture coords (look familiar?)
 	if (spr->vflip)
 	{
-		wallVerts[3].tow = wallVerts[2].tow = gpatch->max_t;
-		wallVerts[0].tow = wallVerts[1].tow = 0;
-	}else{
-		wallVerts[3].tow = wallVerts[2].tow = 0;
-		wallVerts[0].tow = wallVerts[1].tow = gpatch->max_t;
+		baseWallVerts[3].tow = baseWallVerts[2].tow = gpatch->max_t;
+		baseWallVerts[0].tow = baseWallVerts[1].tow = 0;
+	}
+	else
+	{
+		baseWallVerts[3].tow = baseWallVerts[2].tow = 0;
+		baseWallVerts[0].tow = baseWallVerts[1].tow = gpatch->max_t;
 	}
 
 	// if it has a dispoffset, push it a little towards the camera
 	if (spr->dispoffset) {
 		float co = -gr_viewcos*(0.05f*spr->dispoffset);
 		float si = -gr_viewsin*(0.05f*spr->dispoffset);
-		wallVerts[0].z = wallVerts[3].z = wallVerts[0].z+si;
-		wallVerts[1].z = wallVerts[2].z = wallVerts[1].z+si;
-		wallVerts[0].x = wallVerts[3].x = wallVerts[0].x+co;
-		wallVerts[1].x = wallVerts[2].x = wallVerts[1].x+co;
+		baseWallVerts[0].z = baseWallVerts[3].z = baseWallVerts[0].z+si;
+		baseWallVerts[1].z = baseWallVerts[2].z = baseWallVerts[1].z+si;
+		baseWallVerts[0].x = baseWallVerts[3].x = baseWallVerts[0].x+co;
+		baseWallVerts[1].x = baseWallVerts[2].x = baseWallVerts[1].x+co;
 	}
 
-	realtop = top = wallVerts[3].y;
-	realbot = bot = wallVerts[0].y;
-	towtop = wallVerts[3].tow;
-	towbot = wallVerts[0].tow;
+	// Let dispoffset work first since this adjust each vertex
+	HWR_RotateSpritePolyToAim(spr, baseWallVerts);
+
+	realtop = top = baseWallVerts[3].y;
+	realbot = bot = baseWallVerts[0].y;
+	towtop = baseWallVerts[3].tow;
+	towbot = baseWallVerts[0].tow;
 	towmult = (towbot - towtop) / (top - bot);
 
 #ifdef ESLOPE
-	endrealtop = endtop = wallVerts[2].y;
-	endrealbot = endbot = wallVerts[1].y;
+	endrealtop = endtop = baseWallVerts[2].y;
+	endrealbot = endbot = baseWallVerts[1].y;
 #endif
+
+	// copy the contents of baseWallVerts into the drawn wallVerts array
+	// baseWallVerts is used to know the final shape to easily get the vertex
+	// co-ordinates
+	memcpy(wallVerts, baseWallVerts, sizeof(baseWallVerts));
 
 	if (!cv_translucency.value) // translucency disabled
 	{
@@ -4494,12 +4590,55 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 		wallVerts[2].y = endtop;
 		wallVerts[0].y = bot;
 		wallVerts[1].y = endbot;
+
+		// The x and y only need to be adjusted in the case that it's not a papersprite
+		if (cv_grspritebillboarding.value
+			&& spr->mobj && !(spr->mobj->frame & FF_PAPERSPRITE))
+		{
+			// Get the x and z of the vertices so billboarding draws correctly
+			realheight = realbot - realtop;
+			endrealheight = endrealbot - endrealtop;
+			heightmult = (realtop - top) / realheight;
+			wallVerts[3].x = baseWallVerts[3].x + (baseWallVerts[3].x - baseWallVerts[0].x) * heightmult;
+			wallVerts[3].z = baseWallVerts[3].z + (baseWallVerts[3].z - baseWallVerts[0].z) * heightmult;
+
+			heightmult = (endrealtop - endtop) / endrealheight;
+			wallVerts[2].x = baseWallVerts[2].x + (baseWallVerts[2].x - baseWallVerts[1].x) * heightmult;
+			wallVerts[2].z = baseWallVerts[2].z + (baseWallVerts[2].z - baseWallVerts[1].z) * heightmult;
+
+			heightmult = (realtop - bot) / realheight;
+			wallVerts[0].x = baseWallVerts[3].x + (baseWallVerts[3].x - baseWallVerts[0].x) * heightmult;
+			wallVerts[0].z = baseWallVerts[3].z + (baseWallVerts[3].z - baseWallVerts[0].z) * heightmult;
+
+			heightmult = (endrealtop - endbot) / endrealheight;
+			wallVerts[1].x = baseWallVerts[2].x + (baseWallVerts[2].x - baseWallVerts[1].x) * heightmult;
+			wallVerts[1].z = baseWallVerts[2].z + (baseWallVerts[2].z - baseWallVerts[1].z) * heightmult;
+		}
 #else
 		wallVerts[3].tow = wallVerts[2].tow = towtop + ((realtop - top) * towmult);
 		wallVerts[0].tow = wallVerts[1].tow = towtop + ((realtop - bot) * towmult);
 
 		wallVerts[2].y = wallVerts[3].y = top;
 		wallVerts[0].y = wallVerts[1].y = bot;
+
+		// The x and y only need to be adjusted in the case that it's not a papersprite
+		if (cv_grspritebillboarding.value
+			&& spr->mobj && !(spr->mobj->frame & FF_PAPERSPRITE))
+		{
+			// Get the x and z of the vertices so billboarding draws correctly
+			realheight = realbot - realtop;
+			heightmult = (realtop - top) / realheight;
+			wallVerts[3].x = baseWallVerts[3].x + (baseWallVerts[3].x - baseWallVerts[0].x) * heightmult;
+			wallVerts[3].z = baseWallVerts[3].z + (baseWallVerts[3].z - baseWallVerts[0].z) * heightmult;
+			wallVerts[2].x = baseWallVerts[2].x + (baseWallVerts[2].x - baseWallVerts[1].x) * heightmult;
+			wallVerts[2].z = baseWallVerts[2].z + (baseWallVerts[2].z - baseWallVerts[1].z) * heightmult;
+
+			heightmult = (realtop - bot) / realheight;
+			wallVerts[0].x = baseWallVerts[3].x + (baseWallVerts[3].x - baseWallVerts[0].x) * heightmult;
+			wallVerts[0].z = baseWallVerts[3].z + (baseWallVerts[3].z - baseWallVerts[0].z) * heightmult;
+			wallVerts[1].x = baseWallVerts[2].x + (baseWallVerts[2].x - baseWallVerts[1].x) * heightmult;
+			wallVerts[1].z = baseWallVerts[2].z + (baseWallVerts[2].z - baseWallVerts[1].z) * heightmult;
+		}
 #endif
 
 		if (colormap)
@@ -4669,6 +4808,9 @@ static void HWR_DrawSprite(gr_vissprite_t *spr)
 		wallVerts[1].x = wallVerts[2].x = wallVerts[1].x+co;
 	}
 
+	// Let dispoffset work first since this adjust each vertex
+	HWR_RotateSpritePolyToAim(spr, wallVerts);
+
 	// This needs to be AFTER the shadows so that the regular sprites aren't drawn completely black.
 	// sprite lighting by modulating the RGB components
 	/// \todo coloured
@@ -4749,6 +4891,9 @@ static inline void HWR_DrawPrecipitationSprite(gr_vissprite_t *spr)
 	// and the 2d map coords of start/end vertices
 	wallVerts[0].z = wallVerts[3].z = spr->z1;
 	wallVerts[1].z = wallVerts[2].z = spr->z2;
+
+	// Let dispoffset work first since this adjust each vertex
+	HWR_RotateSpritePolyToAim(spr, wallVerts);
 
 	wallVerts[0].sow = wallVerts[3].sow = 0;
 	wallVerts[2].sow = wallVerts[1].sow = gpatch->max_s;
@@ -5261,14 +5406,14 @@ static void HWR_DrawSprites(void)
 				if (spr->mobj && spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
 				{
 					// 8/1/19: Only don't display player models if no default SPR_PLAY is found.
-					if (!cv_grmd2.value || ((md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f) && (md2_models[SPR_PLAY].notfound || md2_models[SPR_PLAY].scale < 0.0f)))
+					if (!cv_grmdls.value || ((md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound || md2_playermodels[(skin_t*)spr->mobj->skin-skins].scale < 0.0f) && ((!cv_grfallbackplayermodel.value) || md2_models[SPR_PLAY].notfound || md2_models[SPR_PLAY].scale < 0.0f)))
 						HWR_DrawSprite(spr);
 					else
 						HWR_DrawMD2(spr);
 				}
 				else
 				{
-					if (!cv_grmd2.value || md2_models[spr->mobj->sprite].notfound || md2_models[spr->mobj->sprite].scale < 0.0f)
+					if (!cv_grmdls.value || md2_models[spr->mobj->sprite].notfound || md2_models[spr->mobj->sprite].scale < 0.0f)
 						HWR_DrawSprite(spr);
 					else
 						HWR_DrawMD2(spr);
@@ -5283,7 +5428,7 @@ static void HWR_DrawSprites(void)
 // During BSP traversal, this adds sprites by sector.
 // --------------------------------------------------------------------------
 static UINT8 sectorlight;
-static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
+static void HWR_AddSprites(sector_t *sec)
 {
 	mobj_t *thing;
 #ifdef HWPRECIP
@@ -5316,19 +5461,19 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (ssplayer != 1)
+					if (viewssnum != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (ssplayer != 2)
+					if (viewssnum != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (ssplayer != 3)
+					if (viewssnum != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (ssplayer != 4)
+					if (viewssnum != 3)
 						continue;
 			}
 
@@ -5351,19 +5496,19 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 			if (splitscreen)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (ssplayer != 1)
+					if (viewssnum != 0)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (ssplayer != 2)
+					if (viewssnum != 1)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (ssplayer != 3)
+					if (viewssnum != 2)
 						continue;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (ssplayer != 4)
+					if (viewssnum != 3)
 						continue;
 			}
 
@@ -5372,7 +5517,7 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 	}
 
 #ifdef HWPRECIP
-	// Someone seriously wants infinite draw distance for precipitation?
+	// No to infinite precipitation draw distance.
 	if ((limit_dist = (fixed_t)cv_drawdist_precip.value << FRACBITS))
 	{
 		for (precipthing = sec->preciplist; precipthing; precipthing = precipthing->snext)
@@ -5387,13 +5532,6 @@ static void HWR_AddSprites(sector_t *sec, UINT8 ssplayer)
 
 			HWR_ProjectPrecipitationSprite(precipthing);
 		}
-	}
-	else
-	{
-		// Draw everything in sector, no checks
-		for (precipthing = sec->preciplist; precipthing; precipthing = precipthing->snext)
-			if (!(precipthing->precipflags & PCF_INVISIBLE))
-				HWR_ProjectPrecipitationSprite(precipthing);
 	}
 #endif
 }
@@ -5435,7 +5573,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	tz = (tr_x * gr_viewcos) + (tr_y * gr_viewsin);
 
 	// thing is behind view plane?
-	if (tz < ZCLIP_PLANE && !papersprite && (!cv_grmd2.value || md2_models[thing->sprite].notfound == true)) //Yellow: Only MD2's dont disappear
+	if (tz < ZCLIP_PLANE && !papersprite && (!cv_grmdls.value || md2_models[thing->sprite].notfound == true)) //Yellow: Only MD2's dont disappear
 		return;
 
 	// The above can stay as it works for cutting sprites that are too close
@@ -5906,33 +6044,8 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 {
 	const float fpov = FIXED_TO_FLOAT(cv_fov.value+player->fovadd);
 	postimg_t *type;
-	UINT8 ssplayer = 0;
 
-	if (splitscreen)
-	{
-		if (player == &players[secondarydisplayplayer])
-		{
-			type = &postimgtype2;
-			ssplayer = 2;
-		}
-		else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		{
-			type = &postimgtype3;
-			ssplayer = 3;
-		}
-		else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		{
-			type = &postimgtype4;
-			ssplayer = 4;
-		}
-		else
-		{
-			type = &postimgtype;
-			ssplayer = 1;
-		}
-	}
-	else
-		type = &postimgtype;
+	type = &postimgtype[viewnumber];
 
 	{
 		// do we really need to save player (is it not the same)?
@@ -6056,36 +6169,36 @@ if (0)
 
 	validcount++;
 
-	HWR_RenderBSPNode((INT32)numnodes-1, ssplayer);
+	HWR_RenderBSPNode((INT32)numnodes-1);
 
 #ifndef NEWCLIP
 	// Make a viewangle int so we can render things based on mouselook
 	if (player == &players[consoleplayer])
-		viewangle = localaiming;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		viewangle = localaiming2;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		viewangle = localaiming3;
-	else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		viewangle = localaiming4;
+		viewangle = localaiming[0];
+	else if (splitscreen && player == &players[displayplayers[1]])
+		viewangle = localaiming[1];
+	else if (splitscreen > 1 && player == &players[displayplayers[2]])
+		viewangle = localaiming[2];
+	else if (splitscreen > 2 && player == &players[displayplayers[3]])
+		viewangle = localaiming[3];
 
 	// Handle stuff when you are looking farther up or down.
 	if ((aimingangle || cv_fov.value+player->fovadd > 90*FRACUNIT))
 	{
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //left
+		HWR_RenderBSPNode((INT32)numnodes-1); //left
 
 		dup_viewangle += ANGLE_90;
 		if (((INT32)aimingangle > ANGLE_45 || (INT32)aimingangle<-ANGLE_45))
 		{
 			HWR_ClearClipSegs();
-			HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //back
+			HWR_RenderBSPNode((INT32)numnodes-1); //back
 		}
 
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //right
+		HWR_RenderBSPNode((INT32)numnodes-1); //right
 
 		dup_viewangle += ANGLE_90;
 	}
@@ -6149,38 +6262,13 @@ if (0)
 void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 {
 	const float fpov = FIXED_TO_FLOAT(cv_fov.value+player->fovadd);
-	postimg_t *type;
-	UINT8 ssplayer = 0;
+	postimg_t *type = &postimgtype[viewnumber];
 
 	const boolean skybox = (skyboxmo[0] && cv_skybox.value); // True if there's a skybox object and skyboxes are on
 
 	FRGBAFloat ClearColor;
 
-	if (splitscreen)
-	{
-		if (player == &players[secondarydisplayplayer])
-		{
-			type = &postimgtype2;
-			ssplayer = 2;
-		}
-		else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		{
-			type = &postimgtype3;
-			ssplayer = 3;
-		}
-		else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		{
-			type = &postimgtype4;
-			ssplayer = 4;
-		}
-		else
-		{
-			type = &postimgtype;
-			ssplayer = 1;
-		}
-	}
-	else
-		type = &postimgtype;
+	type = &postimgtype[viewnumber];
 
 	ClearColor.red = 0.0f;
 	ClearColor.green = 0.0f;
@@ -6315,36 +6403,36 @@ if (0)
 
 	validcount++;
 
-	HWR_RenderBSPNode((INT32)numnodes-1, ssplayer);
+	HWR_RenderBSPNode((INT32)numnodes-1);
 
 #ifndef NEWCLIP
 	// Make a viewangle int so we can render things based on mouselook
 	if (player == &players[consoleplayer])
-		viewangle = localaiming;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		viewangle = localaiming2;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		viewangle = localaiming3;
-	else if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		viewangle = localaiming4;
+		viewangle = localaiming[0];
+	else if (splitscreen && player == &players[displayplayers[1]])
+		viewangle = localaiming[1];
+	else if (splitscreen > 1 && player == &players[displayplayers[2]])
+		viewangle = localaiming[2];
+	else if (splitscreen > 2 && player == &players[displayplayers[3]])
+		viewangle = localaiming[3];
 
 	// Handle stuff when you are looking farther up or down.
 	if ((aimingangle || cv_fov.value+player->fovadd > 90*FRACUNIT))
 	{
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //left
+		HWR_RenderBSPNode((INT32)numnodes-1); //left
 
 		dup_viewangle += ANGLE_90;
 		if (((INT32)aimingangle > ANGLE_45 || (INT32)aimingangle<-ANGLE_45))
 		{
 			HWR_ClearClipSegs();
-			HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //back
+			HWR_RenderBSPNode((INT32)numnodes-1); //back
 		}
 
 		dup_viewangle += ANGLE_90;
 		HWR_ClearClipSegs();
-		HWR_RenderBSPNode((INT32)numnodes-1, ssplayer); //right
+		HWR_RenderBSPNode((INT32)numnodes-1); //right
 
 		dup_viewangle += ANGLE_90;
 	}
@@ -6795,11 +6883,6 @@ static void HWR_RenderWall(wallVert3D   *wallVerts, FSurfaceInfo *pSurf, FBITFIE
 #endif
 }
 
-void HWR_SetPaletteColor(INT32 palcolor)
-{
-	HWD.pfnSetSpecialState(HWD_SET_PALETTECOLOR, palcolor);
-}
-
 INT32 HWR_GetTextureUsed(void)
 {
 	return HWD.pfnGetTextureUsed();
@@ -6807,16 +6890,17 @@ INT32 HWR_GetTextureUsed(void)
 
 void HWR_DoPostProcessor(player_t *player)
 {
-	postimg_t *type;
+	postimg_t *type = &postimgtype[0];
+	UINT8 i;
 
-	if (splitscreen > 2 && player == &players[fourthdisplayplayer])
-		type = &postimgtype4;
-	else if (splitscreen > 1 && player == &players[thirddisplayplayer])
-		type = &postimgtype3;
-	else if (splitscreen && player == &players[secondarydisplayplayer])
-		type = &postimgtype2;
-	else
-		type = &postimgtype;
+	for (i = splitscreen; i > 0; i--)
+	{
+		if (player == &players[displayplayers[i]])
+		{
+			type = &postimgtype[i];
+			break;
+		}
+	}
 
 	// Armageddon Blast Flash!
 	// Could this even be considered postprocessor?
@@ -6850,7 +6934,6 @@ void HWR_DoPostProcessor(player_t *player)
 	if (splitscreen) // Not supported in splitscreen - someone want to add support?
 		return;
 
-#ifdef SHUFFLE
 	// Drunken vision! WooOOooo~
 	if (*type == postimg_water || *type == postimg_heat)
 	{
@@ -6893,7 +6976,6 @@ void HWR_DoPostProcessor(player_t *player)
 			HWD.pfnMakeScreenTexture();
 	}
 	// Flipping of the screen isn't done here anymore
-#endif // SHUFFLE
 }
 
 void HWR_StartScreenWipe(void)
@@ -6940,7 +7022,7 @@ void HWR_DoWipe(UINT8 wipenum, UINT8 scrnnum)
 
 	HWR_GetFadeMask(lumpnum);
 
-	HWD.pfnDoScreenWipe(HWRWipeCounter); // Still send in wipecounter since old stuff might not support multitexturing
+	HWD.pfnDoScreenWipe();
 
 	HWRWipeCounter += 0.05f; // increase opacity of end screen
 

@@ -1221,6 +1221,13 @@ static void readlevelheader(MYFILE *f, INT32 num)
 #endif
 			else if (fastcmp(word, "MUSICTRACK"))
 				mapheaderinfo[num-1]->mustrack = ((UINT16)i - 1);
+			else if (fastcmp(word, "MUSICPOS"))
+				mapheaderinfo[num-1]->muspos = (UINT32)get_number(word2);
+			else if (fastcmp(word, "MUSICINTERFADEOUT"))
+				mapheaderinfo[num-1]->musinterfadeout = (UINT32)get_number(word2);
+			else if (fastcmp(word, "MUSICINTER"))
+				deh_strlcpy(mapheaderinfo[num-1]->musintername, word2,
+					sizeof(mapheaderinfo[num-1]->musintername), va("Level header %d: intermission music", num));
 			else if (fastcmp(word, "FORCECHARACTER"))
 			{
 				strlcpy(mapheaderinfo[num-1]->forcecharacter, word2, SKINNAMESIZE+1);
@@ -1543,6 +1550,11 @@ static void readcutscenescene(MYFILE *f, INT32 num, INT32 scenenum)
 			{
 				DEH_WriteUndoline(word, va("%u", cutscenes[num]->scene[scenenum].musswitchflags), UNDO_NONE);
 				cutscenes[num]->scene[scenenum].musswitchflags = ((UINT16)i) & MUSIC_TRACKMASK;
+			}
+			else if (fastcmp(word, "MUSICPOS"))
+			{
+				DEH_WriteUndoline(word, va("%u", cutscenes[num]->scene[scenenum].musswitchposition), UNDO_NONE);
+				cutscenes[num]->scene[scenenum].musswitchposition = (UINT32)get_number(word2);
 			}
 			else if (fastcmp(word, "MUSICLOOP"))
 			{
@@ -2147,11 +2159,12 @@ static boolean GoodDataFileName(const char *s)
 	p = s + strlen(s) - strlen(tail);
 	if (p <= s) return false; // too short
 	if (!fasticmp(p, tail)) return false; // doesn't end in .dat
-#ifdef DELFILE
-	if (fasticmp(s, "gamedata.dat") && !disableundo) return false;
-#else
-	if (fasticmp(s, "gamedata.dat")) return false;
-#endif
+
+	if (fasticmp(s, "gamedata.dat")) return false; // Vanilla SRB2 gamedata
+	if (fasticmp(s, "main.dat")) return false; // Vanilla SRB2 time attack replay folder
+	if (fasticmp(s, "kartdata.dat")) return false; // SRB2Kart gamedata
+	if (fasticmp(s, "kart.dat")) return false; // SRB2Kart time attack replay folder
+	if (fasticmp(s, "online.dat")) return false; // SRB2Kart online replay folder
 
 	return true;
 }
@@ -8140,29 +8153,35 @@ static const char *const ML_LIST[16] = {
 
 // This DOES differ from r_draw's Color_Names, unfortunately.
 // Also includes Super colors
-static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
+static const char *COLOR_ENUMS[] = { // Rejigged for Kart.
 	"NONE",			// SKINCOLOR_NONE
 	"WHITE",		// SKINCOLOR_WHITE
 	"SILVER",		// SKINCOLOR_SILVER
 	"GREY",			// SKINCOLOR_GREY
 	"NICKEL",		// SKINCOLOR_NICKEL
 	"BLACK",		// SKINCOLOR_BLACK
+	"SKUNK",		// SKINCOLOR_SKUNK
 	"FAIRY",		// SKINCOLOR_FAIRY
 	"POPCORN",		// SKINCOLOR_POPCORN
+	"ARTICHOKE",	// SKINCOLOR_ARTICHOKE
+	"PIGEON",		// SKINCOLOR_PIGEON
 	"SEPIA",		// SKINCOLOR_SEPIA
 	"BEIGE",		// SKINCOLOR_BEIGE
+	"WALNUT",		// SKINCOLOR_WALNUT
 	"BROWN",		// SKINCOLOR_BROWN
 	"LEATHER",		// SKINCOLOR_LEATHER
 	"SALMON",		// SKINCOLOR_SALMON
 	"PINK",			// SKINCOLOR_PINK
 	"ROSE",			// SKINCOLOR_ROSE
 	"BRICK",		// SKINCOLOR_BRICK
+	"CINNAMON",		// SKINCOLOR_CINNAMON
 	"RUBY",			// SKINCOLOR_RUBY
 	"RASPBERRY",	// SKINCOLOR_RASPBERRY
 	"CHERRY",		// SKINCOLOR_CHERRY
 	"RED",			// SKINCOLOR_RED
 	"CRIMSON",		// SKINCOLOR_CRIMSON
 	"MAROON",		// SKINCOLOR_MAROON
+	"LEMONADE",		// SKINCOLOR_LEMONADE
 	"FLAME",		// SKINCOLOR_FLAME
 	"SCARLET",		// SKINCOLOR_SCARLET
 	"KETCHUP",		// SKINCOLOR_KETCHUP
@@ -8181,8 +8200,10 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"ROYAL",		// SKINCOLOR_ROYAL
 	"BRONZE",		// SKINCOLOR_BRONZE
 	"COPPER",		// SKINCOLOR_COPPER
+	"QUARRY",		// SKINCOLOR_QUARRY
 	"YELLOW",		// SKINCOLOR_YELLOW
 	"MUSTARD",		// SKINCOLOR_MUSTARD
+	"CROCODILE",	// SKINCOLOR_CROCODILE
 	"OLIVE",		// SKINCOLOR_OLIVE
 	"VOMIT",		// SKINCOLOR_VOMIT
 	"GARDEN",		// SKINCOLOR_GARDEN
@@ -8202,6 +8223,7 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"PLAGUE",		// SKINCOLOR_PLAGUE
 	"ALGAE",		// SKINCOLOR_ALGAE
 	"CARIBBEAN",	// SKINCOLOR_CARIBBEAN
+	"AZURE",		// SKINCOLOR_AZURE
 	"AQUA",			// SKINCOLOR_AQUA
 	"TEAL",			// SKINCOLOR_TEAL
 	"CYAN",			// SKINCOLOR_CYAN
@@ -8211,7 +8233,9 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"PLATINUM",		// SKINCOLOR_PLATINUM
 	"SLATE",		// SKINCOLOR_SLATE
 	"STEEL",		// SKINCOLOR_STEEL
+	"THUNDER",		// SKINCOLOR_THUNDER
 	"RUST",			// SKINCOLOR_RUST
+	"WRISTWATCH",	// SKINCOLOR_WRISTWATCH
 	"JET",			// SKINCOLOR_JET
 	"SAPPHIRE",		// SKINCOLOR_SAPPHIRE
 	"PERIWINKLE",	// SKINCOLOR_PERIWINKLE
@@ -8231,10 +8255,6 @@ static const char *COLOR_ENUMS[] = {					// Rejigged for Kart.
 	"BYZANTIUM",	// SKINCOLOR_BYZANTIUM
 	"POMEGRANATE",	// SKINCOLOR_POMEGRANATE
 	"LILAC",		// SKINCOLOR_LILAC
-
-
-
-
 
 	// Special super colors
 	// Super Sonic Yellow
@@ -8376,6 +8396,7 @@ static const char *const KARTSTUFF_LIST[] = {
 	"BOOSTPOWER",
 	"SPEEDBOOST",
 	"ACCELBOOST",
+	"BOOSTANGLE",
 	"BOOSTCAM",
 	"DESTBOOSTCAM",
 	"TIMEOVERCAM",
@@ -8495,6 +8516,7 @@ struct {
 
 	// doomdef.h constants
 	{"TICRATE",TICRATE},
+	{"MUSICRATE",MUSICRATE},
 	{"RING_DIST",RING_DIST},
 	{"PUSHACCEL",PUSHACCEL},
 	{"MODID",MODID}, // I don't know, I just thought it would be cool for a wad to potentially know what mod it was loaded into.
@@ -8646,27 +8668,6 @@ struct {
 
 	// Character flags (skinflags_t)
 	{"SF_HIRES",SF_HIRES},
-
-	// Character abilities!
-	// Primary
-	{"CA_NONE",CA_NONE}, // now slot 0!
-	{"CA_THOK",CA_THOK},
-	{"CA_FLY",CA_FLY},
-	{"CA_GLIDEANDCLIMB",CA_GLIDEANDCLIMB},
-	{"CA_HOMINGTHOK",CA_HOMINGTHOK},
-	{"CA_DOUBLEJUMP",CA_DOUBLEJUMP},
-	{"CA_FLOAT",CA_FLOAT},
-	{"CA_SLOWFALL",CA_SLOWFALL},
-	{"CA_SWIM",CA_SWIM},
-	{"CA_TELEKINESIS",CA_TELEKINESIS},
-	{"CA_FALLSWITCH",CA_FALLSWITCH},
-	{"CA_JUMPBOOST",CA_JUMPBOOST},
-	{"CA_AIRDRILL",CA_AIRDRILL},
-	{"CA_JUMPTHOK",CA_JUMPTHOK},
-	// Secondary
-	{"CA2_NONE",CA2_NONE}, // now slot 0!
-	{"CA2_SPINDASH",CA2_SPINDASH},
-	{"CA2_MULTIABILITY",CA2_MULTIABILITY},
 
 	// Sound flags
 	{"SF_TOTALLYSINGLE",SF_TOTALLYSINGLE},
@@ -9804,7 +9805,7 @@ static inline int lib_getenum(lua_State *L)
 
 	// DYNAMIC variables too!!
 	// Try not to add anything that would break netgames or timeattack replays here.
-	// You know, like consoleplayer, displayplayer, secondarydisplayplayer, or gametime.
+	// You know, like consoleplayer, displayplayers, or gametime.
 	if (fastcmp(word,"gamemap")) {
 		lua_pushinteger(L, gamemap);
 		return 1;
@@ -9877,8 +9878,11 @@ static inline int lib_getenum(lua_State *L)
 	} else if (fastcmp(word,"mapmusflags")) {
 		lua_pushinteger(L, mapmusflags);
 		return 1;
+	} else if (fastcmp(word,"mapmusposition")) {
+		lua_pushinteger(L, mapmusposition);
+		return 1;
 	} else if (fastcmp(word,"server")) {
-		if ((!multiplayer || !netgame) && !playeringame[serverplayer])
+		if ((!multiplayer || !(netgame || demo.playback)) && !playeringame[serverplayer])
 			return 0;
 		LUA_PushUserdata(L, &players[serverplayer], META_PLAYER);
 		return 1;
@@ -9929,6 +9933,9 @@ static inline int lib_getenum(lua_State *L)
 		return 1;
 	} else if (fastcmp(word,"mapobjectscale")) {
 		lua_pushinteger(L, mapobjectscale);
+		return 1;
+	} else if (fastcmp(word,"numlaps")) {
+		lua_pushinteger(L, cv_numlaps.value);
 		return 1;
 	}
 	return 0;

@@ -35,33 +35,6 @@ typedef enum
 	SF_HIRES = 1, // Draw the sprite 2x as small?
 } skinflags_t;
 
-//Primary and secondary skin abilities
-typedef enum
-{
-	CA_NONE=0,
-	CA_THOK,
-	CA_FLY,
-	CA_GLIDEANDCLIMB,
-	CA_HOMINGTHOK,
-	CA_SWIM,
-	CA_DOUBLEJUMP,
-	CA_FLOAT,
-	CA_SLOWFALL,
-	CA_TELEKINESIS,
-	CA_FALLSWITCH,
-	CA_JUMPBOOST,
-	CA_AIRDRILL,
-	CA_JUMPTHOK
-} charability_t;
-
-//Secondary skin abilities
-typedef enum
-{
-	CA2_NONE=0,
-	CA2_SPINDASH,
-	CA2_MULTIABILITY
-} charability2_t;
-
 //
 // Player states.
 //
@@ -300,6 +273,7 @@ typedef enum
 	k_boostpower,		// Base boost value, for offroad
 	k_speedboost,		// Boost value smoothing for max speed
 	k_accelboost,		// Boost value smoothing for acceleration
+	k_boostangle,		// angle set when not spun out OR boosted to determine what direction you should keep going at if you're spun out and boosted.
 	k_boostcam,			// Camera push forward on boost
 	k_destboostcam,		// Ditto
 	k_timeovercam,		// Camera timer for leaving behind or not
@@ -442,29 +416,8 @@ typedef struct player_s
 	UINT8 kartweight; // Kart weight stat between 1 and 9
 	//
 
-	fixed_t normalspeed; // Normal ground
-	fixed_t runspeed; // Speed you break into the run animation
-	UINT8 thrustfactor; // Thrust = thrustfactor * acceleration
-	UINT8 accelstart; // Starting acceleration if speed = 0.
-	UINT8 acceleration; // Acceleration
-
-	// See charability_t and charability2_t for more information.
-	UINT8 charability; // Ability definition
-	UINT8 charability2; // Secondary ability definition
-
 	UINT32 charflags; // Extra abilities/settings for skins (combinable stuff)
 	                 // See SF_ flags
-
-	mobjtype_t thokitem; // Object # to spawn for the thok
-	mobjtype_t spinitem; // Object # to spawn for spindash/spinning
-	mobjtype_t revitem; // Object # to spawn for spindash/spinning
-
-	fixed_t actionspd; // Speed of thok/glide/fly
-	fixed_t mindash; // Minimum spindash speed
-	fixed_t maxdash; // Maximum spindash speed
-
-	fixed_t jumpfactor; // How high can the player jump?
-
 	SINT8 lives;
 	SINT8 continues; // continues that player has acquired
 

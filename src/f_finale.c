@@ -238,7 +238,6 @@ void F_StartIntro(void)
 	gameaction = ga_nothing;
 	paused = false;
 	CON_ToggleOff();
-	CON_ClearHUD();
 	F_NewCutscene(introtext[0]);
 
 	intro_scenenum = 0;
@@ -439,6 +438,7 @@ static const char *credits[] = {
 	"",
 	"\1Support Programming",
 	"Colette \"fickleheart\" Bordelon",
+	"James R.",
 	"\"Lat\'\"",
 	"\"Monster Iestyn\"",
 	"\"Shuffle\"",
@@ -460,9 +460,13 @@ static const char *credits[] = {
 	"\"ZarroTsu\"",
 	"",
 	"\1External Artists",
+	"\"1-Up Mason\"",
+	"\"Chengi\"",
 	"\"Chrispy\"",
 	"\"DirkTheHusky\"",
+	"\"LJSTAR\"",
 	"\"MotorRoach\"",
+	"\"Mr. McScrewup\"",
 	"\"Nev3r\"",
 	"\"Ritz\"",
 	"\"Rob\"",
@@ -471,6 +475,7 @@ static const char *credits[] = {
 	"\"Spherallic\"",
 	"\"VAdaPEGA\"",
 	"\"Virt\"",
+	"\"Voltrix\"",
 	"\"zxyspku\"",
 	"",
 	"\1Sound Design",
@@ -497,13 +502,18 @@ static const char *credits[] = {
 	"\"DrTapeworm\"",
 	"Paul \"Boinciel\" Clempson",
 	"Sherman \"CoatRack\" DesJardins",
+	"Colette \"fickleheart\" Bordelon",
 	"Vivian \"toaster\" Grannell",
 	"James \"SeventhSentinel\" Hall",
 	"\"Lat\'\"",
+	"\"MK\"",
+	"\"Ninferno\"",
 	"Sean \"Sryder\" Ryder",
 	"\"Ryuspark\"",
 	"\"Simsmagic\"",
 	"\"SP47\"",
+	"\"TG\"",
+	"\"Victor Rush Turbo\"",
 	"\"ZarroTsu\"",
 	"",
 	"\1Testing",
@@ -556,7 +566,7 @@ static struct {
 	// This Tyler52 gag is troublesome
 	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
 	// Current max image spacing: (200*17)
-	{112, (15*100)+(17*38)+(72*15), "TYLER52", SKINCOLOR_NONE},
+	{112, (15*100)+(17*38)+(86*15), "TYLER52", SKINCOLOR_NONE},
 	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
@@ -580,10 +590,10 @@ void F_StartCredits(void)
 	gameaction = ga_nothing;
 	paused = false;
 	CON_ToggleOff();
-	CON_ClearHUD();
 	S_StopMusic();
 
 	S_ChangeMusicInternal("credit", false);
+	S_ShowMusicCredit();
 
 	finalecount = 0;
 	animtimer = 0;
@@ -773,7 +783,6 @@ void F_StartGameEvaluation(void)
 	gameaction = ga_nothing;
 	paused = false;
 	CON_ToggleOff();
-	CON_ClearHUD();
 
 	finalecount = 0;
 }
@@ -883,7 +892,6 @@ void F_StartGameEnd(void)
 	gameaction = ga_nothing;
 	paused = false;
 	CON_ToggleOff();
-	CON_ClearHUD();
 	S_StopMusic();
 
 	// In case menus are still up?!!
@@ -927,9 +935,9 @@ void F_StartTitleScreen(void)
 	// IWAD dependent stuff.
 
 	// music is started in the ticker
-	if (!fromtitledemo) // SRB2Kart: Don't reset music if the right track is already playing
+	if (!demo.fromtitle) // SRB2Kart: Don't reset music if the right track is already playing
 		S_StopMusic();
-	fromtitledemo = false;
+	demo.fromtitle = false;
 
 	animtimer = 0;
 
@@ -1042,10 +1050,28 @@ void F_TitleScreenTicker(boolean run)
 	// is it time?
 	if (!(--demoIdleLeft))
 	{
+		//static boolean use_netreplay = false;
+
 		char dname[9];
 		lumpnum_t l;
 		const char *mapname;
 		UINT8 numstaff;
+
+		//@TODO uncomment this when this goes into vanilla
+		/*if ((use_netreplay = !use_netreplay))*/
+		{
+			numstaff = 1;
+			while ((l = W_CheckNumForName(va("TDEMO%03u", numstaff))) != LUMPERROR)
+				numstaff++;
+			numstaff--;
+
+			if (numstaff)
+			{
+				numstaff = M_RandomKey(numstaff)+1;
+				snprintf(dname, 9, "TDEMO%03u", numstaff);
+				goto loadreplay;
+			}
+		}
 
 		// prevent console spam if failed
 		demoIdleLeft = demoIdleTime;
@@ -1097,7 +1123,10 @@ void F_TitleScreenTicker(boolean run)
 			return;
 		}*/
 
-		titledemo = fromtitledemo = true;
+loadreplay:
+		demo.title = demo.fromtitle = true;
+		demo.ignorefiles = true;
+		demo.loadfiles = false;
 		G_DoPlayDemo(dname);
 	}
 }
@@ -1177,7 +1206,6 @@ void F_StartContinue(void)
 	keypressed = false;
 	paused = false;
 	CON_ToggleOff();
-	CON_ClearHUD();
 
 	// In case menus are still up?!!
 	M_ClearMenus(true);
@@ -1297,9 +1325,10 @@ static void F_AdvanceToNextScene(void)
 	picypos = cutscenes[cutnum]->scene[scenenum].ycoord[picnum];
 
 	if (cutscenes[cutnum]->scene[scenenum].musswitch[0])
-		S_ChangeMusic(cutscenes[cutnum]->scene[scenenum].musswitch,
+		S_ChangeMusicEx(cutscenes[cutnum]->scene[scenenum].musswitch,
 			cutscenes[cutnum]->scene[scenenum].musswitchflags,
-			cutscenes[cutnum]->scene[scenenum].musicloop);
+			cutscenes[cutnum]->scene[scenenum].musicloop,
+			cutscenes[cutnum]->scene[scenenum].musswitchposition, 0, 0);
 
 	// Fade to the next
 	dofadenow = true;
@@ -1348,8 +1377,6 @@ void F_StartCustomCutscene(INT32 cutscenenum, boolean precutscene, boolean reset
 
 	F_NewCutscene(cutscenes[cutscenenum]->scene[0].text);
 
-	CON_ClearHUD();
-
 	cutsceneover = false;
 	runningprecutscene = precutscene;
 	precutresetplayer = resetplayer;
@@ -1370,9 +1397,10 @@ void F_StartCustomCutscene(INT32 cutscenenum, boolean precutscene, boolean reset
 	stoptimer = 0;
 
 	if (cutscenes[cutnum]->scene[0].musswitch[0])
-		S_ChangeMusic(cutscenes[cutnum]->scene[0].musswitch,
+		S_ChangeMusicEx(cutscenes[cutnum]->scene[0].musswitch,
 			cutscenes[cutnum]->scene[0].musswitchflags,
-			cutscenes[cutnum]->scene[0].musicloop);
+			cutscenes[cutnum]->scene[0].musicloop,
+			cutscenes[cutnum]->scene[scenenum].musswitchposition, 0, 0);
 	else
 		S_StopMusic();
 }

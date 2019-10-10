@@ -55,7 +55,7 @@ void R_DelSpriteDefs(UINT16 wadnum);
 #endif
 
 //SoM: 6/5/2000: Light sprites correctly!
-void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber);
+void R_AddSprites(sector_t *sec, INT32 lightlevel);
 void R_InitSprites(void);
 void R_ClearSprites(void);
 void R_ClipSprites(void);
@@ -96,6 +96,8 @@ typedef struct
 	// specific sounds per skin
 	sfxenum_t soundsid[NUMSKINSOUNDS]; // sound # in S_sfx table
 } skin_t;
+
+extern CV_PossibleValue_t Forceskin_cons_t[];
 
 // -----------
 // NOT SKINS STUFF !
