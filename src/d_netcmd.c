@@ -2455,6 +2455,7 @@ static void Command_Map_f(void)
 	size_t acceptableargc;
 	size_t parm_force;
 	size_t parm_gametype;
+	size_t parm_encore;
 	const char *arg_gametype;
 	/* debug? */
 	size_t parm_noresetplayers;
@@ -2469,7 +2470,8 @@ static void Command_Map_f(void)
 	size_t      mapnamelen;
 	char   *realmapname = NULL;
 
-	INT32 newgametype = gametype;
+	INT32   newgametype   = gametype;
+	boolean newencoremode = cv_kartencore.value;
 
 	INT32 i;
 	INT32 d;
@@ -2493,6 +2495,12 @@ static void Command_Map_f(void)
 				CHECKPARM (gametype, "-gametype", 1) ||
 				CHECKPARM (gametype, "-g",        1) ||
 				CHECKPARM (gametype, "-gt",       1)
+		);
+	(void)
+		(
+				CHECKPARM (encore,   "-encore",   0) ||
+				CHECKPARM (encore,   "-en",       0) ||
+				CHECKPARM (encore,   "-e",        0)
 		);
 
 	(void)CHECKPARM (noresetplayers, "-noresetplayers", 0);
@@ -2523,12 +2531,13 @@ static void Command_Map_f(void)
 	if (COM_Argc() != acceptableargc)
 	{
 		/* I'm going over the fucking lines and I DON'T CAREEEEE */
-		CONS_Printf("map <name / [MAP]code / number> [-gametype <type>] [-force]:\n");
+		CONS_Printf("map <name / [MAP]code / number> [-gametype <type>] [-encore] [-force]:\n");
 		CONS_Printf(M_GetText(
 					"Warp to a map, by its name, two character code, with optional \"MAP\" prefix, or by its number (though why would you).\n"
 					"All parameters are case-insensitive.\n"
 					"* \"-force\" may be shortened to \"-f\".\n"
-					"* \"-gametype\" may be shortened to \"-g\" or \"-gt\".\n"));
+					"* \"-gametype\" may be shortened to \"-g\" or \"-gt\".\n"
+					"* \"-encore\" may be shortened to \"-e\" or \"-en\".\n"));
 		return;
 	}
 
@@ -2644,8 +2653,18 @@ static void Command_Map_f(void)
 		return;
 	}
 
+	if (parm_encore)
+	{
+		newencoremode = ! newencoremode;
+		if (! M_SecretUnlocked(SECRET_ENCORE) && newencoremode)
+		{
+			CONS_Alert(CONS_NOTICE, M_GetText("You haven't unlocked Encore Mode yet!\n"));
+			return;
+		}
+	}
+
 	fromlevelselect = false;
-	D_MapChange(newmapnum, newgametype, (boolean)cv_kartencore.value, newresetplayers, 0, false, false);
+	D_MapChange(newmapnum, newgametype, newencoremode, newresetplayers, 0, false, false);
 
 	Z_Free(realmapname);
 }
