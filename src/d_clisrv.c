@@ -3751,7 +3751,7 @@ SV_SendDownloadRefuse (
 	right  = sizeof text - n;/* Count terminating byte anyway, see below. */
 
 	/* This is the only text that'll render. */
-	n      = sprintf(p, "%s\n", reason);
+	n      = snprintf(p, right, "%s\n", reason);
 	SUBTRACT;
 
 	/*
@@ -3761,38 +3761,42 @@ SV_SendDownloadRefuse (
 	I've given myself a pat of the back for this one.
 	*/
 
-	memset(p, '\t', MAXMSGLINE);
-	p[MAXMSGLINE] = '\n';/* This line can go on forever */
-
 	n      = MAXMSGLINE + 1;
-	SUBTRACT;
 
-	/*
-	Now just iterate over the files and put them into a list,
-	with a linefeed after each one, except the last.
-	*/
-
-	for (i = 0; i < filec; ++i)
+	if (n < right)/* No magic :( */
 	{
-		nameonly(strcpy(filename, filev[i]));
-
-		n = strlen(filename) + 1;/* plus linefeed */
-
-		/* Don't truncate file names, just leave them out. */
-		if (n > right)
-			break;
-
-		/*
-		The terminating byte is counted because
-		truncation here will erase the linefeed.
-		*/
-		snprintf(p, right, "%s\n", filename);
+		memset(p, '\t', MAXMSGLINE);
+		p[MAXMSGLINE] = '\n';/* This line can go on forever */
 
 		SUBTRACT;
-	}
 
-	if (right)/* not if filled out, snprintf did it */
-		p[-1] = '\0';/* we don't need an extra linefeed */
+		/*
+		Now just iterate over the files and put them into a list,
+		with a linefeed after each one, except the last.
+		*/
+
+		for (i = 0; i < filec; ++i)
+		{
+			nameonly(strcpy(filename, filev[i]));
+
+			n = strlen(filename) + 1;/* plus linefeed */
+
+			/* Don't truncate file names, just leave them out. */
+			if (n > right)
+				break;
+
+			/*
+			The terminating byte is counted because
+			truncation here will erase the linefeed.
+			*/
+			snprintf(p, right, "%s\n", filename);
+
+			SUBTRACT;
+		}
+
+		if (right)/* not if filled out, snprintf did it */
+			p[-1] = '\0';/* we don't need an extra linefeed */
+	}
 
 	SV_SendRefuse(node, text);
 
