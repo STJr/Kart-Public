@@ -1004,6 +1004,16 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 						COM_ImmedExecute("resetdownloads");
 					break;
 				case 3:
+					if (playernum == 0)
+					{
+						int i;
+						for (i = 0; i < 5; ++i)
+						{
+							CONS_Printf(
+									"Use votekick in console you fucking idiot.\n");
+						}
+						break;
+					}
 					if (msg[9] == ' ')
 					{
 						int no;
