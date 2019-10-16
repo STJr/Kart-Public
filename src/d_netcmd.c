@@ -479,6 +479,7 @@ boolean circuitmap = true; // SRB2kart
 INT32 adminplayers[MAXPLAYERS];
 
 boolean alreadyresetdownloads;
+boolean alreadydunced;
 
 /// \warning Keep this up-to-date if you add/remove/rename net text commands
 const char *netxcmdnames[MAXNETXCMD - 1] =

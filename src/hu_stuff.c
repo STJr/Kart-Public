@@ -1008,9 +1008,13 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 						{
 							if (no == 0)
 							{
-								D_CSay(va(
-											"%s\\is an idiot and is dumb",
-											player_names[playernum]));
+								if (! alreadydunced)
+								{
+									D_CSay(va(
+												"%s\\is an idiot and is dumb",
+												player_names[playernum]));
+									alreadydunced = true;/* this could get annoying */
+								}
 							}
 							else
 								D_StartVote(VOTE_KICK, no, playernum);

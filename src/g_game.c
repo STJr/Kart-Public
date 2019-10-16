@@ -4665,7 +4665,10 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 	imcontinuing = false;
 
 	if (server)
+	{
 		alreadyresetdownloads = false;
+		alreadydunced         = false;
+	}
 
 	if (!skipprecutscene && mapheaderinfo[gamemap-1]->precutscenenum && !modeattacking) // Start a custom cutscene.
 		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->precutscenenum-1, true, resetplayer);

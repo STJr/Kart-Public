@@ -554,6 +554,7 @@ extern INT32 serverplayer;
 extern INT32 adminplayers[MAXPLAYERS];
 
 extern boolean alreadyresetdownloads;
+extern boolean alreadydunced;
 
 /// \note put these in d_clisrv outright?
 
