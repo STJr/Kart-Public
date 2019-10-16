@@ -4053,6 +4053,8 @@ void A_MineExplode(mobj_t *actor)
 	xh = (unsigned)(actor->x + explodedist - bmaporgx)>>MAPBLOCKSHIFT;
 	xl = (unsigned)(actor->x - explodedist - bmaporgx)>>MAPBLOCKSHIFT;
 
+	BMBOUNDFIX (xl, xh, yl, yh);
+
 	grenade = actor;
 
 	for (by = yl; by <= yh; by++)
