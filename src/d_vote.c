@@ -169,6 +169,7 @@ D_StartVote (int type, int target, int from)
 		D_RecalcVote();
 
 		memset(d_chatvote.votes, 0, sizeof d_chatvote.votes);
+		memset(d_chatvote.canvote, 1, sizeof d_chatvote.canvote);
 
 		d_chatvote.duration = d_chatvote.time;
 
@@ -231,7 +232,7 @@ D_Vote (int n, int from)
 		{
 			d = (*( vote = &d_chatvote.votes[from] ));
 
-			if (~(d))
+			if (d_chatvote.canvote[from])
 			{
 				Addvote(d, -abs(d));/* subtract our previous vote */
 				Addvote(n,  abs(n));/* add our new vote */

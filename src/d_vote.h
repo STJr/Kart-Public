@@ -35,6 +35,7 @@ struct D_ChatVote
 
 	int   needed;/* votes needed; cached because lol cvars */
 	int    votes[MAXPLAYERS];/* you can't vote twice! */
+	int canvote [MAXPLAYERS];/* suffer */
 	int duration;/* total time of vote */
 	int     from;/* caller of this vote */
 
