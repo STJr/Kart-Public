@@ -60,6 +60,10 @@ Callvote (void)
 	switch (d_chatvote.type)
 	{
 		case VOTE_KICK:
+			D_Say(va(
+						"Vote passed (%d to %d). Bye bye!",
+						d_chatvote.yes,
+						d_chatvote.no));
 			/* xd console hacks */
 			COM_ImmedExecute(va(
 						"kick %d",
