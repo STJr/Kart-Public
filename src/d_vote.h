@@ -37,6 +37,11 @@ struct D_ChatVote
 	int    votes[MAXPLAYERS];/* you can't vote twice! */
 	int duration;/* total time of vote */
 	int     from;/* caller of this vote */
+
+	/* cached in case cvars changed */
+
+	int  minimum;
+	int  percent;
 };
 
 extern consvar_t cv_chatvote_time;
@@ -50,6 +55,7 @@ extern struct D_ChatVote d_chatvote;
 int  D_VoteTime   (void);
 
 void D_ClearVote  (void);
+void D_RecalcVote (void);
 
 void D_StartVote  (int type, int target, int from);
 void D_StopVote   (const char *reason,   int from);

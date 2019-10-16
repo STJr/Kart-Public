@@ -154,22 +154,19 @@ D_StartVote (int type, int target, int from)
 	}
 	else
 	{
-		d_chatvote.type   = type;
-		d_chatvote.time   = cv_chatvote_time.value * TICRATE;
+		d_chatvote.type     = type;
+		d_chatvote.time     = cv_chatvote_time.value * TICRATE;
 
-		d_chatvote.target = target;
-		d_chatvote.from   = from;
+		d_chatvote.target   = target;
+		d_chatvote.from     = from;
 
-		d_chatvote.yes    = 0;
-		d_chatvote.no     = 0;
+		d_chatvote.yes      = 0;
+		d_chatvote.no       = 0;
 
-		d_chatvote.needed = cv_chatvote_minimum.value;
-		if (! d_chatvote.needed &&
-				cv_chatvote_percentage.value)
-		{
-			d_chatvote.needed =
-				D_NumPlayers() * cv_chatvote_percentage.value / 100;
-		}
+		d_chatvote.minimum  = cv_chatvote_minimum.value;
+		d_chatvote.percent  = cv_chatvote_percentage.value;
+
+		D_RecalcVote();
 
 		memset(d_chatvote.votes, 0, sizeof d_chatvote.votes);
 
@@ -293,6 +290,21 @@ D_VoteTicker (void)
 					}
 				}
 			}
+		}
+	}
+}
+
+void
+D_RecalcVote (void)
+{
+	if (d_chatvote.type)
+	{
+		d_chatvote.needed   = d_chatvote.minimum;
+		if (! d_chatvote.needed &&
+				d_chatvote.percent)
+		{
+			d_chatvote.needed =
+				D_NumPlayers() * d_chatvote.percent / 100;
 		}
 	}
 }
