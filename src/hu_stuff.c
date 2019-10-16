@@ -741,6 +741,14 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	}
 	else if (strnicmp(msg, "/cancelvote", 11) == 0)
 		action = 4;
+	else
+	{
+		/* voting!! */
+		if (stricmp(msg, "y") == 0)
+			D_Vote(1, playernum);
+		else if (stricmp(msg, "n") == 0)
+			D_Vote(-1, playernum);
+	}
 
 	if (flags & HU_SERVER_SAY)
 		dispname = "SERVER";
