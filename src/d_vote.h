@@ -42,6 +42,7 @@ struct D_ChatVote
 extern consvar_t cv_chatvote_time;
 extern consvar_t cv_chatvote_minimum;
 extern consvar_t cv_chatvote_percentage;
+extern consvar_t cv_chatvote_nag;
 
 extern struct D_ChatVote d_chatvote;
 

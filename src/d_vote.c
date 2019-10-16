@@ -14,16 +14,18 @@ See the 'LICENSE' file for more details.
 #include "command.h"
 #include "g_game.h"
 
-#define CVAR( name, default, type ) \
+#define CVAR( name, default, ...) \
 	consvar_t cv_chatvote_ ## name =\
 {\
 	"chatvote_" #name, default,\
-	CV_SAVE, type,\
+	CV_SAVE, __VA_ARGS__\
 }
 
 CVAR (time,       "20", CV_Unsigned);
 CVAR (minimum,     "0", CV_PlayerCount);
 CVAR (percentage,  "0", CV_Percent);
+
+CVAR (nag,        "VOTE NOW FUCKER");
 
 #undef  CVAR
 
@@ -178,7 +180,8 @@ D_StartVote (int type, int target, int from)
 				"Vote now!",
 				player_names[target],
 				D_VoteTime()));
-		D_CSay("VOTE NOW FUCKER");
+		if (cv_chatvote_nag.string[0])
+			D_CSay(cv_chatvote_nag.string);
 	}
 }
 

@@ -734,6 +734,7 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_chatvote_time);
 	CV_RegisterVar(&cv_chatvote_minimum);
 	CV_RegisterVar(&cv_chatvote_percentage);
+	CV_RegisterVar(&cv_chatvote_nag);
 }
 
 // =========================================================================
