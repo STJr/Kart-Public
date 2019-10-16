@@ -2735,6 +2735,8 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 		if (d_chatvote.from == playernum)
 			d_chatvote.from = 0;
 		D_RecalcVote();
+
+		d_chatvote.votes[playerum] = ~(0);/* prevent voting until new vote */
 	}
 }
 

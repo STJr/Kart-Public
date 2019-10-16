@@ -225,17 +225,26 @@ D_Vote (int n, int from)
 		{
 			d = (*( vote = &d_chatvote.votes[from] ));
 
-			Addvote(d, -abs(d));/* subtract our previous vote */
-			Addvote(n,  abs(n));/* add our new vote */
-
-			(*vote) = n;/* cache for later */
-
-			if (n != d)
+			if (~(d))
 			{
-				if (n < 0)
-					D_Sayto(from, "You voted no.");
-				else
-					D_Sayto(from, "You voted yes.");
+				Addvote(d, -abs(d));/* subtract our previous vote */
+				Addvote(n,  abs(n));/* add our new vote */
+
+				(*vote) = n;/* cache for later */
+
+				if (n != d)
+				{
+					if (n < 0)
+						D_Sayto(from, "You voted no.");
+					else
+						D_Sayto(from, "You voted yes.");
+				}
+			}
+			else
+			{
+				D_Sayto(from,
+						"You cannot vote yet. "
+						"Please wait until another vote starts.");
 			}
 		}
 		else
