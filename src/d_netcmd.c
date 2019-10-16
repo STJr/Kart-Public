@@ -125,6 +125,7 @@ static void Fishcake_OnChange(void);
 static void Command_resetdownloads_f (void);
 
 static void Command_votekick_f (void);
+static void Command_cancelvote_f (void);
 
 static void Command_Playdemo_f(void);
 static void Command_Timedemo_f(void);
@@ -565,6 +566,7 @@ void D_RegisterServerCommands(void)
 	COM_AddCommand("resetdownloads", Command_resetdownloads_f);
 
 	COM_AddCommand("votekick", Command_votekick_f);
+	COM_AddCommand("cancelvote", Command_cancelvote_f);
 
 	CV_RegisterVar(&cv_nodownloads);
 
@@ -5889,4 +5891,16 @@ Command_votekick_f (void)
 			"votekick",
 			"Kick this asshole out.",
 			VOTE_KICK);
+}
+
+static void
+Command_cancelvote_f (void)
+{
+	if (server)
+		D_StopVote(consoleplayer);
+	else
+	{
+		CONS_Alert(CONS_WARNING,
+				"You have the big gay.\n");
+	}
 }
