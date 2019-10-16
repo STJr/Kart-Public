@@ -238,6 +238,10 @@ D_Vote (int n, int from)
 					D_Sayto(from, "You voted yes.");
 			}
 		}
+		else
+		{
+			D_Sayto(from, "You cannot vote if you called the vote!");
+		}
 	}
 }
 
