@@ -220,8 +220,14 @@ D_Vote (int n, int from)
 		Don't let the caller vote. The check on d_chatvote.from confirms that the
 		caller didn't leave. It also means the server can always vote. But it's
 		THE server, let 'em.
+
+		...Don't let the target vote either
 		*/
-		if (! d_chatvote.from || from != d_chatvote.from)
+		if (d_chatvote.from && from == d_chatvote.from)
+			D_Sayto(from, "You cannot vote if you called the vote!");
+		else if (from == d_chatvote.target)
+			D_Sayto(from, "This vote is against you; you can't vote!");
+		else if (! d_chatvote.from || from != d_chatvote.from)
 		{
 			d = (*( vote = &d_chatvote.votes[from] ));
 
@@ -246,10 +252,6 @@ D_Vote (int n, int from)
 						"You cannot vote yet. "
 						"Please wait until another vote starts.");
 			}
-		}
-		else
-		{
-			D_Sayto(from, "You cannot vote if you called the vote!");
 		}
 	}
 }
