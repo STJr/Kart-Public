@@ -81,10 +81,7 @@ Endvote (void)
 	if (yes > no)
 	{
 		/* check minimum votes needed */
-		if (
-				yes > cv_chatvote_minimum   .value ||
-				yes > cv_chatvote_percentage.value
-		)
+		if (yes >= d_chatvote.needed)
 		{
 			Callvote();
 		}
@@ -206,7 +203,7 @@ D_Vote (int n, int from)
 	d = (*( vote = &d_chatvote.votes[from] ));
 
 	Addvote(d, -d);/* subtract our previous vote */
-	Addvote(n,  n);/* add our new vote */
+	Addvote(n, abs(n));/* add our new vote */
 
 	(*vote) = n;/* cache for later */
 }
