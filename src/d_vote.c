@@ -312,8 +312,9 @@ D_RecalcVote (void)
 		if (! d_chatvote.needed &&
 				d_chatvote.percent)
 		{
+			/* subtract the caller and target from minimum */
 			d_chatvote.needed =
-				D_NumPlayers() * d_chatvote.percent / 100;
+				D_NumPlayers() * d_chatvote.percent / 100 - 2;
 		}
 	}
 }
