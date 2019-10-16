@@ -259,4 +259,8 @@ void D_MakeJoinPasswordChallenge(UINT8 *num, UINT8 *question);
 // used for the player setup menu
 UINT8 CanChangeSkin(INT32 playernum);
 
+void D_Say                  (const char *);
+void D_CSay                 (const char *);
+void D_Sayto (int playernum, const char *);
+
 #endif

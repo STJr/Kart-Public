@@ -130,6 +130,10 @@ extern CV_PossibleValue_t CV_YesNo[];
 extern CV_PossibleValue_t CV_Unsigned[];
 extern CV_PossibleValue_t CV_Natural[];
 
+/* PLEASE */
+extern CV_PossibleValue_t CV_PlayerCount[];
+extern CV_PossibleValue_t CV_Percent[];
+
 // SRB2kart
 extern CV_PossibleValue_t kartspeed_cons_t[];
 

@@ -478,6 +478,7 @@ OBJS:=$(i_main_o) \
 		$(OBJDIR)/d_net.o    \
 		$(OBJDIR)/d_netfil.o \
 		$(OBJDIR)/d_netcmd.o \
+		$(OBJDIR)/d_vote.o   \
 		$(OBJDIR)/dehacked.o \
 		$(OBJDIR)/z_zone.o   \
 		$(OBJDIR)/f_finale.o \

@@ -68,6 +68,9 @@ CV_PossibleValue_t CV_YesNo[] = {{0, "No"}, {1, "Yes"}, {0, NULL}};
 CV_PossibleValue_t CV_Unsigned[] = {{0, "MIN"}, {999999999, "MAX"}, {0, NULL}};
 CV_PossibleValue_t CV_Natural[] = {{1, "MIN"}, {999999999, "MAX"}, {0, NULL}};
 
+CV_PossibleValue_t CV_PlayerCount[] = {{0, "MIN"}, {MAXPLAYERS, "MAX"}, {0, NULL}};
+CV_PossibleValue_t CV_Percent[] = {{0, "MIN"}, {100, "MAX"}, {0, NULL}};
+
 //SRB2kart
 CV_PossibleValue_t kartspeed_cons_t[] = {
 	{0, "Easy"}, {1, "Normal"}, {2, "Hard"},

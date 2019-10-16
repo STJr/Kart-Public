@@ -48,6 +48,7 @@
 #include "m_cond.h" // condition sets
 #include "md5.h" // demo checksums
 #include "k_kart.h" // SRB2kart
+#include "d_vote.h"
 
 gameaction_t gameaction;
 gamestate_t gamestate = GS_NULL;
@@ -2488,6 +2489,8 @@ void G_Ticker(boolean run)
 			spectatedelay3--;
 		if (spectatedelay4)
 			spectatedelay4--;
+
+		D_VoteTicker();
 	}
 }
 

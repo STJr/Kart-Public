@@ -48,6 +48,7 @@
 #include "m_anigif.h"
 #include "k_kart.h" // SRB2kart
 #include "y_inter.h"
+#include "d_vote.h"
 
 #ifdef NETGAME_DEVMODE
 #define CV_RESTRICT CV_NETVAR
@@ -122,6 +123,8 @@ static void Fishcake_OnChange(void);
 #endif
 
 static void Command_resetdownloads_f (void);
+
+static void Command_votekick_f (void);
 
 static void Command_Playdemo_f(void);
 static void Command_Timedemo_f(void);
@@ -561,6 +564,8 @@ void D_RegisterServerCommands(void)
 
 	COM_AddCommand("resetdownloads", Command_resetdownloads_f);
 
+	COM_AddCommand("votekick", Command_votekick_f);
+
 	CV_RegisterVar(&cv_nodownloads);
 
 	// Remote Administration
@@ -721,6 +726,11 @@ void D_RegisterServerCommands(void)
 #endif
 
 	CV_RegisterVar(&cv_dummyconsvar);
+
+	// d_vote
+	CV_RegisterVar(&cv_chatvote_time);
+	CV_RegisterVar(&cv_chatvote_minimum);
+	CV_RegisterVar(&cv_chatvote_percentage);
 }
 
 // =========================================================================
@@ -1949,6 +1959,42 @@ void D_SendPlayerConfig(void)
 		SendWeaponPref3();
 	if (splitscreen > 2)
 		SendWeaponPref4();
+}
+
+/*
+lol I'm just lazy
+*/
+
+#define HU_SERVER_SAY 1 // Server message (dedicated).
+#define HU_CSAY       2 // Server CECHOes to everyone.
+
+static void
+Say (int to, int flags, const char *s)
+{
+	/* XBOXSTATIC can actually fuck itself */
+	char buf[254];
+	buf[0] = to;
+	buf[1] = HU_SERVER_SAY|flags;
+	strlcpy(buf + 2, s, 252);
+	SendNetXCmd(XD_SAY, buf, 2 + strlen(buf + 2) + 1);
+}
+
+void
+D_Sayto (int n, const char *s)
+{
+	Say(1 + n, 0, s);
+}
+
+void
+D_Say (const char *s)
+{
+	Say(0, 0, s);
+}
+
+void
+D_CSay (const char *s)
+{
+	Say(0, HU_CSAY, s);
 }
 
 // Only works for displayplayer, sorry!
@@ -5801,4 +5847,46 @@ Command_resetdownloads_f (void)
 		COM_ImmedExecute("say \"Downloads have been reset.\"");
 		alreadyresetdownloads = true;
 	}
+}
+
+static void
+Issuevote (const char *name, const char *desc, int type)
+{
+	int n;
+	if (server)
+	{
+		if (COM_Argc() < 2)
+		{
+			CONS_Printf(
+					"%s <player name/number>: %s\n",
+					name,
+					desc);
+		}
+		else
+		{
+			if (( n = nametonum(COM_Argv(1)) ) == -1)
+			{
+				CONS_Alert(CONS_ERROR,
+						"No such player.\n");
+			}
+			else
+			{
+				D_StartVote(type, n, consoleplayer);
+			}
+		}
+	}
+	else
+	{
+		CONS_Alert(CONS_WARNING,
+				"You have the big gay.\n");
+	}
+}
+
+static void
+Command_votekick_f (void)
+{
+	Issuevote(
+			"votekick",
+			"Kick this asshole out.",
+			VOTE_KICK);
 }
