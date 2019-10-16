@@ -228,8 +228,8 @@ D_Vote (int n, int from)
 		{
 			d = (*( vote = &d_chatvote.votes[from] ));
 
-			Addvote(d, -d);/* subtract our previous vote */
-			Addvote(n, abs(n));/* add our new vote */
+			Addvote(d, -abs(d));/* subtract our previous vote */
+			Addvote(n,  abs(n));/* add our new vote */
 
 			(*vote) = n;/* cache for later */
 
