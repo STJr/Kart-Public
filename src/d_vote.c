@@ -50,7 +50,7 @@ Addvote (int c, int n)
 }
 
 void
-Clearvote (void)
+D_ClearVote (void)
 {
 	d_chatvote.type = 0;
 	d_chatvote.time = 0;
@@ -122,7 +122,7 @@ Endvote (void)
 		}
 	}
 
-	Clearvote();
+	D_ClearVote();
 }
 
 int
@@ -190,7 +190,7 @@ D_StopVote (const char *reason, int from)
 {
 	if (d_chatvote.type)
 	{
-		Clearvote();
+		D_ClearVote();
 		if (reason)
 		{
 			D_Say(va(

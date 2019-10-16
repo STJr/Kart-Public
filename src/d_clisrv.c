@@ -3367,6 +3367,8 @@ void SV_ResetServer(void)
 	// clear server_context
 	memset(server_context, '-', 8);
 
+	D_ClearVote();
+
 	DEBFILE("\n-=-=-=-=-=-=-= Server Reset =-=-=-=-=-=-=-\n\n");
 }
 

@@ -49,6 +49,8 @@ extern struct D_ChatVote d_chatvote;
 /* vote time in seconds */
 int  D_VoteTime   (void);
 
+void D_ClearVote  (void);
+
 void D_StartVote  (int type, int target, int from);
 void D_StopVote   (const char *reason,   int from);
 
