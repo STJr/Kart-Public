@@ -156,6 +156,7 @@ D_StartVote (int type, int target, int from)
 		d_chatvote.time   = cv_chatvote_time.value * TICRATE;
 
 		d_chatvote.target = target;
+		d_chatvote.from   = from;
 
 		d_chatvote.yes    = 0;
 		d_chatvote.no     = 0;
@@ -213,12 +214,20 @@ D_Vote (int n, int from)
 
 	int d;
 
-	d = (*( vote = &d_chatvote.votes[from] ));
+	/*
+	Don't let the caller vote. The check on d_chatvote.from confirms that the
+	caller didn't leave. It also means the server can always vote. But it's THE
+	server, let 'em.
+	*/
+	if (d_chatvote.from && from != d_chatvote.from)
+	{
+		d = (*( vote = &d_chatvote.votes[from] ));
 
-	Addvote(d, -d);/* subtract our previous vote */
-	Addvote(n, abs(n));/* add our new vote */
+		Addvote(d, -d);/* subtract our previous vote */
+		Addvote(n, abs(n));/* add our new vote */
 
-	(*vote) = n;/* cache for later */
+		(*vote) = n;/* cache for later */
+	}
 }
 
 void

@@ -2731,6 +2731,9 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 	{
 		if (d_chatvote.target == playernum)
 			D_StopVote("Player left.", 0);
+		/* If a new player joins in this slot, let them vote! */
+		if (d_chatvote.from == playernum)
+			d_chatvote.from = 0;
 	}
 }
 
