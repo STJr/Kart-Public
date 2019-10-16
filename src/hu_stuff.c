@@ -53,6 +53,7 @@
 
 #include "s_sound.h" // song credits
 #include "k_kart.h"
+#include "d_vote.h"
 
 // coords are scaled
 #define HU_INPUTX 0
@@ -733,6 +734,13 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	}
 	else if (strnicmp(msg, "/resetdownloads", 15) == 0)
 		action = 2;
+	else if (strnicmp(msg, "/votekick", 9) == 0)
+	{
+		if (target == 0)/* lol the usage message will trigger it */
+			action = 3;
+	}
+	else if (strnicmp(msg, "/cancelvote", 11) == 0)
+		action = 4;
 
 	if (flags & HU_SERVER_SAY)
 		dispname = "SERVER";
@@ -979,10 +987,46 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 
 		HU_AddChatText(va(fmt2, prefix, cstart, dispname, cend, textcolor, msg), cv_chatnotifications.value); // add to chat
 
-		if (action == 2)
+		if (server)
 		{
-			if (server && ( IsPlayerAdmin(playernum) || !alreadyresetdownloads ))
-				COM_ImmedExecute("resetdownloads");
+			switch (action)
+			{
+				case 2:
+					if (IsPlayerAdmin(playernum) || !alreadyresetdownloads)
+						COM_ImmedExecute("resetdownloads");
+					break;
+				case 3:
+					if (msg[9] == ' ')
+					{
+						int no;
+						if (( no = nametonum(&msg[10]) ) == -1)
+						{
+							D_Sayto(playernum,
+									"There is no player with that exact name/number.");
+						}
+						else
+						{
+							if (no == 0)
+							{
+								D_CSay(va(
+											"%s\\is an idiot and is dumb",
+											player_names[playernum]));
+							}
+							else
+								D_StartVote(VOTE_KICK, no, playernum);
+						}
+					}
+					else
+					{
+						D_Sayto(playernum,
+								"/votekick <player name/number>");
+					}
+					break;
+				case 4:
+					if (IsPlayerAdmin(playernum))
+						D_StopVote(playernum);
+					break;
+			}
 		}
 
 		if (tempchar)
