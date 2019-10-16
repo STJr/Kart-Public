@@ -1036,7 +1036,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 					break;
 				case 4:
 					if (IsPlayerAdmin(playernum))
-						D_StopVote(playernum);
+						D_StopVote(0, playernum);
 					break;
 			}
 		}

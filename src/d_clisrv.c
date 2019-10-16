@@ -47,6 +47,7 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 #include "k_kart.h"
+#include "d_vote.h"
 
 #ifdef CLIENT_LOADINGSCREEN
 // cl loading screen
@@ -2725,6 +2726,12 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 		K_CheckBumpers();
 	else if (G_RaceGametype())
 		P_CheckRacers();
+
+	if (d_chatvote.type)
+	{
+		if (d_chatvote.target == playernum)
+			D_StopVote("Player left.", 0);
+	}
 }
 
 void CL_Reset(void)

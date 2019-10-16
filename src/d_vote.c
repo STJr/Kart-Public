@@ -182,13 +182,22 @@ D_StartVote (int type, int target, int from)
 }
 
 void
-D_StopVote (int from)
+D_StopVote (const char *reason, int from)
 {
 	if (d_chatvote.type)
 	{
 		Clearvote();
-		D_Say(
-				"The vote has been cancelled.");
+		if (reason)
+		{
+			D_Say(va(
+						"The vote has been cancelled. %s",
+						reason));
+		}
+		else
+		{
+			D_Say(
+					"The vote has been cancelled.");
+		}
 	}
 	else
 	{

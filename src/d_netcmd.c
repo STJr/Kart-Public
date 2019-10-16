@@ -5898,7 +5898,7 @@ static void
 Command_cancelvote_f (void)
 {
 	if (server)
-		D_StopVote(consoleplayer);
+		D_StopVote(0, consoleplayer);
 	else
 	{
 		CONS_Alert(CONS_WARNING,

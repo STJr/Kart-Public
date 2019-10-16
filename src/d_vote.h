@@ -48,7 +48,7 @@ extern struct D_ChatVote d_chatvote;
 int  D_VoteTime   (void);
 
 void D_StartVote  (int type, int target, int from);
-void D_StopVote                         (int from);
+void D_StopVote   (const char *reason,   int from);
 
 void D_Vote       (int direction,        int from);
 
