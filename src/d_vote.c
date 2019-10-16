@@ -224,7 +224,7 @@ D_Vote (int n, int from)
 		caller didn't leave. It also means the server can always vote. But it's
 		THE server, let 'em.
 		*/
-		if (d_chatvote.from && from != d_chatvote.from)
+		if (! d_chatvote.from || from != d_chatvote.from)
 		{
 			d = (*( vote = &d_chatvote.votes[from] ));
 
