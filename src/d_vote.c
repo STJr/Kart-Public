@@ -92,8 +92,8 @@ Endvote (void)
 		else
 		{
 			D_Say(va(
-						"Not enough votes were made in favor to suffice the "
-						"minimum. (%d / %d.)",
+						"Not enough votes were made in order to suffice the "
+						"minimum (%d / %d).",
 						yes,
 						d_chatvote.needed));
 		}
@@ -101,7 +101,7 @@ Endvote (void)
 	else if (yes < no)
 	{
 		D_Say(va(
-					"Votes not in favor outweighed those in favor. (%d to %d.)",
+					"Vote failed (%d to %d).",
 					no,
 					yes));
 	}
@@ -110,7 +110,7 @@ Endvote (void)
 		if (no)/* did anyone vote??? */
 		{
 			D_Say(va(
-						"Votes tied. (%d to %d.)",
+						"Votes tied (%d to %d).",
 						no,
 						yes));
 		}
