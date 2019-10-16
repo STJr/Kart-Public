@@ -5844,7 +5844,7 @@ Command_resetdownloads_f (void)
 	CloseNetFile();
 	if (server)
 	{
-		COM_ImmedExecute("say \"Downloads have been reset.\"");
+		D_Say("Downloads have been reset.");
 		alreadyresetdownloads = true;
 	}
 }
