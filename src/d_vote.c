@@ -229,6 +229,14 @@ D_Vote (int n, int from)
 			Addvote(n, abs(n));/* add our new vote */
 
 			(*vote) = n;/* cache for later */
+
+			if (n != d)
+			{
+				if (n < 0)
+					D_Sayto(from, "You voted no.");
+				else
+					D_Sayto(from, "You voted yes.");
+			}
 		}
 	}
 }
