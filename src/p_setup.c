@@ -190,8 +190,6 @@ static void P_ClearSingleMapHeaderInfo(INT16 i)
 	mapheaderinfo[num]->typeoflevel = 0;
 	DEH_WriteUndoline("NEXTLEVEL", va("%d", mapheaderinfo[num]->nextlevel), UNDO_NONE);
 	mapheaderinfo[num]->nextlevel = (INT16)(i + 1);
-	DEH_WriteUndoline("KEYWORD", mapheaderinfo[num]->keyword, UNDO_NONE);
-	mapheaderinfo[num]->keyword[0] = '\0';
 	DEH_WriteUndoline("MUSIC", mapheaderinfo[num]->musname, UNDO_NONE);
 	snprintf(mapheaderinfo[num]->musname, 7, "%sM", G_BuildMapName(i));
 	mapheaderinfo[num]->musname[6] = 0;
