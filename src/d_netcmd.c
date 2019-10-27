@@ -2518,7 +2518,6 @@ static void Command_Map_f(void)
 	INT32   newgametype   = gametype;
 	boolean newencoremode = cv_kartencore.value;
 
-	INT32 i;
 	INT32 d;
 	char *p;
 
