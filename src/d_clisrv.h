@@ -604,4 +604,19 @@ UINT8 GetFreeXCmdSize(void);
 
 extern UINT8 hu_resynching;
 extern UINT8 hu_stopped; // kart, true when the game is stopped for players due to a disconnecting or connecting player
+
+typedef struct rewind_s {
+	UINT8 savebuffer[(768*1024)];
+	tic_t leveltime;
+	size_t demopos;
+
+	ticcmd_t oldcmd[MAXPLAYERS];
+	mobj_t oldghost[MAXPLAYERS];
+
+	struct rewind_s *next;
+} rewind_t;
+
+void CL_ClearRewinds(void);
+rewind_t *CL_SaveRewindPoint(size_t demopos);
+rewind_t *CL_RewindToTime(tic_t time);
 #endif
