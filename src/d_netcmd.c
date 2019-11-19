@@ -2525,6 +2525,7 @@ static void Command_Map_f(void)
 	size_t first_option;
 	size_t option_force;
 	size_t option_gametype;
+	size_t option_encore;
 	const char *gametypename;
 	boolean newresetplayers;
 
@@ -2551,6 +2552,7 @@ static void Command_Map_f(void)
 
 	option_force    =   COM_CheckPartialParm("-f");
 	option_gametype =   COM_CheckPartialParm("-g");
+	option_encore   =   COM_CheckPartialParm("-e");
 	newresetplayers = ! COM_CheckParm("-noresetplayers");
 
 	mustmodifygame = !( netgame || multiplayer || majormods );
@@ -2714,7 +2716,7 @@ static void Command_Map_f(void)
 		return;
 	}
 
-	if (parm_encore)
+	if (option_encore)
 	{
 		newencoremode = ! newencoremode;
 		if (! M_SecretUnlocked(SECRET_ENCORE) && newencoremode)
