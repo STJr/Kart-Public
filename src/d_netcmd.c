@@ -2660,16 +2660,9 @@ static void Command_Map_f(void)
 	{
 		gametypename = COM_Argv(option_gametype + 1);
 
-		for (i = 0; gametype_cons_t[i].strvalue; i++)
-			if (!strcasecmp(gametype_cons_t[i].strvalue, arg_gametype))
-			{
-				// Don't do any variable setting here. Wait until you get your
-				// map packet first to avoid sending the same info twice!
-				newgametype = gametype_cons_t[i].value;
-				break;
-			}
+		newgametype = G_GetGametypeByName(gametypename);
 
-		if (!gametype_cons_t[i].strvalue) // reached end of the list with no match
+		if (newgametype == -1) // reached end of the list with no match
 		{
 			/* Did they give us a gametype number? That's okay too! */
 			if (isdigit(gametypename[0]))
@@ -2690,7 +2683,7 @@ static void Command_Map_f(void)
 		}
 	}
 
-	if (!parm_force && newgametype == gametype) // SRB2Kart
+	if (!option_force && newgametype == gametype) // SRB2Kart
 		newresetplayers = false; // if not forcing and gametypes is the same
 
 	// don't use a gametype the map doesn't support
