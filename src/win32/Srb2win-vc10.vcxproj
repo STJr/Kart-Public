@@ -91,6 +91,7 @@
     <Import Project="..\..\libs\FMOD.props" />
     <Import Project="..\..\libs\zlib.props" />
     <Import Project="..\..\libs\libpng.props" />
+    <Import Project="..\..\libs\libgme.props" />
     <Import Project="SRB2Win.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -222,19 +223,6 @@
     <ClCompile Include="..\f_wipe.c" />
     <ClCompile Include="..\g_game.c" />
     <ClCompile Include="..\g_input.c" />
-    <ClCompile Include="..\hardware\hw3sound.c" />
-    <ClCompile Include="..\hardware\hw_bsp.c" />
-    <ClCompile Include="..\hardware\hw_cache.c" />
-    <ClCompile Include="..\hardware\hw_clip.c" />
-    <ClCompile Include="..\hardware\hw_draw.c" />
-    <ClCompile Include="..\hardware\hw_light.c" />
-    <ClCompile Include="..\hardware\hw_main.c" />
-    <ClCompile Include="..\hardware\hw_md2.c" />
-    <ClCompile Include="..\hardware\hw_md2load.c" />
-    <ClCompile Include="..\hardware\hw_md3load.c" />
-    <ClCompile Include="..\hardware\hw_model.c" />
-    <ClCompile Include="..\hardware\hw_trick.c" />
-    <ClCompile Include="..\hardware\u_list.c" />
     <ClCompile Include="..\hu_stuff.c" />
     <ClCompile Include="..\info.c" />
     <ClCompile Include="..\i_addrinfo.c">
@@ -388,20 +376,6 @@
     <ClInclude Include="..\hardware\hw3dsdrv.h" />
     <ClInclude Include="..\hardware\hw3sound.h" />
     <ClInclude Include="..\hardware\hws_data.h" />
-    <ClInclude Include="..\hardware\hw_clip.h" />
-    <ClInclude Include="..\hardware\hw_data.h" />
-    <ClInclude Include="..\hardware\hw_defs.h" />
-    <ClInclude Include="..\hardware\hw_dll.h" />
-    <ClInclude Include="..\hardware\hw_drv.h" />
-    <ClInclude Include="..\hardware\hw_glide.h" />
-    <ClInclude Include="..\hardware\hw_glob.h" />
-    <ClInclude Include="..\hardware\hw_light.h" />
-    <ClInclude Include="..\hardware\hw_main.h" />
-    <ClInclude Include="..\hardware\hw_md2.h" />
-    <ClInclude Include="..\hardware\hw_md2load.h" />
-    <ClInclude Include="..\hardware\hw_md3load.h" />
-    <ClInclude Include="..\hardware\hw_model.h" />
-    <ClInclude Include="..\hardware\u_list.h" />
     <ClInclude Include="..\hu_stuff.h" />
     <ClInclude Include="..\info.h" />
     <ClInclude Include="..\i_addrinfo.h" />

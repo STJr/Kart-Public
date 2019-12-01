@@ -19,6 +19,7 @@
 #ifndef _HWR_DEFS_
 #define _HWR_DEFS_
 #include "../doomtype.h"
+#include "../r_defs.h"
 
 #define ZCLIP_PLANE 4.0f // Used for the actual game drawing
 #define NZCLIP_PLANE 0.9f // Seems to be only used for the HUD and screen textures
@@ -41,17 +42,8 @@ typedef unsigned char   FBOOLEAN;
 // ==========================================================================
 
 // byte value for paletted graphics, which represent the transparent color
-#ifdef _NDS
-// NDS is hardwired to use zero as transparent color
-#define HWR_PATCHES_CHROMAKEY_COLORINDEX   0
-#define HWR_CHROMAKEY_EQUIVALENTCOLORINDEX 1
-#else
 #define HWR_PATCHES_CHROMAKEY_COLORINDEX   247
 #define HWR_CHROMAKEY_EQUIVALENTCOLORINDEX 220
-#endif
-
-// the chroma key color shows on border sprites, set it to black
-#define HWR_PATCHES_CHROMAKEY_COLORVALUE     (0x00000000)    //RGBA format as in grSstWinOpen()
 
 // RGBA Color components with float type ranging [ 0 ... 1 ]
 struct FRGBAFloat
@@ -73,8 +65,6 @@ struct FColorARGB
 typedef struct FColorARGB ARGB_t;
 typedef struct FColorARGB FColorARGB;
 
-
-
 // ==========================================================================
 //                                                                    VECTORS
 // ==========================================================================
@@ -85,22 +75,65 @@ typedef struct
 	FLOAT x,y;
 } F2DCoord, v2d_t;
 
-// Simple 3D vector
-typedef struct FVector
-{
-		FLOAT x,y,z;
-} FVector;
+// ======================
+//      wallVert3D
+// ----------------------
+// :crab: IS GONE! :crab:
+// ======================
 
-// 3D model vector (coords + texture coords)
+// -----------
+// structures
+// -----------
+
+// a vertex of a Doom 'plane' polygon
 typedef struct
 {
-	//FVector     Point;
-	FLOAT       x,y,z;
-	FLOAT       s,t,w;            // texture coordinates
-} v3d_t, wallVert3D;
+	float x;
+	float y;
+	float z;
+} polyvertex_t;
 
-//Hurdler: Transform (coords + angles)
-//BP: transform order : scale(rotation_x(rotation_y(translation(v))))
+#ifdef _MSC_VER
+#pragma warning(disable :  4200)
+#endif
+
+// a convex 'plane' polygon, clockwise order
+typedef struct
+{
+	INT32 numpts;
+	polyvertex_t pts[0];
+} poly_t;
+
+#ifdef _MSC_VER
+#pragma warning(default :  4200)
+#endif
+
+// holds extra info for 3D render, for each subsector in subsectors[]
+typedef struct
+{
+	poly_t *planepoly;  // the generated convex polygon
+} extrasubsector_t;
+
+// needed for sprite rendering
+// equivalent of the software renderer's vissprites
+typedef struct gr_vissprite_s
+{
+	// Doubly linked list
+	struct gr_vissprite_s *prev;
+	struct gr_vissprite_s *next;
+	float x1, x2;
+	float z1, z2;
+	float tz, ty;
+	lumpnum_t patchlumpnum;
+	boolean flip;
+	UINT8 translucency;       //alpha level 0-255
+	mobj_t *mobj;
+	boolean precip; // Tails 08-25-2002
+	boolean vflip;
+   //Hurdler: 25/04/2000: now support colormap in hardware mode
+	UINT8 *colormap;
+	INT32 dispoffset; // copy of info->dispoffset, affects ordering but not drawing
+} gr_vissprite_t;
 
 // Kart features
 #define USE_FTRANSFORM_ANGLEZ
@@ -124,17 +157,16 @@ typedef struct
 #ifdef USE_FTRANSFORM_MIRROR
 	boolean     mirror;          // SRB2Kart: Encore Mode
 #endif
+	boolean     shearing;        // 14042019
+	angle_t     viewaiming;      // 17052019
 } FTransform;
 
 // Transformed vector, as passed to HWR API
 typedef struct
 {
 	FLOAT       x,y,z;
-	FUINT       argb;           // flat-shaded color
-	FLOAT       sow;            // s texture ordinate (s over w)
-	FLOAT       tow;            // t texture ordinate (t over w)
+	FLOAT       s,t;
 } FOutVector;
-
 
 // ==========================================================================
 //                                                               RENDER MODES
@@ -144,7 +176,7 @@ typedef struct
 // You pass a combination of these flags to DrawPolygon()
 enum EPolyFlags
 {
-		// the first 5 are mutually exclusive
+	// the first 5 are mutually exclusive
 
 	PF_Masked           = 0x00000001,   // Poly is alpha scaled and 0 alpha pels are discarded (holes in texture)
 	PF_Translucent      = 0x00000002,   // Poly is transparent, alpha = level of transparency
@@ -156,7 +188,7 @@ enum EPolyFlags
 	PF_Fog              = 0x00000040,   // Fog blocks
 	PF_Blending         = (PF_Environment|PF_Additive|PF_Translucent|PF_Masked|PF_Substractive|PF_Fog)&~PF_NoAlphaTest,
 
-		// other flag bits
+	// other flag bits
 
 	PF_Occlude          = 0x00000100,   // Update the depth buffer
 	PF_NoDepthTest      = 0x00000200,   // Disable the depth test mode
@@ -164,21 +196,15 @@ enum EPolyFlags
 	PF_Decal            = 0x00000800,   // Enable polygon offset
 	PF_Modulated        = 0x00001000,   // Modulation (multiply output with constant ARGB)
 	                                    // When set, pass the color constant into the FSurfaceInfo -> FlatColor
-	PF_NoTexture        = 0x00002000,   // Use the small white texture
-	PF_Corona           = 0x00004000,   // Tell the rendrer we are drawing a corona
-	PF_Unused           = 0x00008000,   // Unused
+	PF_NoTexture        = 0x00002000,   // Disable texture
+	PF_Ripple           = 0x00004000,	// Water shader effect
+	//                    0x00008000
 	PF_RemoveYWrap      = 0x00010000,   // Force clamp texture on Y
 	PF_ForceWrapX       = 0x00020000,   // Force repeat texture on X
 	PF_ForceWrapY       = 0x00040000,   // Force repeat texture on Y
-	PF_Clip             = 0x40000000,   // clip to frustum and nearz plane (glide only, automatic in opengl)
-	PF_NoZClip          = 0x20000000,   // in conjonction with PF_Clip
-	PF_Debug            = 0x80000000    // print debug message in driver :)
-};
-
-
-enum ESurfFlags
-{
-	SF_DYNLIGHT         = 0x00000001,
+	//                    0x20000000
+	//                    0x40000000
+	//                    0x80000000
 
 };
 
@@ -191,45 +217,41 @@ enum ETextureFlags
 	TF_TRANSPARENT = 0x00000040,        // texture with some alpha == 0
 };
 
-#ifdef TODO
-struct FTextureInfo
-{
-	FUINT       Width;              // Pixels
-	FUINT       Height;             // Pixels
-	FUBYTE     *TextureData;        // Image data
-	FUINT       Format;             // FORMAT_RGB, ALPHA ...
-	FBITFIELD   Flags;              // Flags to tell driver about texture (see ETextureFlags)
-	void        DriverExtra;        // (OpenGL texture object nr, ...)
-	                                // chromakey enabled,...
-
-	struct FTextureInfo *Next;      // Manage list of downloaded textures.
-};
-#else
 typedef struct GLMipmap_s FTextureInfo;
-#endif
+
+// jimita 14032019
+struct FLightInfo
+{
+	FUINT			light_level;
+};
+typedef struct FLightInfo FLightInfo;
 
 // Description of a renderable surface
 struct FSurfaceInfo
 {
-	FUINT    PolyFlags;          // Surface flags -- UNUSED YET --
-	RGBA_t   FlatColor;          // Flat-shaded color used with PF_Modulated mode
+	FUINT			PolyFlags;
+	RGBA_t			PolyColor;
+	RGBA_t			FadeColor;
+	FLightInfo		LightInfo;	// jimita 14032019
 };
 typedef struct FSurfaceInfo FSurfaceInfo;
 
-//Hurdler: added for backward compatibility
 enum hwdsetspecialstate
 {
-	HWD_SET_FOG_TABLE = 1,
+	HWD_SET_SHADERS,
+
 	HWD_SET_FOG_MODE,
-	HWD_SET_FOG_COLOR,
 	HWD_SET_FOG_DENSITY,
-	HWD_SET_FOV,
+
 	HWD_SET_TEXTUREFILTERMODE,
 	HWD_SET_TEXTUREANISOTROPICMODE,
+
 	HWD_NUMSTATE
 };
-
 typedef enum hwdsetspecialstate hwdspecialstate_t;
+
+#define GL_NORMALFOG 0x00000000
+#define GL_FADEFOG 0x19000000
 
 enum hwdfiltermode
 {
@@ -240,6 +262,5 @@ enum hwdfiltermode
 	HWD_SET_TEXTUREFILTER_MIXED2,
 	HWD_SET_TEXTUREFILTER_MIXED3,
 };
-
 
 #endif //_HWR_DEFS_

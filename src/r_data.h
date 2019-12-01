@@ -100,4 +100,6 @@ const char *R_ColormapNameForNum(INT32 num);
 
 extern INT32 numtextures;
 
+UINT8 NearestColor(UINT8 r, UINT8 g, UINT8 b);
+
 #endif
