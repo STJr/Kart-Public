@@ -4667,7 +4667,7 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 {
 	angle_t a1;
 	const float fpov = FIXED_TO_FLOAT(cv_fov.value+player->fovadd);
-	postimg_t *postprocessor;
+	postimg_t *postprocessor = &postimgtype[0];
 	INT32 i;
 
 	// set window position
