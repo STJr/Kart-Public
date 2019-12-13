@@ -692,7 +692,7 @@ static inline void I_ShutdownConsole(void){}
 //
 // StartupKeyboard
 //
-void I_StartupKeyboard (void)
+void I_RegisterSignals (void)
 {
 #ifdef SIGINT
 	signal(SIGINT , quit_handler);
@@ -3111,6 +3111,7 @@ INT32 I_StartupSystem(void)
 #ifdef NEWSIGNALHANDLER
 	I_Fork();
 #endif
+	I_RegisterSignals();
 	I_OutputMsg("Compiled for SDL version: %d.%d.%d\n",
 	 SDLcompiled.major, SDLcompiled.minor, SDLcompiled.patch);
 	I_OutputMsg("Linked with SDL version: %d.%d.%d\n",
