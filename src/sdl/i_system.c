@@ -3052,9 +3052,13 @@ void I_Sleep(void)
 #ifdef NEWSIGNALHANDLER
 static void I_Fork(void)
 {
+	int child;
 	int status;
 	int signum;
-	switch (fork())
+
+	child = fork();
+
+	switch (child)
 	{
 		case -1:
 			I_Error(
@@ -3067,6 +3071,7 @@ static void I_Fork(void)
 		default:
 			if (wait(&status) == -1)
 			{
+				kill(child, SIGKILL);
 				I_Error(
 						"Error setting up signal reporting: fork(): %s\n",
 						strerror(errno)
