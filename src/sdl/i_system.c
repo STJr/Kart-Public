@@ -3050,6 +3050,26 @@ void I_Sleep(void)
 }
 
 #ifdef NEWSIGNALHANDLER
+static void newsignalhandler_Warn(const char *pr)
+{
+	char text[128];
+
+	snprintf(text, sizeof text,
+			"Error while setting up signal reporting: %s: %s",
+			pr,
+			strerror(errno)
+	);
+
+	I_OutputMsg("%s\n", text);
+
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+		"Startup error",
+		text, NULL);
+
+	I_ShutdownConsole();
+	exit(-1);
+}
+
 static void I_Fork(void)
 {
 	int child;
@@ -3061,10 +3081,7 @@ static void I_Fork(void)
 	switch (child)
 	{
 		case -1:
-			I_Error(
-					"Error setting up signal reporting: fork(): %s\n",
-					strerror(errno)
-			);
+			newsignalhandler_Warn("fork()");
 			break;
 		case 0:
 			break;
@@ -3072,10 +3089,7 @@ static void I_Fork(void)
 			if (wait(&status) == -1)
 			{
 				kill(child, SIGKILL);
-				I_Error(
-						"Error setting up signal reporting: fork(): %s\n",
-						strerror(errno)
-				);
+				newsignalhandler_Warn("wait()");
 			}
 			else
 			{
@@ -3094,7 +3108,7 @@ static void I_Fork(void)
 					status = WEXITSTATUS (status);
 				}
 
-				I_ShutdownSystem();
+				I_ShutdownConsole();
 				exit(status);
 			}
 	}
