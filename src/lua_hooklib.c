@@ -57,6 +57,7 @@ const char *const hookNames[hook_MAX+1] = {
 	"HurtMsg",
 	"PlayerSpawn",
 	"PlayerQuit",
+	"PlayerThink",
 	"MusicChange",
 	"ShouldSpin",
 	"ShouldExplode",
@@ -208,6 +209,7 @@ static int lib_addHook(lua_State *L)
 	case hook_SpinSpecial:
 	case hook_JumpSpinSpecial:
 	case hook_PlayerSpawn:
+	case hook_PlayerThink:
 		lastp = &playerhooks;
 		break;
 	case hook_LinedefExecute:

@@ -8244,7 +8244,12 @@ void P_PlayerThink(player_t *player)
 				player->playerstate = PST_REBORN;
 		}
 		if (player->playerstate == PST_REBORN)
+		{
+#ifdef HAVE_BLUA
+			LUAh_PlayerThink(player);
+#endif
 			return;
+		}
 	}
 
 #ifdef SEENAMES
@@ -8368,7 +8373,12 @@ void P_PlayerThink(player_t *player)
 				P_DoTimeOver(player);
 
 				if (player->playerstate == PST_DEAD)
+				{
+#ifdef HAVE_BLUA
+					LUAh_PlayerThink(player);
+#endif
 					return;
+				}
 			}
 		}
 
@@ -8432,7 +8442,9 @@ void P_PlayerThink(player_t *player)
 		else
 			player->mo->flags2 &= ~MF2_SHADOW;
 		P_DeathThink(player);
-
+#ifdef HAVE_BLUA
+		LUAh_PlayerThink(player);
+#endif
 		return;
 	}
 
@@ -8566,6 +8578,12 @@ void P_PlayerThink(player_t *player)
 	}
 	else
 		P_MovePlayer(player);
+	}
+
+#ifdef HAVE_BLUA
+	LUAh_PlayerThink(player);
+#endif
+
 
 	if (!player->mo)
 		return; // P_MovePlayer removed player->mo.

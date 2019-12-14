@@ -46,6 +46,7 @@ enum hook {
 	hook_HurtMsg,
 	hook_PlayerSpawn,
 	hook_PlayerQuit,
+	hook_PlayerThink,
 	hook_MusicChange,
 	hook_ShouldSpin,	//SRB2KART
 	hook_ShouldExplode,	//SRB2KART
@@ -110,5 +111,6 @@ boolean LUAh_PlayerCmd(player_t *player, ticcmd_t *cmd);	// Allows to write to p
 
 void LUAh_IntermissionThinker(void); // Hook for Y_Ticker
 void LUAh_VoteThinker(void);	// Hook for Y_VoteTicker
+#define LUAh_PlayerThink(player) LUAh_PlayerHook(player, hook_PlayerThink) // Hook for P_PlayerThink
 
 #endif
