@@ -744,10 +744,20 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	else
 	{
 		/* voting!! */
-		if (stricmp(msg, "y") == 0)
+		if (
+				stricmp(msg, "y")    == 0 ||
+				stricmp(msg, "/y")   == 0 ||
+				stricmp(msg, "/yes") == 0
+		){
 			D_Vote(1, playernum);
-		else if (stricmp(msg, "n") == 0)
+		}
+		else if (
+				stricmp(msg, "n")    == 0
+				stricmp(msg, "/n")   == 0
+				stricmp(msg, "/no")  == 0
+		){
 			D_Vote(-1, playernum);
+		}
 	}
 
 	if (flags & HU_SERVER_SAY)
