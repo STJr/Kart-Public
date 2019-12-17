@@ -752,8 +752,8 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 			D_Vote(1, playernum);
 		}
 		else if (
-				stricmp(msg, "n")    == 0
-				stricmp(msg, "/n")   == 0
+				stricmp(msg, "n")    == 0 ||
+				stricmp(msg, "/n")   == 0 ||
 				stricmp(msg, "/no")  == 0
 		){
 			D_Vote(-1, playernum);
