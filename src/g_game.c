@@ -4972,7 +4972,8 @@ INT32 G_FindMapByNameOrCode(const char *mapname, char **realmapnamep)
 
 	if (usemapcode)
 	{
-		(*realmapnamep) = G_BuildMapTitle(newmapnum);
+		if (realmapnamep)
+			(*realmapnamep) = G_BuildMapTitle(newmapnum);
 	}
 
 	return newmapnum;
