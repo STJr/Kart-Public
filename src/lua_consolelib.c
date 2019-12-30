@@ -128,7 +128,7 @@ void COM_Lua_f(void)
 		playernum = displayplayers[1];
 	}
 
-	if (netgame)
+	if (netgame && !( flags & COM_LOCAL ))/* don't send local commands */
 	{ // Send the command through the network
 		UINT8 argc;
 		lua_pop(gL, 1); // pop command info table
