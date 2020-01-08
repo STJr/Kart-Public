@@ -8,6 +8,7 @@ find_path(GME_INCLUDE_DIR
 		${GME_PKGCONF_INCLUDE_DIRS}
 		"/usr/include/gme"
 		"/usr/local/include/gme"
+		"/system/develop/headers/gme"
 )
 
 find_library(GME_LIBRARY

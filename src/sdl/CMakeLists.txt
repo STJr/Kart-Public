@@ -170,6 +170,13 @@ if(${SDL2_FOUND})
 				rt
 			)
 		endif()
+
+		if(${CMAKE_SYSTEM} MATCHES Haiku)
+			target_link_libraries(SRB2SDL2 PRIVATE
+				m
+				network
+			)
+		endif()
 	endif()
 
 	#target_link_libraries(SRB2SDL2 PRIVATE SRB2Core)

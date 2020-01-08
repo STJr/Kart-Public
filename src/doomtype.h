@@ -200,6 +200,9 @@ size_t strlcpy(char *dst, const char *src, size_t siz);
 	#elif defined(_PS3) // defined(__GNUC__)?
 		#include <stdbool.h>  //_bool_true_false_are_defined?
 		#define boolean bool
+	#elif defined(__HAIKU__)
+		#include <stdbool.h>
+		#define boolean bool
 	#else
 		typedef enum {false, true} boolean;
 	#endif

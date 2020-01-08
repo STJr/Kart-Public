@@ -16,6 +16,7 @@ find_path(SDL2_INCLUDE_DIR
 		${SDL2_PKGCONF_INCLUDE_DIRS}
 		"/usr/include/SDL2"
 		"/usr/local/include/SDL2"
+		"/system/develop/headers/SDL2"
 )
 
 # library
