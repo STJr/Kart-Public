@@ -404,7 +404,6 @@ typedef struct
 	UINT8 cheatsenabled;
 	UINT8 kartvars; // Previously isdedicated, now appropriated for our own nefarious purposes
 	UINT8 fileneedednum;
-	SINT8 adminplayer;
 	tic_t time;
 	tic_t leveltime;
 	char servername[MAXSERVERNAME];
