@@ -123,6 +123,12 @@ ifdef HAIKU
 SDL=1
 endif
 
+ifdef HAIKU64
+HAIKU=1
+SDL=1
+NONX86=1
+endif
+
 ifdef NDS
 # Include this before the main Makefile.cfg
 EXENAME?=srb2.elf
