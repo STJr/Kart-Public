@@ -470,6 +470,7 @@ consvar_t cv_mute = {"mute", "Off", CV_NETVAR|CV_CALL, CV_OnOff, Mute_OnChange, 
 consvar_t cv_sleep = {"cpusleep", "1", CV_SAVE, sleeping_cons_t, NULL, -1, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_nodownloads = { "downloadnotice", "", CV_SAVE };
+consvar_t cv_joinsdisabledmessage = { "joinsdisabledmessage", "", CV_SAVE };
 
 INT16 gametype = GT_RACE; // SRB2kart
 boolean forceresetplayers = false;
@@ -570,6 +571,7 @@ void D_RegisterServerCommands(void)
 	COM_AddCommand("cancelvote", Command_cancelvote_f);
 
 	CV_RegisterVar(&cv_nodownloads);
+	CV_RegisterVar(&cv_joinsdisabledmessage);
 
 	// Remote Administration
 	CV_RegisterVar(&cv_dummyjoinpassword);

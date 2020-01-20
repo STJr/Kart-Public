@@ -152,6 +152,7 @@ extern consvar_t cv_skipmapcheck;
 extern consvar_t cv_sleep;
 
 extern consvar_t cv_nodownloads;
+extern consvar_t cv_joinsdisabledmessage;
 
 typedef enum
 {

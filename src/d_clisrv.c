@@ -3855,7 +3855,12 @@ static void HandleConnect(SINT8 node)
 		|| netbuffer->u.clientcfg.subversion != SUBVERSION)
 		SV_SendRefuse(node, va(M_GetText("Different SRB2Kart versions cannot\nplay a netgame!\n(server version %d.%d.%d)"), VERSION/100, VERSION%100, SUBVERSION));
 	else if (!cv_allownewplayer.value && node)
-		SV_SendRefuse(node, M_GetText("The server is not accepting\njoins for the moment"));
+	{
+		if (cv_joinsdisabledmessage.string[0])
+			SV_SendRefuse(node, cv_joinsdisabledmessage.string);
+		else
+			SV_SendRefuse(node, M_GetText("The server is not accepting\njoins for the moment"));
+	}
 	else if (D_NumPlayers() >= maxplayers)
 		SV_SendRefuse(node, va(M_GetText("Maximum players reached: %d"), maxplayers));
 	else if (netgame && D_NumPlayers() + netbuffer->u.clientcfg.localplayers > maxplayers)
