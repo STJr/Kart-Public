@@ -3837,6 +3837,21 @@ static size_t TotalTextCmdPerTic(tic_t tic)
 	return total;
 }
 
+static char *
+Refusetext (const char *text)
+{
+	char *s;
+	char *p;
+
+	if (( s = strdup(text) ))
+	{
+		for (p = s; ( p = strchr(p, '\\') ); ++p)
+			*p = '\n';
+	}
+
+	return s;
+}
+
 /** Called when a PT_CLIENTJOIN packet is received
   *
   * \param node The packet sender
@@ -3857,7 +3872,16 @@ static void HandleConnect(SINT8 node)
 	else if (!cv_allownewplayer.value && node)
 	{
 		if (cv_joinsdisabledmessage.string[0])
-			SV_SendRefuse(node, cv_joinsdisabledmessage.string);
+		{
+			char *s;
+			if (( s = Refusetext(cv_joinsdisabledmessage.string) ))
+			{
+				SV_SendRefuse(node, s);
+				free(s);
+			}
+			else
+				I_Error("you have big problems on your system dude");
+		}
 		else
 			SV_SendRefuse(node, M_GetText("The server is not accepting\njoins for the moment"));
 	}
@@ -3873,14 +3897,9 @@ static void HandleConnect(SINT8 node)
 	{
 		const char *reason;
 		char *s;
-		char *p;
 
-		if (( s = strdup(cv_nodownloads.string) ))
-		{
+		if (( s = Refusetext(cv_nodownloads.string) ))
 			reason = s;
-			for (p = s; ( p = strchr(p, '\\') ); ++p)
-				*p = '\n';
-		}
 		else
 			reason = "You can't download files from this server.\nGo home.";
 
