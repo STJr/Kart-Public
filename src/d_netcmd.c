@@ -2769,6 +2769,12 @@ static void Command_Respawn(void)
 		return;
 	}
 
+	if (players[consoleplayer].mo && (players[consoleplayer].kartstuff[k_spinouttimer] || spbplace == players[consoleplayer].kartstuff[k_position])) // KART: Nice try, but no, you won't be cheesing spb anymore (x2)
+	{
+		CONS_Printf(M_GetText("Nice try.\n"));
+		return;
+	}
+
 	/*if (!G_RaceGametype()) // srb2kart: not necessary, respawning makes you lose a bumper in battle, so it's not desirable to use as a way to escape a hit
 	{
 		CONS_Printf(M_GetText("You may only use this in co-op, race, and competition!\n"));
@@ -2791,7 +2797,7 @@ static void Got_Respawn(UINT8 **cp, INT32 playernum)
 	INT32 respawnplayer = READINT32(*cp);
 
 	// You can't respawn someone else. Nice try, there.
-	if (respawnplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
+	if (respawnplayer != playernum || players[respawnplayer].kartstuff[k_spinouttimer] || spbplace == players[respawnplayer].kartstuff[k_position]) // srb2kart: "|| (!G_RaceGametype())"
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal respawn command received from %s\n"), player_names[playernum]);
 		if (server)
