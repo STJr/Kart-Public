@@ -64,6 +64,14 @@ If you're unsure, please select 64 bit.
 
 Please add `ECHO=1` if you want verbosity. (For example `make -C src/ LINUX64=1 ECHO=1`)
 
+Compiling on a 64 bit host:
+(make sure you are in `$HOME/Kart-Public/`)
+```bash
+export LIBGME_CFLAGS=
+export LIBGME_LDFLAGS=-lgme
+make -C src/ LINUX64=1
+```
+
 ### Running
 Depending on how you built srb2kart, the path may vary.
 
