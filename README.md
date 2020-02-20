@@ -14,12 +14,12 @@
 Ubuntu/Debian/Mint (APT):
 
 ```
-sudo apt install git gcc build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
+sudo apt install git p7zip gcc build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
 ```
 Arch/Manjaro (PACMAN):
 
 ```
-sudo pacman -S gcc git build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
+sudo pacman -S gcc p7zip git build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
 ```
 Also available on the AUR: https://aur.archlinux.org/packages/srb2kart/
 
@@ -27,7 +27,7 @@ Also available on the AUR: https://aur.archlinux.org/packages/srb2kart/
 Fedora (DNF):
 
 ```
-sudo dnf install gcc git build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
+sudo dnf install gcc git p7zip build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
 ```
 
 ### Cloning
@@ -65,9 +65,16 @@ Depending on how you built srb2kart, the path may vary.
 
 If you built it for 64 bit, the binary is located in `$HOME/Kart-Public/bin/Linux64/Release` under the name `lsdl2srb2kart`
 
-To run it succesfully, you need WADs and srb2.srb.
-
-(Need to expand this section)
+Here's how to download the missing assets. I will include them in [my releases tab](https://github.com/GoDzM4TT3O/Kart-Public/releases/latest)
+```bash
+cd $HOME/Downloads
+git clone https://github.com/STJr/Kart-Public/releases/download/v1.1/srb2kart-v11-x64-Installer.exe
+mv srb2kart{-v11-x64-Installer,}.exe # this shortens the name of the exe
+mkdir kart; mv srb2kart.exe kart/
+cd kart; 7z x srb2kart.exe
+cp *.kart $HOME/Kart-Public/bin/Linux64/Release/
+cp srb2.srb $HOME/Kart-Public/bin/Linux64/Release/
+```
 ## Compiling on Windows/OSX
 
 See [SRB2 Wiki/Source code compiling](http://wiki.srb2.org/wiki/Source_code_compiling). The compiling process for SRB2Kart is largely identical to SRB2.
