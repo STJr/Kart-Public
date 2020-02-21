@@ -100,9 +100,22 @@ wget https://github.com/STJr/Kart-Public/releases/download/v1.1/srb2kart-v11-x64
 mv srb2kart{-v11-x64-Installer,}.exe # this shortens the name of the exe
 mkdir kart; mv srb2kart.exe kart/ # create the directory "kart" and move the installer there
 cd kart; 7z x srb2kart.exe # go into directory and extract the installer
-cp *.kart $HOME/Kart-Public/bin/Linux64/Release/ # these last two steps will copy the necessary files
-cp srb2.srb $HOME/Kart-Public/bin/Linux64/Release/ # into the directory where srb2kart was compiled
+cp *.kart srb2.srb -t $HOME/Kart-Public/bin/Linux64/Release/
+# this last command will copy the necessary files into the directory where srb2kart was compiled
 ```
+
+### One liner to clone, compile and download the assets
+For Linux 64-Bit only!
+
+```bash
+cd $HOME; git clone https://github.com/STJr/Kart-Public; \
+cd Kart-Public; export LIBGME_CFLAGS=; export LIBGME_LDFLAGS=-lgme; \
+make -C src/ LINUX64=1; cd $HOME/Downloads; \
+wget https://github.com/STJr/Kart-Public/releases/download/v1.1/srb2kart-v11-x64-Installer.exe; \
+mv srb2kart{-v11-x64-Installer,}.exe; mkdir kart; mv srb2kart.exe kart/; cd kart/; \
+7z x srb2kart.exe; cp *.kart srb2.srb -t $HOME/Kart-Public/bin/Linux64/Release/
+```
+
 ## Compiling on Windows/OSX
 
 See [SRB2 Wiki/Source code compiling](http://wiki.srb2.org/wiki/Source_code_compiling). The compiling process for SRB2Kart is largely identical to SRB2.
