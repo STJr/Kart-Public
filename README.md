@@ -21,7 +21,7 @@ Ubuntu/Debian/Mint/ElementaryOS/Pop!\_OS (APT):
 sudo apt install git p7zip gcc build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
 ```
 
-Fedora/RHEL/RedHat/CentOS/OpenSUSE (DNF):
+Fedora/RHEL/RedHat/CentOS (DNF):
 
 ```bash
 sudo dnf install gcc git p7zip build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
@@ -39,6 +39,18 @@ Arch/Manjaro/EndeavourOS/ (PACMAN):
 sudo pacman -S gcc p7zip git build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
 ```
 (Also available on the AUR: https://aur.archlinux.org/packages/srb2kart/)
+
+CentOS (YUM):
+
+```bash
+sudo yum install gcc p7zip git build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
+```
+
+OpenSUSE (ZYPPER):
+
+```bash
+sudo zypper install gcc p7zip git build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
+```
 
 
 ### Cloning
