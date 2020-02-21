@@ -76,9 +76,11 @@ How to read the table:
 
 If you're unsure, please select 64 bit.
 
+NOTE FOR MACOSX USERS: you will not get a .dmg file! You will only get the binary file!
+
 Please add `ECHO=1` if you want verbosity. (For example `make -C src/ LINUX64=1 ECHO=1`)
 
-Compiling on a 64 bit host:
+[EXAMPLE] Compiling on a 64 bit host:
 (make sure you are in `$HOME/Kart-Public/`)
 ```bash
 export LIBGME_CFLAGS=
