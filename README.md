@@ -21,7 +21,7 @@ Ubuntu/Debian/Mint/ElementaryOS/Pop!\_OS (APT):
 sudo apt install git p7zip gcc build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
 ```
 
-Fedora/RHEL/RedHat/CentOS (DNF):
+Fedora/RHEL/RedHat (DNF):
 
 ```bash
 sudo dnf install gcc git p7zip build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
