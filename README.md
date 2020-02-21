@@ -63,9 +63,16 @@ export LIBGME_CFLAGS=
 export LIBGME_LDFLAGS=-lgme
 ```
 
-| i686                   | x86_64 (64 bit)          | FreeBSD                  | Solaris                  |
-|------------------------|--------------------------|--------------------------|--------------------------|
-| `make -C src/ LINUX=1` | `make -C src/ LINUX64=1` | `make -C src/ FREEBSD=1` | `make -C src/ SOLARIS=1` |
+How to read the table:
+
+- x86_64/i686: Architecture name. By default, this is only Linux.
+- `make -C src/ LINUX=1`: the command to run to compile srb2kart.
+- `bin/Linux/Release`: where the binary is located after compilation, inside the Kart-Public directory.
+
+|          i686          |   x86_64 (64 bit Linux)  |                     Mac OSX                    |          FreeBSD         |          Solaris         |
+|:----------------------:|:------------------------:|:----------------------------------------------:|:------------------------:|:------------------------:|
+| `make -C src/ LINUX=1` | `make -C src/ LINUX64=1` | `make -C src/ MACOSX=1 NONX86=1 SDL=1 NOASM=1` | `make -C src/ FREEBSD=1` | `make -C src/ SOLARIS=1` |
+| `bin/Linux/Release`    | `bin/Linux64/Release`    | `bin/SDL/Release`                              | `bin/FreeBSD/Release`    | `bin/Solaris/Release`    |
 
 If you're unsure, please select 64 bit.
 
