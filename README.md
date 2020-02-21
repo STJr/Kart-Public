@@ -15,24 +15,31 @@ See the [releases page](https://github.com/GoDzM4TT3O/Kart-Public) to download s
 
 ## Installing dependencies, cloning, compiling and running (Linux)
 ### Installing dependencies
-Ubuntu/Debian/Mint (APT):
+Ubuntu/Debian/Mint/ElementaryOS/Pop!\_OS (APT):
 
-```
+```bash
 sudo apt install git p7zip gcc build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
 ```
-Arch/Manjaro (PACMAN):
 
-```
-sudo pacman -S gcc p7zip git build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
-```
-Also available on the AUR: https://aur.archlinux.org/packages/srb2kart/
+Fedora/RHEL/RedHat/CentOS/OpenSUSE (DNF):
 
-
-Fedora (DNF):
-
-```
+```bash
 sudo dnf install gcc git p7zip build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
 ```
+
+Gentoo (EMERGE):
+
+```bash
+sudo emerge git p7zip gcc build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
+```
+
+Arch/Manjaro/EndeavourOS/ (PACMAN):
+
+```bash
+sudo pacman -S gcc p7zip git build-essential nasm libpng-dev zlib1g-dev libsdl2-dev libsdl2-mixer-dev libgme-dev libopenmpt-dev
+```
+(Also available on the AUR: https://aur.archlinux.org/packages/srb2kart/)
+
 
 ### Cloning
 NOTE: As of 20/02/2020 the Kart-Public repo size is around `73 MB`, precisely `69.56 MiB`
