@@ -95,13 +95,13 @@ If you built it for 64 bit, the binary is located in `$HOME/Kart-Public/bin/Linu
 
 Here's how to download the missing assets. I will include them in [my releases tab](https://github.com/GoDzM4TT3O/Kart-Public/releases/latest)
 ```bash
-cd $HOME/Downloads
-git clone https://github.com/STJr/Kart-Public/releases/download/v1.1/srb2kart-v11-x64-Installer.exe
+cd $HOME/Downloads # the directory where the installer will be downloaded
+wget https://github.com/STJr/Kart-Public/releases/download/v1.1/srb2kart-v11-x64-Installer.exe # download the installer
 mv srb2kart{-v11-x64-Installer,}.exe # this shortens the name of the exe
-mkdir kart; mv srb2kart.exe kart/
-cd kart; 7z x srb2kart.exe
-cp *.kart $HOME/Kart-Public/bin/Linux64/Release/
-cp srb2.srb $HOME/Kart-Public/bin/Linux64/Release/
+mkdir kart; mv srb2kart.exe kart/ # create the directory "kart" and move the installer there
+cd kart; 7z x srb2kart.exe # go into directory and extract the installer
+cp *.kart $HOME/Kart-Public/bin/Linux64/Release/ # these last two steps will copy the necessary files
+cp srb2.srb $HOME/Kart-Public/bin/Linux64/Release/ # into the directory where srb2kart was compiled
 ```
 ## Compiling on Windows/OSX
 
