@@ -51,7 +51,7 @@ Perhaps you should add the directory containing libgme.pc'
 How to fix:
 type these two strings in your terminal before compiling:
 
-```
+```bash
 export LIBGME_CFLAGS=
 export LIBGME_LDFLAGS=-lgme
 ```
