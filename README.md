@@ -135,6 +135,31 @@ mv srb2kart{-v11-x64-Installer,}.exe; mkdir kart; mv srb2kart.exe kart/; cd kart
 
 See [SRB2 Wiki/Source code compiling](http://wiki.srb2.org/wiki/Source_code_compiling). The compiling process for SRB2Kart is largely identical to SRB2.
 
+## Hosting a local server and choosing maps
+To host a local server, open a terminal and type the following:
+(Note: you must be in the same directory as the srb2kart executable)
+
+`./srb2kart -dedicated -port 5030 -map MAP01 -joinpassword password`;
+
+`-port 5030` defines the server's port. Usually 5030 is a good default port;
+
+`-map MAP01` says that the server must use MAP01, which is Green Hills Zone. (See available maps [here](https://wiki.srb2.org/wiki/SRB2Kart/Levels));
+
+`-joinpassword password` sets the password required to join the game (optional).
+
+### Additional flags
+`-ban <playername/playernumber> <reason>` bans a player for a reason (either choose playername or player number/id);
+
+`-banip <ip> <reason>` bans a player using their IP for a reason;
+
+`-showbanlist` shows banned players/IP;
+
+`-clearbans` removes all bans;
+
+`-getplayernum` shows a list of connected players;
+
+`-motd <message>`  sets the message of the day (MOTD).
+
 ***
 
 ## Disclaimer
