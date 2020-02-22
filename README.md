@@ -81,7 +81,7 @@ How to read the table:
 - `make -C src/ LINUX=1`: the command to run to compile srb2kart.
 - `bin/Linux/Release`: where the binary is located after compilation, inside the Kart-Public directory.
 
-|          i686          |   x86_64 (64 bit Linux)  |                     Mac OSX                    |          FreeBSD         |          Solaris         |
+|          i686 (32 bit Linux)  |   x86_64 (64 bit Linux)  |                     Mac OSX                    |          FreeBSD         |          Solaris         |
 |:----------------------:|:------------------------:|:----------------------------------------------:|:------------------------:|:------------------------:|
 | `make -C src/ LINUX=1` | `make -C src/ LINUX64=1` | `make -C src/ MACOSX=1 NONX86=1 SDL=1 NOASM=1` | `make -C src/ FREEBSD=1` | `make -C src/ SOLARIS=1` |
 | `bin/Linux/Release`    | `bin/Linux64/Release`    | `bin/SDL/Release`                              | `bin/FreeBSD/Release`    | `bin/Solaris/Release`    |
