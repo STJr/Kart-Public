@@ -115,6 +115,9 @@ cd kart; 7z x srb2kart.exe # go into directory and extract the installer
 cp *.kart srb2.srb -t $HOME/Kart-Public/bin/Linux64/Release/
 # this last command will copy the necessary files into the directory where srb2kart was compiled
 ```
+NOTE: if 7zip or any other extraction program asks you if it is ok to overwrite `srb2kart.exe`, type "y".
+Thanks to [u/ReddichRedface](https://reddit.com/u/ReddichRedface) for pointing this out.
+
 
 ### One liner to clone, compile and download the assets
 For Linux 64-Bit only!
