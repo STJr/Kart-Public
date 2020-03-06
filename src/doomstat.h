@@ -549,7 +549,7 @@ extern consvar_t cv_downloading; // allow clients to downloading WADs.
 extern consvar_t cv_nettimeout; // SRB2Kart: Advanced server options menu
 extern consvar_t cv_jointimeout;
 extern consvar_t cv_maxping;
-extern ticcmd_t netcmds[BACKUPTICS][MAXPLAYERS];
+extern ticcmd_t netcmds[TICQUEUE][MAXPLAYERS];
 extern INT32 serverplayer;
 extern INT32 adminplayers[MAXPLAYERS];
 
