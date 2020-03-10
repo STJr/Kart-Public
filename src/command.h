@@ -173,4 +173,7 @@ void CV_ResetCheatNetVars(void);
 boolean CV_IsSetToDefault(consvar_t *v);
 UINT8 CV_CheatsEnabled(void);
 
+// Returns cvar by name. Exposed here for Lua.
+consvar_t *CV_FindVar(const char *name);
+
 #endif // __COMMAND_H__
