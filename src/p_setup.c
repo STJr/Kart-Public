@@ -3372,7 +3372,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	if (loadprecip) // uglier hack
 	{ // to make a newly loaded level start on the second frame.
-		INT32 buf = gametic % BACKUPTICS;
+		INT32 buf = gametic % TICQUEUE;
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (playeringame[i])

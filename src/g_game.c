@@ -2363,7 +2363,7 @@ void G_Ticker(boolean run)
 			default: I_Error("gameaction = %d\n", gameaction);
 		}
 
-	buf = gametic % BACKUPTICS;
+	buf = gametic % TICQUEUE;
 
 	if (!demo.playback)
 	// read/write demo and check turbo cheat
