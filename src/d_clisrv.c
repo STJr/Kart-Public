@@ -5592,7 +5592,6 @@ rewind_t *CL_SaveRewindPoint(size_t demopos)
 	if (!rewind)
 		return NULL;
 
-	CONS_Printf("Saving rewind point for time %d\n", leveltime);
 	save_p = rewind->savebuffer;
 	P_SaveNetGame();
 	rewind->leveltime = leveltime;
@@ -5617,7 +5616,6 @@ rewind_t *CL_RewindToTime(tic_t time)
 	if (!rewindhead)
 		return NULL;
 
-	CONS_Printf("Restoring rewind to time %d for goal time %d\n", rewindhead->leveltime, time);
 	save_p = rewindhead->savebuffer;
 	P_LoadNetGame();
 	wipegamestate = gamestate; // No fading back in!
