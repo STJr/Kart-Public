@@ -3929,6 +3929,9 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 	if (!grenade)
 		return false;
 
+	if (grenade->flags2 & MF2_DEBRIS)
+		return false;
+
 	if (thing->type != MT_PLAYER) // Don't explode for anything but an actual player.
 		return true;
 
@@ -3977,6 +3980,9 @@ void A_GrenadeRing(mobj_t *actor)
 		return;
 #endif
 
+	if (actor->flags2 & MF2_DEBRIS)
+		return;
+
 	if (actor->state == &states[S_SSMINE_DEPLOY8])
 		explodedist = (3*explodedist)/2;
 
@@ -4000,6 +4006,9 @@ static inline boolean PIT_MineExplode(mobj_t *thing)
 {
 	if (!grenade || P_MobjWasRemoved(grenade))
 		return false; // There's the possibility these can chain react onto themselves after they've already died if there are enough all in one spot
+
+	if (grenade->flags2 & MF2_DEBRIS)	// don't explode twice
+		return false;
 
 	if (thing == grenade || thing->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
 		return true;
@@ -4044,6 +4053,9 @@ void A_MineExplode(mobj_t *actor)
 	if (LUA_CallAction("A_MineExplode", actor))
 		return;
 #endif
+
+	if (actor->flags2 & MF2_DEBRIS)
+		return;
 
 	type = (mobjtype_t)locvar1;
 
