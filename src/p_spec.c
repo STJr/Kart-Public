@@ -3812,12 +3812,14 @@ DoneSection2:
 			{
 				const fixed_t hscale = mapobjectscale + (mapobjectscale - player->mo->scale);
 				const fixed_t minspeed = 24*hscale;
+				angle_t pushangle = FixedHypot(player->mo->momx, player->mo->momy) ? R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy) : player->mo->angle;
+				// if we have no speed for SOME REASON, use the player's angle, otherwise we'd be forcefully thrusted to what I can only assume is angle 0
 
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
 
 				if (player->speed < minspeed) // Push forward to prevent getting stuck
-					P_InstaThrust(player->mo, player->mo->angle, minspeed);
+					P_InstaThrust(player->mo, pushangle, minspeed);
 
 				player->kartstuff[k_pogospring] = 1;
 				K_DoPogoSpring(player->mo, 0, 1);
@@ -3833,14 +3835,16 @@ DoneSection2:
 				const fixed_t hscale = mapobjectscale + (mapobjectscale - player->mo->scale);
 				const fixed_t minspeed = 24*hscale;
 				const fixed_t maxspeed = 28*hscale;
+				angle_t pushangle = FixedHypot(player->mo->momx, player->mo->momy) ? R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy) : player->mo->angle;
+				// if we have no speed for SOME REASON, use the player's angle, otherwise we'd be forcefully thrusted to what I can only assume is angle 0
 
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
 
 				if (player->speed > maxspeed) // Prevent overshooting jumps
-					P_InstaThrust(player->mo, R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy), maxspeed);
+					P_InstaThrust(player->mo, pushangle, maxspeed);
 				else if (player->speed < minspeed) // Push forward to prevent getting stuck
-					P_InstaThrust(player->mo, player->mo->angle, minspeed);
+					P_InstaThrust(player->mo, pushangle, minspeed);
 
 				player->kartstuff[k_pogospring] = 2;
 				K_DoPogoSpring(player->mo, 0, 1);
