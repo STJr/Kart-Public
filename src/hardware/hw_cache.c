@@ -379,6 +379,14 @@ static void HWR_GenerateTexture(INT32 texnum, GLTexture_t *grtex)
 	grtex->mipmap.height = (UINT16)blockheight;
 	grtex->mipmap.grInfo.format = textureformat;
 
+	grtex->mipmap.colormap = colormaps;
+
+#ifdef GLENCORE
+	if (encoremap)
+		grtex->mipmap.colormap += (256*32);
+#endif
+
+
 	block = MakeBlock(&grtex->mipmap);
 
 	if (skyspecial) //Hurdler: not efficient, but better than holes in the sky (and it's done only at level loading)
@@ -613,6 +621,12 @@ static void HWR_CacheFlat(GLMipmap_t *grMipmap, lumpnum_t flatlumpnum)
 {
 	size_t size, pflatsize;
 
+#ifdef GLENCORE
+	UINT8 *flat;
+	UINT32 steppy;
+#endif
+
+
 	// setup the texture info
 	grMipmap->grInfo.smallLodLog2 = GR_LOD_LOG2_64;
 	grMipmap->grInfo.largeLodLog2 = GR_LOD_LOG2_64;
@@ -652,15 +666,30 @@ static void HWR_CacheFlat(GLMipmap_t *grMipmap, lumpnum_t flatlumpnum)
 	// the flat raw data needn't be converted with palettized textures
 	W_ReadLump(flatlumpnum, Z_Malloc(W_LumpLength(flatlumpnum),
 		PU_HWRCACHE, &grMipmap->grInfo.data));
+
+#ifdef GLENCORE
+	flat = grMipmap->grInfo.data;
+	for (steppy = 0; steppy < size; steppy++)
+		if (flat[steppy] != HWR_PATCHES_CHROMAKEY_COLORINDEX)
+			flat[steppy] = grMipmap->colormap[flat[steppy]];
+#endif
 }
 
 
 // Download a Doom 'flat' to the hardware cache and make it ready for use
-void HWR_GetFlat(lumpnum_t flatlumpnum)
+void HWR_GetFlat(lumpnum_t flatlumpnum, boolean noencoremap)
 {
 	GLMipmap_t *grmip;
 
 	grmip = &HWR_GetCachedGLPatch(flatlumpnum)->mipmap;
+
+	grmip->colormap = colormaps;
+
+#ifdef GLENCORE
+	if (!noencoremap && encoremap)
+		grmip->colormap += (256*32);
+#endif
+
 
 	if (!grmip->downloaded && !grmip->grInfo.data)
 		HWR_CacheFlat(grmip, flatlumpnum);

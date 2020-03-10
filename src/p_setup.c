@@ -1407,11 +1407,12 @@ static inline void P_LoadSideDefs(lumpnum_t lumpnum)
 	P_LoadRawSideDefs(W_LumpLength(lumpnum));
 }
 
-
 static void P_LoadRawSideDefs2(void *data)
 {
 	UINT16 i;
 	INT32 num;
+	size_t j;
+	UINT32 cr, cg, cb;
 
 	for (i = 0; i < numsides; i++)
 	{
@@ -1490,16 +1491,43 @@ static void P_LoadRawSideDefs2(void *data)
 						{
 							col = msd->toptexture;
 
-							sec->extra_colormap->rgba =
-								(HEX2INT(col[1]) << 4) + (HEX2INT(col[2]) << 0) +
-								(HEX2INT(col[3]) << 12) + (HEX2INT(col[4]) << 8) +
-								(HEX2INT(col[5]) << 20) + (HEX2INT(col[6]) << 16);
+							// encore mode colormaps!
+							// do it like software by aproximating a color to a palette index, and then convert it to its encore variant and then back to a color code.
+							// do this for both the start and fade colormaps.
+
+							cr = (HEX2INT(col[1]) << 4) + (HEX2INT(col[2]) << 0);
+							cg = (HEX2INT(col[3]) << 12) + (HEX2INT(col[4]) << 8);
+							cb = (HEX2INT(col[5]) << 20) + (HEX2INT(col[6]) << 16);
+
+#ifdef GLENCORE
+							if (encoremap)
+							{
+								j = encoremap[NearestColor((UINT8)cr, (UINT8)cg, (UINT8)cb)];
+								//CONS_Printf("R_CreateColormap: encoremap[%d] = %d\n", j, encoremap[j]); -- moved encoremap upwards for optimisation
+								cr = pLocalPalette[j].s.red;
+								cg = pLocalPalette[j].s.green;
+								cb = pLocalPalette[j].s.blue;
+							}
+#endif
+
+							sec->extra_colormap->rgba = cr + cg + cb;
 
 							// alpha
 							if (msd->toptexture[7])
 								sec->extra_colormap->rgba += (ALPHA2INT(col[7]) << 24);
 							else
 								sec->extra_colormap->rgba += (25 << 24);
+
+							/*nearest = NearestColor(
+								(HEX2INT(col[1]) << 4) + (HEX2INT(col[2]) << 0),
+								(HEX2INT(col[3]) << 4) + (HEX2INT(col[4]) << 0),
+								(HEX2INT(col[5]) << 4) + (HEX2INT(col[6]) << 0)
+							);
+
+							sec->extra_colormap->rgba =
+								pLocalPalette[nearest].s.red +
+								(pLocalPalette[nearest].s.green << 8) +
+								(pLocalPalette[nearest].s.blue << 16);*/
 						}
 						else
 							sec->extra_colormap->rgba = 0;
@@ -1508,10 +1536,24 @@ static void P_LoadRawSideDefs2(void *data)
 						{
 							col = msd->bottomtexture;
 
-							sec->extra_colormap->fadergba =
-								(HEX2INT(col[1]) << 4) + (HEX2INT(col[2]) << 0) +
-								(HEX2INT(col[3]) << 12) + (HEX2INT(col[4]) << 8) +
-								(HEX2INT(col[5]) << 20) + (HEX2INT(col[6]) << 16);
+							// do the exact same thing as above here.
+
+							cr = (HEX2INT(col[1]) << 4) + (HEX2INT(col[2]) << 0);
+							cg = (HEX2INT(col[3]) << 12) + (HEX2INT(col[4]) << 8);
+							cb = (HEX2INT(col[5]) << 20) + (HEX2INT(col[6]) << 16);
+
+#ifdef GLENCORE
+							if (encoremap)
+							{
+								j = encoremap[NearestColor((UINT8)cr, (UINT8)cg, (UINT8)cb)];
+								//CONS_Printf("R_CreateColormap: encoremap[%d] = %d\n", j, encoremap[j]); -- moved encoremap upwards for optimisation
+								cr = pLocalPalette[j].s.red;
+								cg = pLocalPalette[j].s.green;
+								cb = pLocalPalette[j].s.blue;
+							}
+#endif
+
+							sec->extra_colormap->fadergba = cr + cg + cb;
 
 							// alpha
 							if (msd->bottomtexture[7])
@@ -1657,6 +1699,7 @@ static void P_LoadRawSideDefs2(void *data)
 	}
 	R_ClearTextureNumCache(true);
 }
+
 
 // Delay loading texture names until after loaded linedefs.
 static void P_LoadSideDefs2(lumpnum_t lumpnum)

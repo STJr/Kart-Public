@@ -17,6 +17,8 @@
 /// \file
 /// \brief 3D render mode functions
 
+#define GLENCORE
+
 #ifndef __HWR_MAIN_H__
 #define __HWR_MAIN_H__
 
