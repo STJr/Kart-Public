@@ -9799,8 +9799,7 @@ static inline int lib_getenum(lua_State *L)
 	if (mathlib) return luaL_error(L, "constant '%s' could not be parsed.\n", word);
 
 	// DYNAMIC variables too!!
-	// Try not to add anything that would break netgames or timeattack replays here.
-	// You know, like consoleplayer, displayplayers, or gametime.
+
 	if (fastcmp(word,"gamemap")) {
 		lua_pushinteger(L, gamemap);
 		return 1;
@@ -9880,6 +9879,11 @@ static inline int lib_getenum(lua_State *L)
 		if ((!multiplayer || !(netgame || demo.playback)) && !playeringame[serverplayer])
 			return 0;
 		LUA_PushUserdata(L, &players[serverplayer], META_PLAYER);
+		return 1;
+	} else if (fastcmp(word,"consoleplayer")) {	// Player controlling the console, basically our local player
+		if (consoleplayer < 0 || !playeringame[consoleplayer])
+			return 0;
+		LUA_PushUserdata(L, &players[consoleplayer], META_PLAYER);
 		return 1;
 	/*} else if (fastcmp(word,"admin")) {
 		LUA_Deprecated(L, "admin", "IsPlayerAdmin(player)");
