@@ -2691,11 +2691,17 @@ static void Command_Pause(void)
 
 	if (cv_pause.value || server || (IsPlayerAdmin(consoleplayer)))
 	{
-		if (!paused && (modeattacking || !(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING || gamestate == GS_WAITINGPLAYERS)))
+		if (!paused && (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING || gamestate == GS_WAITINGPLAYERS)))
 		{
 			CONS_Printf(M_GetText("You can't pause here.\n"));
 			return;
 		}
+		else if (modeattacking)	// in time attack, pausing restarts the map
+		{
+			M_ModeAttackRetry(0);	// directly call from m_menu;
+			return;
+		}
+
 		SendNetXCmd(XD_PAUSE, &buf, 2);
 	}
 	else

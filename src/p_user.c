@@ -7657,7 +7657,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		const INT32 timeovercam = max(0, min(180, (player->kartstuff[k_timeovercam] - 2*TICRATE)*15));
 		camrotate += timeovercam;
 	}
-	else if (leveltime < introtime) // Whoooshy camera!
+	else if (leveltime < introtime && !(modeattacking && !demo.playback)) // Whoooshy camera! (don't do this in RA when we PLAY, still do it in replays however~)
 	{
 		const INT32 introcam = (introtime - leveltime);
 		camrotate += introcam*5;
