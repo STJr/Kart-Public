@@ -2641,6 +2641,41 @@ static int lib_kGetItemPatch(lua_State *L)
 	return 1;
 }
 
+// sets the remaining time before players blow up
+static int lib_kSetRaceCountdown(lua_State *L)
+{
+	tic_t c = (tic_t)luaL_checkinteger(L, 1);
+	countdown = c;
+	return 0;
+}
+
+// sets the remaining time before the race ends after everyone finishes
+static int lib_kSetExitCountdown(lua_State *L)
+{
+	tic_t c = (tic_t)luaL_checkinteger(L, 1);
+	NOHUD
+	countdown2 = c;
+	return 0;
+}
+
+// Sets the item cooldown before another shrink / SPB can be rolled
+static int lib_kSetIndirectItemCountdown(lua_State *L)
+{
+	tic_t c = (tic_t)luaL_checkinteger(L, 1);
+	NOHUD
+	indirectitemcooldown = c;
+	return 0;
+}
+
+// Sets the item cooldown before another shrink / SPB can be rolled
+static int lib_kSetHyuCountdown(lua_State *L)
+{
+	tic_t c = (tic_t)luaL_checkinteger(L, 1);
+	NOHUD
+	hyubgone = c;
+	return 0;
+}
+
 static luaL_Reg lib[] = {
 	{"print", lib_print},
 	{"chatprint", lib_chatprint},
@@ -2868,6 +2903,10 @@ static luaL_Reg lib[] = {
 	{"K_GetKartAccel",lib_kGetKartAccel},
 	{"K_GetKartFlashing",lib_kGetKartFlashing},
 	{"K_GetItemPatch",lib_kGetItemPatch},
+	{"K_SetRaceCountdown",lib_kSetRaceCountdown},
+	{"K_SetExitCountdown",lib_kSetExitCountdown},
+	{"K_SetIndirectItemCooldown",lib_kSetIndirectItemCountdown},
+	{"K_SetHyudoroCooldown",lib_kSetHyuCountdown},
 
 	{NULL, NULL}
 };
