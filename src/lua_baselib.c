@@ -2645,7 +2645,7 @@ static int lib_kGetItemPatch(lua_State *L)
 static int lib_kSetRaceCountdown(lua_State *L)
 {
 	tic_t c = (tic_t)luaL_checkinteger(L, 1);
-	countdown = c;
+	racecountdown = c;
 	return 0;
 }
 
@@ -2654,7 +2654,7 @@ static int lib_kSetExitCountdown(lua_State *L)
 {
 	tic_t c = (tic_t)luaL_checkinteger(L, 1);
 	NOHUD
-	countdown2 = c;
+	exitcountdown = c;
 	return 0;
 }
 

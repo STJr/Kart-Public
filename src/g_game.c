@@ -233,7 +233,7 @@ mobj_t *hunt1;
 mobj_t *hunt2;
 mobj_t *hunt3;
 
-UINT32 countdown, countdown2; // for racing
+tic_t racecountdown, exitcountdown; // for racing
 
 fixed_t gravity;
 fixed_t mapobjectscale;
@@ -4583,7 +4583,7 @@ void G_InitNew(UINT8 pencoremode, const char *mapname, boolean resetplayer, bool
 	{
 		// Clear a bunch of variables
 		tokenlist = token = sstimer = redscore = bluescore = lastmap = 0;
-		countdown = countdown2 = mapreset = 0;
+		racecountdown = exitcountdown = mapreset = 0;
 
 		for (i = 0; i < MAXPLAYERS; i++)
 		{

@@ -9931,10 +9931,10 @@ static inline int lib_getenum(lua_State *L)
 		lua_pushinteger(L, cv_numlaps.value);
 		return 1;
 	} else if (fastcmp(word,"racecountdown")) {
-		lua_pushinteger(L, countdown);
+		lua_pushinteger(L, racecountdown);
 		return 1;
 	} else if (fastcmp(word,"exitcountdown")) {
-		lua_pushinteger(L, countdown2);	// This name is pretty dumb. Hence why we'll prefer more descriptive names at least in Lua...
+		lua_pushinteger(L, exitcountdown);	// This name is pretty dumb. Hence why we'll prefer more descriptive names at least in Lua...
 		return 1;
 	}
 	return 0;
