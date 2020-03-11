@@ -1247,7 +1247,7 @@ static UINT8 UnArchiveValue(int TABLESINDEX)
 	return 0;
 }
 
-static UINT8 UnArchiveValueDemo(int TABLESINDEX)
+static UINT8 UnArchiveValueDemo(int TABLESINDEX, char field[1024])
 {
 	UINT8 type = READUINT8(demo_p);
 	switch (type)
@@ -1299,7 +1299,12 @@ static UINT8 UnArchiveValueDemo(int TABLESINDEX)
 		LUA_PushUserdata(gL, &states[READUINT16(demo_p)], META_STATE);
 		break;
 	case ARCH_MOBJ:
-		LUA_PushUserdata(gL, P_FindNewPosition(READUINT32(demo_p)), META_MOBJ);
+		demo_p += sizeof(UINT32);	// Skip this data, we can't read a mobj here, it'd point to garbage and crash the game.
+		if (field)
+			CONS_Alert(CONS_WARNING,"Cannot read mobj_t stored in player variable \'%s\'. Desyncs may occur.\n", field);
+		else
+			CONS_Alert(CONS_WARNING,"Couldn't read mobj_t\n");
+
 		break;
 	case ARCH_PLAYER:
 		LUA_PushUserdata(gL, &players[READUINT8(demo_p)], META_PLAYER);
@@ -1383,7 +1388,8 @@ static void UnArchiveExtVarsDemo(void *pointer)
 	{
 		READSTRING(demo_p, field);
 		//CONS_Printf("%s\n", field);
-		UnArchiveValueDemo(TABLESINDEX);
+		CONS_Printf("%s\n", field);
+		UnArchiveValueDemo(TABLESINDEX, field);
 		lua_setfield(gL, -2, field);
 	}
 
@@ -1452,9 +1458,9 @@ static void UnArchiveTablesDemo(void)
 		lua_rawgeti(gL, TABLESINDEX, i);
 		while (true)
 		{
-			if (UnArchiveValueDemo(TABLESINDEX) == 1) // read key
+			if (UnArchiveValueDemo(TABLESINDEX, NULL) == 1) // read key
 				break;
-			if (UnArchiveValueDemo(TABLESINDEX) == 2) // read value
+			if (UnArchiveValueDemo(TABLESINDEX, NULL) == 2) // read value
 				n++;
 			if (lua_isnil(gL, -2)) // if key is nil (if a function etc was accidentally saved)
 			{
