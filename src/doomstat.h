@@ -448,7 +448,7 @@ extern UINT8 maxXtraLife; // Max extra lives from rings
 extern mobj_t *hunt1, *hunt2, *hunt3; // Emerald hunt locations
 
 // For racing
-extern UINT32 countdown, countdown2;
+extern tic_t racecountdown, exitcountdown;
 
 extern fixed_t gravity;
 extern fixed_t mapobjectscale;

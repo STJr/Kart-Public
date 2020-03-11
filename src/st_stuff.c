@@ -1834,7 +1834,7 @@ static void ST_overlayDrawer(void)
 	{
 		patch_t *p;
 
-		if (countdown == 1)
+		if (racecountdown == 1)
 			p = timeover;
 		else
 			p = sboover;
@@ -1954,7 +1954,7 @@ static void ST_overlayDrawer(void)
 
 	if (!hu_showscores && netgame && !mapreset)
 	{
-		/*if (G_GametypeUsesLives() && stplyr->lives <= 0 && countdown != 1)
+		/*if (G_GametypeUsesLives() && stplyr->lives <= 0 && racecountdown != 1)
 			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(132), 0, M_GetText("Press Viewpoint Key to watch a player."));
 		else if (gametype == GT_HIDEANDSEEK &&
 		 (!stplyr->spectator && !(stplyr->pflags & PF_TAGIT)) && (leveltime > hidetime * TICRATE))

@@ -2387,7 +2387,7 @@ static void P_LevelInitStuff(void)
 		players[i].lives = 1; // SRB2Kart
 #endif
 
-		players[i].realtime = countdown = countdown2 = 0;
+		players[i].realtime = racecountdown = exitcountdown = 0;
 		curlap = bestlap = 0; // SRB2Kart
 
 		players[i].gotcontinue = false;

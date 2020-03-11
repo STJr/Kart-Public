@@ -720,15 +720,15 @@ void P_Ticker(boolean run)
 			}
 		}
 
-		if (countdown > 1)
-			countdown--;
+		if (racecountdown > 1)
+			racecountdown--;
 
-		if (countdown2)
-			countdown2--;
+		if (exitcountdown > 1)
+			exitcountdown--;
 
-		if (indirectitemcooldown)
+		if (indirectitemcooldown > 1)
 			indirectitemcooldown--;
-		if (hyubgone)
+		if (hyubgone > 1)
 			hyubgone--;
 
 		if (G_BattleGametype())

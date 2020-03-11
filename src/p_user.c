@@ -1727,8 +1727,8 @@ void P_DoPlayerExit(player_t *player)
 			P_EndingMusic(player);
 
 		// SRB2kart 120217
-		//if (!countdown2)
-			//countdown2 = countdown + 8*TICRATE;
+		//if (!exitcountdown)
+			//exitcountdown = racecountdown + 8*TICRATE;
 
 		if (P_CheckRacers())
 			player->exiting = raceexittime+1;
@@ -7088,7 +7088,7 @@ static void P_DeathThink(player_t *player)
 	}
 
 	// Keep time rolling
-	if (!(countdown2 && !countdown) && !(player->exiting || mapreset) && !(player->pflags & PF_TIMEOVER))
+	if (!(exitcountdown && !racecountdown) && !(player->exiting || mapreset) && !(player->pflags & PF_TIMEOVER))
 	{
 		if (leveltime >= starttime)
 		{
@@ -8288,8 +8288,8 @@ void P_DoTimeOver(player_t *player)
 
 	P_EndingMusic(player);
 
-	if (!countdown2)
-		countdown2 = 5*TICRATE;
+	if (!exitcountdown)
+		exitcountdown = 5*TICRATE;
 }
 
 //
@@ -8432,7 +8432,7 @@ void P_PlayerThink(player_t *player)
 			// begin the drown music for countdown!
 
 			// SRB2Kart: despite how perfect this is, it's disabled FOR A REASON
-			/*if (countdown == 11*TICRATE - 1)
+			/*if (racecountdown == 11*TICRATE - 1)
 			{
 				if (P_IsLocalPlayer(player))
 					S_ChangeMusicInternal("drown", false);
@@ -8440,7 +8440,7 @@ void P_PlayerThink(player_t *player)
 
 			// If you've hit the countdown and you haven't made
 			//  it to the exit, you're a goner!
-			else if (countdown == 1 && !player->exiting && !player->spectator && player->lives > 0)
+			else if (racecountdown == 1 && !player->exiting && !player->spectator && player->lives > 0)
 			{
 				P_DoTimeOver(player);
 
@@ -8454,10 +8454,10 @@ void P_PlayerThink(player_t *player)
 		if (player->exiting > 1 && (player->exiting < raceexittime+2 || !G_RaceGametype())) // SRB2kart - "&& player->exiting > 1"
 			player->exiting--;
 
-		if (player->exiting && countdown2)
+		if (player->exiting && exitcountdown)
 			player->exiting = 99; // SRB2kart
 
-		if (player->exiting == 2 || countdown2 == 2)
+		if (player->exiting == 2 || exitcountdown == 2)
 		{
 			if (cv_playersforexit.value) // Count to be sure everyone's exited
 			{
