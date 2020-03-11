@@ -1382,7 +1382,7 @@ static void UnArchiveExtVarsDemo(void *pointer)
 	for (i = 0; i < field_count; i++)
 	{
 		READSTRING(demo_p, field);
-		CONS_Printf("%s\n", field);
+		//CONS_Printf("%s\n", field);
 		UnArchiveValueDemo(TABLESINDEX);
 		lua_setfield(gL, -2, field);
 	}

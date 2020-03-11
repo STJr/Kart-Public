@@ -5369,7 +5369,7 @@ static inline void PingUpdate(void)
 	//make the ping packet and clear server data for next one
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
-		CONS_Printf("player %d - total pings: %d\n", i, realpingtable[i]);
+		//CONS_Printf("player %d - total pings: %d\n", i, realpingtable[i]);
 
 		netbuffer->u.pingtable[i] = realpingtable[i] / pingmeasurecount;
 		//server takes a snapshot of the real ping for display.
