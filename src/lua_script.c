@@ -112,7 +112,7 @@ static int noglobals(lua_State *L)
 
 // Clear and create a new Lua state, laddo!
 // There's SCRIPTIN to be had!
-static void LUA_ClearState(void)
+void LUA_ClearState(void)
 {
 	lua_State *L;
 	int i;

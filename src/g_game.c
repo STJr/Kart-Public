@@ -45,6 +45,7 @@
 #include "dehacked.h" // get_number (for ghost thok)
 #include "lua_script.h"	// LUA_ArchiveDemo and LUA_UnArchiveDemo
 #include "lua_hook.h"
+#include "lua_libs.h"	// gL (Lua state)
 #include "b_bot.h"
 #include "m_cond.h" // condition sets
 #include "md5.h" // demo checksums
@@ -7538,7 +7539,12 @@ void G_DoPlayDemo(char *defdemoname)
 // so this is where we are to read our lua variables (if possible!)
 #ifdef HAVE_BLUA
 	if (demoflags & DF_LUAVARS)	// again, used for compability, lua shit will be saved to replays regardless of if it's even been loaded
+	{
+		if (!gL)	// No Lua state! ...I guess we'll just start one...
+			LUA_ClearState();
+
 		LUA_UnArchiveDemo();
+	}
 #endif
 
 	splitscreen = 0;
