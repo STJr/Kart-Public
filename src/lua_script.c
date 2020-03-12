@@ -1247,6 +1247,14 @@ static UINT8 UnArchiveValue(int TABLESINDEX)
 	return 0;
 }
 
+
+// Unarchives from demo_p:
+// Return values:
+// 0: Normal
+// 1: Read table key
+// 2: Read table value
+// 3: Don't use setfield
+
 static UINT8 UnArchiveValueDemo(int TABLESINDEX, char field[1024])
 {
 	UINT8 type = READUINT8(demo_p);
@@ -1305,7 +1313,8 @@ static UINT8 UnArchiveValueDemo(int TABLESINDEX, char field[1024])
 		else
 			CONS_Alert(CONS_WARNING,"Couldn't read mobj_t\n");
 
-		break;
+		return 3;	// Don't set the field
+
 	case ARCH_PLAYER:
 		LUA_PushUserdata(gL, &players[READUINT8(demo_p)], META_PLAYER);
 		break;
@@ -1387,10 +1396,8 @@ static void UnArchiveExtVarsDemo(void *pointer)
 	for (i = 0; i < field_count; i++)
 	{
 		READSTRING(demo_p, field);
-		//CONS_Printf("%s\n", field);
-		CONS_Printf("%s\n", field);
-		UnArchiveValueDemo(TABLESINDEX, field);
-		lua_setfield(gL, -2, field);
+		if (UnArchiveValueDemo(TABLESINDEX, field) != 3)	// This will return 3 if we shouldn't set this field.
+			lua_setfield(gL, -2, field);
 	}
 
 	lua_getfield(gL, LUA_REGISTRYINDEX, LREG_EXTVARS);
