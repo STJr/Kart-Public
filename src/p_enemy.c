@@ -4022,6 +4022,9 @@ static inline boolean PIT_MineExplode(mobj_t *thing)
 	if (G_BattleGametype() && grenade->target && grenade->target->player && grenade->target->player->kartstuff[k_bumper] <= 0 && thing == grenade->target)
 		return true;
 
+	if (thing->player && thing->player->powers[pw_flashing] == K_GetKartFlashing(thing->player))	// we literally got bombed that frame
+		return true;
+
 	// see if it went over / under
 	if (grenade->z - explodedist > thing->z + thing->height)
 		return true; // overhead
@@ -4031,8 +4034,6 @@ static inline boolean PIT_MineExplode(mobj_t *thing)
 	if (P_AproxDistance(P_AproxDistance(thing->x - grenade->x, thing->y - grenade->y),
 		thing->z - grenade->z) > explodedist)
 		return true; // Too far away
-
-	grenade->flags2 |= MF2_DEBRIS;
 
 	if (thing->player) // Looks like we're going to have to need a seperate function for this too
 		K_ExplodePlayer(thing->player, grenade->target, grenade);
@@ -4080,6 +4081,8 @@ void A_MineExplode(mobj_t *actor)
 		K_SpawnMineExplosion(actor, SKINCOLOR_KETCHUP);
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
+
+	actor->flags2 |= MF2_DEBRIS;	// Set this flag to ensure that the explosion won't be effective more than 1 frame.
 }
 //}
 
