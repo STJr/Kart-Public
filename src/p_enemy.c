@@ -4022,9 +4022,6 @@ static inline boolean PIT_MineExplode(mobj_t *thing)
 	if (G_BattleGametype() && grenade->target && grenade->target->player && grenade->target->player->kartstuff[k_bumper] <= 0 && thing == grenade->target)
 		return true;
 
-	if (thing->player && thing->player->powers[pw_flashing] == K_GetKartFlashing(thing->player))	// we literally got bombed that frame
-		return true;
-
 	// see if it went over / under
 	if (grenade->z - explodedist > thing->z + thing->height)
 		return true; // overhead
