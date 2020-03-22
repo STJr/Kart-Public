@@ -1270,13 +1270,13 @@ static inline void CL_DrawConnectionStatus(void)
 				va("%3.1fK/s ", ((double)getbps)/1024));
 
 			// Download progress
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-14, V_YELLOWMAP, "Total File Download Progress");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-14, V_YELLOWMAP, "Overall Download Progress");
 			totalfileslength = (INT32)((downloadcompletednum/(double)totalfilesrequestednum) * 256);
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, totalfileslength, 8, 160);
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
-				va(" %2u/%2u",downloadcompletednum,totalfilesrequestednum));
+				va(" %2u/%2u Files",downloadcompletednum,totalfilesrequestednum));
 		}
 		else
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-32, V_YELLOWMAP,
