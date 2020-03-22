@@ -1167,10 +1167,6 @@ static inline void CL_DrawConnectionStatus(void)
 	// Draw background fade
 	V_DrawFadeScreen(0xFF00, 16);
 
-	// Draw the bottom box.
-	M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
-	V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
-
 	if (cl_mode != CL_DOWNLOADFILES
 #ifdef HAVE_CURL
 	&& cl_mode != CL_DOWNLOADHTTPFILES
@@ -1181,6 +1177,10 @@ static inline void CL_DrawConnectionStatus(void)
 		UINT8 palstart = (cl_mode == CL_SEARCHING) ? 128 : 160;
 		// 15 pal entries total.
 		const char *cltext;
+
+		//Draw bottom box
+		M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
 
 		for (i = 0; i < 16; ++i)
 			V_DrawFill((BASEVIDWIDTH/2-128) + (i * 16), BASEVIDHEIGHT-24, 16, 8, palstart + ((animtime - i) & 15));
@@ -1221,13 +1221,18 @@ static inline void CL_DrawConnectionStatus(void)
 				cltext = M_GetText("Connecting to server...");
 				break;
 		}
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP, cltext);
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-32, V_YELLOWMAP, cltext);
 	}
 	else
 	{
 		if (lastfilenum != -1)
 		{
+			// Draw the bottom box.
+			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-58-8, 32, 1);
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-14, V_YELLOWMAP, "Press ESC to abort");
+
 			INT32 dldlength;
+			INT32 totalfileslength;
 			static char tempname[28];
 			fileneeded_t *file = &fileneeded[lastfilenum];
 			char *filename = file->filename;
@@ -1236,8 +1241,10 @@ static inline void CL_DrawConnectionStatus(void)
 			dldlength = (INT32)((file->currentsize/(double)file->totalsize) * 256);
 			if (dldlength > 256)
 				dldlength = 256;
-			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
-			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, dldlength, 8, 160);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, 256, 8, 175);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, dldlength, 8, 160);
+
+
 
 			memset(tempname, 0, sizeof(tempname));
 			// offset filename to just the name only part
@@ -1255,15 +1262,24 @@ static inline void CL_DrawConnectionStatus(void)
 				strncpy(tempname, filename, sizeof(tempname)-1);
 			}
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-22, V_YELLOWMAP,
 				va(M_GetText("Downloading \"%s\""), tempname));
-			V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+			V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE,
 				va(" %4uK/%4uK",fileneeded[lastfilenum].currentsize>>10,file->totalsize>>10));
-			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE,
 				va("%3.1fK/s ", ((double)getbps)/1024));
+
+			// Download progress
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-14, V_YELLOWMAP, "Total File Download Progress");
+			totalfileslength = (INT32)((downloadcompletednum/(double)totalfilesrequestednum) * 256);
+			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, totalfileslength, 8, 160);
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+				va(" %2u/%2u",downloadcompletednum,totalfilesrequestednum));
 		}
 		else
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-32, V_YELLOWMAP,
 				M_GetText("Waiting to download files..."));
 	}
 }
@@ -1963,7 +1979,11 @@ static boolean CL_FinishedFileList(void)
 			}
 
 			if (CL_SendRequestFile())
+			{
 				cl_mode = CL_DOWNLOADFILES;
+				downloadcompletednum = 0;
+				totalfilesrequestednum = 0;
+			}
 		}
 #ifdef HAVE_CURL
 		else
@@ -2108,10 +2128,15 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 		case CL_PREPAREHTTPFILES:
 			if (http_source[0])
 			{
+				downloadcompletednum = 0;
+				totalfilesrequestednum = 0;
 				for (i = 0; i < fileneedednum; i++)
 					if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
+					{
 						curl_transfers++;
-
+						totalfilesrequestednum++;
+					}
+				
 				cl_mode = CL_DOWNLOADHTTPFILES;
 			}
 			break;
