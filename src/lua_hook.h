@@ -44,6 +44,9 @@ enum hook {
 	hook_HurtMsg,
 	hook_PlayerSpawn,
 	hook_PlayerQuit,
+#ifdef HAVE_LUA_MUSICPLUS
+	hook_MusicChange,
+#endif
 	hook_ShouldSpin,	//SRB2KART
 	hook_ShouldExplode,	//SRB2KART
 	hook_ShouldSquish,	//SRB2KART
@@ -90,6 +93,10 @@ boolean LUAh_PlayerMsg(int source, int target, int flags, char *msg, int mute); 
 boolean LUAh_HurtMsg(player_t *player, mobj_t *inflictor, mobj_t *source); // Hook for hurt messages
 #define LUAh_PlayerSpawn(player) LUAh_PlayerHook(player, hook_PlayerSpawn) // Hook for G_SpawnPlayer
 void LUAh_PlayerQuit(player_t *plr, int reason); // Hook for player quitting
+#ifdef HAVE_LUA_MUSICPLUS
+boolean LUAh_MusicChange(const char *oldname, char *newname, UINT16 *mflags, boolean *looping,
+	UINT32 *position, UINT32 *prefadems, UINT32 *fadeinms); // Hook for music changes
+#endif
 
 UINT8 LUAh_ShouldSpin(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Should player be spun out?
 UINT8 LUAh_ShouldExplode(player_t *player, mobj_t *inflictor, mobj_t *source); // SRB2KART: Should player be exploded?
