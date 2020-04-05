@@ -1944,6 +1944,7 @@ boolean P_RunTriggerLinedef(line_t *triggerline, mobj_t *actor, sector_t *caller
 	 || specialtype == 318  // Unlockable trigger - Once
 	 || specialtype == 320  // Unlockable - Once
 	 || specialtype == 321 || specialtype == 322 // Trigger on X calls - Continuous + Each Time
+	 || specialtype == 323  // Record attack only - Once
 	 || specialtype == 328 // Encore Load
 	 || specialtype == 399) // Level Load
 		triggerline->special = 0; // Clear it out
@@ -6557,6 +6558,12 @@ void P_SpawnSpecials(INT32 fromnetsave)
 					sec = sides[*lines[i].sidenum].sector - sectors;
 					P_AddEachTimeThinker(&sectors[sec], &lines[i]);
 				}
+				break;
+			// Record attack only linedef exec
+			case 323:
+			case 324:
+				if (!modeattacking)
+					lines[i].special = 0;
 				break;
 
 			case 328: // Encore-only linedef execute on map load
