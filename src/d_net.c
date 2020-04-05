@@ -339,6 +339,7 @@ static boolean Processackpak(void)
 	{
 		UINT8 ack = netbuffer->ack;
 		getackpacket++;
+
 		if (cmpack(ack, node->firstacktosend) <= 0)
 		{
 			DEBFILE(va("Discard(1) ack %d (duplicated)\n", ack));
@@ -361,6 +362,7 @@ static boolean Processackpak(void)
 				// Is a good packet so increment the acknowledge number,
 				// Then search for a "hole" in the queue
 				UINT8 nextfirstack = (UINT8)(node->firstacktosend + 1);
+
 				if (!nextfirstack)
 					nextfirstack = 1;
 
@@ -1070,6 +1072,10 @@ boolean HSendPacket(INT32 node, boolean reliable, UINT8 acknum, size_t packetlen
 	netbuffer->checksum = NetbufferChecksum();
 	sendbytes += packetheaderlength + doomcom->datalength; // For stat
 
+	// Joinpasswords close nodes, this may try to send to a waiting-to-close node, so cancel closing?
+	if (netbuffer->packettype == PT_CLIENTJOIN)
+		nodes[node].flags &= ~NF_CLOSE;
+
 #ifdef PACKETDROP
 	// Simulate internet :)
 	//if (rand() >= (INT32)(RAND_MAX * (PACKETLOSSRATE / 100.f)))
@@ -1106,7 +1112,7 @@ boolean HSendPacket(INT32 node, boolean reliable, UINT8 acknum, size_t packetlen
 //
 boolean HGetPacket(void)
 {
-	//boolean nodejustjoined;
+	boolean nodejustjoined;
 
 	// Get a packet from self
 	if (rebound_tail != rebound_head)
@@ -1133,11 +1139,54 @@ boolean HGetPacket(void)
 
 	while(true)
 	{
-		//nodejustjoined = I_NetGet();
-		I_NetGet();
+		nodejustjoined = I_NetGet();
+		//I_NetGet();
 
 		if (doomcom->remotenode == -1) // No packet received
-			return false;
+		{
+			if (nodejustjoined) // _This_ means we did receive a packet, but either from a node we couldn't allocate or a gone player ackreting...
+				continue;
+			else
+				return false;
+		}
+
+		if (nodejustjoined)
+		{
+			// If a new node sends an unexpected packet, just ignore it
+			if (server
+				&& !(netbuffer->packettype == PT_ASKINFO
+					|| netbuffer->packettype == PT_SERVERINFO
+					|| netbuffer->packettype == PT_PLAYERINFO
+					|| netbuffer->packettype == PT_REQUESTFILE
+					|| netbuffer->packettype == PT_ASKINFOVIAMS
+					|| netbuffer->packettype == PT_CLIENTJOIN))
+			{
+				DEBFILE(va("New node sent an unexpected %s packet\n", packettypename[netbuffer->packettype]));
+				CONS_Alert(CONS_NOTICE, "New node sent an unexpected %s packet\n", packettypename[netbuffer->packettype]);
+				Net_CloseConnection(doomcom->remotenode | FORCECLOSE);
+				continue;
+			}
+
+			// UGLY PROBABLY-BAD HACK: If we get PT_CLIENTJOIN, assume this is an in-order packet?
+			if (netbuffer->packettype == PT_CLIENTJOIN)
+				nodes[doomcom->remotenode].firstacktosend = (UINT8)((netbuffer->ack-1+MAXACKTOSEND) % MAXACKTOSEND);
+
+			if (netbuffer->ack > 1 && !(server && netbuffer->packettype == PT_CLIENTJOIN))
+			{
+				DEBFILE("New node sent a packet with an out-of-sequence ack. Ghost connection? Ignoring...\n");
+				CONS_Alert(CONS_NOTICE, "New node sent a packet with an out-of-sequence ack. Ghost connection? Ignoring...\n");
+				Net_CloseConnection(doomcom->remotenode | FORCECLOSE);
+				continue;
+			}
+
+			// Reinitialize vars for the new node just in case there's anything left over from other players.....
+			InitNode(&nodes[doomcom->remotenode]);
+			SV_AbortSendFiles(doomcom->remotenode);
+		}
+
+		// Joinpasswords close nodes, this may receive from a waiting-to-close node, so cancel closing?
+		if (netbuffer->packettype == PT_CLIENTJOIN)
+			nodes[doomcom->remotenode].flags &= ~NF_CLOSE;
 
 		getbytes += packetheaderlength + doomcom->datalength; // For stat
 
@@ -1152,8 +1201,8 @@ boolean HGetPacket(void)
 		if (netbuffer->checksum != NetbufferChecksum())
 		{
 			DEBFILE("Bad packet checksum\n");
-			//Net_CloseConnection(nodejustjoined ? (doomcom->remotenode | FORCECLOSE) : doomcom->remotenode);
-			Net_CloseConnection(doomcom->remotenode);
+			Net_CloseConnection(nodejustjoined ? (doomcom->remotenode | FORCECLOSE) : doomcom->remotenode);
+			//Net_CloseConnection(doomcom->remotenode);
 			continue;
 		}
 
@@ -1161,21 +1210,6 @@ boolean HGetPacket(void)
 		if (debugfile)
 			DebugPrintpacket("GET");
 #endif
-
-		/*// If a new node sends an unexpected packet, just ignore it
-		if (nodejustjoined && server
-			&& !(netbuffer->packettype == PT_ASKINFO
-				|| netbuffer->packettype == PT_SERVERINFO
-				|| netbuffer->packettype == PT_PLAYERINFO
-				|| netbuffer->packettype == PT_REQUESTFILE
-				|| netbuffer->packettype == PT_ASKINFOVIAMS
-				|| netbuffer->packettype == PT_CLIENTJOIN))
-		{
-			DEBFILE(va("New node sent an unexpected %s packet\n", packettypename[netbuffer->packettype]));
-			//CONS_Alert(CONS_NOTICE, "New node sent an unexpected %s packet\n", packettypename[netbuffer->packettype]);
-			Net_CloseConnection(doomcom->remotenode | FORCECLOSE);
-			continue;
-		}*/
 
 		// Proceed the ack and ackreturn field
 		if (!Processackpak())
