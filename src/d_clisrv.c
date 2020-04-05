@@ -673,7 +673,7 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 static void resynch_read_player(resynch_pak *rsp)
 {
 	INT32 i = rsp->playernum, j;
-	mobj_t *savedmo = players[i].mo;
+	//mobj_t *savedmo = players[i].mo;
 
 	// Do not send anything visual related.
 	// Only send data that we need to know for physics.
@@ -766,11 +766,17 @@ static void resynch_read_player(resynch_pak *rsp)
 		return;
 
 	//...but keep old mo even if it is corrupt or null!
-	players[i].mo = savedmo;
+	//players[i].mo = savedmo;
 
 	//Transfer important mo information if they have a valid mo.
 	if (!rsp->hasmo)
+	{
+		// Get rid of their object if they aren't supposed to have one.....??
+		if (players[i].mo)
+			P_RemoveMobj(players[i].mo);
+
 		return;
+	}
 
 	//server thinks player has a body.
 	//Give them a new body that can be then manipulated by the server's info.
@@ -1023,6 +1029,7 @@ static void SV_SendResynch(INT32 node)
 		return;
 	}
 
+	resynch_inprogress[node] = false; // Let's see if there's REALLY anyone left to sync.....
 	netbuffer->packettype = PT_RESYNCHING;
 	for (i = 0, j = 0; i < MAXPLAYERS; ++i)
 	{
@@ -1030,10 +1037,24 @@ static void SV_SendResynch(INT32 node)
 		if (!(resynch_status[node] & 1<<i))
 			continue;
 
+		if (!playeringame[i])
+			continue; // Player doesn't exist any more, so no need to resync them!
+
+		resynch_inprogress[node] = true;
+
 		// waiting for a reply or just waiting in general
 		if (resynch_sent[node][i])
 		{
 			--resynch_sent[node][i];
+
+			if (resynch_sent[node][i] > TICRATE)
+			{
+				CONS_Alert(CONS_ERROR, "Node %d (%s) somehow had a stupidly-long resync delay?! (%d tics to resync player %d)\n",
+					node, player_names[nodetoplayer[node]], resynch_sent[node][i], i
+				);
+				resynch_sent[node][i] = TICRATE;
+			}
+
 			continue;
 		}
 
@@ -1045,6 +1066,15 @@ static void SV_SendResynch(INT32 node)
 
 		if (++j > 3)
 			break;
+	}
+
+	if (!resynch_inprogress[node])
+	{
+		CONS_Alert(CONS_ERROR, "Node %d (%s) somehow had resync status for nonexistent players?! (%08x)\n",
+			node, player_names[nodetoplayer[node]], resynch_status[node] = 0x00
+		);
+		resynch_status[node] = 0x00;
+		resynch_inprogress[node] = true; // So they get the PT_RESYNCHEND...
 	}
 
 	if (resynch_score[node] > (unsigned)cv_resynchattempts.value*250)
@@ -2300,6 +2330,8 @@ static void CL_ConnectToServer(boolean viams)
 	if (gamestate == GS_VOTING)
 		Y_EndVote();
 
+	resynch_local_inprogress = false; // Just in case this was never cleared...
+
 	DEBFILE(va("waiting %d nodes\n", doomcom->numnodes));
 	G_SetGamestate(GS_WAITINGPLAYERS);
 	wipegamestate = GS_WAITINGPLAYERS;
@@ -3396,6 +3428,7 @@ void D_QuitNetGame(void)
 		HSendPacket(servernode, true, 0, 0);
 	}
 
+	resynch_local_inprogress = false; // No more resyncing!
 	D_CloseConnection();
 	ClearAdminPlayers();
 
@@ -3984,7 +4017,7 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				cl_challengenum = netbuffer->u.joinchallenge.challengenum;
 				memcpy(cl_challengequestion, netbuffer->u.joinchallenge.question, 16);
 
-				Net_CloseConnection(node|FORCECLOSE); // Don't need to stay connected while challenging
+				Net_CloseConnection(node); // Don't need to stay connected while challenging
 
 				cl_mode = CL_CHALLENGE;
 
