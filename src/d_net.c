@@ -781,6 +781,8 @@ static const char *packettypename[NUMPACKETTYPE] =
 {
 	"NOTHING",
 	"SERVERCFG",
+
+
 	"CLIENTCMD",
 	"CLIENTMIS",
 	"CLIENT2CMD",
@@ -801,6 +803,9 @@ static const char *packettypename[NUMPACKETTYPE] =
 	"RESYNCHEND",
 	"RESYNCHGET",
 
+
+
+
 	"CLIENT3CMD",
 	"CLIENT3MIS",
 	"CLIENT4CMD",
@@ -811,13 +816,20 @@ static const char *packettypename[NUMPACKETTYPE] =
 	"DOWNLOADFILESOKAY",
 
 	"FILEFRAGMENT",
+
 	"TEXTCMD",
 	"TEXTCMD2",
 	"TEXTCMD3",
 	"TEXTCMD4",
+
 	"CLIENTJOIN",
 	"NODETIMEOUT",
 	"RESYNCHING",
+
+
+	"TELLFILESNEEDED",
+	"MOREFILESNEEDED",
+
 	"PING"
 };
 
