@@ -220,7 +220,7 @@ set(SRB2_CONFIG_HAVE_ZLIB ON CACHE BOOL
 	"Enable zlib support.")
 set(SRB2_CONFIG_HAVE_GME ON CACHE BOOL
 	"Enable GME support.")
-set(SRB2_CONFIG_HAVE_GME ON CACHE BOOL
+set(SRB2_CONFIG_HAVE_CURL ON CACHE BOOL
 	"Enable curl support, used for downloading files via HTTP.")
 set(SRB2_CONFIG_HWRENDER ON CACHE BOOL
 	"Enable hardware rendering through OpenGL.")

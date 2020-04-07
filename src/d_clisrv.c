@@ -1255,7 +1255,9 @@ static inline void CL_DrawConnectionStatus(void)
 				break;
 			case CL_ASKDOWNLOADFILES:
 			case CL_WAITDOWNLOADFILESRESPONSE:
+#ifdef HAVE_CURL
 			case CL_PREPAREHTTPFILES:
+#endif
 				cltext = M_GetText("Waiting to download files...");
 			default:
 				cltext = M_GetText("Connecting to server...");
@@ -1385,7 +1387,9 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 		netbuffer->u.serverinfo.iszone = 0;
 
 	memset(netbuffer->u.serverinfo.maptitle, 0, 33);
+#ifdef HAVE_CURL
 	memset(netbuffer->u.serverinfo.httpsource, 0, MAX_MIRROR_LENGTH);
+#endif
 
 	if (!(mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU) && mapheaderinfo[gamemap-1]->lvlttl[0])
 	{
@@ -1437,6 +1441,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 
 	netbuffer->u.serverinfo.actnum = 0; //mapheaderinfo[gamemap-1]->actnum
 
+#ifdef HAVE_CURL
 	mirror_length = strlen(cv_httpsource.string);
 	if (mirror_length > MAX_MIRROR_LENGTH)
 		mirror_length = MAX_MIRROR_LENGTH;
@@ -1446,6 +1451,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 		strncpy(netbuffer->u.serverinfo.httpsource, "", MAX_MIRROR_LENGTH);
 
 	netbuffer->u.serverinfo.httpsource[MAX_MIRROR_LENGTH-1] = 0;
+#endif
 
 	p = PutFileNeeded(0);
 
