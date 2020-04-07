@@ -122,7 +122,7 @@ INT32 curl_transfers = 0;
 static int curl_runninghandles = 0;
 static UINT32 curl_origfilesize;
 static UINT32 curl_origtotalfilesize;
-static char *curl_realname = '\0';
+static char *curl_realname = NULL;
 fileneeded_t *curl_curfile = NULL;
 #endif
 
