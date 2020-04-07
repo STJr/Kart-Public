@@ -1172,7 +1172,8 @@ boolean HGetPacket(void)
 					|| netbuffer->packettype == PT_REQUESTFILE
 					|| netbuffer->packettype == PT_ASKINFOVIAMS
 					|| netbuffer->packettype == PT_CLIENTJOIN
-					|| netbuffer->packettype == PT_TELLFILESNEEDED))
+					|| netbuffer->packettype == PT_TELLFILESNEEDED
+					|| netbuffer->packettype == PT_CLIENTCMD))
 			{
 				DEBFILE(va("New node sent an unexpected %s packet\n", packettypename[netbuffer->packettype]));
 				CONS_Alert(CONS_NOTICE, "New node sent an unexpected %s packet\n", packettypename[netbuffer->packettype]);
