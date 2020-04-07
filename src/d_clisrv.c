@@ -1147,6 +1147,7 @@ static UINT8 cl_challengequestion[MD5_LEN+1];
 static char cl_challengepassword[65];
 static UINT8 cl_challengeanswer[MD5_LEN+1];
 static UINT8 cl_challengeattempted = 0;
+static char cl_challengeaddress[64];
 
 // Player name send/load
 
@@ -2275,6 +2276,8 @@ boolean CL_Responder(event_t *ev)
 
 #ifndef NONET
 		SL_ClearServerList(servernode);
+		if (I_NetMakeNodewPort)
+				servernode = I_NetMakeNode(cl_challengeaddress);
 #endif
 		cl_mode = CL_SEARCHING;
 
@@ -3794,7 +3797,7 @@ static void HandleConnect(SINT8 node)
 				D_MakeJoinPasswordChallenge(&netbuffer->u.joinchallenge.challengenum, netbuffer->u.joinchallenge.question);
 
 				netbuffer->packettype = PT_JOINCHALLENGE;
-				HSendPacket(node, true, 0, sizeof(joinchallenge_pak));
+				HSendPacket(node, false, 0, sizeof(joinchallenge_pak));
 				Net_CloseConnection(node);
 
 				return;
@@ -4017,6 +4020,8 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				cl_challengenum = netbuffer->u.joinchallenge.challengenum;
 				memcpy(cl_challengequestion, netbuffer->u.joinchallenge.question, 16);
 
+				if (I_GetNodeAddress)
+					strcpy(cl_challengeaddress, I_GetNodeAddress(node));
 				Net_CloseConnection(node); // Don't need to stay connected while challenging
 
 				cl_mode = CL_CHALLENGE;
@@ -4026,6 +4031,10 @@ static void HandlePacketFromAwayNode(SINT8 node)
 					case 2:
 						// We already sent a correct password, so throw it back up again.
 						D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
+#ifndef NONET
+						if (I_NetMakeNodewPort)
+							servernode = I_NetMakeNode(cl_challengeaddress);
+#endif
 						cl_mode = CL_ASKJOIN;
 						break;
 
