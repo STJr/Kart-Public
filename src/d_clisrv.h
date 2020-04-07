@@ -367,6 +367,9 @@ typedef struct
 
 #define MAXSERVERNAME 32
 #define MAXFILENEEDED 915
+#ifdef HAVE_CURL
+#define MAX_MIRROR_LENGTH 256
+#endif
 // This packet is too large
 typedef struct
 {
@@ -388,6 +391,9 @@ typedef struct
 	unsigned char mapmd5[16];
 	UINT8 actnum;
 	UINT8 iszone;
+#ifdef HAVE_CURL
+	char httpsource[MAX_MIRROR_LENGTH];
+#endif
 	UINT8 fileneeded[MAXFILENEEDED]; // is filled with writexxx (byteptr.h)
 } ATTRPACK serverinfo_pak;
 
@@ -495,6 +501,10 @@ extern INT32 mapchangepending;
 
 // Points inside doomcom
 extern doomdata_t *netbuffer;
+
+#ifdef HAVE_CURL
+extern consvar_t cv_httpsource;
+#endif
 
 extern consvar_t cv_showjoinaddress;
 extern consvar_t cv_playbackspeed;

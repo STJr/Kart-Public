@@ -10,6 +10,7 @@ Build-Depends: debhelper (>= 7.0.50~),
  libpng-dev | libpng16-dev | libpng12-dev (>= 1.2.7),
  zlib1g-dev,
  libgme-dev,
+ libcurl4-openssl-dev,
  libglu1-dev | libglu-dev,
  libosmesa6-dev | libgl-dev,
  nasm [i386]

@@ -42,6 +42,10 @@
 #include <utime.h>
 #endif
 
+#ifdef HAVE_CURL
+#include "curl/curl.h"
+#endif
+
 #include "doomdef.h"
 #include "doomstat.h"
 #include "d_main.h"
@@ -64,6 +68,11 @@
 
 // Prototypes
 static boolean SV_SendFile(INT32 node, const char *filename, UINT8 fileid);
+
+#ifdef HAVE_CURL
+size_t curlwrite_data(void *ptr, size_t size, size_t nmemb, FILE *stream);
+int curlprogress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow);
+#endif
 
 // Sender structure
 typedef struct filetx_s
@@ -99,6 +108,22 @@ char downloaddir[512] = "DOWNLOAD";
 #ifdef CLIENT_LOADINGSCREEN
 // for cl loading screen
 INT32 lastfilenum = -1;
+#endif
+
+#ifdef HAVE_CURL
+static CURL *http_handle;
+static CURLM *multi_handle;
+boolean curl_running = false;
+boolean curl_failedwebdownload = false;
+static double curl_dlnow;
+static double curl_dltotal;
+static time_t curl_starttime;
+INT32 curl_transfers = 0;
+static int curl_runninghandles = 0;
+static UINT32 curl_origfilesize;
+static UINT32 curl_origtotalfilesize;
+static char *curl_realname = '\0';
+fileneeded_t *curl_curfile = NULL;
 #endif
 
 /** Fills a serverinfo packet with information about wad files loaded.
@@ -238,10 +263,10 @@ boolean CL_CheckDownloadable(void)
 		{
 			CONS_Printf(" * \"%s\" (%dK)", fileneeded[i].filename, fileneeded[i].totalsize >> 10);
 
-				if (fileneeded[i].status == FS_NOTFOUND)
-					CONS_Printf(M_GetText(" not found, md5: "));
-				else if (fileneeded[i].status == FS_MD5SUMBAD)
+				if (fileneeded[i].status == FS_MD5SUMBAD)
 					CONS_Printf(M_GetText(" wrong version, md5: "));
+				else
+					CONS_Printf(M_GetText(" not found, md5: "));
 
 			{
 				INT32 j;
@@ -296,7 +321,7 @@ boolean CL_SendRequestFile(void)
 	netbuffer->packettype = PT_REQUESTFILE;
 	p = (char *)netbuffer->u.textcmd;
 	for (i = 0; i < fileneedednum; i++)
-		if ((fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD))
+		if ((fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD || fileneeded[i].status == FS_FALLBACK))
 		{
 			totalfreespaceneeded += fileneeded[i].totalsize;
 			nameonly(fileneeded[i].filename);
@@ -1015,3 +1040,145 @@ filestatus_t findfile(char *filename, const UINT8 *wantedmd5sum, boolean complet
 
 	return (badmd5 ? FS_MD5SUMBAD : FS_NOTFOUND); // md5 sum bad or file not found
 }
+
+#ifdef HAVE_CURL
+size_t curlwrite_data(void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+    size_t written;
+    written = fwrite(ptr, size, nmemb, stream);
+    return written;
+}
+
+int curlprogress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+	(void)clientp;
+	(void)ultotal;
+	(void)ulnow; // Function prototype requires these but we won't use, so just discard
+	curl_dlnow = dlnow;
+	curl_dltotal = dltotal;
+	getbytes = curl_dlnow / (time(NULL) - curl_starttime); // To-do: Make this more accurate???
+	return 0;
+}
+
+void CURLPrepareFile(const char* url, int dfilenum)
+{
+#ifdef PARANOIA
+	if (M_CheckParm("-nodownload"))
+		I_Error("Attempted to download files in -nodownload mode");
+#endif
+
+	curl_global_init(CURL_GLOBAL_ALL);
+
+	http_handle = curl_easy_init();
+	multi_handle = curl_multi_init();
+
+	if (http_handle && multi_handle)
+	{
+		I_mkdir(downloaddir, 0755);
+
+		curl_curfile = &fileneeded[dfilenum];
+		curl_realname = curl_curfile->filename;
+		nameonly(curl_realname);
+
+		curl_origfilesize = curl_curfile->currentsize;
+		curl_origtotalfilesize = curl_curfile->totalsize;
+
+		curl_easy_setopt(http_handle, CURLOPT_URL, va("%s/%s", url, curl_realname));
+
+		// Only allow HTTP and HTTPS
+		curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP|CURLPROTO_HTTPS);
+
+		curl_easy_setopt(http_handle, CURLOPT_USERAGENT, va("SRB2Kart/v%d.%d.%d", VERSION/100, VERSION%100, SUBVERSION)); // Set user agent as some servers won't accept invalid user agents.
+
+		// Follow a redirect request, if sent by the server.
+		curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1L);
+
+		curl_easy_setopt(http_handle, CURLOPT_FAILONERROR, 1L);
+
+		CONS_Printf("Downloading %s from %s\n", curl_realname, url);
+
+		strcatbf(curl_curfile->filename, downloaddir, "/");
+		curl_curfile->file = fopen(curl_curfile->filename, "wb");
+		curl_easy_setopt(http_handle, CURLOPT_WRITEDATA, curl_curfile->file);
+		curl_easy_setopt(http_handle, CURLOPT_WRITEFUNCTION, curlwrite_data);
+		curl_easy_setopt(http_handle, CURLOPT_NOPROGRESS, 0L);
+		curl_easy_setopt(http_handle, CURLOPT_PROGRESSFUNCTION, curlprogress_callback);
+
+		curl_curfile->status = FS_DOWNLOADING;
+		lastfilenum = dfilenum;
+		curl_multi_add_handle(multi_handle, http_handle);
+
+		curl_multi_perform(multi_handle, &curl_runninghandles);
+		curl_starttime = time(NULL);
+		curl_running = true;
+	}
+}
+
+void CURLGetFile(void)
+{
+	CURLMcode mc; /* return code used by curl_multi_perform and curl_multi_wait() */
+	int numfds;
+	CURLMsg *m; /* for picking up messages with the transfer status */
+	CURL *e;
+	int msgs_left; /* how many messages are left */
+
+    if (curl_runninghandles)
+    {
+    	curl_multi_perform(multi_handle, &curl_runninghandles);
+
+		/* wait for activity, timeout or "nothing" */
+		mc = curl_multi_wait(multi_handle, NULL, 0, 1000, &numfds);
+
+		if (mc != CURLM_OK)
+		{
+			CONS_Alert(CONS_WARNING, "curl_multi_wait() failed, code %d.\n", mc);
+			return;
+		}
+		curl_curfile->currentsize = curl_dlnow;
+		curl_curfile->totalsize = curl_dltotal;
+    }
+
+    /* See how the transfers went */
+	while ((m = curl_multi_info_read(multi_handle, &msgs_left)))
+	{
+		if (m && (m->msg == CURLMSG_DONE))
+		{
+			if (m->data.result != 0)
+			{
+				nameonly(curl_realname);
+				CONS_Printf(M_GetText("Failed to download %s...\n"), curl_realname);
+				curl_curfile->status = FS_FALLBACK;
+				curl_curfile->currentsize = curl_origfilesize;
+				curl_curfile->totalsize = curl_origtotalfilesize;
+				curl_failedwebdownload = true;
+				fclose(curl_curfile->file);
+				remove(curl_curfile->filename);
+				curl_curfile->file = NULL;
+				nameonly(curl_curfile->filename);
+			}
+			else
+			{
+				nameonly(curl_realname);
+				CONS_Printf(M_GetText("Finished downloading %s\n"), curl_realname);
+				curl_curfile->status = FS_FOUND;
+				fclose(curl_curfile->file);
+			}
+
+			e = m->easy_handle;
+			curl_running = false;
+			curl_transfers--;
+			curl_multi_remove_handle(multi_handle, e);
+			curl_easy_cleanup(e);
+
+			if (!curl_transfers)
+				break;
+		}
+	}
+
+    if (!curl_transfers)
+    {
+		curl_multi_cleanup(multi_handle);
+		curl_global_cleanup();
+    }
+}
+#endif
