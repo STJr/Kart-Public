@@ -55,9 +55,7 @@ const char *const hookNames[hook_MAX+1] = {
 	"HurtMsg",
 	"PlayerSpawn",
 	"PlayerQuit",
-#ifdef HAVE_LUA_MUSICPLUS
 	"MusicChange",
-#endif
 	"ShouldSpin",
 	"ShouldExplode",
 	"ShouldSquish",
@@ -1216,8 +1214,6 @@ void LUAh_PlayerQuit(player_t *plr, int reason)
 	lua_settop(gL, 0);
 }
 
-#ifdef HAVE_LUA_MUSICPLUS
-
 // Hook for music changes
 boolean LUAh_MusicChange(const char *oldname, char *newname, UINT16 *mflags, boolean *looping,
 	UINT32 *position, UINT32 *prefadems, UINT32 *fadeinms)
@@ -1276,8 +1272,6 @@ boolean LUAh_MusicChange(const char *oldname, char *newname, UINT16 *mflags, boo
 	newname[6] = 0;
 	return hooked;
 }
-
-#endif
 
 // Hook for K_SpinPlayer. Determines if yes or no we should get damaged reguardless of circumstances.
 UINT8 LUAh_ShouldSpin(player_t *player, mobj_t *inflictor, mobj_t *source)

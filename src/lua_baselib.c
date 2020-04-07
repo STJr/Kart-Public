@@ -1898,7 +1898,6 @@ static int lib_sSpeedMusic(lua_State *L)
 	return 1;
 }
 
-#ifdef HAVE_LUA_MUSICPLUS
 static int lib_sMusicType(lua_State *L)
 {
 	player_t *player = NULL;
@@ -2283,7 +2282,6 @@ static int lib_sFadeOutStopMusic(lua_State *L)
 	return 1;
 }
 
-#endif
 static int lib_sOriginPlaying(lua_State *L)
 {
 	void *origin = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
@@ -3114,7 +3112,6 @@ static luaL_Reg lib[] = {
 	{"S_ShowMusicCredit",lib_sShowMusicCredit},
 	{"S_ChangeMusic",lib_sChangeMusic},
 	{"S_SpeedMusic",lib_sSpeedMusic},
-#ifdef HAVE_LUA_MUSICPLUS
 	{"S_MusicType",lib_sMusicType},
 	{"S_MusicPlaying",lib_sMusicPlaying},
 	{"S_MusicPaused",lib_sMusicPaused},
@@ -3133,7 +3130,6 @@ static luaL_Reg lib[] = {
 	{"S_StopFadingMusic",lib_sStopFadingMusic},
 	{"S_FadeMusic",lib_sFadeMusic},
 	{"S_FadeOutStopMusic",lib_sFadeOutStopMusic},
-#endif
 	{"S_OriginPlaying",lib_sOriginPlaying},
 	{"S_IdPlaying",lib_sIdPlaying},
 	{"S_SoundPlaying",lib_sSoundPlaying},

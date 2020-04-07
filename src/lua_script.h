@@ -98,6 +98,4 @@ void COM_Lua_f(void);
 	}\
 }
 
-#define HAVE_LUA_MUSICPLUS
-
 #endif
