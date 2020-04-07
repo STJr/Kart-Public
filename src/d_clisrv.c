@@ -1354,7 +1354,9 @@ static boolean CL_SendJoin(void)
 static void SV_SendServerInfo(INT32 node, tic_t servertime)
 {
 	UINT8 *p;
+#ifdef HAVE_CURL
 	size_t mirror_length;
+#endif
 
 	netbuffer->packettype = PT_SERVERINFO;
 	netbuffer->u.serverinfo.version = VERSION;
