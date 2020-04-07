@@ -23,6 +23,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.4
           compiler: gcc-4.4
@@ -37,6 +38,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.6
           compiler: gcc-4.6
@@ -51,6 +53,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.7
           compiler: gcc-4.7
@@ -72,6 +75,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -88,6 +92,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-7
           compiler: gcc-7
@@ -104,6 +109,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-8
           compiler: gcc-8
@@ -124,6 +130,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - clang-3.5
           compiler: clang-3.5
@@ -140,6 +147,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - clang-3.6
           compiler: clang-3.6
@@ -156,6 +164,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - clang-3.7
           compiler: clang-3.7
@@ -172,6 +181,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - clang-3.8
           compiler: clang-3.8
@@ -188,6 +198,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - clang-3.9
           compiler: clang-3.9
@@ -294,6 +305,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -435,6 +447,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -458,6 +471,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -481,6 +495,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -504,6 +519,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -527,6 +543,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -567,6 +584,7 @@ addons:
     - libgl1-mesa-dev
     - libgme-dev
     - zlib1g-dev
+    - libcurl4-openssl-dev
     - p7zip-full
   homebrew:
     taps:
@@ -576,6 +594,7 @@ addons:
     - game-music-emu
     - p7zip
     - cmake
+    - curl
     update: true
 
 
