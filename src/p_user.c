@@ -7231,8 +7231,12 @@ static ticcmd_t *P_CameraCmd(camera_t *cam)
 	boolean turnleft, turnright, mouseaiming;
 	boolean invertmouse, lookaxis, usejoystick, kbl;
 	angle_t lang;
+	INT32 player_invert;
+	INT32 screen_invert;
 
 	ticcmd_t *cmd = &cameracmd;
+
+	(void)cam;
 
 	if (!demo.playback)
 		return cmd;	// empty cmd, no.
@@ -7312,8 +7316,8 @@ static ticcmd_t *P_CameraCmd(camera_t *cam)
 
 
 	// spectator aiming shit, ahhhh...
-	INT32 player_invert = invertmouse ? -1 : 1;
-	INT32 screen_invert = 1;	// nope
+	player_invert = invertmouse ? -1 : 1;
+	screen_invert = 1;	// nope
 
 	// mouse look stuff (mouse look is not the same as mouse aim)
 	kbl = false;
@@ -7425,12 +7429,11 @@ void P_DemoCameraMovement(camera_t *cam)
 
 void P_ResetCamera(player_t *player, camera_t *thiscam)
 {
+	tic_t tries = 0;
+	fixed_t x, y, z;
 
 	if (demo.freecam)
 		return;	// do not reset the camera there.
-
-	tic_t tries = 0;
-	fixed_t x, y, z;
 
 	if (!player->mo)
 		return;

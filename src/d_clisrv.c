@@ -5202,7 +5202,7 @@ static void Local_Maketic(INT32 realtics)
 void SV_SpawnPlayer(INT32 playernum, INT32 x, INT32 y, angle_t angle)
 {
 	tic_t tic;
-	UINT8 numadjust = 0;
+	UINT16 numadjust = 0;
 
 	(void)x;
 	(void)y;
