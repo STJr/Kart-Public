@@ -389,7 +389,10 @@ static void md2_loadTexture(md2_t *model)
 #endif
 		grpatch->mipmap.grInfo.format = PCX_Load(filename, &w, &h, grpatch);
 		if (grpatch->mipmap.grInfo.format == 0)
+		{
+			grpatch->notfound = true;// mark it so its not searched for again repeatedly
 			return;
+		}
 
 		grpatch->mipmap.downloaded = 0;
 		grpatch->mipmap.flags = 0;
@@ -438,6 +441,7 @@ static void md2_loadBlendTexture(md2_t *model)
 		grpatch->mipmap.grInfo.format = PCX_Load(filename, &w, &h, grpatch);
 		if (grpatch->mipmap.grInfo.format == 0)
 		{
+			grpatch->notfound = true;// mark it so its not searched for again repeatedly
 			Z_Free(filename);
 			return;
 		}
@@ -971,12 +975,14 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 		finalscale = md2->scale;
 		//Hurdler: arf, I don't like that implementation at all... too much crappy
 		gpatch = md2->grpatch;
-		if (!gpatch || !gpatch->mipmap.grInfo.format || !gpatch->mipmap.downloaded)
+		if (!gpatch || ((!gpatch->mipmap.grInfo.format || !gpatch->mipmap.downloaded) && !gpatch->notfound))
 			md2_loadTexture(md2);
 		gpatch = md2->grpatch; // Load it again, because it isn't being loaded into gpatch after md2_loadtexture...
 
 		if ((gpatch && gpatch->mipmap.grInfo.format) // don't load the blend texture if the base texture isn't available
-			&& (!md2->blendgrpatch || !((GLPatch_t *)md2->blendgrpatch)->mipmap.grInfo.format || !((GLPatch_t *)md2->blendgrpatch)->mipmap.downloaded))
+			&& (!md2->blendgrpatch
+			|| ((!((GLPatch_t *)md2->blendgrpatch)->mipmap.grInfo.format || !((GLPatch_t *)md2->blendgrpatch)->mipmap.downloaded)
+			&& !((GLPatch_t *)md2->blendgrpatch)->notfound)))
 			md2_loadBlendTexture(md2);
 
 		if (gpatch && gpatch->mipmap.grInfo.format) // else if meant that if a texture couldn't be loaded, it would just end up using something else's texture
