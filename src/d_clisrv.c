@@ -1449,7 +1449,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 		// If there's an encoding error, send nothing, we accept that the above may be truncated
 		strncpy(netbuffer->u.serverinfo.httpsource, "", mirror_length);
 
-	netbuffer->u.serverinfo.httpsource[MAX_MIRROR_LENGTH-1] = 0;
+	netbuffer->u.serverinfo.httpsource[MAX_MIRROR_LENGTH-1] = '\0';
 #endif
 
 	p = PutFileNeeded(0);
