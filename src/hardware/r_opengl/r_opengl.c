@@ -544,6 +544,9 @@ static char *gl_customfragmentshaders[MAXSHADERS];
 static boolean gl_allowshaders = false;
 static boolean gl_shadersenabled = false;
 static GLuint gl_currentshaderprogram = 0;
+static boolean gl_shaderprogramchanged = true;
+
+static boolean gl_batching = false;// are we currently collecting batches?
 
 // 13062019
 typedef enum
@@ -888,7 +891,11 @@ EXPORT void HWRAPI(SetShader) (int shader)
 	if (gl_allowshaders)
 	{
 		gl_shadersenabled = true;
-		gl_currentshaderprogram = shader;
+		if ((GLuint)shader != gl_currentshaderprogram)
+		{
+			gl_currentshaderprogram = shader;
+			gl_shaderprogramchanged = true;
+		}
 	}
 	else
 #endif
@@ -900,6 +907,8 @@ EXPORT void HWRAPI(UnSetShader) (void)
 #ifdef GL_SHADERS
 	gl_shadersenabled = false;
 	gl_currentshaderprogram = 0;
+	gl_shaderprogramchanged = true;// not sure if this is needed
+	pglUseProgram(0);
 #endif
 }
 
@@ -914,7 +923,7 @@ EXPORT void HWRAPI(KillShaders) (void)
 static void SetNoTexture(void)
 {
 	// Disable texture.
-	if (tex_downloaded != NOTEXTURE_NUM)
+	if (tex_downloaded != NOTEXTURE_NUM && !gl_batching)
 	{
 		pglBindTexture(GL_TEXTURE_2D, NOTEXTURE_NUM);
 		tex_downloaded = NOTEXTURE_NUM;
@@ -1395,7 +1404,8 @@ EXPORT void HWRAPI(SetTexture) (FTextureInfo *pTexInfo)
 	{
 		if (pTexInfo->downloaded != tex_downloaded)
 		{
-			pglBindTexture(GL_TEXTURE_2D, pTexInfo->downloaded);
+			if (!gl_batching)
+				pglBindTexture(GL_TEXTURE_2D, pTexInfo->downloaded);
 			tex_downloaded = pTexInfo->downloaded;
 		}
 	}
@@ -1638,10 +1648,22 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *f
 						return;
 					}
 					else	// enabled
-						pglUseProgram(gl_shaderprograms[gl_currentshaderprogram].program);
+					{
+						if (gl_shaderprogramchanged)
+						{
+							pglUseProgram(gl_shaderprograms[gl_currentshaderprogram].program);
+							gl_shaderprogramchanged = false;
+						}
+					}
 				}
 				else	// always load custom shaders
-					pglUseProgram(gl_shaderprograms[gl_currentshaderprogram].program);
+				{
+					if (gl_shaderprogramchanged)
+					{
+						pglUseProgram(gl_shaderprograms[gl_currentshaderprogram].program);
+						gl_shaderprogramchanged = false;
+					}
+				}
 			}
 
 			// set uniforms
@@ -1698,56 +1720,527 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *f
 		pglUseProgram(0);
 }
 
+// unfinished draw call batching
+
+// Note: could use realloc in the array reallocation code
+
+typedef struct 
+{
+	FSurfaceInfo surf;// surf also has its own polyflags for some reason, but it seems unused
+	unsigned int vertsIndex;// location of verts in unsortedVertexArray
+	FUINT numVerts;
+	FBITFIELD polyFlags;
+	GLuint texNum;
+	GLuint shader;
+} PolygonArrayEntry;
+
+FOutVector* finalVertexArray = NULL;// contains subset of sorted vertices and texture coordinates to be sent to gpu
+UINT32* finalVertexIndexArray = NULL;// contains indexes for glDrawElements, taking into account fan->triangles conversion
+//     NOTE have this alloced as 3x finalVertexArray size
+int finalVertexArrayAllocSize = 65536;
+//GLubyte* colorArray = NULL;// contains color data to be sent to gpu, if needed
+//int colorArrayAllocSize = 65536;
+// not gonna use this for now, just sort by color and change state when it changes
+// later maybe when using vertex attributes if it's needed
+
+PolygonArrayEntry* polygonArray = NULL;// contains the polygon data from DrawPolygon, waiting to be processed
+int polygonArraySize = 0;
+unsigned int* polygonIndexArray = NULL;// contains sorting pointers for polygonArray
+int polygonArrayAllocSize = 65536;
+
+FOutVector* unsortedVertexArray = NULL;// contains unsorted vertices and texture coordinates from DrawPolygon
+int unsortedVertexArraySize = 0;
+int unsortedVertexArrayAllocSize = 65536;
+
+EXPORT void HWRAPI(StartBatching) (void)
+{
+	//CONS_Printf("StartBatching begin\n");
+	// init arrays if that has not been done yet
+	if (!finalVertexArray)
+	{
+		finalVertexArray = malloc(finalVertexArrayAllocSize * sizeof(FOutVector));
+		finalVertexIndexArray = malloc(finalVertexArrayAllocSize * 3 * sizeof(UINT32));
+		polygonArray = malloc(polygonArrayAllocSize * sizeof(PolygonArrayEntry));
+		polygonIndexArray = malloc(polygonArrayAllocSize * sizeof(unsigned int));
+		unsortedVertexArray = malloc(unsortedVertexArrayAllocSize * sizeof(FOutVector));
+	}
+	// drawing functions will now collect the drawing data instead of passing it to opengl
+	gl_batching = true;
+	//CONS_Printf("StartBatching end\n");
+}
+
+static int comparePolygons(const void *p1, const void *p2)
+{
+	PolygonArrayEntry* poly1 = &polygonArray[*(const unsigned int*)p1];
+	PolygonArrayEntry* poly2 = &polygonArray[*(const unsigned int*)p2];
+	int diff;
+	INT64 diff64;
+	
+	int shader1 = poly1->shader;
+	int shader2 = poly2->shader;
+	// make skywalls first in order
+	if (poly1->polyFlags & PF_NoTexture)
+		shader1 = -1;
+	if (poly2->polyFlags & PF_NoTexture)
+		shader2 = -1;
+	diff = shader1 - shader2;
+	if (diff != 0) return diff;
+	
+	diff = poly1->texNum - poly2->texNum;
+	if (diff != 0) return diff;
+	
+	diff = poly1->polyFlags - poly2->polyFlags;
+	if (diff != 0) return diff;
+	
+	diff64 = poly1->surf.PolyColor.rgba - poly2->surf.PolyColor.rgba;
+	if (diff64 < 0) return -1; else if (diff64 > 0) return 1;
+	diff64 = poly1->surf.FadeColor.rgba - poly2->surf.FadeColor.rgba;
+	if (diff64 < 0) return -1; else if (diff64 > 0) return 1;
+	
+	diff = poly1->surf.LightInfo.light_level - poly2->surf.LightInfo.light_level;
+	return diff;
+}
+
+static int comparePolygonsNoShaders(const void *p1, const void *p2)
+{
+	PolygonArrayEntry* poly1 = &polygonArray[*(const unsigned int*)p1];
+	PolygonArrayEntry* poly2 = &polygonArray[*(const unsigned int*)p2];
+	int diff;
+	INT64 diff64;
+	
+	GLuint texNum1 = poly1->texNum;
+	GLuint texNum2 = poly2->texNum;
+	if (poly1->polyFlags & PF_NoTexture)
+		texNum1 = 0;
+	if (poly2->polyFlags & PF_NoTexture)
+		texNum2 = 0;
+	diff = texNum1 - texNum2;
+	if (diff != 0) return diff;
+	
+	diff = poly1->polyFlags - poly2->polyFlags;
+	if (diff != 0) return diff;
+	
+	diff64 = poly1->surf.PolyColor.rgba - poly2->surf.PolyColor.rgba;
+	if (diff64 < 0) return -1; else if (diff64 > 0) return 1;
+
+	return 0;
+}
+
+// the parameters for this functions (numPolys etc.) are used to return rendering stats
+EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCalls, int *sNumShaders, int *sNumTextures, int *sNumPolyFlags, int *sNumColors, int *sSortTime, int *sDrawTime)
+{
+	int finalVertexWritePos = 0;// position in finalVertexArray
+	int finalIndexWritePos = 0;// position in finalVertexIndexArray
+
+	int polygonReadPos = 0;// position in polygonIndexArray
+
+	GLuint currentShader;
+	GLuint currentTexture;
+	FBITFIELD currentPolyFlags;
+	FSurfaceInfo currentSurfaceInfo;
+
+	GLRGBAFloat firstPoly = {0,0,0,0}; // may be misleading but this means first PolyColor
+	GLRGBAFloat firstFade = {0,0,0,0};
+
+	boolean needRebind = false;
+
+	int i;
+
+	//CONS_Printf("RenderBatches\n");
+	gl_batching = false;// no longer collecting batches
+	if (!polygonArraySize)
+	{
+		*sNumPolys = *sNumCalls = *sNumShaders = *sNumTextures = *sNumPolyFlags = *sNumColors = 0;
+		return;// nothing to draw
+	}
+	// init stats vars
+	*sNumPolys = polygonArraySize;
+	*sNumCalls = *sNumVerts = 0;
+	*sNumShaders = *sNumTextures = *sNumPolyFlags = *sNumColors = 1;
+	// init polygonIndexArray
+	for (i = 0; i < polygonArraySize; i++)
+	{
+		polygonIndexArray[i] = i;
+	}
+
+	// sort polygons
+	//CONS_Printf("qsort polys\n");
+	//*sSortTime = I_GetTimeMicros();
+	if (gl_allowshaders)
+		qsort(polygonIndexArray, polygonArraySize, sizeof(unsigned int), comparePolygons);
+	else
+		qsort(polygonIndexArray, polygonArraySize, sizeof(unsigned int), comparePolygonsNoShaders);
+	//*sSortTime = I_GetTimeMicros() - *sSortTime;
+	//CONS_Printf("sort done\n");
+	// sort order
+	// 1. shader
+	// 2. texture
+	// 3. polyflags
+	// 4. colors + light level
+	// not sure about order of last 2, or if it even matters
+
+	//*sDrawTime = I_GetTimeMicros();
+
+	currentShader = polygonArray[polygonIndexArray[0]].shader;
+	currentTexture = polygonArray[polygonIndexArray[0]].texNum;
+	currentPolyFlags = polygonArray[polygonIndexArray[0]].polyFlags;
+	currentSurfaceInfo = polygonArray[polygonIndexArray[0]].surf;
+	// For now, will sort and track the colors. Vertex attributes could be used instead of uniforms
+	// and a color array could replace the color calls.
+	
+	// set state for first batch
+	//CONS_Printf("set first state\n");
+	gl_currentshaderprogram = currentShader;
+	gl_shaderprogramchanged = true;
+	if (currentPolyFlags & PF_Modulated)
+	{
+		// Poly color
+		firstPoly.red    = byte2float[currentSurfaceInfo.PolyColor.s.red];
+		firstPoly.green  = byte2float[currentSurfaceInfo.PolyColor.s.green];
+		firstPoly.blue   = byte2float[currentSurfaceInfo.PolyColor.s.blue];
+		firstPoly.alpha  = byte2float[currentSurfaceInfo.PolyColor.s.alpha];
+		pglColor4ubv((GLubyte*)&currentSurfaceInfo.PolyColor.s);
+	}
+	// Fade color
+	firstFade.red   = byte2float[currentSurfaceInfo.FadeColor.s.red];
+	firstFade.green = byte2float[currentSurfaceInfo.FadeColor.s.green];
+	firstFade.blue  = byte2float[currentSurfaceInfo.FadeColor.s.blue];
+	firstFade.alpha = byte2float[currentSurfaceInfo.FadeColor.s.alpha];
+	
+	if (gl_allowshaders)
+		load_shaders(&currentSurfaceInfo, &firstPoly, &firstFade);
+	
+	if (currentPolyFlags & PF_NoTexture)
+		currentTexture = 0;
+	pglBindTexture(GL_TEXTURE_2D, currentTexture);
+	tex_downloaded = currentTexture;
+	
+	SetBlend(currentPolyFlags);
+	
+	//CONS_Printf("first pointers to ogl\n");
+	pglVertexPointer(3, GL_FLOAT, sizeof(FOutVector), &finalVertexArray[0].x);
+	pglTexCoordPointer(2, GL_FLOAT, sizeof(FOutVector), &finalVertexArray[0].s);
+	
+	while (1)// note: remember handling notexture polyflag as having texture number 0 (also in comparePolygons)
+	{
+		int firstIndex;
+		int lastIndex;
+
+		boolean stopFlag = false;
+		boolean changeState = false;
+		boolean changeShader = false;
+		GLuint nextShader;
+		boolean changeTexture = false;
+		GLuint nextTexture;
+		boolean changePolyFlags = false;
+		FBITFIELD nextPolyFlags;
+		boolean changeSurfaceInfo = false;
+		FSurfaceInfo nextSurfaceInfo;
+
+		//CONS_Printf("loop iter start\n");
+		// new try:
+		// write vertices
+		// check for changes or end, otherwise go back to writing
+			// changes will affect the next vars and the change bools
+			// end could set flag for stopping
+		// execute draw call
+		// could check ending flag here
+		// change states according to next vars and change bools, updating the current vars and reseting the bools
+		// reset write pos
+		// repeat loop
+		
+		int index = polygonIndexArray[polygonReadPos++];
+		int numVerts = polygonArray[index].numVerts;
+		// before writing, check if there is enough room
+		// using 'while' instead of 'if' here makes sure that there will *always* be enough room.
+		// probably never will this loop run more than once though
+		while (finalVertexWritePos + numVerts > finalVertexArrayAllocSize)
+		{
+			FOutVector* new_array;
+			unsigned int* new_index_array;
+			//CONS_Printf("final vert realloc\n");
+			finalVertexArrayAllocSize *= 2;
+			new_array = malloc(finalVertexArrayAllocSize * sizeof(FOutVector));
+			memcpy(new_array, finalVertexArray, finalVertexWritePos * sizeof(FOutVector));
+			free(finalVertexArray);
+			finalVertexArray = new_array;
+			// also increase size of index array, 3x of vertex array since
+			// going from fans to triangles increases vertex count to 3x
+			new_index_array = malloc(finalVertexArrayAllocSize * 3 * sizeof(UINT32));
+			memcpy(new_index_array, finalVertexIndexArray, finalIndexWritePos * sizeof(UINT32));
+			free(finalVertexIndexArray);
+			finalVertexIndexArray = new_index_array;
+			// if vertex buffers are reallocated then opengl needs to know too
+			needRebind = true;
+		}
+		//CONS_Printf("write verts to final\n");
+		// write the vertices of the polygon
+		memcpy(&finalVertexArray[finalVertexWritePos], &unsortedVertexArray[polygonArray[index].vertsIndex],
+			numVerts * sizeof(FOutVector));
+		// write the indexes, pointing to the fan vertexes but in triangles format
+		firstIndex = finalVertexWritePos;
+		lastIndex = finalVertexWritePos + numVerts;
+		finalVertexWritePos += 2;
+		//CONS_Printf("write final vert indices\n");
+		while (finalVertexWritePos < lastIndex)
+		{
+			finalVertexIndexArray[finalIndexWritePos++] = firstIndex;
+			finalVertexIndexArray[finalIndexWritePos++] = finalVertexWritePos - 1;
+			finalVertexIndexArray[finalIndexWritePos++] = finalVertexWritePos++;
+		}
+		
+		if (polygonReadPos >= polygonArraySize)
+		{
+			stopFlag = true;
+		}
+		else
+		{
+			//CONS_Printf("state change check\n");
+			// check if a state change is required, set the change bools and next vars
+			int nextIndex = polygonIndexArray[polygonReadPos];
+			nextShader = polygonArray[nextIndex].shader;
+			nextTexture = polygonArray[nextIndex].texNum;
+			nextPolyFlags = polygonArray[nextIndex].polyFlags;
+			nextSurfaceInfo = polygonArray[nextIndex].surf;
+			if (nextPolyFlags & PF_NoTexture)
+				nextTexture = 0;
+			if (currentShader != nextShader)
+			{
+				changeState = true;
+				changeShader = true;
+			}
+			if (currentTexture != nextTexture)
+			{
+				changeState = true;
+				changeTexture = true;
+			}
+			if (currentPolyFlags != nextPolyFlags)
+			{
+				changeState = true;
+				changePolyFlags = true;
+			}
+			if (gl_allowshaders)
+			{
+				if (currentSurfaceInfo.PolyColor.rgba != nextSurfaceInfo.PolyColor.rgba ||
+					currentSurfaceInfo.FadeColor.rgba != nextSurfaceInfo.FadeColor.rgba ||
+					currentSurfaceInfo.LightInfo.light_level != nextSurfaceInfo.LightInfo.light_level)
+				{
+					changeState = true;
+					changeSurfaceInfo = true;
+				}
+			}
+			else
+			{
+				if (currentSurfaceInfo.PolyColor.rgba != nextSurfaceInfo.PolyColor.rgba)
+				{
+					changeState = true;
+					changeSurfaceInfo = true;
+				}
+			}
+		}
+		
+		if (changeState || stopFlag)
+		{
+			if (needRebind)
+			{
+				//CONS_Printf("rebind\n");
+				pglVertexPointer(3, GL_FLOAT, sizeof(FOutVector), &finalVertexArray[0].x);
+				pglTexCoordPointer(2, GL_FLOAT, sizeof(FOutVector), &finalVertexArray[0].s);
+				needRebind = false;
+			}
+			//CONS_Printf("exec draw call\n");
+			// execute draw call
+			pglDrawElements(GL_TRIANGLES, finalIndexWritePos, GL_UNSIGNED_INT, finalVertexIndexArray);
+			//CONS_Printf("draw call done\n");
+			// update stats
+			(*sNumCalls)++;
+			*sNumVerts += finalIndexWritePos;
+			// reset write positions
+			finalVertexWritePos = 0;
+			finalIndexWritePos = 0;
+		}
+		else continue;
+		
+		// if we're here then either its time to stop or time to change state
+		if (stopFlag) break;
+		
+		//CONS_Printf("state change\n");
+		
+		// change state according to change bools and next vars, update current vars and reset bools
+		if (changeShader)
+		{
+			GLRGBAFloat poly = {0,0,0,0};
+			GLRGBAFloat fade = {0,0,0,0};
+			gl_currentshaderprogram = nextShader;
+			gl_shaderprogramchanged = true;
+			if (nextPolyFlags & PF_Modulated)
+			{
+				// Poly color
+				poly.red    = byte2float[nextSurfaceInfo.PolyColor.s.red];
+				poly.green  = byte2float[nextSurfaceInfo.PolyColor.s.green];
+				poly.blue   = byte2float[nextSurfaceInfo.PolyColor.s.blue];
+				poly.alpha  = byte2float[nextSurfaceInfo.PolyColor.s.alpha];
+			}
+			// Fade color
+			fade.red   = byte2float[nextSurfaceInfo.FadeColor.s.red];
+			fade.green = byte2float[nextSurfaceInfo.FadeColor.s.green];
+			fade.blue  = byte2float[nextSurfaceInfo.FadeColor.s.blue];
+			fade.alpha = byte2float[nextSurfaceInfo.FadeColor.s.alpha];
+			
+			load_shaders(&nextSurfaceInfo, &poly, &fade);
+			currentShader = nextShader;
+			changeShader = false;
+
+			(*sNumShaders)++;
+		}
+		if (changeTexture)
+		{
+			// texture should be already ready for use from calls to SetTexture during batch collection
+			pglBindTexture(GL_TEXTURE_2D, nextTexture);
+			tex_downloaded = nextTexture;
+			currentTexture = nextTexture;
+			changeTexture = false;
+
+			(*sNumTextures)++;
+		}
+		if (changePolyFlags)
+		{
+			SetBlend(nextPolyFlags);
+			currentPolyFlags = nextPolyFlags;
+			changePolyFlags = false;
+
+			(*sNumPolyFlags)++;
+		}
+		if (changeSurfaceInfo)
+		{
+			GLRGBAFloat poly = {0,0,0,0};
+			GLRGBAFloat fade = {0,0,0,0};
+			gl_shaderprogramchanged = false;
+			if (nextPolyFlags & PF_Modulated)
+			{
+				// Poly color
+				poly.red    = byte2float[nextSurfaceInfo.PolyColor.s.red];
+				poly.green  = byte2float[nextSurfaceInfo.PolyColor.s.green];
+				poly.blue   = byte2float[nextSurfaceInfo.PolyColor.s.blue];
+				poly.alpha  = byte2float[nextSurfaceInfo.PolyColor.s.alpha];
+				pglColor4ubv((GLubyte*)&nextSurfaceInfo.PolyColor.s);
+			}
+			if (gl_allowshaders)
+			{
+				// Fade color
+				fade.red   = byte2float[nextSurfaceInfo.FadeColor.s.red];
+				fade.green = byte2float[nextSurfaceInfo.FadeColor.s.green];
+				fade.blue  = byte2float[nextSurfaceInfo.FadeColor.s.blue];
+				fade.alpha = byte2float[nextSurfaceInfo.FadeColor.s.alpha];
+				
+				load_shaders(&nextSurfaceInfo, &poly, &fade);
+			}
+			currentSurfaceInfo = nextSurfaceInfo;
+			changeSurfaceInfo = false;
+
+			(*sNumColors)++;
+		}
+		// and that should be it?
+	}
+	// reset the arrays (set sizes to 0)
+	polygonArraySize = 0;
+	unsortedVertexArraySize = 0;
+	
+	//*sDrawTime = I_GetTimeMicros() - *sDrawTime;
+}
+
 // -----------------+
 // DrawPolygon      : Render a polygon, set the texture, set render mode
 // -----------------+
 EXPORT void HWRAPI(DrawPolygon) (FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUINT iNumPts, FBITFIELD PolyFlags)
 {
-	static GLRGBAFloat mix = {0,0,0,0};
-	static GLRGBAFloat fade = {0,0,0,0};
-
-	SetBlend(PolyFlags);    //TODO: inline (#pragma..)
-
-	// PolyColor
-	if (pSurf)
+	if (gl_batching)
 	{
-		// If Modulated, mix the surface colour to the texture
-		if (CurrentPolyFlags & PF_Modulated)
+		//CONS_Printf("Batched DrawPolygon\n");
+		if (!pSurf)
+			I_Error("Got a null FSurfaceInfo in batching");// nulls should only come in sky background pic drawing
+		if (polygonArraySize == polygonArrayAllocSize)
 		{
-			// Mix color
-			mix.red    = byte2float[pSurf->PolyColor.s.red];
-			mix.green  = byte2float[pSurf->PolyColor.s.green];
-			mix.blue   = byte2float[pSurf->PolyColor.s.blue];
-			mix.alpha  = byte2float[pSurf->PolyColor.s.alpha];
-
-			pglColor4ubv((GLubyte*)&pSurf->PolyColor.s);
+			PolygonArrayEntry* new_array;
+			// ran out of space, make new array double the size
+			polygonArrayAllocSize *= 2;
+			new_array = malloc(polygonArrayAllocSize * sizeof(PolygonArrayEntry));
+			memcpy(new_array, polygonArray, polygonArraySize * sizeof(PolygonArrayEntry));
+			free(polygonArray);
+			polygonArray = new_array;
+			// also need to redo the index array, dont need to copy it though
+			free(polygonIndexArray);
+			polygonIndexArray = malloc(polygonArrayAllocSize * sizeof(unsigned int));
 		}
 
-		// Fade color
-		fade.red   = byte2float[pSurf->FadeColor.s.red];
-		fade.green = byte2float[pSurf->FadeColor.s.green];
-		fade.blue  = byte2float[pSurf->FadeColor.s.blue];
-		fade.alpha = byte2float[pSurf->FadeColor.s.alpha];
+		while (unsortedVertexArraySize + (int)iNumPts > unsortedVertexArrayAllocSize)
+		{
+			FOutVector* new_array;
+			// need more space for vertices in unsortedVertexArray
+			unsortedVertexArrayAllocSize *= 2;
+			new_array = malloc(unsortedVertexArrayAllocSize * sizeof(FOutVector));
+			memcpy(new_array, unsortedVertexArray, unsortedVertexArraySize * sizeof(FOutVector));
+			free(unsortedVertexArray);
+			unsortedVertexArray = new_array;
+		}	
+
+		// add the polygon data to the arrays
+
+		polygonArray[polygonArraySize].surf = *pSurf;
+		polygonArray[polygonArraySize].vertsIndex = unsortedVertexArraySize;
+		polygonArray[polygonArraySize].numVerts = iNumPts;
+		polygonArray[polygonArraySize].polyFlags = PolyFlags;
+		polygonArray[polygonArraySize].texNum = tex_downloaded;
+		polygonArray[polygonArraySize].shader = gl_currentshaderprogram;
+		polygonArraySize++;
+
+		memcpy(&unsortedVertexArray[unsortedVertexArraySize], pOutVerts, iNumPts * sizeof(FOutVector));
+		unsortedVertexArraySize += iNumPts;
 	}
+	else
+	{
+		static GLRGBAFloat mix = {0,0,0,0};
+		static GLRGBAFloat fade = {0,0,0,0};
 
-	load_shaders(pSurf, &mix, &fade);
+		SetBlend(PolyFlags);    //TODO: inline (#pragma..)
 
-	pglVertexPointer(3, GL_FLOAT, sizeof(FOutVector), &pOutVerts[0].x);
-	pglTexCoordPointer(2, GL_FLOAT, sizeof(FOutVector), &pOutVerts[0].s);
-	pglDrawArrays(GL_TRIANGLE_FAN, 0, iNumPts);
+		// PolyColor
+		if (pSurf)
+		{
+			// If Modulated, mix the surface colour to the texture
+			if (CurrentPolyFlags & PF_Modulated)
+			{
+				// Mix color
+				mix.red    = byte2float[pSurf->PolyColor.s.red];
+				mix.green  = byte2float[pSurf->PolyColor.s.green];
+				mix.blue   = byte2float[pSurf->PolyColor.s.blue];
+				mix.alpha  = byte2float[pSurf->PolyColor.s.alpha];
 
-	if (PolyFlags & PF_RemoveYWrap)
-		pglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				pglColor4ubv((GLubyte*)&pSurf->PolyColor.s);
+			}
 
-	if (PolyFlags & PF_ForceWrapX)
-		Clamp2D(GL_TEXTURE_WRAP_S);
+			// Fade color
+			fade.red   = byte2float[pSurf->FadeColor.s.red];
+			fade.green = byte2float[pSurf->FadeColor.s.green];
+			fade.blue  = byte2float[pSurf->FadeColor.s.blue];
+			fade.alpha = byte2float[pSurf->FadeColor.s.alpha];
+		}
 
-	if (PolyFlags & PF_ForceWrapY)
-		Clamp2D(GL_TEXTURE_WRAP_T);
+		load_shaders(pSurf, &mix, &fade);
 
-#ifdef GL_SHADERS
-	pglUseProgram(0);
-#endif
+		pglVertexPointer(3, GL_FLOAT, sizeof(FOutVector), &pOutVerts[0].x);
+		pglTexCoordPointer(2, GL_FLOAT, sizeof(FOutVector), &pOutVerts[0].s);
+		pglDrawArrays(GL_TRIANGLE_FAN, 0, iNumPts);
+
+		if (PolyFlags & PF_RemoveYWrap)
+			pglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		if (PolyFlags & PF_ForceWrapX)
+			Clamp2D(GL_TEXTURE_WRAP_S);
+
+		if (PolyFlags & PF_ForceWrapY)
+			Clamp2D(GL_TEXTURE_WRAP_T);
+	}
 }
 
 // ==========================================================================
@@ -2218,10 +2711,6 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 	pglPopMatrix(); // should be the same as glLoadIdentity
 	pglDisable(GL_CULL_FACE);
 	pglDisable(GL_NORMALIZE);
-
-#ifdef GL_SHADERS
-	pglUseProgram(0);
-#endif
 }
 
 // -----------------+

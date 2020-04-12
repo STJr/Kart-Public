@@ -75,6 +75,8 @@ consvar_t cv_granisotropicmode = {"gr_anisotropicmode", "1", CV_CALL, granisotro
 consvar_t cv_grcorrecttricks = {"gr_correcttricks", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_grsolvetjoin = {"gr_solvetjoin", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
+consvar_t cv_grbatching = {"gr_batching", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 static void CV_filtermode_ONChange(void)
 {
 	HWD.pfnSetSpecialState(HWD_SET_TEXTUREFILTERMODE, cv_grfiltermode.value);
@@ -4775,11 +4777,21 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 	else
 		HWD.pfnSetSpecialState(HWD_SET_FOG_MODE, 0); // Turn it off
 
+	if (cv_grbatching.value)
+		HWD.pfnStartBatching();
+
 	drawcount = 0;
 	validcount++;
 
 	// Recursively "render" the BSP tree.
 	HWR_RenderBSPNode((INT32)numnodes-1);
+	
+	if (cv_grbatching.value)
+	{
+		int dummy = 0;// the vars in RenderBatches are meant for render stats. But we don't have that stuff in this branch
+					// so that stuff could be removed...
+		HWD.pfnRenderBatches(&dummy, &dummy, &dummy, &dummy, &dummy, &dummy, &dummy, &dummy, &dummy);
+	}
 
 	// Check for new console commands.
 	NetUpdate();
@@ -4872,6 +4884,8 @@ void HWR_AddCommands(void)
 	CV_RegisterVar(&cv_granisotropicmode);
 	CV_RegisterVar(&cv_grcorrecttricks);
 	CV_RegisterVar(&cv_grsolvetjoin);
+	
+	CV_RegisterVar(&cv_grbatching);
 }
 
 // --------------------------------------------------------------------------

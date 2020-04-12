@@ -1879,6 +1879,9 @@ void I_StartupGraphics(void)
 
 		HWD.pfnLoadCustomShader = hwSym("LoadCustomShader",NULL);
 		HWD.pfnInitCustomShaders = hwSym("InitCustomShaders",NULL);
+		
+		HWD.pfnStartBatching = hwSym("StartBatching",NULL);
+		HWD.pfnRenderBatches = hwSym("RenderBatches",NULL);
 
 		if (!HWD.pfnInit()) // load the OpenGL library
 			rendermode = render_soft;
