@@ -1938,7 +1938,7 @@ static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacks
 		checkforemptylines = false;
 
 		// before we do anything, if both sectors are thok barriers, GET ME OUT OF HERE!
-		if (frontc1 <= backc1 && frontc2 <= frontc2)
+		if (frontc1 <= backc1 && frontc2 <= backc2)
 			return true;	// STOP RENDERING.
 
 		// draw floors at the top of thok barriers:
