@@ -172,9 +172,7 @@ consvar_t cv_showjoinaddress = {"showjoinaddress", "On", CV_SAVE, CV_OnOff, NULL
 static CV_PossibleValue_t playbackspeed_cons_t[] = {{1, "MIN"}, {10, "MAX"}, {0, NULL}};
 consvar_t cv_playbackspeed = {"playbackspeed", "1", 0, playbackspeed_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-#ifdef HAVE_CURL
 consvar_t cv_httpsource = {"http_source", "", CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
-#endif
 
 static inline void *G_DcpyTiccmd(void* dest, const ticcmd_t* src, const size_t n)
 {
@@ -1356,6 +1354,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	UINT8 *p;
 #ifdef HAVE_CURL
 	size_t mirror_length;
+	const char *httpurl = cv_httpsource.string;
 #endif
 
 	netbuffer->packettype = PT_SERVERINFO;
@@ -1389,9 +1388,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 		netbuffer->u.serverinfo.iszone = 0;
 
 	memset(netbuffer->u.serverinfo.maptitle, 0, 33);
-#ifdef HAVE_CURL
 	memset(netbuffer->u.serverinfo.httpsource, 0, MAX_MIRROR_LENGTH);
-#endif
 
 	if (!(mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU) && mapheaderinfo[gamemap-1]->lvlttl[0])
 	{
@@ -1444,13 +1441,13 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	netbuffer->u.serverinfo.actnum = 0; //mapheaderinfo[gamemap-1]->actnum
 
 #ifdef HAVE_CURL
-	mirror_length = strlen(cv_httpsource.string);
+	mirror_length = strlen(httpurl);
 	if (mirror_length > MAX_MIRROR_LENGTH)
 		mirror_length = MAX_MIRROR_LENGTH;
 
-	if (snprintf(netbuffer->u.serverinfo.httpsource, MAX_MIRROR_LENGTH, "%s", cv_httpsource.string) < 0)
+	if (snprintf(netbuffer->u.serverinfo.httpsource, mirror_length, "%s", httpurl) < 0)
 		// If there's an encoding error, send nothing, we accept that the above may be truncated
-		strncpy(netbuffer->u.serverinfo.httpsource, "", MAX_MIRROR_LENGTH);
+		strncpy(netbuffer->u.serverinfo.httpsource, "", mirror_length);
 
 	netbuffer->u.serverinfo.httpsource[MAX_MIRROR_LENGTH-1] = 0;
 #endif
@@ -2053,6 +2050,9 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 				strncpy(http_source, serverlist[i].info.httpsource, MAX_MIRROR_LENGTH);
 			else
 				http_source[0] = '\0';
+#else
+			if (serverlist[i].info.httpsource[0])
+				CONS_Printf("We received a http url from the server, however it will not be used as this build lacks curl support (%s)\n", serverlist[i].info.httpsource);
 #endif
 
 			D_ParseFileneeded(serverlist[i].info.fileneedednum, serverlist[i].info.fileneeded, 0);
@@ -3980,9 +3980,6 @@ static void HandleServerInfo(SINT8 node)
 	netbuffer->u.serverinfo.time = (tic_t)LONG(ticdiff);
 	netbuffer->u.serverinfo.servername[MAXSERVERNAME-1] = 0;
 	netbuffer->u.serverinfo.gametype = (UINT8)((netbuffer->u.serverinfo.gametype == VANILLA_GT_MATCH) ? GT_MATCH : GT_RACE);
-#ifdef HAVE_CURL
-	netbuffer->u.serverinfo.httpsource[MAX_MIRROR_LENGTH-1] = 0;
-#endif
 
 	SL_InsertServer(&netbuffer->u.serverinfo, node);
 }
