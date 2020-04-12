@@ -1177,7 +1177,6 @@ void R_ClearColormaps(void)
 //
 static double deltas[256][3], map[256][3];
 
-UINT8 NearestColor(UINT8 r, UINT8 g, UINT8 b);
 static int RoundUp(double number);
 
 #ifdef HASINVERT

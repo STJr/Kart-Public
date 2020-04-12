@@ -102,4 +102,6 @@ UINT8 NearestColor(UINT8 r, UINT8 g, UINT8 b);
 
 extern INT32 numtextures;
 
+UINT8 NearestColor(UINT8 r, UINT8 g, UINT8 b);
+
 #endif

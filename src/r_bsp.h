@@ -44,7 +44,6 @@ void R_AddPortal(INT32 line1, INT32 line2, INT32 x1, INT32 x2);
 // no longer a static since this is used for encore in hw_main.c as well now:
 boolean R_NoEncore(sector_t *sector, boolean ceiling);
 
-
 #ifdef POLYOBJECTS
 void R_SortPolyObjects(subsector_t *sub);
 

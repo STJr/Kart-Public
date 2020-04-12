@@ -160,7 +160,7 @@ void NDS3D_DrawPolygon(FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUINT iNumPts
 			z = pOutVerts[index].z;
 		}
 
-		glTexCoord2f(pOutVerts[index].sow, pOutVerts[index].tow);
+		glTexCoord2f(pOutVerts[index].s, pOutVerts[index].tow);
 		glVertex3f(x,y,z);
 	}
 	glEnd();

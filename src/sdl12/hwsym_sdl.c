@@ -49,14 +49,6 @@
 
 #define  _CREATE_DLL_  // necessary for Unix AND Windows
 
-#ifdef HWRENDER
-#include "../hardware/hw_drv.h"
-#include "ogl_sdl.h"
-#ifdef STATIC_OPENGL
-#include "../hardware/r_opengl/r_opengl.h"
-#endif
-#endif
-
 #ifdef HW3SOUND
 #include "../hardware/hw3dsdrv.h"
 #endif
@@ -79,39 +71,8 @@
 void *hwSym(const char *funcName,void *handle)
 {
 	void *funcPointer = NULL;
-#ifdef HWRENDER
-	if (0 == strcmp("SetPalette", funcName))
-                funcPointer = &OglSdlSetPalette;
-	GETFUNC(Init);
-	GETFUNC(Draw2DLine);
-	GETFUNC(DrawPolygon);
-	GETFUNC(SetBlend);
-	GETFUNC(ClearBuffer);
-	GETFUNC(SetTexture);
-	GETFUNC(ReadRect);
-	GETFUNC(GClipRect);
-	GETFUNC(ClearMipMapCache);
-	GETFUNC(SetSpecialState);
-	GETFUNC(GetTextureUsed);
-	GETFUNC(DrawMD2);
-	GETFUNC(DrawMD2i);
-	GETFUNC(SetTransform);
-	GETFUNC(GetRenderVersion);
-#ifdef SHUFFLE
-	GETFUNC(PostImgRedraw);
-#endif //SHUFFLE
-	GETFUNC(FlushScreenTextures);
-	GETFUNC(StartScreenWipe);
-	GETFUNC(EndScreenWipe);
-	GETFUNC(DoScreenWipe);
-	GETFUNC(DrawIntermissionBG);
-	GETFUNC(MakeScreenTexture);
-	GETFUNC(MakeScreenFinalTexture);
-	GETFUNC(DrawScreenFinalTexture);
-#else //HWRENDER
 	if (0 == strcmp("FinishUpdate", funcName))
 		return funcPointer; //&FinishUpdate;
-#endif //!HWRENDER
 #ifdef STATIC3DS
 	GETFUNC(Startup);
 	GETFUNC(AddSfx);

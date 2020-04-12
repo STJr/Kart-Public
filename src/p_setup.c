@@ -465,11 +465,7 @@ static void P_LoadRawSegs(UINT8 *data, size_t i)
 		li->length = P_SegLength(li);
 #ifdef HWRENDER
 		if (rendermode == render_opengl)
-		{
 			li->flength = P_SegLengthFloat(li);
-			//Hurdler: 04/12/2000: for now, only used in hardware mode
-			li->lightmaps = NULL; // list of static lightmap for this seg
-		}
 		li->pv1 = li->pv2 = NULL;
 #endif
 
@@ -3132,10 +3128,6 @@ boolean P_SetupLevel(boolean skipprecip)
 #ifdef HWRENDER // not win32 only 19990829 by Kin
 	if (rendermode != render_soft && rendermode != render_none)
 	{
-#ifdef ALAM_LIGHTING
-		// BP: reset light between levels (we draw preview frame lights on current frame)
-		HWR_ResetLights();
-#endif
 		// Correct missing sidedefs & deep water trick
 		HWR_CorrectSWTricks();
 		HWR_CreatePlanePolygons((INT32)numnodes - 1);

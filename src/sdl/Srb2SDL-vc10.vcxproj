@@ -93,6 +93,7 @@
     <Import Project="..\..\libs\libpng.props" />
     <Import Project="..\..\libs\SDL2.props" />
     <Import Project="..\..\libs\SDL_mixer.props" />
+    <Import Project="..\..\libs\libgme.props" />
     <Import Project="Srb2SDL.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -222,7 +223,6 @@
     <ClInclude Include="..\hardware\hw_defs.h" />
     <ClInclude Include="..\hardware\hw_dll.h" />
     <ClInclude Include="..\hardware\hw_drv.h" />
-    <ClInclude Include="..\hardware\hw_glide.h" />
     <ClInclude Include="..\hardware\hw_glob.h" />
     <ClInclude Include="..\hardware\hw_light.h" />
     <ClInclude Include="..\hardware\hw_main.h" />
