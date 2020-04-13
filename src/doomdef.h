@@ -149,7 +149,7 @@ extern FILE *logstream;
 // most interface strings are ignored in development mode.
 // we use comprevision and compbranch instead.
 #else
-#define VERSION    120 // Game version
+#define VERSION    102 // Game version
 #define SUBVERSION 0 // more precise version number
 #define VERSIONSTRING "v1.2"
 #define VERSIONSTRINGW L"v1.2"
