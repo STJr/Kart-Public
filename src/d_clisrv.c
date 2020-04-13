@@ -1475,7 +1475,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	if (mirror_length > MAX_MIRROR_LENGTH)
 		mirror_length = MAX_MIRROR_LENGTH;
 
-	if (snprintf(netbuffer->u.serverinfo.httpsource, mirror_length, "%s", httpurl) < 0)
+	if (snprintf(netbuffer->u.serverinfo.httpsource, mirror_length+1, "%s", httpurl) < 0)
 		// If there's an encoding error, send nothing, we accept that the above may be truncated
 		strncpy(netbuffer->u.serverinfo.httpsource, "", mirror_length);
 
