@@ -1915,7 +1915,7 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 		{
 			char version[8] = "";
 #if VERSION > 0 || SUBVERSION > 0
-			snprintf(version, sizeof (version), "%d.%d.%d", VERSION/100, VERSION%100, SUBVERSION);
+			snprintf(version, sizeof (version), "%d.%d", VERSION, SUBVERSION);
 #else
 			strcpy(version, GetRevisionString());
 #endif
@@ -2457,8 +2457,8 @@ static void CL_ConnectToServer(boolean viams)
 			gametypestr = Gametype_Names[num];
 		if (gametypestr)
 			CONS_Printf(M_GetText("Gametype: %s\n"), gametypestr);
-		CONS_Printf(M_GetText("Version: %d.%d.%u\n"), serverlist[i].info.version/100,
-		 serverlist[i].info.version%100, serverlist[i].info.subversion);
+		CONS_Printf(M_GetText("Version: %d.%d\n"),
+		 serverlist[i].info.version, serverlist[i].info.subversion);
 	}
 	SL_ClearServerList(servernode);
 #endif
@@ -3375,8 +3375,8 @@ static void Got_RemovePlayer(UINT8 **p, INT32 playernum);
 // called one time at init
 void D_ClientServerInit(void)
 {
-	DEBFILE(va("- - -== SRB2Kart v%d.%.2d.%d "VERSIONSTRING" debugfile ==- - -\n",
-		VERSION/100, VERSION%100, SUBVERSION));
+	DEBFILE(va("- - -== SRB2Kart v%d.%d "VERSIONSTRING" debugfile ==- - -\n",
+		VERSION, SUBVERSION));
 
 #ifndef NONET
 	COM_AddCommand("getplayernum", Command_GetPlayerNum);
@@ -3872,7 +3872,7 @@ static void HandleConnect(SINT8 node)
 		SV_SendRefuse(node, M_GetText("You have been banned\nfrom the server"));
 	else if (netbuffer->u.clientcfg.version != VERSION
 		|| netbuffer->u.clientcfg.subversion != SUBVERSION)
-		SV_SendRefuse(node, va(M_GetText("Different SRB2Kart versions cannot\nplay a netgame!\n(server version %d.%d.%d)"), VERSION/100, VERSION%100, SUBVERSION));
+		SV_SendRefuse(node, va(M_GetText("Different SRB2Kart versions cannot\nplay a netgame!\n(server version %d.%d)"), VERSION, SUBVERSION));
 	else if (!cv_allownewplayer.value && node)
 		SV_SendRefuse(node, M_GetText("The server is not accepting\njoins for the moment"));
 	else if (D_NumPlayers() >= maxplayers)

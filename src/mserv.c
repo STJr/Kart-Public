@@ -751,7 +751,7 @@ static INT32 AddToMasterServer(boolean firstadd)
 	strcpy(info->name, cv_servername.string);
 	M_Memcpy(&info->room, & room, sizeof (INT32));
 #if VERSION > 0 || SUBVERSION > 0
-	sprintf(info->version, "%d.%d.%d", VERSION/100, VERSION%100, SUBVERSION);
+	sprintf(info->version, "%d.%d", VERSION, SUBVERSION);
 #else // Trunk build, send revision info
 	strcpy(info->version, GetRevisionString());
 #endif
@@ -789,7 +789,7 @@ static INT32 RemoveFromMasterSever(void)
 	strcpy(info->ip, "");
 	strcpy(info->port, int2str(current_port));
 	strcpy(info->name, registered_server.name);
-	sprintf(info->version, "%d.%d.%d", VERSION/100, VERSION%100, SUBVERSION);
+	sprintf(info->version, "%d.%d", VERSION, SUBVERSION);
 
 	msg.type = REMOVE_SERVER_MSG;
 	msg.length = (UINT32)sizeof (msg_server_t);
