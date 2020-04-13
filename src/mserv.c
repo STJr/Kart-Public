@@ -105,6 +105,7 @@ void HMS_unlist (void);
 void HMS_update (void);
 void HMS_list_servers (void);
 void HMS_fetch_servers (msg_server_t *list, int room);
+const char * HMS_compare_mod_version (void);
 
 // ================================ DEFINITIONS ===============================
 
@@ -568,7 +569,9 @@ const char *GetMODVersion(void)
 	static msg_t msg;
 
 	if (HMS_in_use())
-		return NULL;
+	{
+		return HMS_compare_mod_version();
+	}
 
 	// we must be connected to the master server before writing to it
 	if (MS_Connect(GetMasterServerIP(), GetMasterServerPort(), 0))
