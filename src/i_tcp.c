@@ -508,8 +508,6 @@ static boolean SOCK_cmpaddr(mysockaddr_t *a, mysockaddr_t *b, UINT8 mask)
 		return false;
 }
 
-static void SOCK_FreeNodenum(INT32 numnode);
-
 // This is a hack. For some reason, nodes aren't being freed properly.
 // This goes through and cleans up what nodes were supposed to be freed.
 /** \warning This function causes the file downloading to stop if someone joins.
@@ -526,7 +524,7 @@ static void cleanupnodes(void)
 	// Why can't I start at zero?
 	for (j = 1; j < MAXNETNODES; j++)
 		if (!(nodeingame[j] || SV_SendingFile(j)))
-			SOCK_FreeNodenum(j); // At least free this PROPERLY
+			nodeconnected[j] = false;
 }
 
 static SINT8 getfreenode(void)
@@ -626,13 +624,6 @@ static boolean SOCK_Get(void)
 			}
 			// not found
 
-			if (netbuffer->packettype == PT_NOTHING)
-			{
-				DEBFILE(va("Ackret received from disconnected address:%s, ignoring...\n", SOCK_AddrToStr(&fromaddress)));
-				doomcom->remotenode = -1; // no packet
-				return true;
-			}
-
 			// find a free slot
 			j = getfreenode();
 			if (j > 0)
@@ -659,11 +650,7 @@ static boolean SOCK_Get(void)
 				return true;
 			}
 			else
-			{
 				DEBFILE("New node detected: No more free slots\n");
-				doomcom->remotenode = -1; // no packet
-				return true;
-			}
 		}
 	}
 
