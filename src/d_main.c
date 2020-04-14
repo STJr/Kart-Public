@@ -1307,7 +1307,6 @@ void D_SRB2Main(void)
 #ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
-		INT32 i;
 		for (i = 0; i < numwadfiles; i++)
 			HWR_LoadShaders(i, (wadfiles[i]->type == RET_PK3));
 	}

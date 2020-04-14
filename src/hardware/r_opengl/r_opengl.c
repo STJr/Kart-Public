@@ -1719,7 +1719,7 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *f
 
 // Note: could use realloc in the array reallocation code
 
-typedef struct 
+typedef struct
 {
 	FSurfaceInfo surf;// surf also has its own polyflags for some reason, but it seems unused
 	unsigned int vertsIndex;// location of verts in unsortedVertexArray
@@ -1770,7 +1770,7 @@ static int comparePolygons(const void *p1, const void *p2)
 	PolygonArrayEntry* poly2 = &polygonArray[*(const unsigned int*)p2];
 	int diff;
 	INT64 diff64;
-	
+
 	int shader1 = poly1->shader;
 	int shader2 = poly2->shader;
 	// make skywalls first in order
@@ -1780,18 +1780,18 @@ static int comparePolygons(const void *p1, const void *p2)
 		shader2 = -1;
 	diff = shader1 - shader2;
 	if (diff != 0) return diff;
-	
+
 	diff = poly1->texNum - poly2->texNum;
 	if (diff != 0) return diff;
-	
+
 	diff = poly1->polyFlags - poly2->polyFlags;
 	if (diff != 0) return diff;
-	
+
 	diff64 = poly1->surf.PolyColor.rgba - poly2->surf.PolyColor.rgba;
 	if (diff64 < 0) return -1; else if (diff64 > 0) return 1;
 	diff64 = poly1->surf.FadeColor.rgba - poly2->surf.FadeColor.rgba;
 	if (diff64 < 0) return -1; else if (diff64 > 0) return 1;
-	
+
 	diff = poly1->surf.LightInfo.light_level - poly2->surf.LightInfo.light_level;
 	return diff;
 }
@@ -1802,7 +1802,7 @@ static int comparePolygonsNoShaders(const void *p1, const void *p2)
 	PolygonArrayEntry* poly2 = &polygonArray[*(const unsigned int*)p2];
 	int diff;
 	INT64 diff64;
-	
+
 	GLuint texNum1 = poly1->texNum;
 	GLuint texNum2 = poly2->texNum;
 	if (poly1->polyFlags & PF_NoTexture)
@@ -1811,10 +1811,10 @@ static int comparePolygonsNoShaders(const void *p1, const void *p2)
 		texNum2 = 0;
 	diff = texNum1 - texNum2;
 	if (diff != 0) return diff;
-	
+
 	diff = poly1->polyFlags - poly2->polyFlags;
 	if (diff != 0) return diff;
-	
+
 	diff64 = poly1->surf.PolyColor.rgba - poly2->surf.PolyColor.rgba;
 	if (diff64 < 0) return -1; else if (diff64 > 0) return 1;
 
@@ -1822,7 +1822,7 @@ static int comparePolygonsNoShaders(const void *p1, const void *p2)
 }
 
 // the parameters for this functions (numPolys etc.) are used to return rendering stats
-EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCalls, int *sNumShaders, int *sNumTextures, int *sNumPolyFlags, int *sNumColors, int *sSortTime, int *sDrawTime)
+EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCalls, int *sNumShaders, int *sNumTextures, int *sNumPolyFlags, int *sNumColors)
 {
 	int finalVertexWritePos = 0;// position in finalVertexArray
 	int finalIndexWritePos = 0;// position in finalVertexIndexArray
@@ -1882,7 +1882,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 	currentSurfaceInfo = polygonArray[polygonIndexArray[0]].surf;
 	// For now, will sort and track the colors. Vertex attributes could be used instead of uniforms
 	// and a color array could replace the color calls.
-	
+
 	// set state for first batch
 	//CONS_Printf("set first state\n");
 	gl_currentshaderprogram = currentShader;
@@ -1901,21 +1901,21 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 	firstFade.green = byte2float[currentSurfaceInfo.FadeColor.s.green];
 	firstFade.blue  = byte2float[currentSurfaceInfo.FadeColor.s.blue];
 	firstFade.alpha = byte2float[currentSurfaceInfo.FadeColor.s.alpha];
-	
+
 	if (gl_allowshaders)
 		load_shaders(&currentSurfaceInfo, &firstPoly, &firstFade);
-	
+
 	if (currentPolyFlags & PF_NoTexture)
 		currentTexture = 0;
 	pglBindTexture(GL_TEXTURE_2D, currentTexture);
 	tex_downloaded = currentTexture;
-	
+
 	SetBlend(currentPolyFlags);
-	
+
 	//CONS_Printf("first pointers to ogl\n");
 	pglVertexPointer(3, GL_FLOAT, sizeof(FOutVector), &finalVertexArray[0].x);
 	pglTexCoordPointer(2, GL_FLOAT, sizeof(FOutVector), &finalVertexArray[0].s);
-	
+
 	while (1)// note: remember handling notexture polyflag as having texture number 0 (also in comparePolygons)
 	{
 		int firstIndex;
@@ -1943,7 +1943,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 		// change states according to next vars and change bools, updating the current vars and reseting the bools
 		// reset write pos
 		// repeat loop
-		
+
 		int index = polygonIndexArray[polygonReadPos++];
 		int numVerts = polygonArray[index].numVerts;
 		// before writing, check if there is enough room
@@ -1983,7 +1983,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 			finalVertexIndexArray[finalIndexWritePos++] = finalVertexWritePos - 1;
 			finalVertexIndexArray[finalIndexWritePos++] = finalVertexWritePos++;
 		}
-		
+
 		if (polygonReadPos >= polygonArraySize)
 		{
 			stopFlag = true;
@@ -2033,7 +2033,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 				}
 			}
 		}
-		
+
 		if (changeState || stopFlag)
 		{
 			if (needRebind)
@@ -2055,12 +2055,12 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 			finalIndexWritePos = 0;
 		}
 		else continue;
-		
+
 		// if we're here then either its time to stop or time to change state
 		if (stopFlag) break;
-		
+
 		//CONS_Printf("state change\n");
-		
+
 		// change state according to change bools and next vars, update current vars and reset bools
 		if (changeShader)
 		{
@@ -2081,7 +2081,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 			fade.green = byte2float[nextSurfaceInfo.FadeColor.s.green];
 			fade.blue  = byte2float[nextSurfaceInfo.FadeColor.s.blue];
 			fade.alpha = byte2float[nextSurfaceInfo.FadeColor.s.alpha];
-			
+
 			load_shaders(&nextSurfaceInfo, &poly, &fade);
 			currentShader = nextShader;
 			changeShader = false;
@@ -2127,7 +2127,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 				fade.green = byte2float[nextSurfaceInfo.FadeColor.s.green];
 				fade.blue  = byte2float[nextSurfaceInfo.FadeColor.s.blue];
 				fade.alpha = byte2float[nextSurfaceInfo.FadeColor.s.alpha];
-				
+
 				load_shaders(&nextSurfaceInfo, &poly, &fade);
 			}
 			currentSurfaceInfo = nextSurfaceInfo;
@@ -2140,7 +2140,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 	// reset the arrays (set sizes to 0)
 	polygonArraySize = 0;
 	unsortedVertexArraySize = 0;
-	
+
 	//*sDrawTime = I_GetTimeMicros() - *sDrawTime;
 }
 
@@ -2177,7 +2177,7 @@ EXPORT void HWRAPI(DrawPolygon) (FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUI
 			memcpy(new_array, unsortedVertexArray, unsortedVertexArraySize * sizeof(FOutVector));
 			free(unsortedVertexArray);
 			unsortedVertexArray = new_array;
-		}	
+		}
 
 		// add the polygon data to the arrays
 

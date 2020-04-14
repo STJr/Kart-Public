@@ -142,6 +142,7 @@ void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UIN
 	RGBA_t mix_color, fog_color, final_color;
 	INT32 mix;
 	float fog_alpha;
+	float red, green, blue;
 
 	mix_color.rgba = mixcolor;
 	fog_color.rgba = fadecolor;
@@ -177,9 +178,9 @@ void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UIN
 		if (fog < 0)
 			fog = 0;
 
-		float red = ((fog_color.s.red/255.0f) * fog) + ((final_color.s.red/255.0f) * (1.0f - fog));
-		float green = ((fog_color.s.green/255.0f) * fog) + ((final_color.s.green/255.0f) * (1.0f - fog));
-		float blue = ((fog_color.s.blue/255.0f) * fog) + ((final_color.s.blue/255.0f) * (1.0f - fog));
+		red = ((fog_color.s.red/255.0f) * fog) + ((final_color.s.red/255.0f) * (1.0f - fog));
+		green = ((fog_color.s.green/255.0f) * fog) + ((final_color.s.green/255.0f) * (1.0f - fog));
+		blue = ((fog_color.s.blue/255.0f) * fog) + ((final_color.s.blue/255.0f) * (1.0f - fog));
 		final_color.s.red = (UINT8)(red*255.0f);
 		final_color.s.green = (UINT8)(green*255.0f);
 		final_color.s.blue = (UINT8)(blue*255.0f);
@@ -1873,7 +1874,7 @@ void HWR_ProcessSeg(void) // Sort of like GLWall::Process in GZDoom
 boolean checkforemptylines = true;
 // Don't modify anything here, just check
 // Kalaron: Modified for sloped linedefs
-static boolean CheckClip(seg_t * seg, sector_t * afrontsector, sector_t * abacksector)
+static boolean CheckClip(sector_t * afrontsector, sector_t * abacksector)
 {
 	fixed_t frontf1,frontf2, frontc1, frontc2; // front floor/ceiling ends
 	fixed_t backf1, backf2, backc1, backc2; // back floor ceiling ends
@@ -2008,7 +2009,7 @@ void HWR_AddLine(seg_t *line)
 	else
 	{
 		gr_backsector = R_FakeFlat(gr_backsector, &tempsec, NULL, NULL, true);
-		if (CheckClip(line, gr_frontsector, gr_backsector))
+		if (CheckClip(gr_frontsector, gr_backsector))
 		{
 			gld_clipper_SafeAddClipRange(angle2, angle1);
 			checkforemptylines = false;
@@ -3102,7 +3103,6 @@ static void HWR_SplitSprite(gr_vissprite_t *spr)
 	{
 		float sprdist = sqrtf((spr->x1 - gr_viewx)*(spr->x1 - gr_viewx) + (spr->z1 - gr_viewy)*(spr->z1 - gr_viewy) + (spr->ty - gr_viewz)*(spr->ty - gr_viewz));
 		float distfact = ((2.0f*spr->dispoffset) + 20.0f) / sprdist;
-		size_t i;
 		for (i = 0; i < 4; i++)
 		{
 			baseWallVerts[i].x += (gr_viewx - baseWallVerts[i].x)*distfact;
@@ -4808,12 +4808,12 @@ void HWR_RenderFrame(INT32 viewnumber, player_t *player, boolean skybox)
 
 	// Recursively "render" the BSP tree.
 	HWR_RenderBSPNode((INT32)numnodes-1);
-	
+
 	if (cv_grbatching.value)
 	{
 		int dummy = 0;// the vars in RenderBatches are meant for render stats. But we don't have that stuff in this branch
 					// so that stuff could be removed...
-		HWD.pfnRenderBatches(&dummy, &dummy, &dummy, &dummy, &dummy, &dummy, &dummy, &dummy, &dummy);
+		HWD.pfnRenderBatches(&dummy, &dummy, &dummy, &dummy, &dummy, &dummy, &dummy);
 	}
 
 	// Check for new console commands.
@@ -4907,7 +4907,7 @@ void HWR_AddCommands(void)
 	CV_RegisterVar(&cv_granisotropicmode);
 	CV_RegisterVar(&cv_grcorrecttricks);
 	CV_RegisterVar(&cv_grsolvetjoin);
-	
+
 	CV_RegisterVar(&cv_grbatching);
 }
 
