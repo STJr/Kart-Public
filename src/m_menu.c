@@ -2892,7 +2892,6 @@ boolean M_Responder(event_t *ev)
 				//make sure the game doesn't still think we're in a netgame.
 				if (!Playing() && netgame && multiplayer)
 				{
-					MSCloseUDPSocket();		// Clean up so we can re-open the connection later.
 					netgame = false;
 					multiplayer = false;
 				}

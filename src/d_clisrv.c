@@ -1764,10 +1764,6 @@ static void SendAskInfo(INT32 node, boolean viams)
 	// now allowed traffic from the host to us in, so once the MS relays
 	// our address to the host, it'll be able to speak to us.
 	HSendPacket(node, false, 0, sizeof (askinfo_pak));
-
-	// Also speak to the MS.
-	if (viams && node != 0 && node != BROADCASTADDR)
-		SendAskInfoViaMS(node, asktime);
 }
 
 serverelem_t serverlist[MAXSERVERLIST];
@@ -1830,7 +1826,6 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 	if (!netgame && I_NetOpenSocket)
 	{
-		MSCloseUDPSocket();		// Tidy up before wiping the slate.
 		if (I_NetOpenSocket())
 		{
 			netgame = true;
@@ -2567,7 +2562,6 @@ static void Command_connect(void)
 		}
 		else if (I_NetOpenSocket)
 		{
-			MSCloseUDPSocket(); // Tidy up before wiping the slate.
 			I_NetOpenSocket();
 			netgame = true;
 			multiplayer = true;
@@ -3637,7 +3631,6 @@ boolean SV_SpawnServer(void)
 		SV_GenContext();
 		if (netgame && I_NetOpenSocket)
 		{
-			MSCloseUDPSocket();		// Tidy up before wiping the slate.
 			I_NetOpenSocket();
 			if (ms_RoomId > 0)
 				RegisterServer();
