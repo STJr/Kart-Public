@@ -1471,7 +1471,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	netbuffer->u.serverinfo.actnum = 0; //mapheaderinfo[gamemap-1]->actnum
 
 #ifdef HAVE_CURL
-	if (D_IsJoinPasswordOn())
+	if (! D_IsJoinPasswordOn())
 	{
 		mirror_length = strlen(httpurl);
 		if (mirror_length > MAX_MIRROR_LENGTH)
