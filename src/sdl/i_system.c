@@ -162,6 +162,7 @@ static char returnWadPath[256];
 #include "../i_video.h"
 #include "../i_sound.h"
 #include "../i_system.h"
+#include "../i_threads.h"
 #include "../screen.h" //vid.WndParent
 #include "../d_net.h"
 #include "../g_game.h"
@@ -3028,6 +3029,10 @@ INT32 I_StartupSystem(void)
 	SDL_version SDLlinked;
 	SDL_VERSION(&SDLcompiled)
 	SDL_GetVersion(&SDLlinked);
+#ifdef HAVE_THREADS
+	I_start_threads();
+	atexit(I_stop_threads);
+#endif
 	I_StartupConsole();
 	I_OutputMsg("Compiled for SDL version: %d.%d.%d\n",
 	 SDLcompiled.major, SDLcompiled.minor, SDLcompiled.patch);
