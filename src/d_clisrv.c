@@ -1376,7 +1376,7 @@ static boolean CL_SendJoin(void)
 	netbuffer->u.clientcfg.challengenum = cl_challengenum;
 	memcpy(netbuffer->u.clientcfg.challengeanswer, cl_challengeanswer, MD5_LEN);
 
-	return HSendPacket(servernode, true, 0, sizeof (clientconfig_pak));
+	return HSendPacket(servernode, false, 0, sizeof (clientconfig_pak));
 }
 
 static void SV_SendServerInfo(INT32 node, tic_t servertime)
@@ -1471,15 +1471,18 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	netbuffer->u.serverinfo.actnum = 0; //mapheaderinfo[gamemap-1]->actnum
 
 #ifdef HAVE_CURL
-	mirror_length = strlen(httpurl);
-	if (mirror_length > MAX_MIRROR_LENGTH)
-		mirror_length = MAX_MIRROR_LENGTH;
+	if (! D_IsJoinPasswordOn())
+	{
+		mirror_length = strlen(httpurl);
+		if (mirror_length > MAX_MIRROR_LENGTH)
+			mirror_length = MAX_MIRROR_LENGTH;
 
-	if (snprintf(netbuffer->u.serverinfo.httpsource, mirror_length+1, "%s", httpurl) < 0)
-		// If there's an encoding error, send nothing, we accept that the above may be truncated
-		strncpy(netbuffer->u.serverinfo.httpsource, "", mirror_length);
+		if (snprintf(netbuffer->u.serverinfo.httpsource, mirror_length+1, "%s", httpurl) < 0)
+			// If there's an encoding error, send nothing, we accept that the above may be truncated
+			strncpy(netbuffer->u.serverinfo.httpsource, "", mirror_length);
 
-	netbuffer->u.serverinfo.httpsource[MAX_MIRROR_LENGTH-1] = '\0';
+		netbuffer->u.serverinfo.httpsource[MAX_MIRROR_LENGTH-1] = '\0';
+	}
 #endif
 
 	p = PutFileNeeded(0);
@@ -1995,40 +1998,7 @@ static boolean CL_FinishedFileList(void)
 	else if (i == 1)
 		cl_mode = CL_ASKJOIN;
 	else
-	{
-		// must download something
-		// can we, though?
-#ifdef HAVE_CURL
-		if (http_source[0] == '\0' || curl_failedwebdownload)
-#endif
-		{
-			if (!CL_CheckDownloadable()) // nope!
-			{
-				D_QuitNetGame();
-				CL_Reset();
-				D_StartTitle();
-				M_StartMessage(M_GetText(
-					"You cannot connect to this server\n"
-					"because you cannot download the files\n"
-					"that you are missing from the server.\n\n"
-					"See the console or log file for\n"
-					"more details.\n\n"
-					"Press ESC\n"
-				), NULL, MM_NOTHING);
-				return false;
-			}
-
-			cl_mode = CL_ASKDOWNLOADFILES;
-			return true;
-		}
-#ifdef HAVE_CURL
-		else
-		{
-			cl_mode = CL_PREPAREHTTPFILES;
-			return true;
-		}
-#endif
-	}
+		cl_mode = CL_ASKDOWNLOADFILES;
 	return true;
 }
 
@@ -2075,16 +2045,6 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 
 		if (client)
 		{
-#ifdef HAVE_CURL
-			if (serverlist[i].info.httpsource[0])
-				strncpy(http_source, serverlist[i].info.httpsource, MAX_MIRROR_LENGTH);
-			else
-				http_source[0] = '\0';
-#else
-			if (serverlist[i].info.httpsource[0])
-				CONS_Printf("We received a http url from the server, however it will not be used as this build lacks curl support (%s)\n", serverlist[i].info.httpsource);
-#endif
-
 			D_ParseFileneeded(serverlist[i].info.fileneedednum, serverlist[i].info.fileneeded, 0);
 			if (serverlist[i].info.kartvars & SV_LOTSOFADDONS)
 			{
@@ -2163,10 +2123,9 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 #ifdef HAVE_CURL
 		case CL_PREPAREHTTPFILES:
-			if (http_source[0])
 			{
 				for (i = 0; i < fileneedednum; i++)
-					if (fileneeded[i].status == FS_NOTFOUND)
+					if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
 						curl_transfers++;
 
 				cl_mode = CL_DOWNLOADHTTPFILES;
@@ -2176,7 +2135,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 		case CL_DOWNLOADHTTPFILES:
 			waitmore = false;
 			for (i = 0; i < fileneedednum; i++)
-				if (fileneeded[i].status == FS_NOTFOUND)
+				if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
 				{
 					if (!curl_running)
 						CURLPrepareFile(http_source, i);
@@ -3912,7 +3871,9 @@ static void HandleConnect(SINT8 node)
 		if (netbuffer->u.clientcfg.needsdownload)
 		{
 			netbuffer->packettype = PT_DOWNLOADFILESOKAY;
-			HSendPacket(node, true, 0, 0);
+			strncpy(netbuffer->u.filecfg.http_source, cv_httpsource.string,
+					MAX_MIRROR_LENGTH);
+			HSendPacket(node, true, 0, sizeof netbuffer->u.filecfg);
 			return;
 		}
 
@@ -4140,7 +4101,10 @@ static void HandlePacketFromAwayNode(SINT8 node)
 						if (I_NetMakeNodewPort)
 							servernode = I_NetMakeNode(cl_challengeaddress);
 #endif
-						cl_mode = CL_ASKJOIN;
+						if (cl_needsdownload)
+							cl_mode = CL_ASKDOWNLOADFILES;
+						else
+							cl_mode = CL_ASKJOIN;
 						break;
 
 					case 1:
@@ -4193,30 +4157,52 @@ static void HandlePacketFromAwayNode(SINT8 node)
 
 			SERVERONLY
 
-			// This should've already been checked, but just to be safe...
-			if (!CL_CheckDownloadable())
+			if (netbuffer->u.filecfg.http_source[0] != '\0')
 			{
-				D_QuitNetGame();
-				CL_Reset();
-				D_StartTitle();
-				M_StartMessage(M_GetText(
-					"You cannot connect to this server\n"
-					"because you cannot download the files\n"
-					"that you are missing from the server.\n\n"
-					"See the console or log file for\n"
-					"more details.\n\n"
-					"Press ESC\n"
-				), NULL, MM_NOTHING);
-				break;
+				netbuffer->u.filecfg.http_source[MAX_MIRROR_LENGTH-1] = '\0';
+
+#ifdef HAVE_CURL
+				if (! curl_failedwebdownload)
+				{
+					strncpy(http_source, netbuffer->u.filecfg.http_source,
+							sizeof http_source);
+
+					cl_mode = CL_PREPAREHTTPFILES;
+				}
+#else
+				CONS_Printf("We received a http url from the server, however it will not be used as this build lacks curl support (%s)\n", netbuffer->u.filecfg.http_source);
+#endif
+			}
+
+			if (cl_mode == CL_WAITDOWNLOADFILESRESPONSE)
+			{
+				if (CL_CheckDownloadable())
+				{
+					CONS_Printf("trying to download\n");
+					if (CL_SendRequestFile())
+						cl_mode = CL_DOWNLOADFILES;
+				}
+				else
+				{
+					D_QuitNetGame();
+					CL_Reset();
+					D_StartTitle();
+					M_StartMessage(M_GetText(
+								"You cannot connect to this server\n"
+								"because you cannot download the files\n"
+								"that you are missing from the server.\n\n"
+								"See the console or log file for\n"
+								"more details.\n\n"
+								"Press ESC\n"
+					), NULL, MM_NOTHING);
+					break;
+				}
 			}
 
 			if (cl_challengeattempted == 1) // Successful password noise.
 				S_StartSound(NULL, sfx_s221);
 
 			cl_challengeattempted = 2;
-			CONS_Printf("trying to download\n");
-			if (CL_SendRequestFile())
-					cl_mode = CL_DOWNLOADFILES;
 			break;
 
 		case PT_SERVERCFG: // Positive response of client join request
