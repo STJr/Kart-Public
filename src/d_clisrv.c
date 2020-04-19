@@ -4101,7 +4101,10 @@ static void HandlePacketFromAwayNode(SINT8 node)
 						if (I_NetMakeNodewPort)
 							servernode = I_NetMakeNode(cl_challengeaddress);
 #endif
-						cl_mode = CL_ASKJOIN;
+						if (cl_needsdownload)
+							cl_mode = CL_ASKDOWNLOADFILES;
+						else
+							cl_mode = CL_ASKJOIN;
 						break;
 
 					case 1:
