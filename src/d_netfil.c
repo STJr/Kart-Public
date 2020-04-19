@@ -1116,11 +1116,14 @@ void CURLPrepareFile(const char* url, int dfilenum)
 
 void CURLGetFile(void)
 {
-	CURLMcode mc; /* return code used by curl_multi_perform and curl_multi_wait() */
+	CURLMcode mc; /* return code used by curl_multi_wait() */
+	CURLcode easyres; /* Return from easy interface */
 	int numfds;
 	CURLMsg *m; /* for picking up messages with the transfer status */
 	CURL *e;
 	int msgs_left; /* how many messages are left */
+	const char *easy_handle_error;
+	long response_code = 0;
 
     if (curl_runninghandles)
     {
@@ -1143,8 +1146,14 @@ void CURLGetFile(void)
 	{
 		if (m && (m->msg == CURLMSG_DONE))
 		{
-			if (m->data.result != 0)
+			e = m->easy_handle;
+			easyres = m->data.result;
+			if (easyres != CURLE_OK)
 			{
+				if (easyres == CURLE_HTTP_RETURNED_ERROR)
+					curl_easy_getinfo(e, CURLINFO_RESPONSE_CODE, &response_code);
+
+				easy_handle_error = (response_code) ? va("HTTP reponse code %ld", response_code) : curl_easy_strerror(easyres);
 				curl_curfile->status = FS_FALLBACK;
 				curl_curfile->currentsize = curl_origfilesize;
 				curl_curfile->totalsize = curl_origtotalfilesize;
@@ -1154,7 +1163,7 @@ void CURLGetFile(void)
 				curl_curfile->file = NULL;
 				//nameonly(curl_curfile->filename);
 				nameonly(curl_realname);
-				CONS_Printf(M_GetText("Failed to download %s...\n"), curl_realname);
+				CONS_Printf(M_GetText("Failed to download %s (%s)\n"), curl_realname, easy_handle_error);
 			}
 			else
 			{
@@ -1164,7 +1173,6 @@ void CURLGetFile(void)
 				fclose(curl_curfile->file);
 			}
 
-			e = m->easy_handle;
 			curl_running = false;
 			curl_transfers--;
 			curl_multi_remove_handle(multi_handle, e);
