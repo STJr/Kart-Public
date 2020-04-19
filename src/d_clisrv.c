@@ -1376,7 +1376,7 @@ static boolean CL_SendJoin(void)
 	netbuffer->u.clientcfg.challengenum = cl_challengenum;
 	memcpy(netbuffer->u.clientcfg.challengeanswer, cl_challengeanswer, MD5_LEN);
 
-	return HSendPacket(servernode, true, 0, sizeof (clientconfig_pak));
+	return HSendPacket(servernode, false, 0, sizeof (clientconfig_pak));
 }
 
 static void SV_SendServerInfo(INT32 node, tic_t servertime)
