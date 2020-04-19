@@ -43,6 +43,8 @@
 #include "../p_slopes.h"
 #endif
 
+#include <stdlib.h> // qsort
+
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
 // ==========================================================================
@@ -3897,27 +3899,65 @@ void HWR_AddTransparentPolyobjectFloor(lumpnum_t lumpnum, polyobj_t *polysector,
 	numpolyplanes++;
 }
 
+// putting sortindex and sortnode here so the comparator function can see them
+gr_drawnode_t *sortnode;
+size_t *sortindex;
+
+static int CompareDrawNodes(const void *p1, const void *p2)
+{
+	size_t n1 = *(const size_t*)p1;
+	size_t n2 = *(const size_t*)p2;
+	INT32 v1 = 0;
+	INT32 v2 = 0;
+	INT32 diff;
+	if (sortnode[n1].plane)
+		v1 = sortnode[n1].plane->drawcount;
+	else if (sortnode[n1].polyplane)
+		v1 = sortnode[n1].polyplane->drawcount;
+	else if (sortnode[n1].wall)
+		v1 = sortnode[n1].wall->drawcount;
+	else I_Error("n1 unknown");
+
+	if (sortnode[n2].plane)
+		v2 = sortnode[n2].plane->drawcount;
+	else if (sortnode[n2].polyplane)
+		v2 = sortnode[n2].polyplane->drawcount;
+	else if (sortnode[n2].wall)
+		v2 = sortnode[n2].wall->drawcount;
+	else I_Error("n2 unknown");
+
+	diff = v2 - v1;
+	if (diff == 0) I_Error("diff is zero");
+	return diff;
+}
+
+static int CompareDrawNodePlanes(const void *p1, const void *p2)
+{
+	size_t n1 = *(const size_t*)p1;
+	size_t n2 = *(const size_t*)p2;
+	if (!sortnode[n1].plane) I_Error("Uh.. This isn't a plane! (n1)");
+	if (!sortnode[n2].plane) I_Error("Uh.. This isn't a plane! (n2)");
+	return ABS(sortnode[n2].plane->fixedheight - viewz) - ABS(sortnode[n1].plane->fixedheight - viewz);
+}
+
 // HWR_RenderDrawNodes
 // Creates, sorts and renders a list of drawnodes for the current frame.
 void HWR_RenderDrawNodes(void)
 {
-	UINT32 i = 0, p = 0, prev = 0, loop;
-	const fixed_t pviewz = viewz;
+	UINT32 i = 0, p = 0;
+	size_t run_start = 0;
 
 	// Dump EVERYTHING into a huge drawnode list. Then we'll sort it!
 	// Could this be optimized into _AddTransparentWall/_AddTransparentPlane?
 	// Hell yes! But sort algorithm must be modified to use a linked list.
-	gr_drawnode_t *sortnode = Z_Calloc((sizeof(planeinfo_t)*numplanes)
+	sortnode = Z_Calloc((sizeof(planeinfo_t)*numplanes)
 									+ (sizeof(polyplaneinfo_t)*numpolyplanes)
 									+ (sizeof(wallinfo_t)*numwalls)
 									,PU_STATIC, NULL);
 	// todo:
 	// However, in reality we shouldn't be re-copying and shifting all this information
 	// that is already lying around. This should all be in some sort of linked list or lists.
-	size_t *sortindex = Z_Calloc(sizeof(size_t) * (numplanes + numpolyplanes + numwalls), PU_STATIC, NULL);
-
-	// If true, swap the draw order.
-	boolean shift = false;
+	sortindex = Z_Calloc(sizeof(size_t) * (numplanes + numpolyplanes + numwalls), PU_STATIC, NULL);
 
 	for (i = 0; i < numplanes; i++, p++)
 	{
@@ -3944,99 +3984,40 @@ void HWR_RenderDrawNodes(void)
 	// through the lists of masked textures and
 	// translucent ffloors being drawn.
 
-	// This is a bubble sort! Wahoo!
+	// im not sure if this sort on the next line is needed.
+	// it sorts the list based on the value of the 'drawcount' member of the drawnodes.
+	// im thinking the list might already be in that order, but i havent bothered to check yet.
+	// anyway doing this sort does not hurt and does not take much time.
+	// the while loop after this sort is important however!
+	qsort(sortindex, p, sizeof(size_t), CompareDrawNodes);
 
-	// Stuff is sorted:
-	//      sortnode[sortindex[0]]   = farthest away
-	//      sortnode[sortindex[p-1]] = closest
-	// "i" should be closer. "prev" should be further.
-	// The lower drawcount is, the further it is from the screen.
-
-	for (loop = 0; loop < p; loop++)
+	// try solving floor order here. for each consecutive run of floors in the list, sort that run.
+	while (run_start < p-1)// p-1 because a 1 plane run at the end of the list does not count
 	{
-		for (i = 1; i < p; i++)
+		// locate run start
+		if (sortnode[sortindex[run_start]].plane)
 		{
-			prev = i-1;
-			if (sortnode[sortindex[i]].plane)
+			// found it, now look for run end
+			size_t run_end;// (inclusive)
+			for (i = run_start+1; i < p; i++)// size_t and UINT32 being used mixed here... shouldnt break anything though..
 			{
-				// What are we comparing it with?
-				if (sortnode[sortindex[prev]].plane)
-				{
-					// Plane (i) is further away than plane (prev)
-					if (ABS(sortnode[sortindex[i]].plane->fixedheight - pviewz) > ABS(sortnode[sortindex[prev]].plane->fixedheight - pviewz))
-						shift = true;
-				}
-				if (sortnode[sortindex[prev]].polyplane)
-				{
-					// Plane (i) is further away than polyplane (prev)
-					if (ABS(sortnode[sortindex[i]].plane->fixedheight - pviewz) > ABS(sortnode[sortindex[prev]].polyplane->fixedheight - pviewz))
-						shift = true;
-				}
-				else if (sortnode[sortindex[prev]].wall)
-				{
-					// Plane (i) is further than wall (prev)
-					if (sortnode[sortindex[i]].plane->drawcount > sortnode[sortindex[prev]].wall->drawcount)
-						shift = true;
-				}
+				if (!sortnode[sortindex[i]].plane) break;
 			}
-			else if (sortnode[sortindex[i]].polyplane)
+			run_end = i-1;
+			if (run_end > run_start)// if there are multiple consecutive planes, not just one
 			{
-				// What are we comparing it with?
-				if (sortnode[sortindex[prev]].plane)
-				{
-					// Plane (i) is further away than plane (prev)
-					if (ABS(sortnode[sortindex[i]].polyplane->fixedheight - pviewz) > ABS(sortnode[sortindex[prev]].plane->fixedheight - pviewz))
-						shift = true;
-				}
-				if (sortnode[sortindex[prev]].polyplane)
-				{
-					// Plane (i) is further away than polyplane (prev)
-					if (ABS(sortnode[sortindex[i]].polyplane->fixedheight - pviewz) > ABS(sortnode[sortindex[prev]].polyplane->fixedheight - pviewz))
-						shift = true;
-				}
-				else if (sortnode[sortindex[prev]].wall)
-				{
-					// Plane (i) is further than wall (prev)
-					if (sortnode[sortindex[i]].polyplane->drawcount > sortnode[sortindex[prev]].wall->drawcount)
-						shift = true;
-				}
+				// consecutive run of planes found, now sort it
+				// not sure how long these runs can be in reality...
+				qsort(sortindex + run_start, run_end - run_start + 1, sizeof(size_t), CompareDrawNodePlanes);
 			}
-			else if (sortnode[sortindex[i]].wall)
-			{
-				// What are we comparing it with?
-				if (sortnode[sortindex[prev]].plane)
-				{
-					// Wall (i) is further than plane(prev)
-					if (sortnode[sortindex[i]].wall->drawcount > sortnode[sortindex[prev]].plane->drawcount)
-						shift = true;
-				}
-				if (sortnode[sortindex[prev]].polyplane)
-				{
-					// Wall (i) is further than polyplane(prev)
-					if (sortnode[sortindex[i]].wall->drawcount > sortnode[sortindex[prev]].polyplane->drawcount)
-						shift = true;
-				}
-				else if (sortnode[sortindex[prev]].wall)
-				{
-					// Wall (i) is further than wall (prev)
-					if (sortnode[sortindex[i]].wall->drawcount > sortnode[sortindex[prev]].wall->drawcount)
-						shift = true;
-				}
-			}
-
-			if (shift)
-			{
-				size_t temp;
-
-				temp = sortindex[prev];
-				sortindex[prev] = sortindex[i];
-				sortindex[i] = temp;
-
-				shift = false;
-			}
-
-		} //i++
-	} // loop++
+			run_start = run_end + 1;// continue looking for runs coming right after this one
+		}
+		else
+		{
+			// this wasnt the run start, try next one
+			run_start++;
+		}
+	}
 
 	// Okay! Let's draw it all! Woo!
 	HWD.pfnSetTransform(&atransform);
