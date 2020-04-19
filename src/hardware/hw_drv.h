@@ -74,7 +74,7 @@ EXPORT void HWRAPI(InitCustomShaders) (void);
 
 
 EXPORT void HWRAPI(StartBatching) (void);
-EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCalls, int *sNumShaders, int *sNumTextures, int *sNumPolyFlags, int *sNumColors, int *sSortTime, int *sDrawTime);
+EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCalls, int *sNumShaders, int *sNumTextures, int *sNumPolyFlags, int *sNumColors);
 
 
 // ==========================================================================
@@ -118,7 +118,7 @@ struct hwdriver_s
 
 	LoadCustomShader pfnLoadCustomShader;
 	InitCustomShaders pfnInitCustomShaders;
-	
+
 	StartBatching pfnStartBatching;
 	RenderBatches pfnRenderBatches;
 };

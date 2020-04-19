@@ -135,10 +135,10 @@ static void HWR_DrawPatchInCache(GLMipmap_t *mipmap,
 				//Hurdler: not perfect, but better than holes
 				if (texel == HWR_PATCHES_CHROMAKEY_COLORINDEX && (mipmap->flags & TF_CHROMAKEYED))
 					alpha = 0x00;
-				
+
 					//texel = HWR_CHROMAKEY_EQUIVALENTCOLORINDEX;
 				// Lat:  Don't do that, some weirdos still use CYAN on their WALLTEXTURES for translucency :V
-			
+
 				//Hurdler: 25/04/2000: now support colormap in hardware mode
 				if (mipmap->colormap)
 					texel = mipmap->colormap[texel];
@@ -307,7 +307,7 @@ static UINT8 *MakeBlock(GLMipmap_t *grMipmap)
 				// fill background with chromakey, alpha = 0
 				for (i = 0; i < blocksize; i++)
 					memcpy(block+i*sizeof(UINT16), &bu16, sizeof(UINT16));
-				
+
 				break;
 		case 4: memset(block, 0x00, blocksize*sizeof(UINT32)); break;
 	}
@@ -351,7 +351,7 @@ static void HWR_GenerateTexture(INT32 texnum, GLTexture_t *grtex)
 	grtex->mipmap.grInfo.format = textureformat;
 
 	grtex->mipmap.colormap = colormaps;
-	
+
 #ifdef GLENCORE
 	if (encoremap)
 		grtex->mipmap.colormap += (256*32);
@@ -579,7 +579,7 @@ static void HWR_CacheFlat(GLMipmap_t *grMipmap, lumpnum_t flatlumpnum)
 {
 #ifdef GLENCORE
 	UINT8 *flat;
-	INT32 steppy;
+	size_t steppy;
 #endif
 	size_t size, pflatsize;
 
@@ -639,9 +639,9 @@ void HWR_GetFlat(lumpnum_t flatlumpnum, boolean noencoremap)
 	GLMipmap_t *grmip;
 
 	grmip = HWR_GetCachedGLPatch(flatlumpnum)->mipmap;
-	
+
 	grmip->colormap = colormaps;
-	
+
 #ifdef GLENCORE
 	if (!noencoremap && encoremap)
 		grmip->colormap += (256*32);
