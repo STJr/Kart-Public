@@ -1145,8 +1145,6 @@ void CURLGetFile(void)
 		{
 			if (m->data.result != 0)
 			{
-				nameonly(curl_realname);
-				CONS_Printf(M_GetText("Failed to download %s...\n"), curl_realname);
 				curl_curfile->status = FS_FALLBACK;
 				curl_curfile->currentsize = curl_origfilesize;
 				curl_curfile->totalsize = curl_origtotalfilesize;
@@ -1154,7 +1152,9 @@ void CURLGetFile(void)
 				fclose(curl_curfile->file);
 				remove(curl_curfile->filename);
 				curl_curfile->file = NULL;
-				nameonly(curl_curfile->filename);
+				//nameonly(curl_curfile->filename);
+				nameonly(curl_realname);
+				CONS_Printf(M_GetText("Failed to download %s...\n"), curl_realname);
 			}
 			else
 			{
