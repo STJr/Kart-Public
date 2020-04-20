@@ -2889,26 +2889,34 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Encore mode fade to pink to white
 	// This is handled BEFORE sounds are stopped.
-	if (rendermode != render_none && encoremode && !prevencoremode && !demo.rewinding)
+	if (encoremode && !prevencoremode && !demo.rewinding)
 	{
 		tic_t locstarttime, endtime, nowtime;
 
-		S_StopMusic(); // er, about that...
+		if (rendermode != render_none)
+		{
+			S_StopMusic(); // er, about that...
 
-		S_StartSound(NULL, sfx_ruby1);
+			S_StartSound(NULL, sfx_ruby1);
 
-		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 122);
+			F_WipeStartScreen();
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 122);
 
-		F_WipeEndScreen();
-		F_RunWipe(wipedefs[wipe_speclevel_towhite], false);
+			F_WipeEndScreen();
+			F_RunWipe(wipedefs[wipe_speclevel_towhite], false);
 
-		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
+			F_WipeStartScreen();
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 
-		F_WipeEndScreen();
-		F_RunWipe(wipedefs[wipe_level_final], false);
-
+			F_WipeEndScreen();
+			F_RunWipe(wipedefs[wipe_level_final], false);
+		}
+		else //dedicated servers can call this now, to wait the appropriate amount of time for clients to wipe
+		{
+			F_RunWipe(wipedefs[wipe_speclevel_towhite], false);
+			F_RunWipe(wipedefs[wipe_level_final], false);
+		}
+		
 		locstarttime = nowtime = lastwipetic;
 		endtime = locstarttime + (3*TICRATE)/2;
 
@@ -2941,13 +2949,20 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Let's fade to white here
 	// But only if we didn't do the encore startup wipe
-	if (rendermode != render_none && !ranspecialwipe && !demo.rewinding)
+	if (!ranspecialwipe && !demo.rewinding)
 	{
-		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, levelfadecol);
+		if(rendermode != render_none)
+		{
+			F_WipeStartScreen();
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, levelfadecol);
 
-		F_WipeEndScreen();
-		F_RunWipe(wipedefs[(encoremode ? wipe_level_final : wipe_level_toblack)], false);
+			F_WipeEndScreen();
+			F_RunWipe(wipedefs[(encoremode ? wipe_level_final : wipe_level_toblack)], false);
+		}
+		else //dedicated servers
+		{
+			F_RunWipe(wipedefs[(encoremode ? wipe_level_final : wipe_level_toblack)], false);
+		}
 	}
 
 	// Reset the palette now all fades have been done

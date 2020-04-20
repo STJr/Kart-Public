@@ -5072,6 +5072,18 @@ static void CL_SendClientKeepAlive(void)
 	HSendPacket(servernode, false, 0, 0);
 }
 
+static void SV_SendServerKeepAlive(void)
+{
+	for (INT32 n = 1; n < MAXNETNODES; n++)
+	{
+		if (nodeingame[n])
+		{
+			netbuffer->packettype = PT_BASICKEEPALIVE;
+			HSendPacket(n, false, 0, 0);
+		}
+	}
+}
+
 // send the client packet to the server
 static void CL_SendClientCmd(void)
 {
@@ -5589,9 +5601,6 @@ void NetKeepAlive(void)
 
 	UpdatePingTable();
 
-	if (server)
-		CL_SendClientKeepAlive();
-
 // Sryder: What is FILESTAMP???
 FILESTAMP
 	GetPackets();
@@ -5605,6 +5614,11 @@ FILESTAMP
 		CL_SendClientKeepAlive();
 		// No need to check for resynch because we aren't running any tics
 	}
+	else
+	{
+		SV_SendServerKeepAlive();
+	}
+	
 	// No else because no tics are being run and we can't resynch during this
 
 	Net_AckTicker();

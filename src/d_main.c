@@ -279,29 +279,25 @@ static void D_Display(void)
 	INT32 wipedefindex = 0;
 	UINT8 i;
 
-	if (dedicated)
-		return;
-
-	if (nodrawers)
-		return; // for comparative timing/profiling
-
-	// check for change of screen size (video mode)
-	if (setmodeneeded && !wipe)
-		SCR_SetMode(); // change video mode
-
-	if (vid.recalc)
-		SCR_Recalc(); // NOTE! setsizeneeded is set by SCR_Recalc()
-
-	// change the view size if needed
-	if (setsizeneeded)
+	if (!dedicated)
 	{
-		R_ExecuteSetViewSize();
-		forcerefresh = true; // force background redraw
-	}
+		if (nodrawers)
+			return; // for comparative timing/profiling
 
-	// draw buffered stuff to screen
-	// Used only by linux GGI version
-	I_UpdateNoBlit();
+		if (vid.recalc)
+			SCR_Recalc(); // NOTE! setsizeneeded is set by SCR_Recalc()
+
+		// change the view size if needed
+		if (setsizeneeded)
+		{
+			R_ExecuteSetViewSize();
+			forcerefresh = true; // force background redraw
+		}
+
+		// draw buffered stuff to screen
+		// Used only by linux GGI version
+		I_UpdateNoBlit();
+	}
 
 	// save the current screen if about to wipe
 	wipe = (gamestate != wipegamestate);
@@ -319,7 +315,7 @@ static void D_Display(void)
 				wipedefindex = wipe_multinter_toblack;
 		}
 
-		if (rendermode != render_none)
+		if (!dedicated)
 		{
 			// Fade to black first
 			if (gamestate != GS_LEVEL // fades to black on its own timing, always
@@ -339,7 +335,15 @@ static void D_Display(void)
 
 			F_WipeStartScreen();
 		}
+		else //dedicated servers
+		{
+			F_RunWipe(wipedefs[wipedefindex], gamestate != GS_TIMEATTACK);
+			wipegamestate = gamestate;
+		}
 	}
+
+	if (dedicated) //bail out after wipe logic
+		return false;
 
 	// do buffered drawing
 	switch (gamestate)
