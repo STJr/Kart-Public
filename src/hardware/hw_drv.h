@@ -51,6 +51,8 @@ EXPORT void HWRAPI(CreateModelVBOs) (model_t *model);
 EXPORT void HWRAPI(SetTransform) (FTransform *stransform);
 EXPORT INT32 HWRAPI(GetTextureUsed) (void);
 
+EXPORT void HWRAPI(RenderSkyDome) (INT32 tex, INT32 texture_width, INT32 texture_height, FTransform transform);
+
 EXPORT void HWRAPI(FlushScreenTextures) (void);
 EXPORT void HWRAPI(StartScreenWipe) (void);
 EXPORT void HWRAPI(EndScreenWipe) (void);
@@ -110,6 +112,8 @@ struct hwdriver_s
 	MakeScreenTexture   pfnMakeScreenTexture;
 	MakeScreenFinalTexture  pfnMakeScreenFinalTexture;
 	DrawScreenFinalTexture  pfnDrawScreenFinalTexture;
+
+	RenderSkyDome pfnRenderSkyDome;
 
 	LoadShaders pfnLoadShaders;
 	KillShaders pfnKillShaders;
