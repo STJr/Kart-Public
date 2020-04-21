@@ -4850,7 +4850,7 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	}
 
 	R_SetupFrame(player, false); // This can stay false because it is only used to set viewsky in r_main.c, which isn't used here
-	HWR_RenderFrame(viewnumber, player, skybox);
+	HWR_RenderFrame(viewnumber, player, false);
 }
 
 // ==========================================================================
