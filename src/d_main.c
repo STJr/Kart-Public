@@ -343,7 +343,7 @@ static void D_Display(void)
 	}
 
 	if (dedicated) //bail out after wipe logic
-		return false;
+		return;
 
 	// do buffered drawing
 	switch (gamestate)
