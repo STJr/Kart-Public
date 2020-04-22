@@ -790,7 +790,7 @@ void SetupGLFunc4(void)
 }
 
 // jimita
-EXPORT void HWRAPI(LoadShaders) (void)
+EXPORT boolean HWRAPI(LoadShaders) (void)
 {
 #ifdef GL_SHADERS
 	GLuint gl_vertShader, gl_fragShader;
