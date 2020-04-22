@@ -5783,15 +5783,15 @@ static void M_DrawReplayStartMenu(void)
 
 	case DFILE_ERROR_NOTLOADED:
 	case DFILE_ERROR_INCOMPLETEOUTOFORDER:
-		warning = "Loading addons will mark your game as modified, and record attack may be unavailable.\nYou can watch without loading addons, but desyncs may occur.";
+		warning = "Loading add-ons will mark your game as modified, and Record Attack may be unavailable.\nYou can watch without loading add-ons, but desyncs may occur.";
 		break;
 
 	case DFILE_ERROR_EXTRAFILES:
-		warning = "You have addons loaded that were not present in this replay.\nYou can watch anyway, but desyncs may occur.";
+		warning = "You have add-ons loaded that were not present in this replay.\nYou can watch anyway, but desyncs may occur.";
 		break;
 
 	case DFILE_ERROR_OUTOFORDER:
-		warning = "You have this replay's addons loaded, but they are out of order.\nYou can watch anyway, but desyncs may occur.";
+		warning = "You have this replay's add-ons loaded, but they are out of order.\nYou can watch anyway, but desyncs may occur.";
 		break;
 
 	default:
