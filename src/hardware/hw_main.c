@@ -119,6 +119,8 @@ static line_t *gr_linedef;
 static sector_t *gr_frontsector;
 static sector_t *gr_backsector;
 
+boolean gr_shadersavailable = true;
+
 // ==========================================================================
 // View position
 // ==========================================================================
@@ -142,7 +144,7 @@ static INT32 drawcount = 0;
 
 void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UINT32 fadecolor)
 {
-	if (!cv_grshaders.value || (cv_grshaders.value && !cv_grfog.value))
+	if (!cv_grshaders.value || (cv_grshaders.value && !cv_grfog.value) || !gr_shadersavailable)
 	{
 		RGBA_t mix_color, fog_color, final_color;
 		INT32 mix;
@@ -205,7 +207,7 @@ void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UIN
 
 void HWR_NoColormapLighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UINT32 fadecolor)
 {
-	if (!cv_grshaders.value || (cv_grshaders.value && !cv_grfog.value))
+	if (!cv_grshaders.value || (cv_grshaders.value && !cv_grfog.value) || !gr_shadersavailable)
 	{
 		RGBA_t mix_color, fog_color, final_color;
 		INT32 mix, fogmix, lightmix;
@@ -4947,7 +4949,8 @@ void HWR_Startup(void)
 
 	// jimita
 	HWD.pfnKillShaders();
-	HWD.pfnLoadShaders();
+	if (!HWD.pfnLoadShaders())
+		gr_shadersavailable = false;
 }
 
 

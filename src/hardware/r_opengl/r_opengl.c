@@ -796,7 +796,7 @@ EXPORT void HWRAPI(LoadShaders) (void)
 	GLuint gl_vertShader, gl_fragShader;
 	GLint i, result;
 	
-	if (!pglUseProgram) return;
+	if (!pglUseProgram) return false;
 
 	gl_customvertexshaders[0] = NULL;
 	gl_customfragmentshaders[0] = NULL;
@@ -904,6 +904,7 @@ EXPORT void HWRAPI(LoadShaders) (void)
 #undef GETUNI
 	}
 #endif
+	return true;
 }
 
 EXPORT void HWRAPI(LoadCustomShader) (int number, char *shader, size_t size, boolean fragment)
