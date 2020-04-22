@@ -785,7 +785,7 @@ void G_SetGameModified(boolean silent, boolean major)
 	majormods = true;
 
 	if (!silent)
-		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to play record attack.\n"));
+		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to play Record Attack.\n"));
 
 	// If in record attack recording, cancel it.
 	if (modeattacking)
@@ -7472,7 +7472,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 			if (modeattacking)
 			{
-				snprintf(msg, 1024, M_GetText("%s is a record attack replay with spectators, and is thus invalid.\n"), pdemoname);
+				snprintf(msg, 1024, M_GetText("%s is a Record Attack replay with spectators, and is thus invalid.\n"), pdemoname);
 				CONS_Alert(CONS_ERROR, "%s", msg);
 				M_StartMessage(msg, NULL, MM_NOTHING);
 				Z_Free(pdemoname);
@@ -7486,7 +7486,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 		if (modeattacking && numslots > 1)
 		{
-			snprintf(msg, 1024, M_GetText("%s is a record attack replay with multiple players, and is thus invalid.\n"), pdemoname);
+			snprintf(msg, 1024, M_GetText("%s is a Record Attack replay with multiple players, and is thus invalid.\n"), pdemoname);
 			CONS_Alert(CONS_ERROR, "%s", msg);
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
