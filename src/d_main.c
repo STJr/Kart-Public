@@ -283,6 +283,10 @@ static void D_Display(void)
 	{
 		if (nodrawers)
 			return; // for comparative timing/profiling
+		
+		// check for change of screen size (video mode)
+		if (setmodeneeded && !wipe)
+			SCR_SetMode(); // change video mode
 
 		if (vid.recalc)
 			SCR_Recalc(); // NOTE! setsizeneeded is set by SCR_Recalc()
