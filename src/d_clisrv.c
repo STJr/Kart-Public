@@ -5074,7 +5074,9 @@ static void CL_SendClientKeepAlive(void)
 
 static void SV_SendServerKeepAlive(void)
 {
-	for (INT32 n = 1; n < MAXNETNODES; n++)
+	INT32 n;
+	
+	for (n = 1; n < MAXNETNODES; n++)
 	{
 		if (nodeingame[n])
 		{
