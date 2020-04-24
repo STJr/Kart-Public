@@ -380,6 +380,10 @@ static PFNglMultiTexCoord2fv pglMultiTexCoord2fv;
 typedef void (APIENTRY *PFNglClientActiveTexture) (GLenum);
 static PFNglClientActiveTexture pglClientActiveTexture;
 
+// sky dome needs this
+typedef void    (APIENTRY *PFNglColorPointer)       (GLint, GLenum, GLsizei, const GLvoid*);
+static PFNglColorPointer pglColorPointer;
+
 /* 1.2 Parms */
 /* GL_CLAMP_TO_EDGE_EXT */
 #ifndef GL_CLAMP_TO_EDGE
@@ -544,7 +548,8 @@ static boolean gl_batching = false;// are we currently collecting batches?
 typedef enum
 {
 	// lighting
-	gluniform_mix_color,
+	gluniform_poly_color,
+	gluniform_tint_color,
 	gluniform_fade_color,
 	gluniform_lighting,
 
@@ -574,36 +579,79 @@ static gl_shaderprogram_t gl_shaderprograms[MAXSHADERPROGRAMS];
 // GLSL Software fragment shader
 //
 
-#define GLSL_INTERNAL_FOG_FUNCTION \
-	"float fog(const float dist, const float density,  const float globaldensity) {\n" \
-		"const float LOG2 = -1.442695;\n" \
-		"float d = density * dist;\n" \
-		"return 1.0 - clamp(exp2(d * sqrt(d) * globaldensity * LOG2), 0.0, 1.0);\n" \
+// (new shader stuff taken from srb2 shader branch)
+// this is missing support for fade_start and fade_end
+
+#define GLSL_DOOM_COLORMAP \
+	"float R_DoomColormap(float light, float z)\n" \
+	"{\n" \
+		"float lightnum = clamp(light / 17.0, 0.0, 15.0);\n" \
+		"float lightz = clamp(z / 16.0, 0.0, 127.0);\n" \
+		"float startmap = (15.0 - lightnum) * 4.0;\n" \
+		"float scale = 160.0 / (lightz + 1.0);\n" \
+		"return startmap - scale * 0.5;\n" \
 	"}\n"
 
-// https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_gpu_shader_fp64.txt
-#define GLSL_INTERNAL_FOG_MIX \
-	"float fog_distance = gl_FragCoord.z / gl_FragCoord.w;\n" \
-	"float fog_attenuation = floor(fog(fog_distance, 0.0001 * ((256.0-lighting)/24.0), fog_density)*10.0)/10.0;\n" \
-	"vec4 fog_color = vec4(fade_color[0], fade_color[1], fade_color[2], 1.0);\n" \
-	"vec4 mixed_color = texel * mix_color;\n" \
-	"vec4 fog_mix = mix(mixed_color, fog_color, fog_attenuation);\n" \
-	"vec4 final_color = mix(fog_mix, fog_color, ((256.0-lighting)/256.0));\n" \
-	"final_color[3] = mixed_color[3];\n"
+#define GLSL_DOOM_LIGHT_EQUATION \
+	"float R_DoomLightingEquation(float light)\n" \
+	"{\n" \
+		"float z = gl_FragCoord.z / gl_FragCoord.w;\n" \
+		"float colormap = floor(R_DoomColormap(light, z)) + 0.5;\n" \
+		"return clamp(colormap, 0.0, 31.0) / 32.0;\n" \
+	"}\n"
+
+#define GLSL_SOFTWARE_TINT_EQUATION \
+	"if (tint_color.a > 0.0) {\n" \
+		"float color_bright = sqrt((base_color.r * base_color.r) + (base_color.g * base_color.g) + (base_color.b * base_color.b));\n" \
+		"float strength = sqrt(9.0 * tint_color.a);\n" \
+		"final_color.r = clamp((color_bright * (tint_color.r * strength)) + (base_color.r * (1.0 - strength)), 0.0, 1.0);\n" \
+		"final_color.g = clamp((color_bright * (tint_color.g * strength)) + (base_color.g * (1.0 - strength)), 0.0, 1.0);\n" \
+		"final_color.b = clamp((color_bright * (tint_color.b * strength)) + (base_color.b * (1.0 - strength)), 0.0, 1.0);\n" \
+	"}\n"
+
+#define GLSL_SOFTWARE_FADE_EQUATION \
+	"float darkness = R_DoomLightingEquation(lighting);\n" \
+	"final_color = mix(final_color, fade_color, darkness);\n"
 
 #define GLSL_SOFTWARE_FRAGMENT_SHADER \
 	"uniform sampler2D tex;\n" \
-	"uniform vec4 mix_color;\n" \
+	"uniform vec4 poly_color;\n" \
+	"uniform vec4 tint_color;\n" \
 	"uniform vec4 fade_color;\n" \
 	"uniform float lighting;\n" \
-	"uniform int fog_mode;\n" \
-	"uniform float fog_density;\n" \
-	GLSL_INTERNAL_FOG_FUNCTION \
+	GLSL_DOOM_COLORMAP \
+	GLSL_DOOM_LIGHT_EQUATION \
 	"void main(void) {\n" \
 		"vec4 texel = texture2D(tex, gl_TexCoord[0].st);\n" \
-		GLSL_INTERNAL_FOG_MIX \
+		"vec4 base_color = texel * poly_color;\n" \
+		"vec4 final_color = base_color;\n" \
+		GLSL_SOFTWARE_TINT_EQUATION \
+		GLSL_SOFTWARE_FADE_EQUATION \
+		"final_color.a = texel.a * poly_color.a;\n" \
 		"gl_FragColor = final_color;\n" \
 	"}\0"
+
+
+//
+// Fog block shader (Taken from srb2 shader branch)
+//
+// Alpha of the planes themselves are still slightly off -- see HWR_FogBlockAlpha
+//
+
+#define GLSL_FOG_FRAGMENT_SHADER \
+	"uniform vec4 tint_color;\n" \
+	"uniform vec4 fade_color;\n" \
+	"uniform float lighting;\n" \
+	GLSL_DOOM_COLORMAP \
+	GLSL_DOOM_LIGHT_EQUATION \
+	"void main(void) {\n" \
+		"vec4 base_color = gl_Color;\n" \
+		"vec4 final_color = base_color;\n" \
+		GLSL_SOFTWARE_TINT_EQUATION \
+		GLSL_SOFTWARE_FADE_EQUATION \
+		"gl_FragColor = final_color;\n" \
+	"}\0"
+
 
 //
 // GLSL generic fragment shader
@@ -636,9 +684,7 @@ static const char *fragment_shaders[] = {
 	GLSL_SOFTWARE_FRAGMENT_SHADER,
 
 	// Fog fragment shader
-	"void main(void) {\n"
-		"gl_FragColor = gl_Color;\n"
-	"}\0",
+	GLSL_FOG_FRAGMENT_SHADER,
 
 	// Sky fragment shader
 	"uniform sampler2D tex;\n"
@@ -706,6 +752,7 @@ void SetupGLFunc4(void)
 	pglBindBuffer = GetGLFunc("glBindBuffer");
 	pglBufferData = GetGLFunc("glBufferData");
 	pglDeleteBuffers = GetGLFunc("glDeleteBuffers");
+	pglColorPointer = GetGLFunc("glColorPointer");
 
 #ifdef GL_SHADERS
 	pglCreateShader = GetGLFunc("glCreateShader");
@@ -735,11 +782,13 @@ void SetupGLFunc4(void)
 }
 
 // jimita
-EXPORT void HWRAPI(LoadShaders) (void)
+EXPORT boolean HWRAPI(LoadShaders) (void)
 {
 #ifdef GL_SHADERS
 	GLuint gl_vertShader, gl_fragShader;
 	GLint i, result;
+	
+	if (!pglUseProgram) return false;
 
 	gl_customvertexshaders[0] = NULL;
 	gl_customfragmentshaders[0] = NULL;
@@ -832,7 +881,8 @@ EXPORT void HWRAPI(LoadShaders) (void)
 #define GETUNI(uniform) pglGetUniformLocation(shader->program, uniform);
 
 		// lighting
-		shader->uniforms[gluniform_mix_color] = GETUNI("mix_color");
+		shader->uniforms[gluniform_poly_color] = GETUNI("poly_color");
+		shader->uniforms[gluniform_tint_color] = GETUNI("tint_color");
 		shader->uniforms[gluniform_fade_color] = GETUNI("fade_color");
 		shader->uniforms[gluniform_lighting] = GETUNI("lighting");
 
@@ -846,11 +896,13 @@ EXPORT void HWRAPI(LoadShaders) (void)
 #undef GETUNI
 	}
 #endif
+	return true;
 }
 
 EXPORT void HWRAPI(LoadCustomShader) (int number, char *shader, size_t size, boolean fragment)
 {
 #ifdef GL_SHADERS
+	if (!pglUseProgram) return;
 	if (number < 1 || number > MAXSHADERS)
 		I_Error("LoadCustomShader(): cannot load shader %d (max %d)", number, MAXSHADERS);
 
@@ -900,6 +952,7 @@ EXPORT void HWRAPI(UnSetShader) (void)
 	gl_shadersenabled = false;
 	gl_currentshaderprogram = 0;
 	gl_shaderprogramchanged = true;// not sure if this is needed
+	if (!pglUseProgram) return;
 	pglUseProgram(0);
 #endif
 }
@@ -1621,10 +1674,10 @@ EXPORT void HWRAPI(SetTexture) (FTextureInfo *pTexInfo)
 	}
 }
 
-static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *fade)
+static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *poly, GLRGBAFloat *tint, GLRGBAFloat *fade)
 {
 #ifdef GL_SHADERS
-	if (gl_shadersenabled)
+	if (gl_shadersenabled && pglUseProgram)
 	{
 		gl_shaderprogram_t *shader = &gl_shaderprograms[gl_currentshaderprogram];
 		if (shader->program)
@@ -1680,7 +1733,9 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *f
 						function (uniform, a, b, c, d);
 
 				// polygon
-				UNIFORM_4(shader->uniforms[gluniform_mix_color], mix->red, mix->green, mix->blue, mix->alpha, pglUniform4f);
+				UNIFORM_4(shader->uniforms[gluniform_poly_color], poly->red, poly->green, poly->blue, poly->alpha, pglUniform4f);
+				UNIFORM_4(shader->uniforms[gluniform_tint_color], tint->red, tint->green, tint->blue, tint->alpha, pglUniform4f);
+
 
 				// 13062019
 				// Check for fog
@@ -1710,9 +1765,7 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *mix, GLRGBAFloat *f
 		else
 			pglUseProgram(0);
 	}
-	else
 #endif
-		pglUseProgram(0);
 }
 
 // unfinished draw call batching
@@ -1789,6 +1842,8 @@ static int comparePolygons(const void *p1, const void *p2)
 
 	diff64 = poly1->surf.PolyColor.rgba - poly2->surf.PolyColor.rgba;
 	if (diff64 < 0) return -1; else if (diff64 > 0) return 1;
+	diff64 = poly1->surf.TintColor.rgba - poly2->surf.TintColor.rgba;
+	if (diff64 < 0) return -1; else if (diff64 > 0) return 1;
 	diff64 = poly1->surf.FadeColor.rgba - poly2->surf.FadeColor.rgba;
 	if (diff64 < 0) return -1; else if (diff64 > 0) return 1;
 
@@ -1835,6 +1890,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 	FSurfaceInfo currentSurfaceInfo;
 
 	GLRGBAFloat firstPoly = {0,0,0,0}; // may be misleading but this means first PolyColor
+	GLRGBAFloat firstTint = {0,0,0,0};
 	GLRGBAFloat firstFade = {0,0,0,0};
 
 	boolean needRebind = false;
@@ -1896,6 +1952,11 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 		firstPoly.alpha  = byte2float[currentSurfaceInfo.PolyColor.s.alpha];
 		pglColor4ubv((GLubyte*)&currentSurfaceInfo.PolyColor.s);
 	}
+	// Tint color
+	firstTint.red   = byte2float[currentSurfaceInfo.TintColor.s.red];
+	firstTint.green = byte2float[currentSurfaceInfo.TintColor.s.green];
+	firstTint.blue  = byte2float[currentSurfaceInfo.TintColor.s.blue];
+	firstTint.alpha = byte2float[currentSurfaceInfo.TintColor.s.alpha];
 	// Fade color
 	firstFade.red   = byte2float[currentSurfaceInfo.FadeColor.s.red];
 	firstFade.green = byte2float[currentSurfaceInfo.FadeColor.s.green];
@@ -1903,7 +1964,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 	firstFade.alpha = byte2float[currentSurfaceInfo.FadeColor.s.alpha];
 
 	if (gl_allowshaders)
-		load_shaders(&currentSurfaceInfo, &firstPoly, &firstFade);
+		load_shaders(&currentSurfaceInfo, &firstPoly, &firstTint, &firstFade);
 
 	if (currentPolyFlags & PF_NoTexture)
 		currentTexture = 0;
@@ -2017,6 +2078,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 			if (gl_allowshaders)
 			{
 				if (currentSurfaceInfo.PolyColor.rgba != nextSurfaceInfo.PolyColor.rgba ||
+					currentSurfaceInfo.TintColor.rgba != nextSurfaceInfo.TintColor.rgba ||
 					currentSurfaceInfo.FadeColor.rgba != nextSurfaceInfo.FadeColor.rgba ||
 					currentSurfaceInfo.LightInfo.light_level != nextSurfaceInfo.LightInfo.light_level)
 				{
@@ -2065,6 +2127,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 		if (changeShader)
 		{
 			GLRGBAFloat poly = {0,0,0,0};
+			GLRGBAFloat tint = {0,0,0,0};
 			GLRGBAFloat fade = {0,0,0,0};
 			gl_currentshaderprogram = nextShader;
 			gl_shaderprogramchanged = true;
@@ -2076,13 +2139,18 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 				poly.blue   = byte2float[nextSurfaceInfo.PolyColor.s.blue];
 				poly.alpha  = byte2float[nextSurfaceInfo.PolyColor.s.alpha];
 			}
+			// Tint color
+			tint.red   = byte2float[nextSurfaceInfo.TintColor.s.red];
+			tint.green = byte2float[nextSurfaceInfo.TintColor.s.green];
+			tint.blue  = byte2float[nextSurfaceInfo.TintColor.s.blue];
+			tint.alpha = byte2float[nextSurfaceInfo.TintColor.s.alpha];
 			// Fade color
 			fade.red   = byte2float[nextSurfaceInfo.FadeColor.s.red];
 			fade.green = byte2float[nextSurfaceInfo.FadeColor.s.green];
 			fade.blue  = byte2float[nextSurfaceInfo.FadeColor.s.blue];
 			fade.alpha = byte2float[nextSurfaceInfo.FadeColor.s.alpha];
 
-			load_shaders(&nextSurfaceInfo, &poly, &fade);
+			load_shaders(&nextSurfaceInfo, &poly, &tint, &fade);
 			currentShader = nextShader;
 			changeShader = false;
 
@@ -2109,6 +2177,7 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 		if (changeSurfaceInfo)
 		{
 			GLRGBAFloat poly = {0,0,0,0};
+			GLRGBAFloat tint = {0,0,0,0};
 			GLRGBAFloat fade = {0,0,0,0};
 			gl_shaderprogramchanged = false;
 			if (nextPolyFlags & PF_Modulated)
@@ -2122,13 +2191,18 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 			}
 			if (gl_allowshaders)
 			{
+				// Tint color
+				tint.red   = byte2float[nextSurfaceInfo.TintColor.s.red];
+				tint.green = byte2float[nextSurfaceInfo.TintColor.s.green];
+				tint.blue  = byte2float[nextSurfaceInfo.TintColor.s.blue];
+				tint.alpha = byte2float[nextSurfaceInfo.TintColor.s.alpha];
 				// Fade color
 				fade.red   = byte2float[nextSurfaceInfo.FadeColor.s.red];
 				fade.green = byte2float[nextSurfaceInfo.FadeColor.s.green];
 				fade.blue  = byte2float[nextSurfaceInfo.FadeColor.s.blue];
 				fade.alpha = byte2float[nextSurfaceInfo.FadeColor.s.alpha];
 
-				load_shaders(&nextSurfaceInfo, &poly, &fade);
+				load_shaders(&nextSurfaceInfo, &poly, &tint, &fade);
 			}
 			currentSurfaceInfo = nextSurfaceInfo;
 			changeSurfaceInfo = false;
@@ -2194,7 +2268,8 @@ EXPORT void HWRAPI(DrawPolygon) (FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUI
 	}
 	else
 	{
-		static GLRGBAFloat mix = {0,0,0,0};
+		static GLRGBAFloat poly = {0,0,0,0};
+		static GLRGBAFloat tint = {0,0,0,0};
 		static GLRGBAFloat fade = {0,0,0,0};
 
 		SetBlend(PolyFlags);    //TODO: inline (#pragma..)
@@ -2205,14 +2280,20 @@ EXPORT void HWRAPI(DrawPolygon) (FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUI
 			// If Modulated, mix the surface colour to the texture
 			if (CurrentPolyFlags & PF_Modulated)
 			{
-				// Mix color
-				mix.red    = byte2float[pSurf->PolyColor.s.red];
-				mix.green  = byte2float[pSurf->PolyColor.s.green];
-				mix.blue   = byte2float[pSurf->PolyColor.s.blue];
-				mix.alpha  = byte2float[pSurf->PolyColor.s.alpha];
+				// Poly color
+				poly.red    = byte2float[pSurf->PolyColor.s.red];
+				poly.green  = byte2float[pSurf->PolyColor.s.green];
+				poly.blue   = byte2float[pSurf->PolyColor.s.blue];
+				poly.alpha  = byte2float[pSurf->PolyColor.s.alpha];
 
 				pglColor4ubv((GLubyte*)&pSurf->PolyColor.s);
 			}
+			
+			// Tint color
+			tint.red   = byte2float[pSurf->TintColor.s.red];
+			tint.green = byte2float[pSurf->TintColor.s.green];
+			tint.blue  = byte2float[pSurf->TintColor.s.blue];
+			tint.alpha = byte2float[pSurf->TintColor.s.alpha];
 
 			// Fade color
 			fade.red   = byte2float[pSurf->FadeColor.s.red];
@@ -2221,7 +2302,7 @@ EXPORT void HWRAPI(DrawPolygon) (FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUI
 			fade.alpha = byte2float[pSurf->FadeColor.s.alpha];
 		}
 
-		load_shaders(pSurf, &mix, &fade);
+		load_shaders(pSurf, &poly, &tint, &fade);
 
 		pglVertexPointer(3, GL_FLOAT, sizeof(FOutVector), &pOutVerts[0].x);
 		pglTexCoordPointer(2, GL_FLOAT, sizeof(FOutVector), &pOutVerts[0].s);
@@ -2236,6 +2317,260 @@ EXPORT void HWRAPI(DrawPolygon) (FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUI
 		if (PolyFlags & PF_ForceWrapY)
 			Clamp2D(GL_TEXTURE_WRAP_T);
 	}
+}
+
+// Sky dome code, taken/backported from SRB2
+
+typedef struct vbo_vertex_s
+{
+	float x, y, z;
+	float u, v;
+	unsigned char r, g, b, a;
+} vbo_vertex_t;
+
+typedef struct
+{
+	int mode;
+	int vertexcount;
+	int vertexindex;
+	int use_texture;
+} GLSkyLoopDef;
+
+typedef struct
+{
+	unsigned int id;
+	int rows, columns;
+	int loopcount;
+	GLSkyLoopDef *loops;
+	vbo_vertex_t *data;
+} GLSkyVBO;
+
+static const boolean gl_ext_arb_vertex_buffer_object = true;
+
+#define NULL_VBO_VERTEX ((vbo_vertex_t*)NULL)
+#define sky_vbo_x (gl_ext_arb_vertex_buffer_object ? &NULL_VBO_VERTEX->x : &vbo->data[0].x)
+#define sky_vbo_u (gl_ext_arb_vertex_buffer_object ? &NULL_VBO_VERTEX->u : &vbo->data[0].u)
+#define sky_vbo_r (gl_ext_arb_vertex_buffer_object ? &NULL_VBO_VERTEX->r : &vbo->data[0].r)
+
+// The texture offset to be applied to the texture coordinates in SkyVertex().
+static int rows, columns;
+static signed char yflip;
+static int texw, texh;
+static boolean foglayer;
+static float delta = 0.0f;
+
+static int gl_sky_detail = 16;
+
+static INT32 lasttex = -1;
+
+#define MAP_COEFF 128.0f
+
+static void SkyVertex(vbo_vertex_t *vbo, int r, int c)
+{
+	const float radians = (float)(M_PIl / 180.0f);
+	const float scale = 10000.0f;
+	const float maxSideAngle = 60.0f;
+
+	float topAngle = (c / (float)columns * 360.0f);
+	float sideAngle = (maxSideAngle * (rows - r) / rows);
+	float height = (float)(sin(sideAngle * radians));
+	float realRadius = (float)(scale * cos(sideAngle * radians));
+	float x = (float)(realRadius * cos(topAngle * radians));
+	float y = (!yflip) ? scale * height : -scale * height;
+	float z = (float)(realRadius * sin(topAngle * radians));
+	float timesRepeat = (4 * (256.0f / texw));
+	if (fpclassify(timesRepeat) == FP_ZERO)
+		timesRepeat = 1.0f;
+
+	if (!foglayer)
+	{
+		vbo->r = 255;
+		vbo->g = 255;
+		vbo->b = 255;
+		vbo->a = (r == 0 ? 0 : 255);
+
+		// And the texture coordinates.
+		//vbo->u = (-timesRepeat * c / (float)columns);
+		vbo->u = (timesRepeat * c / (float)columns);// TEST
+		if (!yflip)	// Flipped Y is for the lower hemisphere.
+			vbo->v = (r / (float)rows) + 0.5f;
+		else
+			vbo->v = 1.0f + ((rows - r) / (float)rows) + 0.5f;
+	}
+
+	if (r != 4)
+	{
+		y += 300.0f;
+	}
+
+	// And finally the vertex.
+	vbo->x = x;
+	vbo->y = y + delta;
+	vbo->z = z;
+}
+
+static GLSkyVBO sky_vbo;
+
+static void gld_BuildSky(int row_count, int col_count)
+{
+	int c, r;
+	vbo_vertex_t *vertex_p;
+	int vertex_count = 2 * row_count * (col_count * 2 + 2) + col_count * 2;
+
+	GLSkyVBO *vbo = &sky_vbo;
+
+	if ((vbo->columns != col_count) || (vbo->rows != row_count))
+	{
+		free(vbo->loops);
+		free(vbo->data);
+		memset(vbo, 0, sizeof(&vbo));
+	}
+
+	if (!vbo->data)
+	{
+		memset(vbo, 0, sizeof(&vbo));
+		vbo->loops = malloc((row_count * 2 + 2) * sizeof(vbo->loops[0]));
+		// create vertex array
+		vbo->data = malloc(vertex_count * sizeof(vbo->data[0]));
+	}
+
+	vbo->columns = col_count;
+	vbo->rows = row_count;
+
+	vertex_p = &vbo->data[0];
+	vbo->loopcount = 0;
+
+	for (yflip = 0; yflip < 2; yflip++)
+	{
+		vbo->loops[vbo->loopcount].mode = GL_TRIANGLE_FAN;
+		vbo->loops[vbo->loopcount].vertexindex = vertex_p - &vbo->data[0];
+		vbo->loops[vbo->loopcount].vertexcount = col_count;
+		vbo->loops[vbo->loopcount].use_texture = false;
+		vbo->loopcount++;
+
+		delta = 0.0f;
+		foglayer = true;
+		for (c = 0; c < col_count; c++)
+		{
+			SkyVertex(vertex_p, 1, c);
+			vertex_p->r = 255;
+			vertex_p->g = 255;
+			vertex_p->b = 255;
+			vertex_p->a = 255;
+			vertex_p++;
+		}
+		foglayer = false;
+
+		delta = (yflip ? 5.0f : -5.0f) / MAP_COEFF;
+
+		for (r = 0; r < row_count; r++)
+		{
+			vbo->loops[vbo->loopcount].mode = GL_TRIANGLE_STRIP;
+			vbo->loops[vbo->loopcount].vertexindex = vertex_p - &vbo->data[0];
+			vbo->loops[vbo->loopcount].vertexcount = 2 * col_count + 2;
+			vbo->loops[vbo->loopcount].use_texture = true;
+			vbo->loopcount++;
+
+			for (c = 0; c <= col_count; c++)
+			{
+				SkyVertex(vertex_p++, r + (yflip ? 1 : 0), (c ? c : 0));
+				SkyVertex(vertex_p++, r + (yflip ? 0 : 1), (c ? c : 0));
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
+static void RenderDome(INT32 skytexture)
+{
+	int i, j;
+	int vbosize;
+	GLSkyVBO *vbo = &sky_vbo;
+
+	rows = 4;
+	columns = 4 * gl_sky_detail;
+
+	vbosize = 2 * rows * (columns * 2 + 2) + columns * 2;
+
+	// Build the sky dome! Yes!
+	if (lasttex != skytexture)
+	{
+		// delete VBO when already exists
+		if (gl_ext_arb_vertex_buffer_object)
+		{
+			if (vbo->id)
+				pglDeleteBuffers(1, &vbo->id);
+		}
+
+		lasttex = skytexture;
+		gld_BuildSky(rows, columns);
+
+		if (gl_ext_arb_vertex_buffer_object)
+		{
+			// generate a new VBO and get the associated ID
+			pglGenBuffers(1, &vbo->id);
+
+			// bind VBO in order to use
+			pglBindBuffer(GL_ARRAY_BUFFER, vbo->id);
+
+			// upload data to VBO
+			pglBufferData(GL_ARRAY_BUFFER, vbosize * sizeof(vbo->data[0]), vbo->data, GL_STATIC_DRAW);
+		}
+	}
+
+	// bind VBO in order to use
+	if (gl_ext_arb_vertex_buffer_object)
+		pglBindBuffer(GL_ARRAY_BUFFER, vbo->id);
+
+	// activate and specify pointers to arrays
+	pglVertexPointer(3, GL_FLOAT, sizeof(vbo->data[0]), sky_vbo_x);
+	pglTexCoordPointer(2, GL_FLOAT, sizeof(vbo->data[0]), sky_vbo_u);
+	pglColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vbo->data[0]), sky_vbo_r);
+
+	// activate color arrays
+	pglEnableClientState(GL_COLOR_ARRAY);
+
+	// set transforms
+	pglScalef(1.0f, (float)texh / 230.0f, 1.0f);
+	pglRotatef(270.0f, 0.0f, 1.0f, 0.0f);
+
+	for (j = 0; j < 2; j++)
+	{
+		for (i = 0; i < vbo->loopcount; i++)
+		{
+			GLSkyLoopDef *loop = &vbo->loops[i];
+
+			if (j == 0 ? loop->use_texture : !loop->use_texture)
+				continue;
+
+			pglDrawArrays(loop->mode, loop->vertexindex, loop->vertexcount);
+		}
+	}
+
+	pglScalef(1.0f, 1.0f, 1.0f);
+	pglColor4ubv(white);
+
+	// bind with 0, so, switch back to normal pointer operation
+	if (gl_ext_arb_vertex_buffer_object)
+		pglBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// deactivate color array
+	pglDisableClientState(GL_COLOR_ARRAY);
+}
+
+EXPORT void HWRAPI(RenderSkyDome) (INT32 tex, INT32 texture_width, INT32 texture_height, FTransform transform)
+{
+	SetBlend(PF_Translucent|PF_NoDepthTest|PF_Modulated);
+	SetTransform(&transform);
+	texw = texture_width;
+	texh = texture_height;
+	RenderDome(tex);
+	SetBlend(0);
 }
 
 // ==========================================================================
@@ -2521,7 +2856,8 @@ EXPORT void HWRAPI(CreateModelVBOs) (model_t *model)
 
 static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 tics, INT32 nextFrameIndex, FTransform *pos, float scale, UINT8 flipped, FSurfaceInfo *Surface)
 {
-	static GLRGBAFloat mix = {0,0,0,0};
+	static GLRGBAFloat poly = {0,0,0,0};
+	static GLRGBAFloat tint = {0,0,0,0};
 	static GLRGBAFloat fade = {0,0,0,0};
 
 	float pol = 0.0f;
@@ -2550,24 +2886,29 @@ static void DrawModelEx(model_t *model, INT32 frameIndex, INT32 duration, INT32 
 			pol = 0.0f;
 	}
 
-	mix.red    = byte2float[Surface->PolyColor.s.red];
-	mix.green  = byte2float[Surface->PolyColor.s.green];
-	mix.blue   = byte2float[Surface->PolyColor.s.blue];
-	mix.alpha  = byte2float[Surface->PolyColor.s.alpha];
+	poly.red    = byte2float[Surface->PolyColor.s.red];
+	poly.green  = byte2float[Surface->PolyColor.s.green];
+	poly.blue   = byte2float[Surface->PolyColor.s.blue];
+	poly.alpha  = byte2float[Surface->PolyColor.s.alpha];
 
-	if (mix.alpha < 1)
+	if (poly.alpha < 1)
 		SetBlend(PF_Translucent|PF_Modulated);
 	else
 		SetBlend(PF_Masked|PF_Modulated|PF_Occlude);
 
 	pglColor4ubv((GLubyte*)&Surface->PolyColor.s);
 
+	tint.red    = byte2float[Surface->TintColor.s.red];
+	tint.green  = byte2float[Surface->TintColor.s.green];
+	tint.blue   = byte2float[Surface->TintColor.s.blue];
+	tint.alpha  = byte2float[Surface->TintColor.s.alpha];
+
 	fade.red   = byte2float[Surface->FadeColor.s.red];
 	fade.green = byte2float[Surface->FadeColor.s.green];
 	fade.blue  = byte2float[Surface->FadeColor.s.blue];
 	fade.alpha = byte2float[Surface->FadeColor.s.alpha];
 
-	load_shaders(Surface, &mix, &fade);
+	load_shaders(Surface, &poly, &tint, &fade);
 
 	pglEnable(GL_CULL_FACE);
 	pglEnable(GL_NORMALIZE);

@@ -231,6 +231,7 @@ struct FSurfaceInfo
 {
 	FUINT			PolyFlags;
 	RGBA_t			PolyColor;
+	RGBA_t			TintColor;
 	RGBA_t			FadeColor;
 	FLightInfo		LightInfo;	// jimita 14032019
 };

@@ -100,6 +100,8 @@ void *hwSym(const char *funcName,void *handle)
 	GETFUNC(MakeScreenTexture);
 	GETFUNC(MakeScreenFinalTexture);
 	GETFUNC(DrawScreenFinalTexture);
+	
+	GETFUNC(RenderSkyDome);
 
 	GETFUNC(LoadShaders);
 	GETFUNC(KillShaders);
