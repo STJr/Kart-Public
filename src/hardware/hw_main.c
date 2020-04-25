@@ -78,7 +78,6 @@ consvar_t cv_grcorrecttricks = {"gr_correcttricks", "Off", 0, CV_OnOff, NULL, 0,
 consvar_t cv_grsolvetjoin = {"gr_solvetjoin", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_grbatching = {"gr_batching", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_grskydome = {"gr_skydome", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static void CV_filtermode_ONChange(void)
 {
@@ -4543,132 +4542,33 @@ void HWR_DrawSkyBackground(float fpov)
 {
 	if (drewsky)
 		return;
-	if (cv_grskydome.value)
-	{
-		FTransform dometransform;
 
-		memset(&dometransform, 0x00, sizeof(FTransform));
+	FTransform dometransform;
 
-		//04/01/2000: Hurdler: added for T&L
-		//                     It should replace all other gr_viewxxx when finished
-		if (!atransform.shearing)
-			dometransform.anglex = (float)(aimingangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
-		dometransform.angley = (float)((viewangle-ANGLE_270)>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
+	memset(&dometransform, 0x00, sizeof(FTransform));
 
-		dometransform.flip = atransform.flip;
-		dometransform.mirror = atransform.mirror;
-		dometransform.shearing = atransform.shearing;
-		dometransform.viewaiming = atransform.viewaiming;
+	//04/01/2000: Hurdler: added for T&L
+	//                     It should replace all other gr_viewxxx when finished
+	if (!atransform.shearing)
+		dometransform.anglex = (float)(aimingangle>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
+	dometransform.angley = (float)((viewangle-ANGLE_270)>>ANGLETOFINESHIFT)*(360.0f/(float)FINEANGLES);
 
-		dometransform.scalex = 1;
-		dometransform.scaley = (float)vid.width/vid.height;
-		dometransform.scalez = 1;
-		dometransform.fovxangle = fpov; // Tails
-		dometransform.fovyangle = fpov; // Tails
-		dometransform.splitscreen = splitscreen;
+	dometransform.flip = atransform.flip;
+	dometransform.mirror = atransform.mirror;
+	dometransform.shearing = atransform.shearing;
+	dometransform.viewaiming = atransform.viewaiming;
 
-		HWR_GetTexture(texturetranslation[skytexture]);
-		HWD.pfnSetShader(7);	// sky shader
-		HWD.pfnRenderSkyDome(skytexture, textures[skytexture]->width, textures[skytexture]->height, dometransform);
-		HWD.pfnSetShader(0);
-	}
-	else
-	{
-		FOutVector v[4];
-		angle_t angle;
-		float dimensionmultiply;
-		float aspectratio;
-		float angleturn;
+	dometransform.scalex = 1;
+	dometransform.scaley = (float)vid.width/vid.height;
+	dometransform.scalez = 1;
+	dometransform.fovxangle = fpov; // Tails
+	dometransform.fovyangle = fpov; // Tails
+	dometransform.splitscreen = splitscreen;
 
-		HWR_GetTexture(texturetranslation[skytexture]);
-		aspectratio = (float)vid.width/(float)vid.height;
-
-		//Hurdler: the sky is the only texture who need 4.0f instead of 1.0
-		//         because it's called just after clearing the screen
-		//         and thus, the near clipping plane is set to 3.99
-		// Sryder: Just use the near clipping plane value then
-
-		//  3--2
-		//  | /|
-		//  |/ |
-		//  0--1
-		v[0].x = v[3].x = -ZCLIP_PLANE-1;
-		v[1].x = v[2].x =  ZCLIP_PLANE+1;
-		v[0].y = v[1].y = -ZCLIP_PLANE-1;
-		v[2].y = v[3].y =  ZCLIP_PLANE+1;
-
-		v[0].z = v[1].z = v[2].z = v[3].z = ZCLIP_PLANE+1;
-
-		// X
-
-		// NOTE: This doesn't work right with texture widths greater than 1024
-		// software doesn't draw any further than 1024 for skies anyway, but this doesn't overlap properly
-		// The only time this will probably be an issue is when a sky wider than 1024 is used as a sky AND a regular wall texture
-
-		angle = (viewangle + xtoviewangle[0]);
-		dimensionmultiply = ((float)textures[texturetranslation[skytexture]]->width/256.0f);
-
-		if (atransform.mirror)
-		{
-			angle = InvAngle(angle);
-			dimensionmultiply *= -1;
-		}
-
-		v[0].s = v[3].s = ((float) angle / ((ANGLE_90-1)*dimensionmultiply));
-		v[2].s = v[1].s = (-1.0f/dimensionmultiply)+((float) angle / ((ANGLE_90-1)*dimensionmultiply));
-
-		// Y
-		angle = aimingangle;
-		dimensionmultiply = ((float)textures[texturetranslation[skytexture]]->height/(128.0f*aspectratio));
-
-		if (splitscreen == 1)
-		{
-			dimensionmultiply *= 2;
-			angle *= 2;
-		}
-
-		// Middle of the sky should always be at angle 0
-		// need to keep correct aspect ratio with X
-		if (atransform.flip)
-		{
-			// During vertical flip the sky should be flipped and it's y movement should also be flipped obviously
-			v[3].t = v[2].t = -(0.5f-(0.5f/dimensionmultiply));
-			v[0].t = v[1].t = (-1.0f/dimensionmultiply)-(0.5f-(0.5f/dimensionmultiply));
-		}
-		else
-		{
-			v[3].t = v[2].t = (-1.0f/dimensionmultiply)-(0.5f-(0.5f/dimensionmultiply));
-			v[0].t = v[1].t = -(0.5f-(0.5f/dimensionmultiply));
-		}
-
-		angleturn = (((float)ANGLE_45-1.0f)*aspectratio)*dimensionmultiply;
-
-		if (cv_grshearing.value)
-		{
-			// Doesn't really make sense, but what can I do?
-			angle_t dy = FixedAngle(FixedMul(360*FRACUNIT, FixedDiv(AIMINGTODY(aimingangle), 900*FRACUNIT)));
-			v[3].t = v[2].t -= ((float) dy / angleturn);
-			v[0].t = v[1].t -= ((float) dy / angleturn);
-		}
-		else
-		{
-			if (angle > ANGLE_180) // Do this because we don't want the sky to suddenly teleport when crossing over 0 to 360 and vice versa
-			{
-				angle = InvAngle(angle);
-				v[3].t = v[2].t += ((float) angle / angleturn);
-				v[0].t = v[1].t += ((float) angle / angleturn);
-			}
-			else
-			{
-				v[3].t = v[2].t -= ((float) angle / angleturn);
-				v[0].t = v[1].t -= ((float) angle / angleturn);
-			}
-		}
-
-		HWD.pfnSetShader(7);	// sky shader
-		HWD.pfnDrawPolygon(NULL, v, 4, 0);
-		HWD.pfnSetShader(0);
-	}
+	HWR_GetTexture(texturetranslation[skytexture]);
+	HWD.pfnSetShader(7);	// sky shader
+	HWD.pfnRenderSkyDome(skytexture, textures[skytexture]->width, textures[skytexture]->height, dometransform);
+	HWD.pfnSetShader(0);
 }
 
 
@@ -4942,7 +4842,6 @@ void HWR_AddCommands(void)
 	CV_RegisterVar(&cv_grsolvetjoin);
 
 	CV_RegisterVar(&cv_grbatching);
-	CV_RegisterVar(&cv_grskydome);
 }
 
 // --------------------------------------------------------------------------
