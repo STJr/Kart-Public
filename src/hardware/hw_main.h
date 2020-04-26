@@ -69,11 +69,8 @@ void HWR_AddCommands(void);
 // into files like hw_bsp.c, hw_sprites.c...
 
 // hw_main.c: Lighting and fog
-void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UINT32 fadecolor);
-void HWR_NoColormapLighting(FSurfaceInfo *Surface, INT32 light_level, UINT32 mixcolor, UINT32 fadecolor);
-UINT8 HWR_FogBlockAlpha(INT32 light, UINT32 color); // Let's see if this can work
-
-void HWR_FoggingOn(void);
+void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, extracolormap_t *colormap);
+UINT8 HWR_FogBlockAlpha(INT32 light, extracolormap_t *colormap); // Let's see if this can work
 
 FBITFIELD HWR_TranstableToAlpha(INT32 transtablenum, FSurfaceInfo *pSurf);
 
@@ -149,6 +146,7 @@ extern consvar_t cv_grcorrecttricks;
 extern consvar_t cv_grfovchange;
 extern consvar_t cv_grsolvetjoin;
 extern consvar_t cv_grspritebillboarding;
+extern consvar_t cv_grfakecontrast;
 extern consvar_t cv_grfallbackplayermodel;
 
 extern CV_PossibleValue_t granisotropicmode_cons_t[];
