@@ -2012,7 +2012,40 @@ static boolean CL_FinishedFileList(void)
 	else if (i == 1)
 		cl_mode = CL_ASKJOIN;
 	else
-		cl_mode = CL_ASKDOWNLOADFILES;
+	{
+		// must download something
+		// can we, though?
+#ifdef HAVE_CURL
+		if (http_source[0] == '\0' || curl_failedwebdownload)
+#endif
+		{
+			if (!CL_CheckDownloadable()) // nope!
+			{
+				D_QuitNetGame();
+				CL_Reset();
+				D_StartTitle();
+				M_StartMessage(M_GetText(
+					"You cannot connect to this server\n"
+					"because you cannot download the files\n"
+					"that you are missing from the server.\n\n"
+					"See the console or log file for\n"
+					"more details.\n\n"
+					"Press ESC\n"
+				), NULL, MM_NOTHING);
+				return false;
+			}
+
+			cl_mode = CL_ASKDOWNLOADFILES;
+			return true;
+		}
+#ifdef HAVE_CURL
+		else
+		{
+			cl_mode = CL_PREPAREHTTPFILES;
+			return true;
+		}
+#endif
+	}
 	return true;
 }
 
@@ -2147,9 +2180,10 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 #ifdef HAVE_CURL
 		case CL_PREPAREHTTPFILES:
+			if (http_source[0])
 			{
 				for (i = 0; i < fileneedednum; i++)
-					if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
+					if (fileneeded[i].status == FS_NOTFOUND)
 						curl_transfers++;
 
 				cl_mode = CL_DOWNLOADHTTPFILES;
@@ -2159,7 +2193,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 		case CL_DOWNLOADHTTPFILES:
 			waitmore = false;
 			for (i = 0; i < fileneedednum; i++)
-				if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
+				if (fileneeded[i].status == FS_NOTFOUND)
 				{
 					if (!curl_running)
 						CURLPrepareFile(http_source, i);
@@ -3901,9 +3935,7 @@ static void HandleConnect(SINT8 node)
 		if (netbuffer->u.clientcfg.needsdownload)
 		{
 			netbuffer->packettype = PT_DOWNLOADFILESOKAY;
-			strncpy(netbuffer->u.filecfg.http_source, cv_httpsource.string,
-					MAX_MIRROR_LENGTH);
-			HSendPacket(node, true, 0, sizeof netbuffer->u.filecfg);
+			HSendPacket(node, true, 0, 0);
 			return;
 		}
 
@@ -4186,17 +4218,7 @@ static void HandlePacketFromAwayNode(SINT8 node)
 
 			SERVERONLY
 
-#ifdef HAVE_CURL
-			if (! curl_failedwebdownload &&
-					netbuffer->u.filecfg.http_source[0] != '\0'
-			){
-				strlcpy(http_source, netbuffer->u.filecfg.http_source,
-						MAX_MIRROR_LENGTH);
-
-				cl_mode = CL_PREPAREHTTPFILES;
-			}
-			else
-#endif
+			// This should've already been checked, but just to be safe...
 			if (!CL_CheckDownloadable())
 			{
 				D_QuitNetGame();
@@ -4218,7 +4240,7 @@ static void HandlePacketFromAwayNode(SINT8 node)
 
 			cl_challengeattempted = 2;
 			CONS_Printf("trying to download\n");
-			if (cl_mode == CL_WAITDOWNLOADFILESRESPONSE && CL_SendRequestFile())
+			if (CL_SendRequestFile())
 					cl_mode = CL_DOWNLOADFILES;
 			break;
 

@@ -462,11 +462,6 @@ typedef struct
 	UINT8 files[MAXFILENEEDED]; // is filled with writexxx (byteptr.h)
 } ATTRPACK filesneededconfig_pak;
 
-typedef struct
-{
-	char http_source[MAX_MIRROR_LENGTH];/* first byte 0? no die! */
-} ATTRPACK fileconfig;
-
 //
 // Network packet data
 //
@@ -501,7 +496,6 @@ typedef struct
 		plrconfig playerconfig[MAXPLAYERS]; // (up to) 528 bytes(?)
 		INT32 filesneedednum;               //           4 bytes
 		filesneededconfig_pak filesneededcfg; //       ??? bytes
-		fileconfig filecfg;
 		UINT32 pingtable[MAXPLAYERS+1];     //          68 bytes
 	} u; // This is needed to pack diff packet types data together
 } ATTRPACK doomdata_t;
