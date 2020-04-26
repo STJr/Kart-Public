@@ -2105,7 +2105,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			if (http_source[0])
 			{
 				for (i = 0; i < fileneedednum; i++)
-					if (fileneeded[i].status == FS_NOTFOUND)
+					if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
 						curl_transfers++;
 
 				cl_mode = CL_DOWNLOADHTTPFILES;
@@ -2115,7 +2115,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 		case CL_DOWNLOADHTTPFILES:
 			waitmore = false;
 			for (i = 0; i < fileneedednum; i++)
-				if (fileneeded[i].status == FS_NOTFOUND)
+				if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
 				{
 					if (!curl_running)
 						CURLPrepareFile(http_source, i);
