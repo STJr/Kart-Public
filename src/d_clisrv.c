@@ -2132,8 +2132,11 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			if (curl_failedwebdownload && !curl_transfers)
 			{
 				CONS_Printf("One or more files failed to download, falling back to internal downloader\n");
-				cl_mode = CL_ASKDOWNLOADFILES;
-				break;
+				if (CL_SendRequestFile())
+				{
+					cl_mode = CL_DOWNLOADFILES;
+					break;
+				}
 			}
 
 			if (!curl_transfers)
