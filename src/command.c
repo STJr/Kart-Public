@@ -1304,8 +1304,7 @@ found:
 
 	var->string = var->zstring = Z_StrDup(valstr);
 
-	if (var->flags & CV_PASSWORD); // Don't change value for password field
-	else if (override)
+	if (override)
 		var->value = overrideval;
 	else if (var->flags & CV_FLOAT)
 	{

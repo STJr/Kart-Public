@@ -982,10 +982,9 @@ static menuitem_t MP_MainMenu[] =
 
 static menuitem_t MP_ServerMenu[] =
 {
-	{IT_STRING|IT_CVAR,                NULL, "Max. Player Count",     &cv_maxplayers,         0},
-	{IT_STRING|IT_CALL,                NULL, "Room...",               M_RoomMenu,            10},
-	{IT_STRING|IT_CVAR|IT_CV_STRING,   NULL, "Server Name",           &cv_servername,        20},
-	{IT_STRING|IT_CVAR|IT_CV_PASSWORD, NULL, "Password",              &cv_dummyjoinpassword, 44},
+	{IT_STRING|IT_CVAR,                NULL, "Max. Player Count",     &cv_maxplayers,        10},
+	{IT_STRING|IT_CALL,                NULL, "Room...",               M_RoomMenu,            20},
+	{IT_STRING|IT_CVAR|IT_CV_STRING,   NULL, "Server Name",           &cv_servername,        30},
 
 	{IT_STRING|IT_CVAR,                NULL, "Game Type",             &cv_newgametype,       68},
 	{IT_STRING|IT_CVAR,                NULL, "Level",                 &cv_nextmap,           78},
@@ -2447,9 +2446,6 @@ static void M_NextOpt(void)
 {
 	INT16 oldItemOn = itemOn; // prevent infinite loop
 
-	if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
-		((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value = 0;
-
 	do
 	{
 		if (itemOn + 1 > currentMenu->numitems - 1)
@@ -2462,9 +2458,6 @@ static void M_NextOpt(void)
 static void M_PrevOpt(void)
 {
 	INT16 oldItemOn = itemOn; // prevent infinite loop
-
-	if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
-		((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value = 0;
 
 	do
 	{
@@ -2750,10 +2743,8 @@ boolean M_Responder(event_t *ev)
 	// BP: one of the more big hack i have never made
 	if (routine && (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR)
 	{
-		if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_STRING || (currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
+		if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_STRING)
 		{
-			if (ch == KEY_TAB && (currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
-				((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value ^= 1;
 
 			if (shiftdown && ch >= 32 && ch <= 127)
 				ch = shiftxform[ch];
@@ -3844,8 +3835,6 @@ static void M_DrawGenericMenu(void)
 					case IT_CVAR:
 					{
 						consvar_t *cv = (consvar_t *)currentMenu->menuitems[i].itemaction;
-						char asterisks[MAXSTRINGLENGTH+1];
-						size_t sl;
 						switch (currentMenu->menuitems[i].status & IT_CVARTYPE)
 						{
 							case IT_CV_SLIDER:
@@ -3853,27 +3842,6 @@ static void M_DrawGenericMenu(void)
 							case IT_CV_NOPRINT: // color use this
 							case IT_CV_INVISSLIDER: // monitor toggles use this
 								break;
-							case IT_CV_PASSWORD:
-								if (i == itemOn)
-								{
-									V_DrawRightAlignedThinString(x + MAXSTRINGLENGTH*8 + 10, y, V_ALLOWLOWERCASE, va(M_GetText("Tab: %s password"), cv->value ? "hide" : "show"));
-								}
-
-								if (!cv->value || i != itemOn)
-								{
-									sl = strlen(cv->string);
-									memset(asterisks, '*', sl);
-									memset(asterisks + sl, 0, MAXSTRINGLENGTH+1-sl);
-
-									M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
-									V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, asterisks);
-									if (skullAnimCounter < 4 && i == itemOn)
-										V_DrawCharacter(x + 8 + V_StringWidth(asterisks, 0), y + 12,
-											'_' | 0x80, false);
-									y += 16;
-									break;
-								}
-								/* fallthru */
 							case IT_CV_STRING:
 								M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
 								V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, cv->string);
@@ -8457,15 +8425,13 @@ static void M_DrawConnectMenu(void)
 
 		V_DrawSmallString(currentMenu->x+112, S_LINEY(i)+8, globalflags, gt);
 
+		// display game speed for race gametypes
 		if (serverlist[slindex].info.gametype == GT_RACE)
 		{
 			spd = kartspeed_cons_t[serverlist[slindex].info.kartvars & SV_SPEEDMASK].strvalue;
 
 			V_DrawSmallString(currentMenu->x+132, S_LINEY(i)+8, globalflags, va("(%s Speed)", spd));
 		}
-
-		if (serverlist[slindex].info.kartvars & SV_PASSWORD)
-			V_DrawFixedPatch((currentMenu->x - 9) << FRACBITS, (S_LINEY(i)) << FRACBITS, FRACUNIT, globalflags & (~V_ALLOWLOWERCASE), W_CachePatchName("SERVLOCK", PU_CACHE), NULL);
 
 		MP_ConnectMenu[i+FIRSTSERVERLINE].status = IT_STRING | IT_CALL;
 	}
@@ -8716,11 +8682,6 @@ static void M_StartServer(INT32 choice)
 
 	// Still need to reset devmode
 	cv_debug = 0;
-
-	if (strlen(cv_dummyjoinpassword.string) > 0)
-		D_SetJoinPassword(cv_dummyjoinpassword.string);
-	else
-		joinpasswordset = false;
 
 	if (demo.playback)
 		G_StopDemo();
