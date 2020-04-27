@@ -17,6 +17,8 @@
 
 #include "d_event.h"
 #include "command.h"
+#include "i_threads.h"
+#include "mserv.h"
 #include "r_things.h" // for SKINNAMESIZE
 
 //
@@ -65,6 +67,18 @@ typedef enum
 	                // and routine is void routine(event_t *) (ex: set control)
 } menumessagetype_t;
 void M_StartMessage(const char *string, void *routine, menumessagetype_t itemtype);
+
+typedef enum
+{
+	M_NOT_WAITING,
+
+	M_WAITING_VERSION,
+	M_WAITING_ROOMS,
+	M_WAITING_SERVERS,
+}
+M_waiting_mode_t;
+
+extern M_waiting_mode_t m_waiting_mode;
 
 // Called by linux_x/i_video_xshm.c
 void M_QuitResponse(INT32 ch);
@@ -156,6 +170,9 @@ typedef struct menuitem_s
 
 extern menuitem_t PlayerMenu[MAXSKINS];
 
+extern menuitem_t MP_RoomMenu[];
+extern UINT32     roomIds[NUM_LIST_ROOMS];
+
 typedef struct menu_s
 {
 	const char    *menutitlepic;
@@ -170,6 +187,10 @@ typedef struct menu_s
 
 void M_SetupNextMenu(menu_t *menudef);
 void M_ClearMenus(boolean callexitmenufunc);
+
+#ifdef HAVE_THREADS
+extern I_mutex m_menu_mutex;
+#endif
 
 extern menu_t *currentMenu;
 
