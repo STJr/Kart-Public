@@ -223,6 +223,8 @@ typedef struct GLMipmap_s FTextureInfo;
 struct FLightInfo
 {
 	FUINT			light_level;
+	FUINT			fade_start;
+	FUINT			fade_end;
 };
 typedef struct FLightInfo FLightInfo;
 
@@ -241,9 +243,6 @@ enum hwdsetspecialstate
 {
 	HWD_SET_SHADERS,
 
-	HWD_SET_FOG_MODE,
-	HWD_SET_FOG_DENSITY,
-
 	HWD_SET_TEXTUREFILTERMODE,
 	HWD_SET_TEXTUREANISOTROPICMODE,
 
@@ -251,8 +250,8 @@ enum hwdsetspecialstate
 };
 typedef enum hwdsetspecialstate hwdspecialstate_t;
 
-#define GL_NORMALFOG 0x00000000
-#define GL_FADEFOG 0x19000000
+#define GL_DEFAULTMIX 0x00000000
+#define GL_DEFAULTFOG 0xFF000000
 
 enum hwdfiltermode
 {
