@@ -785,7 +785,7 @@ void G_SetGameModified(boolean silent, boolean major)
 	majormods = true;
 
 	if (!silent)
-		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to play record attack.\n"));
+		CONS_Alert(CONS_NOTICE, M_GetText("Game must be restarted to play Record Attack.\n"));
 
 	// If in record attack recording, cancel it.
 	if (modeattacking)
@@ -6629,7 +6629,7 @@ static void G_LoadDemoExtraFiles(UINT8 **pp)
 			{
 				CONS_Alert(CONS_WARNING, M_GetText("Too many files loaded to add anymore for demo playback\n"));
 				if (!CON_Ready())
-					M_StartMessage(M_GetText("There are too many files loaded to add this demo's add-ons.\n\nDemo playback may desync.\n\nPress ESC\n"), NULL, MM_NOTHING);
+					M_StartMessage(M_GetText("There are too many files loaded to add this demo's addons.\n\nDemo playback may desync.\n\nPress ESC\n"), NULL, MM_NOTHING);
 			}
 			else if (ncs != FS_FOUND)
 			{
@@ -6641,7 +6641,7 @@ static void G_LoadDemoExtraFiles(UINT8 **pp)
 					CONS_Alert(CONS_NOTICE, M_GetText("Unknown error finding file %s\n"), filename);
 
 				if (!CON_Ready())
-					M_StartMessage(M_GetText("There were errors trying to add this demo's add-ons. Check the console for more information.\n\nDemo playback may desync.\n\nPress ESC\n"), NULL, MM_NOTHING);
+					M_StartMessage(M_GetText("There were errors trying to add this demo's addons. Check the console for more information.\n\nDemo playback may desync.\n\nPress ESC\n"), NULL, MM_NOTHING);
 			}
 			else
 			{
@@ -7472,7 +7472,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 			if (modeattacking)
 			{
-				snprintf(msg, 1024, M_GetText("%s is a record attack replay with spectators, and is thus invalid.\n"), pdemoname);
+				snprintf(msg, 1024, M_GetText("%s is a Record Attack replay with spectators, and is thus invalid.\n"), pdemoname);
 				CONS_Alert(CONS_ERROR, "%s", msg);
 				M_StartMessage(msg, NULL, MM_NOTHING);
 				Z_Free(pdemoname);
@@ -7486,7 +7486,7 @@ void G_DoPlayDemo(char *defdemoname)
 
 		if (modeattacking && numslots > 1)
 		{
-			snprintf(msg, 1024, M_GetText("%s is a record attack replay with multiple players, and is thus invalid.\n"), pdemoname);
+			snprintf(msg, 1024, M_GetText("%s is a Record Attack replay with multiple players, and is thus invalid.\n"), pdemoname);
 			CONS_Alert(CONS_ERROR, "%s", msg);
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);

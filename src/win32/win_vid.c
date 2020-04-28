@@ -36,12 +36,6 @@
 #include "../command.h"
 #include "../screen.h"
 
-#ifdef HWRENDER
-#include "win_dll.h" // loading the render DLL
-#include "../hardware/hw_drv.h" // calling driver init & shutdown
-#include "../hardware/hw_main.h" // calling HWR module init & shutdown
-#endif
-
 // -------
 // Globals
 // -------
@@ -222,12 +216,7 @@ void I_StartupGraphics(void)
 	if (graphics_started)
 		return;
 
-#ifdef HWRENDER
-	else if (M_CheckParm("-opengl"))
-		rendermode = render_opengl;
-	else
-#endif
-		rendermode = render_soft;
+	rendermode = render_soft;
 
 	if (dedicated)
 		rendermode = render_none;
@@ -245,10 +234,6 @@ void I_StartupGraphics(void)
 // ------------------
 void I_ShutdownGraphics(void)
 {
-#ifdef HWRENDER
-	const rendermode_t oldrendermode = rendermode;
-#endif
-
 // This is BAD because it makes the I_Error box screw up!
 //	rendermode = render_none;
 
@@ -273,15 +258,6 @@ void I_ShutdownGraphics(void)
 		bmiMain = NULL;
 	}
 
-#ifdef HWRENDER
-	if (oldrendermode != render_soft)
-	{
-		HWR_Shutdown(); // free stuff from the hardware renderer
-		HWD.pfnShutdown(); // close 3d card display
-		Shutdown3DDriver(); // free the driver DLL
-	}
-#endif
-
 	// free the last video mode screen buffers
 	if (vid.buffer)
 	{
@@ -289,10 +265,7 @@ void I_ShutdownGraphics(void)
 		vid.buffer = NULL;
 	}
 
-#ifdef HWRENDER
-	if (rendermode == render_soft)
-#endif
-		CloseDirectDraw();
+	CloseDirectDraw();
 
 	graphics_started = false;
 }
@@ -380,11 +353,6 @@ void I_FinishUpdate(void)
 			DIB_RGB_COLORS);
 	}
 	else
-#ifdef HWRENDER
-	if (rendermode != render_soft)
-		HWD.pfnFinishUpdate(cv_vidwait.value);
-	else
-#endif
 	{
 		// DIRECT DRAW
 		// copy virtual screen to real screen
@@ -486,9 +454,6 @@ void I_SetPalette(RGBA_t *palette)
 		}
 	}
 	else
-#ifdef HWRENDER
-	if (rendermode == render_soft)
-#endif
 	{
 		PALETTEENTRY mainpal[256];
 
@@ -680,55 +645,13 @@ static VOID VID_Init(VOID)
 	bDIBMode = TRUE;
 	bAppFullScreen = FALSE;
 
-#ifdef HWRENDER
-	// initialize the appropriate display device
-	if (rendermode != render_soft)
+	if (!bWinParm)
 	{
-		const char *drvname = NULL;
-
-		switch (rendermode)
-		{
-			case render_opengl:
-				drvname = "r_opengl.dll";
-				break;
-			default:
-				I_Error("Unknown hardware render mode");
-		}
-
-		// load the DLL
-		if (drvname && Init3DDriver(drvname))
-		{
-			int hwdversion = HWD.pfnGetRenderVersion();
-			if (hwdversion != VERSION)
-				CONS_Alert(CONS_WARNING, M_GetText("This r_opengl version is not supported, use it at your own risk!\n"));
-
-			// perform initialisations
-			HWD.pfnInit(I_Error);
-			// get available display modes for the device
-			HWD.pfnGetModeList(&pvidmodes, &numvidmodes);
-		}
-		else
-		{
-			switch (rendermode)
-			{
-				case render_opengl:
-					I_Error("Error initializing OpenGL");
-				default:
-					break;
-			}
-			rendermode = render_soft;
-		}
+		if (!CreateDirectDrawInstance())
+			bWinParm = TRUE;
+		else // get available display modes for the device
+			VID_GetExtraModes();
 	}
-
-	if (rendermode == render_soft)
-#endif
-		if (!bWinParm)
-		{
-			if (!CreateDirectDrawInstance())
-				bWinParm = TRUE;
-			else // get available display modes for the device
-				VID_GetExtraModes();
-		}
 
 	// the game boots in 320x200 standard VGA, but
 	// we need a highcolor mode to run the game in highcolor
@@ -927,14 +850,6 @@ INT32 VID_SetMode(INT32 modenum)
 		// we switch to fullscreen
 		bAppFullScreen = TRUE;
 		bDIBMode = FALSE;
-#ifdef HWRENDER
-		if (rendermode != render_soft)
-		{
-			// purge all patch graphics stored in software format
-			//Z_FreeTags (PU_PURGELEVEL, PU_PURGELEVEL+100);
-			HWR_Startup();
-		}
-#endif
 	}
 
 	I_RestartSysMouse();

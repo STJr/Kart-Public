@@ -409,7 +409,7 @@ UINT8 colortranslations[MAXTRANSLATIONS][16] = {
 // 0.0722 to blue
 // (See this same define in hw_md2.c!)
 #define SETBRIGHTNESS(brightness,r,g,b) \
-	brightness = (UINT8)(((1063*((UINT16)r)/5000) + (3576*((UINT16)g)/5000) + (361*((UINT16)b)/5000)) / 3)
+	brightness = (UINT8)(((1063*(UINT16)(r))/5000) + ((3576*(UINT16)(g))/5000) + ((361*(UINT16)(b))/5000))
 
 /** \brief	Generates the rainbow colourmaps that are used when a player has the invincibility power
 

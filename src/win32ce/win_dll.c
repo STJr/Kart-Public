@@ -17,9 +17,6 @@
 /// \brief load and initialise the 3D driver DLL
 
 #include "../doomdef.h"
-#ifdef HWRENDER
-#include "../hardware/hw_drv.h"        // get the standard 3D Driver DLL exports prototypes
-#endif
 
 #ifdef HW3SOUND
 #include "../hardware/hw3dsdrv.h"      // get the 3D sound driver DLL export prototypes
@@ -28,7 +25,7 @@
 #include "win_dll.h"
 #include "win_main.h"       // I_GetLastErrorMsgBox()
 
-#if defined(HWRENDER) || defined(HW3SOUND)
+#if defined(HW3SOUND)
 typedef struct loadfunc_s {
 	LPCSTR fnName;
 	LPVOID fnPointer;
@@ -79,49 +76,6 @@ static inline VOID UnloadDLL (HMODULE* pModule)
 		*pModule = NULL;
 	else
 		I_GetLastErrorMsgBox ();
-}
-#endif
-
-// ==========================================================================
-// STANDARD 3D DRIVER DLL FOR DOOM LEGACY
-// ==========================================================================
-
-// note : the 3D driver loading should be put somewhere else..
-
-#ifdef HWRENDER
-static HMODULE hwdModule = NULL;
-
-static loadfunc_t hwdFuncTable[] = {
-	{"_Init@4",            &hwdriver.pfnInit},
-	{"_Shutdown@0",        &hwdriver.pfnShutdown},
-	{"_GetModeList@8",     &hwdriver.pfnGetModeList},
-	{"_SetPalette@8",      &hwdriver.pfnSetPalette},
-	{"_FinishUpdate@4",    &hwdriver.pfnFinishUpdate},
-	{"_Draw2DLine@12",     &hwdriver.pfnDraw2DLine},
-	{"_DrawPolygon@16",    &hwdriver.pfnDrawPolygon},
-	{"_SetBlend@4",        &hwdriver.pfnSetBlend},
-	{"_ClearBuffer@12",    &hwdriver.pfnClearBuffer},
-	{"_SetTexture@4",      &hwdriver.pfnSetTexture},
-	{"_ReadRect@24",       &hwdriver.pfnReadRect},
-	{"_GClipRect@20",      &hwdriver.pfnGClipRect},
-	{"_ClearMipMapCache@0",&hwdriver.pfnClearMipMapCache},
-	{"_SetSpecialState@8", &hwdriver.pfnSetSpecialState},
-	{"_DrawMD2@16",        &hwdriver.pfnDrawMD2},
-	{"_SetTransform@4",    &hwdriver.pfnSetTransform},
-	{"_GetTextureUsed@0",  &hwdriver.pfnGetTextureUsed},
-	{"_GetRenderVersion@0",&hwdriver.pfnGetRenderVersion},
-	{NULL,NULL}
-};
-
-BOOL Init3DDriver (LPCSTR dllName)
-{
-	hwdModule = LoadDLL(dllName, hwdFuncTable);
-	return (hwdModule != NULL);
-}
-
-VOID Shutdown3DDriver (VOID)
-{
-	UnloadDLL(&hwdModule);
 }
 #endif
 

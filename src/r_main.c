@@ -137,7 +137,7 @@ static CV_PossibleValue_t drawdist_precip_cons_t[] = {
 	{1024, "1024"},	{1536, "1536"},	{2048, "2048"},
 	{0, "None"},	{0, NULL}};
 
-static CV_PossibleValue_t fov_cons_t[] = {{0, "MIN"}, {179*FRACUNIT, "MAX"}, {0, NULL}};
+static CV_PossibleValue_t fov_cons_t[] = {{5*FRACUNIT, "MIN"}, {178*FRACUNIT, "MAX"}, {0, NULL}};
 
 //static CV_PossibleValue_t precipdensity_cons_t[] = {{0, "None"}, {1, "Light"}, {2, "Moderate"}, {4, "Heavy"}, {6, "Thick"}, {8, "V.Thick"}, {0, NULL}};
 static CV_PossibleValue_t translucenthud_cons_t[] = {{0, "MIN"}, {10, "MAX"}, {0, NULL}};
@@ -181,7 +181,9 @@ consvar_t cv_drawdist = {"drawdist", "Infinite", CV_SAVE, drawdist_cons_t, NULL,
 //consvar_t cv_drawdist_nights = {"drawdist_nights", "2048", CV_SAVE, drawdist_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_drawdist_precip = {"drawdist_precip", "1024", CV_SAVE, drawdist_precip_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 //consvar_t cv_precipdensity = {"precipdensity", "Moderate", CV_SAVE, precipdensity_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_fov = {"fov", "90", CV_FLOAT|CV_CALL, fov_cons_t, Fov_OnChange, 0, NULL, NULL, 0, 0, NULL};
+
+// cap fov, fov too high tears software apart.
+consvar_t cv_fov = {"fov", "90", CV_FLOAT|CV_CALL|CV_SAVE, fov_cons_t, Fov_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 // Okay, whoever said homremoval causes a performance hit should be shot.
 consvar_t cv_homremoval = {"homremoval", "Yes", CV_SAVE, homremoval_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -540,9 +542,9 @@ static void R_InitTextureMapping(void)
 
 	for (i = 0; i < FINEANGLES/2; i++)
 	{
-		if (FINETANGENT(i) > FRACUNIT*2)
+		if (FINETANGENT(i) > fovtan*2)
 			t = -1;
-		else if (FINETANGENT(i) < -FRACUNIT*2)
+		else if (FINETANGENT(i) < -fovtan*2)
 			t = viewwidth+1;
 		else
 		{
@@ -686,11 +688,6 @@ void R_ExecuteSetViewSize(void)
 
 	R_InitTextureMapping();
 
-#ifdef HWRENDER
-	if (rendermode != render_soft)
-		HWR_InitTextureMapping();
-#endif
-
 	// thing clipping
 	for (i = 0; i < viewwidth; i++)
 		screenheightarray[i] = (INT16)viewheight;
@@ -820,28 +817,30 @@ subsector_t *R_IsPointInSubsector(fixed_t x, fixed_t y)
 
 static mobj_t *viewmobj;
 
-// WARNING: a should be unsigned but to add with 2048, it isn't!
-#define AIMINGTODY(a) FixedDiv((FINETANGENT((2048+(((INT32)a)>>ANGLETOFINESHIFT)) & FINEMASK)*160)>>FRACBITS, fovtan)
-
 // recalc necessary stuff for mouseaiming
 // slopes are already calculated for the full possible view (which is 4*viewheight).
 // 18/08/18: (No it's actually 16*viewheight, thanks Jimita for finding this out)
 static void R_SetupFreelook(void)
 {
 	INT32 dy = 0;
+
+	// clip it in the case we are looking a hardware 90 degrees full aiming
+	// (lmps, network and use F12...)
+	if (rendermode == render_soft
+#ifdef HWRENDER
+		|| cv_grshearing.value
+#endif
+	)
+		G_SoftwareClipAimingPitch((INT32 *)&aimingangle);
+
 	if (rendermode == render_soft)
 	{
-		// clip it in the case we are looking a hardware 90 degrees full aiming
-		// (lmps, network and use F12...)
-		G_SoftwareClipAimingPitch((INT32 *)&aimingangle);
-		dy = AIMINGTODY(aimingangle) * viewwidth/BASEVIDWIDTH;
+		dy = (AIMINGTODY(aimingangle)/fovtan) * viewwidth/BASEVIDWIDTH;
 		yslope = &yslopetab[viewheight*8 - (viewheight/2 + dy)];
 	}
 	centery = (viewheight/2) + dy;
 	centeryfrac = centery<<FRACBITS;
 }
-
-#undef AIMINGTODY
 
 void R_SkyboxFrame(player_t *player)
 {
@@ -1551,9 +1550,6 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_grgammagreen);
 	CV_RegisterVar(&cv_grgammared);
 	CV_RegisterVar(&cv_grfovchange);
-	CV_RegisterVar(&cv_grfog);
-	CV_RegisterVar(&cv_grfogcolor);
-	CV_RegisterVar(&cv_grsoftwarefog);
 #ifdef ALAM_LIGHTING
 	CV_RegisterVar(&cv_grstaticlighting);
 	CV_RegisterVar(&cv_grdynamiclighting);
@@ -1563,6 +1559,9 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_grmdls);
 	CV_RegisterVar(&cv_grfallbackplayermodel);
 	CV_RegisterVar(&cv_grspritebillboarding);
+	CV_RegisterVar(&cv_grfakecontrast);
+	CV_RegisterVar(&cv_grshearing);
+	CV_RegisterVar(&cv_grshaders);
 #endif
 
 #ifdef HWRENDER

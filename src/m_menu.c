@@ -279,7 +279,7 @@ static void M_ResetControls(INT32 choice);
 // Video & Sound
 menu_t OP_VideoOptionsDef, OP_VideoModeDef;
 #ifdef HWRENDER
-menu_t OP_OpenGLOptionsDef, OP_OpenGLFogDef, OP_OpenGLColorDef;
+menu_t OP_OpenGLOptionsDef, OP_OpenGLColorDef;
 #endif
 menu_t OP_SoundOptionsDef;
 //static void M_RestartAudio(void);
@@ -346,7 +346,6 @@ static void M_DrawHUDOptions(void);
 static void M_DrawVideoMode(void);
 static void M_DrawMonitorToggles(void);
 #ifdef HWRENDER
-static void M_OGL_DrawFogMenu(void);
 static void M_OGL_DrawColorMenu(void);
 #endif
 static void M_DrawMPMainMenu(void);
@@ -372,9 +371,6 @@ static void M_HandleLevelStats(INT32 choice);
 static void M_HandleConnectIP(INT32 choice);
 #endif
 static void M_HandleSetupMultiPlayer(INT32 choice);
-#ifdef HWRENDER
-static void M_HandleFogColor(INT32 choice);
-#endif
 static void M_HandleVideoMode(INT32 choice);
 static void M_HandleMonitorToggles(INT32 choice);
 
@@ -578,7 +574,7 @@ typedef enum
 // ---------------------
 static menuitem_t MPauseMenu[] =
 {
-	{IT_STRING | IT_CALL,     NULL, "Add-ons...",        M_Addons,                8},
+	{IT_STRING | IT_CALL,     NULL, "Addons...",        M_Addons,                8},
 	{IT_STRING | IT_SUBMENU,  NULL, "Scramble Teams...", &MISC_ScrambleTeamDef,  16},
 	{IT_STRING | IT_CALL,     NULL, "Switch Map..."    , M_MapChange,            24},
 
@@ -1245,15 +1241,13 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR,	NULL,	"Weather Draw Distance",&cv_drawdist_precip,	 55},
 	//{IT_STRING | IT_CVAR,	NULL,	"Weather Density",		&cv_precipdensity,		 65},
 	{IT_STRING | IT_CVAR,	NULL,	"Skyboxes",				&cv_skybox,				 65},
-	{IT_STRING | IT_CVAR,	NULL,	"Field of View",		&cv_fov,					75},
+	{IT_STRING | IT_CVAR,	NULL,	"Field of View",		&cv_fov,				 75},
 
 	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			 90},
 	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			100},
 
 #ifdef HWRENDER
-	{IT_STRING | IT_CVAR,	NULL,	"3D models",            &cv_grmdls,              115},
-	{IT_STRING | IT_CVAR,	NULL,	"Fallback Player 3D Model",	&cv_grfallbackplayermodel,	125},
-	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,   135},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	120},
 #endif
 };
 
@@ -1272,8 +1266,6 @@ enum
 	op_video_fps,
 	op_video_vsync,
 #ifdef HWRENDER
-	op_video_md2,
-	op_video_kartman,
 	op_video_ogl,
 #endif
 };
@@ -1286,36 +1278,19 @@ static menuitem_t OP_VideoModeMenu[] =
 #ifdef HWRENDER
 static menuitem_t OP_OpenGLOptionsMenu[] =
 {
-	{IT_SUBMENU|IT_STRING,      NULL, "Fog...",          &OP_OpenGLFogDef,      10},
-	{IT_SUBMENU|IT_STRING,      NULL, "Gamma...",        &OP_OpenGLColorDef,    20},
+	{IT_STRING | IT_CVAR,	NULL, "3D Models",					&cv_grmdls,					 10},
+	{IT_STRING | IT_CVAR,	NULL, "Fallback Player 3D Model",	&cv_grfallbackplayermodel,	 20},
+	{IT_STRING|IT_CVAR,		NULL, "Shaders",					&cv_grshaders,				 30},
 
-	{IT_STRING|IT_CVAR,         NULL, "Quality",         &cv_scr_depth,         35},
-	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",  &cv_grfiltermode,      45},
-	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",     &cv_granisotropicmode, 55},
-/*#ifdef _WINDOWS
-	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",      &cv_fullscreen,       50},
-#endif
-#ifdef ALAM_LIGHTING
-	{IT_SUBMENU|IT_STRING,      NULL, "Lighting...",     &OP_OpenGLLightingDef,     70},
-#endif*/
-};
+	{IT_STRING|IT_CVAR,		NULL, "Texture Quality",			&cv_scr_depth,				 50},
+	{IT_STRING|IT_CVAR,		NULL, "Texture Filter",				&cv_grfiltermode,			 60},
+	{IT_STRING|IT_CVAR,		NULL, "Anisotropic",				&cv_granisotropicmode,		 70},
 
-#ifdef ALAM_LIGHTING
-static menuitem_t OP_OpenGLLightingMenu[] =
-{
-	{IT_STRING|IT_CVAR, NULL, "Coronas",          &cv_grcoronas,          0},
-	{IT_STRING|IT_CVAR, NULL, "Coronas size",     &cv_grcoronasize,      10},
-	{IT_STRING|IT_CVAR, NULL, "Dynamic lighting", &cv_grdynamiclighting, 20},
-	{IT_STRING|IT_CVAR, NULL, "Static lighting",  &cv_grstaticlighting,  30},
-};
-#endif
+	{IT_STRING|IT_CVAR,		NULL, "Wall Contrast Style",		&cv_grfakecontrast,			 90},
+	{IT_STRING|IT_CVAR,		NULL, "Sprite Billboarding",		&cv_grspritebillboarding,	100},
+	{IT_STRING|IT_CVAR,		NULL, "Software Perspective",		&cv_grshearing,				110},
 
-static menuitem_t OP_OpenGLFogMenu[] =
-{
-	{IT_STRING|IT_CVAR,       NULL, "Fog",         &cv_grfog,        10},
-	{IT_STRING|IT_KEYHANDLER, NULL, "Fog Color",   M_HandleFogColor, 20},
-	{IT_STRING|IT_CVAR,       NULL, "Fog Density", &cv_grfogdensity, 30},
-	{IT_STRING|IT_CVAR,       NULL, "Software Fog",&cv_grsoftwarefog,40},
+	{IT_SUBMENU|IT_STRING,	NULL, "Gamma...",					&OP_OpenGLColorDef,			130},
 };
 
 static menuitem_t OP_OpenGLColorMenu[] =
@@ -1363,7 +1338,7 @@ static menuitem_t OP_SoundOptionsMenu[] =
 static menuitem_t OP_DataOptionsMenu[] =
 {
 	{IT_STRING | IT_CALL,		NULL, "Screenshot Options...",	M_ScreenshotOptions,	 10},
-	{IT_STRING | IT_CALL,		NULL, "Add-on Options...",		M_AddonsOptions,		 20},
+	{IT_STRING | IT_CALL,		NULL, "Addon Options...",		M_AddonsOptions,		 20},
 	{IT_STRING | IT_SUBMENU,	NULL, "Replay Options...",		&MISC_ReplayOptionsDef,	 30},
 
 	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 50},
@@ -1415,7 +1390,7 @@ static menuitem_t OP_AddonsOptionsMenu[] =
 	{IT_HEADER,                      NULL, "Menu",                        NULL,                    0},
 	{IT_STRING|IT_CVAR,              NULL, "Location",                    &cv_addons_option,      10},
 	{IT_STRING|IT_CVAR|IT_CV_STRING, NULL, "Custom Folder",               &cv_addons_folder,      20},
-	{IT_STRING|IT_CVAR,              NULL, "Identify add-ons via",        &cv_addons_md5,         48},
+	{IT_STRING|IT_CVAR,              NULL, "Identify addons via",        &cv_addons_md5,         48},
 	{IT_STRING|IT_CVAR,              NULL, "Show unsupported file types", &cv_addons_showall,     58},
 
 	{IT_HEADER,                      NULL, "Search",                      NULL,                   76},
@@ -1502,7 +1477,7 @@ static menuitem_t OP_ServerOptionsMenu[] =
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 90},
 	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",			&cv_allownewplayer,		100},
-	{IT_STRING | IT_CVAR,    NULL, "Allow Add-on Downloading",		&cv_downloading,		110},
+	{IT_STRING | IT_CVAR,    NULL, "Allow Addon Downloading",		&cv_downloading,		110},
 	{IT_STRING | IT_CVAR,    NULL, "Pause Permission",				&cv_pause,				120},
 	{IT_STRING | IT_CVAR,    NULL, "Mute All Chat",					&cv_mute,				130},
 
@@ -2079,20 +2054,6 @@ menu_t OP_MonitorToggleDef =
 
 #ifdef HWRENDER
 menu_t OP_OpenGLOptionsDef = DEFAULTMENUSTYLE("M_VIDEO", OP_OpenGLOptionsMenu, &OP_VideoOptionsDef, 30, 30);
-#ifdef ALAM_LIGHTING
-menu_t OP_OpenGLLightingDef = DEFAULTMENUSTYLE("M_VIDEO", OP_OpenGLLightingMenu, &OP_OpenGLOptionsDef, 60, 40);
-#endif
-menu_t OP_OpenGLFogDef =
-{
-	"M_VIDEO",
-	sizeof (OP_OpenGLFogMenu)/sizeof (menuitem_t),
-	&OP_OpenGLOptionsDef,
-	OP_OpenGLFogMenu,
-	M_OGL_DrawFogMenu,
-	60, 40,
-	0,
-	NULL
-};
 menu_t OP_OpenGLColorDef =
 {
 	"M_VIDEO",
@@ -2912,7 +2873,7 @@ boolean M_Responder(event_t *ev)
 					if (((currentMenu->menuitems[itemOn].status & IT_CALLTYPE) & IT_CALL_NOTMODIFIED) && majormods)
 					{
 						S_StartSound(NULL, sfx_menu1);
-						M_StartMessage(M_GetText("This cannot be done with complex add-ons\nor in a cheated game.\n\n(Press a key)\n"), NULL, MM_NOTHING);
+						M_StartMessage(M_GetText("This cannot be done with complex addons\nor in a cheated game.\n\n(Press a key)\n"), NULL, MM_NOTHING);
 						return true;
 					}
 				}
@@ -3476,9 +3437,7 @@ void M_Init(void)
 #ifdef HWRENDER
 	// Permanently hide some options based on render mode
 	if (rendermode == render_soft)
-		OP_VideoOptionsMenu[op_video_ogl].status =
-			OP_VideoOptionsMenu[op_video_kartman].status =
-			OP_VideoOptionsMenu[op_video_md2]    .status = IT_DISABLED;
+		OP_VideoOptionsMenu[op_video_ogl].status = IT_DISABLED;
 #endif
 
 #ifndef NONET
@@ -4643,21 +4602,11 @@ static void M_StopMessage(INT32 choice)
 // You can even put multiple images in one menu!
 static void M_DrawImageDef(void)
 {
-	// this is probably what the V_DrawFixedPatch screen-fill bullshit was for, right
-	//V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31); -- never mind, screen fade
-
-	// Grr.  Need to autodetect for pic_ts.
-	pic_t *pictest = (pic_t *)W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
-	if (!pictest->zero)
-		V_DrawScaledPic(0,0,0,W_GetNumForName(currentMenu->menuitems[itemOn].text));
+	patch_t *patch = W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
+	if (patch->width <= BASEVIDWIDTH)
+		V_DrawScaledPatch(0,0,0,patch);
 	else
-	{
-		patch_t *patch = W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
-		if (patch->height <= BASEVIDHEIGHT)
-			V_DrawScaledPatch(0,0,0,patch);
-		else
-			V_DrawSmallScaledPatch(0,0,0,patch);
-	}
+		V_DrawSmallScaledPatch(0,0,0,patch);
 
 	if (currentMenu->menuitems[itemOn].alphaKey)
 	{
@@ -4727,8 +4676,8 @@ static void M_AddonsOptions(INT32 choice)
 	M_SetupNextMenu(&OP_AddonsOptionsDef);
 }
 
-#define LOCATIONSTRING1 "Visit \x83SRB2.ORG/MODS\x80 to get & make add-ons!"
-#define LOCATIONSTRING2 "Visit \x88SRB2.ORG/MODS\x80 to get & make add-ons!"
+#define LOCATIONSTRING1 "Visit \x83SRB2.ORG/MODS\x80 to get & make addons!"
+#define LOCATIONSTRING2 "Visit \x88SRB2.ORG/MODS\x80 to get & make addons!"
 
 static void M_Addons(INT32 choice)
 {
@@ -4904,7 +4853,7 @@ static boolean M_AddonsRefresh(void)
 		{
 			S_StartSound(NULL, sfx_s26d);
 			if (refreshdirmenu & REFRESHDIR_MAX)
-				message = va("%c%s\x80\nMaximum number of add-ons reached.\nA file could not be loaded.\nIf you wish to play with this add-on, restart the game to clear existing ones.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
+				message = va("%c%s\x80\nMaximum number of addons reached.\nA file could not be loaded.\nIf you wish to play with this addon, restart the game to clear existing ones.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 			else
 				message = va("%c%s\x80\nA file was not loaded.\nCheck the console log for more information.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 		}
@@ -4916,7 +4865,7 @@ static boolean M_AddonsRefresh(void)
 		else if (majormods && !prevmajormods)
 		{
 			S_StartSound(NULL, sfx_s221);
-			message = va("%c%s\x80\nGameplay has now been modified.\nIf you wish to play Record Attack mode, restart the game to clear existing add-ons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
+			message = va("%c%s\x80\nGameplay has now been modified.\nIf you wish to play Record Attack mode, restart the game to clear existing addons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 			prevmajormods = majormods;
 		}
 
@@ -5811,7 +5760,7 @@ static void M_DrawReplayStartMenu(void)
 
 	case DFILE_ERROR_NOTLOADED:
 	case DFILE_ERROR_INCOMPLETEOUTOFORDER:
-		warning = "Loading addons will mark your game as modified, and record attack may be unavailable.\nYou can watch without loading addons, but desyncs may occur.";
+		warning = "Loading addons will mark your game as modified, and Record Attack may be unavailable.\nYou can watch without loading addons, but desyncs may occur.";
 		break;
 
 	case DFILE_ERROR_EXTRAFILES:
@@ -8623,7 +8572,7 @@ static void M_ConnectMenuModChecks(INT32 choice)
 
 	if (modifiedgame)
 	{
-		M_StartMessage(M_GetText("Add-ons are currently loaded.\n\nYou will only be able to join a server if\nit has the same ones loaded in the same order, which may be unlikely.\n\nIf you wish to play on other servers,\nrestart the game to clear existing add-ons.\n\n(Press a key)\n"),M_ConnectMenu,MM_EVENTHANDLER);
+		M_StartMessage(M_GetText("Addons are currently loaded.\n\nYou will only be able to join a server if\nit has the same ones loaded in the same order, which may be unlikely.\n\nIf you wish to play on other servers,\nrestart the game to clear existing addons.\n\n(Press a key)\n"),M_ConnectMenu,MM_EVENTHANDLER);
 		return;
 	}
 
@@ -11165,25 +11114,6 @@ static void M_QuitSRB2(INT32 choice)
 // OpenGL specific options
 // =====================================================================
 
-#define FOG_COLOR_ITEM  1
-// ===================
-// M_OGL_DrawFogMenu()
-// ===================
-static void M_OGL_DrawFogMenu(void)
-{
-	INT32 mx, my;
-
-	mx = currentMenu->x;
-	my = currentMenu->y;
-	M_DrawGenericMenu(); // use generic drawer for cursor, items and title
-	V_DrawString(BASEVIDWIDTH - mx - V_StringWidth(cv_grfogcolor.string, 0),
-		my + currentMenu->menuitems[FOG_COLOR_ITEM].alphaKey, highlightflags, cv_grfogcolor.string);
-	// blink cursor on FOG_COLOR_ITEM if selected
-	if (itemOn == FOG_COLOR_ITEM && skullAnimCounter < 4)
-		V_DrawCharacter(BASEVIDWIDTH - mx,
-			my + currentMenu->menuitems[FOG_COLOR_ITEM].alphaKey, '_' | 0x80,false);
-}
-
 // =====================
 // M_OGL_DrawColorMenu()
 // =====================
@@ -11196,62 +11126,5 @@ static void M_OGL_DrawColorMenu(void)
 	M_DrawGenericMenu(); // use generic drawer for cursor, items and title
 	V_DrawString(mx, my + currentMenu->menuitems[0].alphaKey - 10,
 		highlightflags, "Gamma correction");
-}
-
-//===================
-// M_HandleFogColor()
-//===================
-static void M_HandleFogColor(INT32 choice)
-{
-	size_t i, l;
-	char temp[8];
-	boolean exitmenu = false; // exit to previous menu and send name change
-
-	switch (choice)
-	{
-		case KEY_DOWNARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn++;
-			break;
-
-		case KEY_UPARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn--;
-			break;
-
-		case KEY_ESCAPE:
-			exitmenu = true;
-			break;
-
-		case KEY_BACKSPACE:
-			S_StartSound(NULL, sfx_menu1);
-			strcpy(temp, cv_grfogcolor.string);
-			strcpy(cv_grfogcolor.zstring, "000000");
-			l = strlen(temp)-1;
-			for (i = 0; i < l; i++)
-				cv_grfogcolor.zstring[i + 6 - l] = temp[i];
-			break;
-
-		default:
-			if ((choice >= '0' && choice <= '9') || (choice >= 'a' && choice <= 'f')
-				|| (choice >= 'A' && choice <= 'F'))
-			{
-				S_StartSound(NULL, sfx_menu1);
-				strcpy(temp, cv_grfogcolor.string);
-				strcpy(cv_grfogcolor.zstring, "000000");
-				l = strlen(temp);
-				for (i = 0; i < l; i++)
-					cv_grfogcolor.zstring[5 - i] = temp[l - i];
-				cv_grfogcolor.zstring[5] = (char)choice;
-			}
-			break;
-	}
-	if (exitmenu)
-	{
-		if (currentMenu->prevMenu)
-			M_SetupNextMenu(currentMenu->prevMenu);
-		else
-			M_ClearMenus(true);
-	}
 }
 #endif

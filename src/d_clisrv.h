@@ -21,6 +21,13 @@
 
 #include "md5.h"
 
+/*
+The 'packet version' is used to distinguish packet formats.
+This version is independent of VERSION and SUBVERSION. Different
+applications may follow different packet versions.
+*/
+#define PACKETVERSION 0
+
 // Network play related stuff.
 // There is a data struct that stores network
 //  communication related stuff, and another
@@ -345,8 +352,13 @@ typedef struct {
 #pragma warning(default : 4200)
 #endif
 
+#define MAXAPPLICATION 16
+
 typedef struct
 {
+	UINT8 _255;/* see serverinfo_pak */
+	UINT8 packetversion;
+	char application[MAXAPPLICATION];
 	UINT8 version; // Different versions don't work
 	UINT8 subversion; // Contains build version
 	UINT8 localplayers;
@@ -368,9 +380,18 @@ typedef struct
 
 #define MAXSERVERNAME 32
 #define MAXFILENEEDED 915
+#define MAX_MIRROR_LENGTH 256
 // This packet is too large
 typedef struct
 {
+	/*
+	In the old packet, 'version' is the first field. Now that field is set
+	to 255 always, so older versions won't be confused with the new
+	versions or vice-versa.
+	*/
+	UINT8 _255;
+	UINT8 packetversion;
+	char  application[MAXAPPLICATION];
 	UINT8 version;
 	UINT8 subversion;
 	UINT8 numberofplayer;
@@ -380,7 +401,6 @@ typedef struct
 	UINT8 cheatsenabled;
 	UINT8 kartvars; // Previously isdedicated, now appropriated for our own nefarious purposes
 	UINT8 fileneedednum;
-	SINT8 adminplayer;
 	tic_t time;
 	tic_t leveltime;
 	char servername[MAXSERVERNAME];
@@ -389,6 +409,7 @@ typedef struct
 	unsigned char mapmd5[16];
 	UINT8 actnum;
 	UINT8 iszone;
+	char httpsource[MAX_MIRROR_LENGTH]; // HTTP URL to download from, always defined for compatibility
 	UINT8 fileneeded[MAXFILENEEDED]; // is filled with writexxx (byteptr.h)
 } ATTRPACK serverinfo_pak;
 
@@ -441,6 +462,11 @@ typedef struct
 	UINT8 files[MAXFILENEEDED]; // is filled with writexxx (byteptr.h)
 } ATTRPACK filesneededconfig_pak;
 
+typedef struct
+{
+	char http_source[MAX_MIRROR_LENGTH];/* first byte 0? no die! */
+} ATTRPACK fileconfig;
+
 //
 // Network packet data
 //
@@ -475,6 +501,7 @@ typedef struct
 		plrconfig playerconfig[MAXPLAYERS]; // (up to) 528 bytes(?)
 		INT32 filesneedednum;               //           4 bytes
 		filesneededconfig_pak filesneededcfg; //       ??? bytes
+		fileconfig filecfg;
 		UINT32 pingtable[MAXPLAYERS+1];     //          68 bytes
 	} u; // This is needed to pack diff packet types data together
 } ATTRPACK doomdata_t;
@@ -496,7 +523,7 @@ extern INT32 mapchangepending;
 
 // Points inside doomcom
 extern doomdata_t *netbuffer;
-
+extern consvar_t cv_httpsource;
 extern consvar_t cv_showjoinaddress;
 extern consvar_t cv_playbackspeed;
 

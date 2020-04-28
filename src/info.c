@@ -20,9 +20,6 @@
 #include "z_zone.h"
 #include "d_player.h"
 #include "lzf.h"
-#ifdef HWRENDER
-#include "hardware/hw_light.h"
-#endif
 
 // Hey, moron! If you change this table, don't forget about the sprite enum in info.h and the sprite lights in hw_light.c!
 char sprnames[NUMSPRITES + 1][5] =
@@ -20101,7 +20098,7 @@ void P_PatchInfoTables(void)
 	char *tempname;
 
 #if NUMSPRITEFREESLOTS > 1000
-"Update P_PatchInfoTables, you big dumb head"
+#error "Update P_PatchInfoTables, you big dumb head"
 #endif
 
 	// empty out free slots
@@ -20113,9 +20110,6 @@ void P_PatchInfoTables(void)
 		tempname[2] = (char)('0' + (char)(((i-SPR_FIRSTFREESLOT+1)/10)%10));
 		tempname[3] = (char)('0' + (char)((i-SPR_FIRSTFREESLOT+1)%10));
 		tempname[4] = '\0';
-#ifdef HWRENDER
-		t_lspr[i] = &lspr[NOLIGHT];
-#endif
 	}
 	sprnames[i][0] = '\0'; // i == NUMSPRITES
 	memset(&states[S_FIRSTFREESLOT], 0, sizeof (state_t) * NUMSTATEFREESLOTS);

@@ -686,6 +686,7 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_maxsend);
 	CV_RegisterVar(&cv_noticedownload);
 	CV_RegisterVar(&cv_downloadspeed);
+	CV_RegisterVar(&cv_httpsource);
 #ifndef NONET
 	CV_RegisterVar(&cv_allownewplayer);
 #ifdef VANILLAJOINNEXTROUND
@@ -5340,11 +5341,11 @@ static void Fishcake_OnChange(void)
 static void Command_Isgamemodified_f(void)
 {
 	if (majormods)
-		CONS_Printf("The game has been modified with major add-ons, so you cannot play Record Attack.\n");
+		CONS_Printf("The game has been modified with major addons, so you cannot play Record Attack.\n");
 	else if (savemoddata)
-		CONS_Printf("The game has been modified with an add-on with its own save data, so you can play Record Attack and earn medals.\n");
+		CONS_Printf("The game has been modified with an addon with its own save data, so you can play Record Attack and earn medals.\n");
 	else if (modifiedgame)
-		CONS_Printf("The game has been modified with only minor add-ons. You can play Record Attack, earn medals and unlock extras.\n");
+		CONS_Printf("The game has been modified with only minor addons. You can play Record Attack, earn medals and unlock extras.\n");
 	else
 		CONS_Printf("The game has not been modified. You can play Record Attack, earn medals and unlock extras.\n");
 }

@@ -20,11 +20,6 @@
 #define RPC_NO_WINDOWS_H
 #include <windows.h>
 
-#ifdef HWRENDER
-BOOL Init3DDriver (LPCSTR dllName);
-VOID Shutdown3DDriver (VOID);
-#endif
-
 #ifdef HW3SOUND
 BOOL Init3DSDriver(LPCSTR dllName);
 VOID Shutdown3DSDriver(VOID);
