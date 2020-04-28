@@ -8781,8 +8781,11 @@ void K_drawKartHUD(void)
 	if (!demo.title && (!battlefullscreen || splitscreen))
 	{
 		// Draw the CHECK indicator before the other items, so it's overlapped by everything else
-		if (cv_kartcheck.value && !splitscreen && !players[displayplayers[0]].exiting && !freecam)
-			K_drawKartPlayerCheck();
+#ifdef HAVE_BLUA
+		if (LUA_HudEnabled(hud_check))	// delete lua when?
+#endif
+			if (cv_kartcheck.value && !splitscreen && !players[displayplayers[0]].exiting && !freecam)
+				K_drawKartPlayerCheck();
 
 		// Draw WANTED status
 		if (G_BattleGametype())
