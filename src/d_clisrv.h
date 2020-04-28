@@ -523,6 +523,7 @@ typedef enum
 } kickreason_t;
 
 extern boolean server;
+extern boolean serverrunning;
 #define client (!server)
 extern boolean dedicated; // For dedicated server
 extern UINT16 software_MAXPACKETLENGTH;
