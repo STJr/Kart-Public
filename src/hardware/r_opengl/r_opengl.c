@@ -26,6 +26,8 @@
 #include "r_opengl.h"
 #include "r_vbo.h"
 
+#include "../../p_tick.h" // for leveltime (NOTE: THIS IS BAD, FIGURE OUT HOW TO PROPERLY IMPLEMENT gl_leveltime)
+
 #if defined (HWRENDER) && !defined (NOROPENGL)
 
 struct GLRGBAFloat
@@ -482,11 +484,6 @@ boolean SetupGLfunc(void)
 	return true;
 }
 
-static INT32 glstate_fog_mode = 0;
-static float glstate_fog_density = 0;
-
-INT32 gl_leveltime = 0;
-
 #ifdef GL_SHADERS
 typedef GLuint 	(APIENTRY *PFNglCreateShader)		(GLenum);
 typedef void 	(APIENTRY *PFNglShaderSource)		(GLuint, GLsizei, const GLchar**, GLint*);
@@ -552,10 +549,8 @@ typedef enum
 	gluniform_tint_color,
 	gluniform_fade_color,
 	gluniform_lighting,
-
-	// fog
-	gluniform_fog_mode,
-	gluniform_fog_density,
+	gluniform_fade_start,
+	gluniform_fade_end,
 
 	// misc. (custom shaders)
 	gluniform_leveltime,
@@ -578,9 +573,6 @@ static gl_shaderprogram_t gl_shaderprograms[MAXSHADERPROGRAMS];
 //
 // GLSL Software fragment shader
 //
-
-// (new shader stuff taken from srb2 shader branch)
-// this is missing support for fade_start and fade_end
 
 #define GLSL_DOOM_COLORMAP \
 	"float R_DoomColormap(float light, float z)\n" \
@@ -611,6 +603,12 @@ static gl_shaderprogram_t gl_shaderprograms[MAXSHADERPROGRAMS];
 
 #define GLSL_SOFTWARE_FADE_EQUATION \
 	"float darkness = R_DoomLightingEquation(lighting);\n" \
+	"if (fade_start != 0.0 || fade_end != 31.0) {\n" \
+		"float fs = fade_start / 31.0;\n" \
+		"float fe = fade_end / 31.0;\n" \
+		"float fd = fe - fs;\n" \
+		"darkness = clamp((darkness - fs) * (1.0 / fd), 0.0, 1.0);\n" \
+	"}\n" \
 	"final_color = mix(final_color, fade_color, darkness);\n"
 
 #define GLSL_SOFTWARE_FRAGMENT_SHADER \
@@ -619,6 +617,8 @@ static gl_shaderprogram_t gl_shaderprograms[MAXSHADERPROGRAMS];
 	"uniform vec4 tint_color;\n" \
 	"uniform vec4 fade_color;\n" \
 	"uniform float lighting;\n" \
+	"uniform float fade_start;\n" \
+	"uniform float fade_end;\n" \
 	GLSL_DOOM_COLORMAP \
 	GLSL_DOOM_LIGHT_EQUATION \
 	"void main(void) {\n" \
@@ -631,9 +631,44 @@ static gl_shaderprogram_t gl_shaderprograms[MAXSHADERPROGRAMS];
 		"gl_FragColor = final_color;\n" \
 	"}\0"
 
+//
+// Water surface shader
+//
+// Mostly guesstimated, rather than the rest being built off Software science.
+// Still needs to distort things underneath/around the water...
+//
+
+#define GLSL_WATER_FRAGMENT_SHADER \
+	"uniform sampler2D tex;\n" \
+	"uniform vec4 poly_color;\n" \
+	"uniform vec4 tint_color;\n" \
+	"uniform vec4 fade_color;\n" \
+	"uniform float lighting;\n" \
+	"uniform float fade_start;\n" \
+	"uniform float fade_end;\n" \
+	"uniform float leveltime;\n" \
+	"const float freq = 0.025;\n" \
+	"const float amp = 0.025;\n" \
+	"const float speed = 2.0;\n" \
+	"const float pi = 3.14159;\n" \
+	GLSL_DOOM_COLORMAP \
+	GLSL_DOOM_LIGHT_EQUATION \
+	"void main(void) {\n" \
+		"float z = (gl_FragCoord.z / gl_FragCoord.w) / 2.0;\n" \
+		"float a = -pi * (z * freq) + (leveltime * speed);\n" \
+		"float sdistort = sin(a) * amp;\n" \
+		"float cdistort = cos(a) * amp;\n" \
+		"vec4 texel = texture2D(tex, vec2(gl_TexCoord[0].s - sdistort, gl_TexCoord[0].t - cdistort));\n" \
+		"vec4 base_color = texel * poly_color;\n" \
+		"vec4 final_color = base_color;\n" \
+		GLSL_SOFTWARE_TINT_EQUATION \
+		GLSL_SOFTWARE_FADE_EQUATION \
+		"final_color.a = texel.a * poly_color.a;\n" \
+		"gl_FragColor = final_color;\n" \
+	"}\0"
 
 //
-// Fog block shader (Taken from srb2 shader branch)
+// Fog block shader
 //
 // Alpha of the planes themselves are still slightly off -- see HWR_FogBlockAlpha
 //
@@ -642,6 +677,8 @@ static gl_shaderprogram_t gl_shaderprograms[MAXSHADERPROGRAMS];
 	"uniform vec4 tint_color;\n" \
 	"uniform vec4 fade_color;\n" \
 	"uniform float lighting;\n" \
+	"uniform float fade_start;\n" \
+	"uniform float fade_end;\n" \
 	GLSL_DOOM_COLORMAP \
 	GLSL_DOOM_LIGHT_EQUATION \
 	"void main(void) {\n" \
@@ -652,16 +689,15 @@ static gl_shaderprogram_t gl_shaderprograms[MAXSHADERPROGRAMS];
 		"gl_FragColor = final_color;\n" \
 	"}\0"
 
-
 //
 // GLSL generic fragment shader
 //
 
 #define GLSL_DEFAULT_FRAGMENT_SHADER \
 	"uniform sampler2D tex;\n" \
-	"uniform vec4 mix_color;\n" \
+	"uniform vec4 poly_color;\n" \
 	"void main(void) {\n" \
-		"gl_FragColor = texture2D(tex, gl_TexCoord[0].st) * mix_color;\n" \
+		"gl_FragColor = texture2D(tex, gl_TexCoord[0].st) * poly_color;\n" \
 	"}\0"
 
 static const char *fragment_shaders[] = {
@@ -681,7 +717,7 @@ static const char *fragment_shaders[] = {
 	GLSL_SOFTWARE_FRAGMENT_SHADER,
 
 	// Water fragment shader
-	GLSL_SOFTWARE_FRAGMENT_SHADER,
+	GLSL_WATER_FRAGMENT_SHADER,
 
 	// Fog fragment shader
 	GLSL_FOG_FRAGMENT_SHADER,
@@ -689,7 +725,7 @@ static const char *fragment_shaders[] = {
 	// Sky fragment shader
 	"uniform sampler2D tex;\n"
 	"void main(void) {\n"
-		"gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n" \
+		"gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n"
 	"}\0",
 
 	NULL,
@@ -709,7 +745,7 @@ static const char *fragment_shaders[] = {
 		"gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;\n" \
 		"gl_FrontColor = gl_Color;\n" \
 		"gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;\n" \
-		"gl_ClipVertex = gl_ModelViewMatrix*gl_Vertex;\n" \
+		"gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;\n" \
 	"}\0"
 
 static const char *vertex_shaders[] = {
@@ -885,10 +921,8 @@ EXPORT boolean HWRAPI(LoadShaders) (void)
 		shader->uniforms[gluniform_tint_color] = GETUNI("tint_color");
 		shader->uniforms[gluniform_fade_color] = GETUNI("fade_color");
 		shader->uniforms[gluniform_lighting] = GETUNI("lighting");
-
-		// fog
-		shader->uniforms[gluniform_fog_mode] = GETUNI("fog_mode");
-		shader->uniforms[gluniform_fog_density] = GETUNI("fog_density");
+		shader->uniforms[gluniform_fade_start] = GETUNI("fade_start");
+		shader->uniforms[gluniform_fade_end] = GETUNI("fade_end");
 
 		// misc. (custom shaders)
 		shader->uniforms[gluniform_leveltime] = GETUNI("leveltime");
@@ -899,6 +933,9 @@ EXPORT boolean HWRAPI(LoadShaders) (void)
 	return true;
 }
 
+//
+// Custom shader loading
+//
 EXPORT void HWRAPI(LoadCustomShader) (int number, char *shader, size_t size, boolean fragment)
 {
 #ifdef GL_SHADERS
@@ -1689,19 +1726,10 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *poly, GLRGBAFloat *
 			{
 				if (!custom)
 				{
-					if (glstate_fog_mode == 0)	// disabled
+					if (gl_shaderprogramchanged)
 					{
-						// Nevermind!
-						pglUseProgram(0);
-						return;
-					}
-					else	// enabled
-					{
-						if (gl_shaderprogramchanged)
-						{
-							pglUseProgram(gl_shaderprograms[gl_currentshaderprogram].program);
-							gl_shaderprogramchanged = false;
-						}
+						pglUseProgram(gl_shaderprograms[gl_currentshaderprogram].program);
+						gl_shaderprogramchanged = false;
 					}
 				}
 				else	// always load custom shaders
@@ -1735,26 +1763,11 @@ static void load_shaders(FSurfaceInfo *Surface, GLRGBAFloat *poly, GLRGBAFloat *
 				// polygon
 				UNIFORM_4(shader->uniforms[gluniform_poly_color], poly->red, poly->green, poly->blue, poly->alpha, pglUniform4f);
 				UNIFORM_4(shader->uniforms[gluniform_tint_color], tint->red, tint->green, tint->blue, tint->alpha, pglUniform4f);
-
-
-				// 13062019
-				// Check for fog
-				if (glstate_fog_mode == 1)
-				{
-					// glstate
-					UNIFORM_1(shader->uniforms[gluniform_fog_density], glstate_fog_density, pglUniform1f);
-
-					// polygon
-					UNIFORM_4(shader->uniforms[gluniform_fade_color], fade->red, fade->green, fade->blue, fade->alpha, pglUniform4f);
-					UNIFORM_1(shader->uniforms[gluniform_lighting], Surface->LightInfo.light_level, pglUniform1f);
-
-					// Custom shader uniforms
-					if (custom)
-					{
-						UNIFORM_1(shader->uniforms[gluniform_fog_mode], glstate_fog_mode, pglUniform1i);
-						UNIFORM_1(shader->uniforms[gluniform_leveltime], (float)gl_leveltime, pglUniform1f);
-					}
-				}
+				UNIFORM_4(shader->uniforms[gluniform_fade_color], fade->red, fade->green, fade->blue, fade->alpha, pglUniform4f);
+				UNIFORM_1(shader->uniforms[gluniform_lighting], Surface->LightInfo.light_level, pglUniform1f);
+				UNIFORM_1(shader->uniforms[gluniform_fade_start], Surface->LightInfo.fade_start, pglUniform1f);
+				UNIFORM_1(shader->uniforms[gluniform_fade_end], Surface->LightInfo.fade_end, pglUniform1f);
+				UNIFORM_1(shader->uniforms[gluniform_leveltime], ((float)leveltime) / TICRATE, pglUniform1f);
 
 				#undef UNIFORM_1
 				#undef UNIFORM_2
@@ -2590,14 +2603,6 @@ EXPORT void HWRAPI(SetSpecialState) (hwdspecialstate_t IdState, INT32 Value)
 					gl_allowshaders = false;
 					break;
 			}
-			break;
-
-		case HWD_SET_FOG_MODE:
-			glstate_fog_mode = Value;
-			break;
-
-		case HWD_SET_FOG_DENSITY:
-			glstate_fog_density = FIXED_TO_FLOAT(Value);
 			break;
 
 		case HWD_SET_TEXTUREFILTERMODE:

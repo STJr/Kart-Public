@@ -1870,7 +1870,7 @@ void I_StartupGraphics(void)
 		HWD.pfnMakeScreenTexture= hwSym("MakeScreenTexture",NULL);
 		HWD.pfnMakeScreenFinalTexture=hwSym("MakeScreenFinalTexture",NULL);
 		HWD.pfnDrawScreenFinalTexture=hwSym("DrawScreenFinalTexture",NULL);
-		
+
 		HWD.pfnRenderSkyDome = hwSym("RenderSkyDome",NULL);
 
 		HWD.pfnLoadShaders = hwSym("LoadShaders",NULL);
@@ -1880,7 +1880,7 @@ void I_StartupGraphics(void)
 
 		HWD.pfnLoadCustomShader = hwSym("LoadCustomShader",NULL);
 		HWD.pfnInitCustomShaders = hwSym("InitCustomShaders",NULL);
-		
+
 		HWD.pfnStartBatching = hwSym("StartBatching",NULL);
 		HWD.pfnRenderBatches = hwSym("RenderBatches",NULL);
 
