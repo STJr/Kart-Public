@@ -1861,6 +1861,10 @@ static int comparePolygons(const void *p1, const void *p2)
 	if (diff64 < 0) return -1; else if (diff64 > 0) return 1;
 
 	diff = poly1->surf.LightInfo.light_level - poly2->surf.LightInfo.light_level;
+	if (diff != 0) return diff;
+	diff = poly1->surf.LightInfo.fade_start - poly2->surf.LightInfo.fade_start;
+	if (diff != 0) return diff;
+	diff = poly1->surf.LightInfo.fade_end - poly2->surf.LightInfo.fade_end;
 	return diff;
 }
 
@@ -2093,7 +2097,9 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 				if (currentSurfaceInfo.PolyColor.rgba != nextSurfaceInfo.PolyColor.rgba ||
 					currentSurfaceInfo.TintColor.rgba != nextSurfaceInfo.TintColor.rgba ||
 					currentSurfaceInfo.FadeColor.rgba != nextSurfaceInfo.FadeColor.rgba ||
-					currentSurfaceInfo.LightInfo.light_level != nextSurfaceInfo.LightInfo.light_level)
+					currentSurfaceInfo.LightInfo.light_level != nextSurfaceInfo.LightInfo.light_level ||
+					currentSurfaceInfo.LightInfo.fade_start != nextSurfaceInfo.LightInfo.fade_start ||
+					currentSurfaceInfo.LightInfo.fade_end != nextSurfaceInfo.LightInfo.fade_end)
 				{
 					changeState = true;
 					changeSurfaceInfo = true;
