@@ -23,7 +23,6 @@
 #include "d_net.h"
 #include "d_netfil.h" // fileneedednum
 #include "d_main.h"
-#include "d_event.h"
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "keys.h"
@@ -675,7 +674,7 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 static void resynch_read_player(resynch_pak *rsp)
 {
 	INT32 i = rsp->playernum, j;
-	//mobj_t *savedmo = players[i].mo;
+	mobj_t *savedmo = players[i].mo;
 
 	// Do not send anything visual related.
 	// Only send data that we need to know for physics.
@@ -768,17 +767,11 @@ static void resynch_read_player(resynch_pak *rsp)
 		return;
 
 	//...but keep old mo even if it is corrupt or null!
-	//players[i].mo = savedmo;
+	players[i].mo = savedmo;
 
 	//Transfer important mo information if they have a valid mo.
 	if (!rsp->hasmo)
-	{
-		// Get rid of their object if they aren't supposed to have one.....??
-		if (players[i].mo)
-			P_RemoveMobj(players[i].mo);
-
 		return;
-	}
 
 	//server thinks player has a body.
 	//Give them a new body that can be then manipulated by the server's info.
@@ -1031,7 +1024,6 @@ static void SV_SendResynch(INT32 node)
 		return;
 	}
 
-	resynch_inprogress[node] = false; // Let's see if there's REALLY anyone left to sync.....
 	netbuffer->packettype = PT_RESYNCHING;
 	for (i = 0, j = 0; i < MAXPLAYERS; ++i)
 	{
@@ -1039,24 +1031,10 @@ static void SV_SendResynch(INT32 node)
 		if (!(resynch_status[node] & 1<<i))
 			continue;
 
-		if (!playeringame[i])
-			continue; // Player doesn't exist any more, so no need to resync them!
-
-		resynch_inprogress[node] = true;
-
 		// waiting for a reply or just waiting in general
 		if (resynch_sent[node][i])
 		{
 			--resynch_sent[node][i];
-
-			if (resynch_sent[node][i] > TICRATE)
-			{
-				CONS_Alert(CONS_ERROR, "Node %d (%s) somehow had a stupidly-long resync delay?! (%d tics to resync player %d)\n",
-					node, player_names[nodetoplayer[node]], resynch_sent[node][i], i
-				);
-				resynch_sent[node][i] = TICRATE;
-			}
-
 			continue;
 		}
 
@@ -1068,15 +1046,6 @@ static void SV_SendResynch(INT32 node)
 
 		if (++j > 3)
 			break;
-	}
-
-	if (!resynch_inprogress[node])
-	{
-		CONS_Alert(CONS_ERROR, "Node %d (%s) somehow had resync status for nonexistent players?! (%08x)\n",
-			node, player_names[nodetoplayer[node]], resynch_status[node] = 0x00
-		);
-		resynch_status[node] = 0x00;
-		resynch_inprogress[node] = true; // So they get the PT_RESYNCHEND...
 	}
 
 	if (resynch_score[node] > (unsigned)cv_resynchattempts.value*250)
@@ -1133,31 +1102,21 @@ typedef enum
 	CL_CONNECTED,
 	CL_ABORTED,
 	CL_ASKFULLFILELIST,
-	CL_ASKDOWNLOADFILES,
-	CL_WAITDOWNLOADFILESRESPONSE,
 #ifdef HAVE_CURL
 	CL_PREPAREHTTPFILES,
 	CL_DOWNLOADHTTPFILES,
 #endif
-	CL_CHALLENGE
 } cl_mode_t;
 
 static void GetPackets(void);
 
 static cl_mode_t cl_mode = CL_SEARCHING;
-static boolean cl_needsdownload = false;
-
-static UINT16 cl_lastcheckedfilecount = 0;
-static UINT8 cl_challengenum = 0;
-static UINT8 cl_challengequestion[MD5_LEN+1];
-static char cl_challengepassword[65];
-static UINT8 cl_challengeanswer[MD5_LEN+1];
-static UINT8 cl_challengeattempted = 0;
-static char cl_challengeaddress[64];
 
 #ifdef HAVE_CURL
 char http_source[MAX_MIRROR_LENGTH];
 #endif
+
+static UINT16 cl_lastcheckedfilecount = 0;	// used for full file list
 
 // Player name send/load
 
@@ -1194,7 +1153,6 @@ static void CV_LoadPlayerNames(UINT8 **p)
 }
 
 #ifdef CLIENT_LOADINGSCREEN
-static UINT32 SL_SearchServer(INT32 node);
 
 //
 // CL_DrawConnectionStatus
@@ -1223,42 +1181,11 @@ static inline void CL_DrawConnectionStatus(void)
 		// 15 pal entries total.
 		const char *cltext;
 
-		if (cl_mode != CL_CHALLENGE)
-			for (i = 0; i < 16; ++i)
-				V_DrawFill((BASEVIDWIDTH/2-128) + (i * 16), BASEVIDHEIGHT-24, 16, 8, palstart + ((animtime - i) & 15));
+		for (i = 0; i < 16; ++i)
+			V_DrawFill((BASEVIDWIDTH/2-128) + (i * 16), BASEVIDHEIGHT-24, 16, 8, palstart + ((animtime - i) & 15));
 
 		switch (cl_mode)
 		{
-			case CL_CHALLENGE:
-				{
-					char asterisks[33];
-					size_t sl = min(32, strlen(cl_challengepassword));
-					UINT32 serverid;
-
-					memset(asterisks, '*', sl);
-					memset(asterisks+sl, 0, 33-sl);
-
-					V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_MONOSPACE|V_ALLOWLOWERCASE, asterisks);
-					V_DrawFixedPatch((BASEVIDWIDTH/2) << FRACBITS, (BASEVIDHEIGHT/2) << FRACBITS, FRACUNIT, 0, W_CachePatchName("BSRVLOCK", PU_CACHE), NULL);
-
-					serverid = SL_SearchServer(servernode);
-
-					if (serverid == UINT32_MAX)
-					{
-						M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT/2-8, 32, 1);
-						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, V_REDMAP, M_GetText("This server is password protected."));
-					}
-					else
-					{
-						M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT/2-8, 32, 3);
-						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, V_REDMAP, M_GetText("This server,"));
-						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2+8, V_ALLOWLOWERCASE, serverlist[serverid].info.servername);
-						V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2+16, V_REDMAP, M_GetText("is password protected."));
-					}
-
-					cltext = M_GetText(cl_challengeattempted ? "Incorrect password. Please try again." : "Please enter the server password.");
-				}
-				break;
 #ifdef JOININGAME
 			case CL_DOWNLOADSAVEGAME:
 				if (lastfilenum != -1)
@@ -1281,12 +1208,11 @@ static inline void CL_DrawConnectionStatus(void)
 			case CL_WAITJOINRESPONSE:
 				cltext = M_GetText("Requesting to join...");
 				break;
-			case CL_ASKDOWNLOADFILES:
-			case CL_WAITDOWNLOADFILESRESPONSE:
 #ifdef HAVE_CURL
 			case CL_PREPAREHTTPFILES:
-#endif
 				cltext = M_GetText("Waiting to download files...");
+				break;
+#endif
 			default:
 				cltext = M_GetText("Connecting to server...");
 				break;
@@ -1376,9 +1302,6 @@ static boolean CL_SendJoin(void)
 	netbuffer->u.clientcfg.subversion = SUBVERSION;
 	strncpy(netbuffer->u.clientcfg.application, SRB2APPLICATION,
 			sizeof netbuffer->u.clientcfg.application);
-	netbuffer->u.clientcfg.needsdownload = cl_needsdownload;
-	netbuffer->u.clientcfg.challengenum = cl_challengenum;
-	memcpy(netbuffer->u.clientcfg.challengeanswer, cl_challengeanswer, MD5_LEN);
 
 	return HSendPacket(servernode, false, 0, sizeof (clientconfig_pak));
 }
@@ -1410,9 +1333,9 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 
 	netbuffer->u.serverinfo.kartvars = (UINT8) (
 		(cv_kartspeed.value & SV_SPEEDMASK) |
-		(dedicated ? SV_DEDICATED : 0) |
-		(D_IsJoinPasswordOn() ? SV_PASSWORD : 0)
+		(dedicated ? SV_DEDICATED : 0)
 	);
+
 
 	strncpy(netbuffer->u.serverinfo.servername, cv_servername.string,
 		MAXSERVERNAME);
@@ -1479,18 +1402,15 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 	netbuffer->u.serverinfo.actnum = 0; //mapheaderinfo[gamemap-1]->actnum
 
 #ifdef HAVE_CURL
-	if (! D_IsJoinPasswordOn())
-	{
-		mirror_length = strlen(httpurl);
-		if (mirror_length > MAX_MIRROR_LENGTH)
-			mirror_length = MAX_MIRROR_LENGTH;
+	mirror_length = strlen(httpurl);
+	if (mirror_length > MAX_MIRROR_LENGTH)
+		mirror_length = MAX_MIRROR_LENGTH;
 
-		if (snprintf(netbuffer->u.serverinfo.httpsource, mirror_length+1, "%s", httpurl) < 0)
-			// If there's an encoding error, send nothing, we accept that the above may be truncated
-			strncpy(netbuffer->u.serverinfo.httpsource, "", mirror_length);
+	if (snprintf(netbuffer->u.serverinfo.httpsource, mirror_length+1, "%s", httpurl) < 0)
+		// If there's an encoding error, send nothing, we accept that the above may be truncated
+		strncpy(netbuffer->u.serverinfo.httpsource, "", mirror_length);
 
-		netbuffer->u.serverinfo.httpsource[MAX_MIRROR_LENGTH-1] = '\0';
-	}
+	netbuffer->u.serverinfo.httpsource[MAX_MIRROR_LENGTH-1] = '\0';
 #endif
 
 	p = PutFileNeeded(0);
@@ -2015,7 +1935,39 @@ static boolean CL_FinishedFileList(void)
 	else if (i == 1)
 		cl_mode = CL_ASKJOIN;
 	else
-		cl_mode = CL_ASKDOWNLOADFILES;
+	{
+		// must download something
+		// can we, though?
+#ifdef HAVE_CURL
+		if (http_source[0] == '\0' || curl_failedwebdownload)
+#endif
+		{
+			if (!CL_CheckDownloadable()) // nope!
+			{
+				D_QuitNetGame();
+				CL_Reset();
+				D_StartTitle();
+				M_StartMessage(M_GetText(
+					"You cannot connect to this server\n"
+					"because you cannot download the files\n"
+					"that you are missing from the server.\n\n"
+					"See the console or log file for\n"
+					"more details.\n\n"
+					"Press ESC\n"
+				), NULL, MM_NOTHING);
+				return false;
+			}
+
+			if (CL_SendRequestFile())
+				cl_mode = CL_DOWNLOADFILES;
+		}
+#ifdef HAVE_CURL
+		else
+		{
+			cl_mode = CL_PREPAREHTTPFILES;
+		}
+#endif
+	}
 	return true;
 }
 
@@ -2062,6 +2014,16 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 
 		if (client)
 		{
+#ifdef HAVE_CURL
+			if (serverlist[i].info.httpsource[0])
+				strncpy(http_source, serverlist[i].info.httpsource, MAX_MIRROR_LENGTH);
+			else
+				http_source[0] = '\0';
+#else
+			if (serverlist[i].info.httpsource[0])
+				CONS_Printf("We received a http url from the server, however it will not be used as this build lacks curl support (%s)\n", serverlist[i].info.httpsource);
+#endif
+
 			D_ParseFileneeded(serverlist[i].info.fileneedednum, serverlist[i].info.fileneeded, 0);
 			if (serverlist[i].info.kartvars & SV_LOTSOFADDONS)
 			{
@@ -2140,6 +2102,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 #ifdef HAVE_CURL
 		case CL_PREPAREHTTPFILES:
+			if (http_source[0])
 			{
 				for (i = 0; i < fileneedednum; i++)
 					if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
@@ -2169,8 +2132,11 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			if (curl_failedwebdownload && !curl_transfers)
 			{
 				CONS_Printf("One or more files failed to download, falling back to internal downloader\n");
-				cl_mode = CL_ASKDOWNLOADFILES;
-				break;
+				if (CL_SendRequestFile())
+				{
+					cl_mode = CL_DOWNLOADFILES;
+					break;
+				}
 			}
 
 			if (!curl_transfers)
@@ -2194,7 +2160,6 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			/* FALLTHRU */
 
 		case CL_ASKJOIN:
-			cl_needsdownload = false;
 			CL_LoadServerFiles();
 #ifdef JOININGAME
 			// prepare structures to save the file
@@ -2203,22 +2168,8 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			CL_PrepareDownloadSaveGame(tmpsave);
 #endif
 			if (CL_SendJoin())
-			{
-				*asksent = I_GetTime();
 				cl_mode = CL_WAITJOINRESPONSE;
-			}
 			break;
-
-		case CL_ASKDOWNLOADFILES:
-			cl_needsdownload = true;
-
-			if (CL_SendJoin())
-			{
-				*asksent = I_GetTime();
-				cl_mode = CL_WAITDOWNLOADFILESRESPONSE;
-			}
-			break;
-
 
 #ifdef JOININGAME
 		case CL_DOWNLOADSAVEGAME:
@@ -2233,19 +2184,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 				break;
 #endif
 
-		case CL_CHALLENGE:
-			(*asksent) = I_GetTime() - NEWTICRATE; // Send password immediately upon entering
-			break;
-
 		case CL_WAITJOINRESPONSE:
-		case CL_WAITDOWNLOADFILESRESPONSE:
-			if (*asksent + NEWTICRATE < I_GetTime() && CL_SendJoin())
-			{
-				*asksent = I_GetTime();
-			}
-
-			break;
-
 		case CL_CONNECTED:
 		default:
 			break;
@@ -2263,15 +2202,21 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 	// Call it only once by tic
 	if (*oldtic != I_GetTime())
 	{
-		I_OsPolling();
-		D_ProcessEvents();
-		if (gamestate != GS_WAITINGPLAYERS)
-			return false;
 
-		// why are these here? this is for servers, we're a client
-		//if (key == 's' && server)
-		//	doomcom->numnodes = (INT16)pnumnodes;
-		//SV_FileSendTicker();
+		INT32 key;
+
+		I_OsPolling();
+		key = I_GetKey();
+		// Only ESC and non-keyboard keys abort connection
+		if (key == KEY_ESCAPE || key >= KEY_MOUSE1)
+		{
+			CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
+			D_QuitNetGame();
+			CL_Reset();
+			D_StartTitle();
+
+			return false;
+		}
 		*oldtic = I_GetTime();
 
 #ifdef CLIENT_LOADINGSCREEN
@@ -2291,73 +2236,6 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 	}
 	else
 		I_Sleep();
-
-	return true;
-}
-
-boolean CL_Responder(event_t *ev)
-{
-	size_t len;
-	INT32 ch;
-
-	if (!(client && cl_mode != CL_CONNECTED && cl_mode != CL_ABORTED))
-		return false; // Don't do anything outside of the connection screen
-
-	if (ev->type != ev_keydown)
-		return false;
-
-	ch = (INT32)ev->data1;
-
-	// Only ESC and non-keyboard keys abort connection
-	if (ch == KEY_ESCAPE || ch >= KEY_MOUSE1)
-	{
-		CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
-		//M_StartMessage(M_GetText("Network game synchronization aborted.\n\nPress ESC\n"), NULL, MM_NOTHING);
-		D_QuitNetGame();
-		CL_Reset();
-		D_StartTitle();
-		return true;
-	}
-
-	if (cl_mode != CL_CHALLENGE)
-		return false;
-
-	if ((ch >= HU_FONTSTART && ch <= HU_FONTEND && hu_font[ch-HU_FONTSTART])
-	  || ch == ' ') // Allow spaces, of course
-	{
-		len = strlen(cl_challengepassword);
-		if (len < 64)
-		{
-			cl_challengepassword[len+1] = 0;
-			cl_challengepassword[len] = CON_ShiftChar(ch);
-		}
-
-		cl_challengeattempted = 0;
-	}
-	else if (ch == KEY_BACKSPACE)
-	{
-		len = strlen(cl_challengepassword);
-
-		if (len > 0)
-			cl_challengepassword[len-1] = 0;
-
-		cl_challengeattempted = 0;
-	}
-	else if (ch == KEY_ENTER)
-	{
-		netgame = true;
-		multiplayer = true;
-
-#ifndef NONET
-		SL_ClearServerList(servernode);
-		if (I_NetMakeNodewPort)
-				servernode = I_NetMakeNode(cl_challengeaddress);
-#endif
-		cl_mode = CL_SEARCHING;
-
-		D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
-		cl_challengeattempted = 1;
-	}
 
 	return true;
 }
@@ -2382,7 +2260,6 @@ static void CL_ConnectToServer(boolean viams)
 #endif
 
 	cl_mode = CL_SEARCHING;
-	cl_challengenum = 0;
 
 #ifdef CLIENT_LOADINGSCREEN
 	lastfilenum = -1;
@@ -2406,8 +2283,6 @@ static void CL_ConnectToServer(boolean viams)
 		Y_EndIntermission(); // clean up intermission graphics etc
 	if (gamestate == GS_VOTING)
 		Y_EndVote();
-
-	resynch_local_inprogress = false; // Just in case this was never cleared...
 
 	DEBFILE(va("waiting %d nodes\n", doomcom->numnodes));
 	G_SetGamestate(GS_WAITINGPLAYERS);
@@ -2438,8 +2313,6 @@ static void CL_ConnectToServer(boolean viams)
 	}
 	SL_ClearServerList(servernode);
 #endif
-
-	cl_challengeattempted = 0;
 
 	do
 	{
@@ -3386,9 +3259,6 @@ void D_ClientServerInit(void)
 	gametic = 0;
 	localgametic = 0;
 
-	memset(cl_challengequestion, 0x00, MD5_LEN+1);
-	memset(cl_challengeanswer, 0x00, MD5_LEN+1);
-
 	// do not send anything before the real begin
 	SV_StopServer();
 	SV_ResetServer();
@@ -3512,7 +3382,6 @@ void D_QuitNetGame(void)
 		HSendPacket(servernode, true, 0, 0);
 	}
 
-	resynch_local_inprogress = false; // No more resyncing!
 	D_CloseConnection();
 	ClearAdminPlayers();
 
@@ -3871,35 +3740,6 @@ static void HandleConnect(SINT8 node)
 		boolean newnode = false;
 #endif
 
-		if (node != servernode && !nodeingame[node] && D_IsJoinPasswordOn())
-		{
-			// Ensure node sent the correct password challenge
-			boolean passed = false;
-
-			if (netbuffer->u.clientcfg.challengenum && D_VerifyJoinPasswordChallenge(netbuffer->u.clientcfg.challengenum, netbuffer->u.clientcfg.challengeanswer))
-				passed = true;
-
-			if (!passed)
-			{
-				D_MakeJoinPasswordChallenge(&netbuffer->u.joinchallenge.challengenum, netbuffer->u.joinchallenge.question);
-
-				netbuffer->packettype = PT_JOINCHALLENGE;
-				HSendPacket(node, false, 0, sizeof(joinchallenge_pak));
-				Net_CloseConnection(node);
-
-				return;
-			}
-		}
-
-		if (netbuffer->u.clientcfg.needsdownload)
-		{
-			netbuffer->packettype = PT_DOWNLOADFILESOKAY;
-			strncpy(netbuffer->u.filecfg.http_source, cv_httpsource.string,
-					MAX_MIRROR_LENGTH);
-			HSendPacket(node, true, 0, sizeof netbuffer->u.filecfg);
-			return;
-		}
-
 		// client authorised to join
 		nodewaiting[node] = (UINT8)(netbuffer->u.clientcfg.localplayers - playerpernode[node]);
 		if (!nodeingame[node])
@@ -4099,52 +3939,6 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			Net_CloseConnection(node);
 			break;
 
-		case PT_JOINCHALLENGE:
-			if (server && serverrunning)
-			{ // But wait I thought I'm the server?
-				Net_CloseConnection(node);
-				break;
-			}
-			SERVERONLY
-			if (cl_mode == CL_WAITJOINRESPONSE || cl_mode == CL_WAITDOWNLOADFILESRESPONSE)
-			{
-				cl_challengenum = netbuffer->u.joinchallenge.challengenum;
-				memcpy(cl_challengequestion, netbuffer->u.joinchallenge.question, 16);
-
-				if (I_GetNodeAddress)
-					strcpy(cl_challengeaddress, I_GetNodeAddress(node));
-				Net_CloseConnection(node); // Don't need to stay connected while challenging
-
-				cl_mode = CL_CHALLENGE;
-
-				switch (cl_challengeattempted)
-				{
-					case 2:
-						// We already sent a correct password, so throw it back up again.
-						D_ComputeChallengeAnswer(cl_challengequestion, cl_challengepassword, cl_challengeanswer);
-#ifndef NONET
-						if (I_NetMakeNodewPort)
-							servernode = I_NetMakeNode(cl_challengeaddress);
-#endif
-						if (cl_needsdownload)
-							cl_mode = CL_ASKDOWNLOADFILES;
-						else
-							cl_mode = CL_ASKJOIN;
-						break;
-
-					case 1:
-						// We entered the wrong password!
-						S_StartSound(NULL, sfx_s26d);
-						break;
-
-					default:
-						// First entry to the password screen.
-						S_StartSound(NULL, sfx_s224);
-						break;
-				}
-			}
-			break;
-
 		case PT_SERVERREFUSE: // Negative response of client join request
 			if (server && serverrunning)
 			{ // But wait I thought I'm the server?
@@ -4173,63 +3967,6 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			}
 			break;
 
-		case PT_DOWNLOADFILESOKAY:
-			if (server && serverrunning)
-			{ // But wait I thought I'm the server?
-				Net_CloseConnection(node);
-				break;
-			}
-
-			SERVERONLY
-
-			if (netbuffer->u.filecfg.http_source[0] != '\0')
-			{
-				netbuffer->u.filecfg.http_source[MAX_MIRROR_LENGTH-1] = '\0';
-
-#ifdef HAVE_CURL
-				if (! curl_failedwebdownload)
-				{
-					strncpy(http_source, netbuffer->u.filecfg.http_source,
-							sizeof http_source);
-
-					cl_mode = CL_PREPAREHTTPFILES;
-				}
-#else
-				CONS_Printf("We received a http url from the server, however it will not be used as this build lacks curl support (%s)\n", netbuffer->u.filecfg.http_source);
-#endif
-			}
-
-			if (cl_mode == CL_WAITDOWNLOADFILESRESPONSE)
-			{
-				if (CL_CheckDownloadable())
-				{
-					CONS_Printf("trying to download\n");
-					if (CL_SendRequestFile())
-						cl_mode = CL_DOWNLOADFILES;
-				}
-				else
-				{
-					D_QuitNetGame();
-					CL_Reset();
-					D_StartTitle();
-					M_StartMessage(M_GetText(
-								"You cannot connect to this server\n"
-								"because you cannot download the files\n"
-								"that you are missing from the server.\n\n"
-								"See the console or log file for\n"
-								"more details.\n\n"
-								"Press ESC\n"
-					), NULL, MM_NOTHING);
-					break;
-				}
-			}
-
-			if (cl_challengeattempted == 1) // Successful password noise.
-				S_StartSound(NULL, sfx_s221);
-
-			cl_challengeattempted = 2;
-			break;
-
 		case PT_SERVERCFG: // Positive response of client join request
 		{
 			INT32 j;
@@ -4244,9 +3981,6 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			/// \note how would this happen? and is it doing the right thing if it does?
 			if (cl_mode != CL_WAITJOINRESPONSE)
 				break;
-
-			if (cl_challengeattempted == 1) // Successful password noise.
-				S_StartSound(NULL, sfx_s221);
 
 			if (client)
 			{
