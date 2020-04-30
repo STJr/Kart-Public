@@ -2736,7 +2736,7 @@ boolean M_Responder(event_t *ev)
 			routine = M_ChangeCvar;
 	}
 
-	if (currentMenu == &PlaybackMenuDef)
+	if (currentMenu == &PlaybackMenuDef && !con_destlines)
 	{
 		playback_last_menu_interaction_leveltime = leveltime;
 		// Flip left/right with up/down for the playback menu, since it's a horizontal icon row.
@@ -2971,7 +2971,7 @@ boolean M_DemoResponder(event_t *ev)
 		// (but still allow shift keyup so caps doesn't get stuck)
 		return false;
 	}
-	else if (ev->type == ev_keydown)
+	else if (ev->type == ev_keydown && !con_destlines)	// not while the console is on please
 	{
 		ch = ev->data1;
 		// since this is ONLY for demos, there isn't MUCH for us to do.

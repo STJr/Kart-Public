@@ -1905,7 +1905,7 @@ static void ST_overlayDrawer(void)
 				V_DrawCenteredString((BASEVIDWIDTH/2), BASEVIDHEIGHT-32, V_ALLOWLOWERCASE, player_names[stplyr-players]);
 			}
 		}
-		/*else if (!demo.title)
+		else if (!demo.title)
 		{
 
 			if (!splitscreen)
@@ -1925,7 +1925,7 @@ static void ST_overlayDrawer(void)
 			{
 				V_DrawCenteredThinString((vid.width/vid.dupx)/4, BASEVIDHEIGHT/2 - 12, V_HUDTRANSHALF|V_ALLOWLOWERCASE|K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT), player_names[stplyr-players]);
 			}
-		}*/
+		}
 
 		// This is where we draw all the fun cheese if you have the chasecam off!
 		/*if ((stplyr == &players[displayplayers[0]] && !camera[0].chase)
