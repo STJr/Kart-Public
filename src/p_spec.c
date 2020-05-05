@@ -1982,6 +1982,7 @@ void P_LinedefExecute(INT16 tag, mobj_t *actor, sector_t *caller)
 		if (lines[masterline].special == 313
 		 || lines[masterline].special == 399
 		 || lines[masterline].special == 328
+		 || lines[masterline].special == 323
 		 // Each-time executors handle themselves, too
 		 || lines[masterline].special == 301 // Each time
 		 || lines[masterline].special == 306 // Character ability - Each time
@@ -5659,7 +5660,7 @@ static void P_RunLevelLoadExecutors(void)
 
 	for (i = 0; i < numlines; i++)
 	{
-		if (lines[i].special == 399 || lines[i].special == 328)
+		if (lines[i].special == 399 || lines[i].special == 328 || lines[i].special == 323)
 			P_RunTriggerLinedef(&lines[i], NULL, NULL);
 	}
 }
@@ -6561,7 +6562,6 @@ void P_SpawnSpecials(INT32 fromnetsave)
 				break;
 			// Record attack only linedef exec
 			case 323:
-			case 324:
 				if (!modeattacking)
 					lines[i].special = 0;
 				break;
