@@ -442,6 +442,7 @@ static const char *credits[] = {
 	"\"Lat\'\"",
 	"\"Monster Iestyn\"",
 	"\"Shuffle\"",
+	"\"SteelT\"",
 	"",
 	"\1Lead Artists",
 	"Desmond \"Blade\" DesJardins",
@@ -466,17 +467,17 @@ static const char *credits[] = {
 	"\"DirkTheHusky\"",
 	"\"LJSTAR\"",
 	"\"MotorRoach\"",
-	"\"Mr. McScrewup\"",
 	"\"Nev3r\"",
+	"\"rairai104n\"",
 	"\"Ritz\"",
 	"\"Rob\"",
 	"\"SmithyGNC\"",
 	"\"Snu\"",
 	"\"Spherallic\"",
+	"\"TelosTurntable\"",
 	"\"VAdaPEGA\"",
 	"\"Virt\"",
 	"\"Voltrix\"",
-	"\"zxyspku\"",
 	"",
 	"\1Sound Design",
 	"James \"SeventhSentinel\" Hall",
@@ -504,6 +505,7 @@ static const char *credits[] = {
 	"Sherman \"CoatRack\" DesJardins",
 	"Colette \"fickleheart\" Bordelon",
 	"Vivian \"toaster\" Grannell",
+	"\"Gunla\"",
 	"James \"SeventhSentinel\" Hall",
 	"\"Lat\'\"",
 	"\"MK\"",
@@ -566,7 +568,7 @@ static struct {
 	// This Tyler52 gag is troublesome
 	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
 	// Current max image spacing: (200*17)
-	{112, (15*100)+(17*38)+(86*15), "TYLER52", SKINCOLOR_NONE},
+	{112, (15*100)+(17*38)+(88*15), "TYLER52", SKINCOLOR_NONE},
 	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
