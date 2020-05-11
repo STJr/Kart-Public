@@ -670,6 +670,9 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 	UINT8 cutoff[16]; // Brightness cutoff before using the next color
 	UINT8 translen = 0;
 	UINT8 i;
+	UINT16 b;
+	UINT8 colorbrightnesses[16];
+	UINT8 color_match_lookup[256]; // optimization attempt
 
 	blendcolor = V_GetColor(0); // initialize
 	memset(translation, 0, sizeof(translation));
@@ -736,6 +739,37 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 		}
 
 		translen++;
+	}
+
+	if (skinnum == TC_RAINBOW && translen > 0)
+	{
+		INT32 compare;
+
+		for (i = 0; i < translen; i++) // moved from inside the loop to here
+		{
+			RGBA_t tempc = V_GetColor(translation[i]);
+			SETBRIGHTNESS(colorbrightnesses[i], tempc.s.red, tempc.s.green, tempc.s.blue); // store brightnesses for comparison
+		}
+		// generate lookup table for color brightness matching
+		for (b = 0; b < 256; b++)
+		{
+			UINT16 brightdif = 256;
+
+			color_match_lookup[i] = 0;
+			for (i = 0; i < translen; i++)
+			{
+				if (b > colorbrightnesses[i]) // don't allow greater matches (because calculating a makeshift gradient for this is already a huge mess as is)
+					continue;
+
+				compare = abs((INT16)(colorbrightnesses[i]) - (INT16)(b));
+
+				if (compare < brightdif)
+				{
+					brightdif = (UINT16)compare;
+					color_match_lookup[b] = i; // best matching color that's equal brightness or darker
+				}
+			}
+		}
 	}
 
 	while (size--)
@@ -822,9 +856,8 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 				// Ensue horrible mess.
 				if (skinnum == TC_RAINBOW)
 				{
-					UINT16 brightdif = 256;
-					UINT8 colorbrightnesses[16];
-					INT32 compare, m, d;
+					//UINT16 brightdif = 256;
+					INT32 /*compare,*/ m, d;
 
 					// Ignore pure white & pitch black
 					if (brightness > 253 || brightness < 2)
@@ -838,13 +871,7 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 					mul = 0;
 					mulmax = 1;
 
-					for (i = 0; i < translen; i++)
-					{
-						RGBA_t tempc = V_GetColor(translation[i]);
-						SETBRIGHTNESS(colorbrightnesses[i], tempc.s.red, tempc.s.green, tempc.s.blue); // store brightnesses for comparison
-					}
-
-					for (i = 0; i < translen; i++)
+					/*for (i = 0; i < translen; i++)
 					{
 						if (brightness > colorbrightnesses[i]) // don't allow greater matches (because calculating a makeshift gradient for this is already a huge mess as is)
 							continue;
@@ -856,7 +883,8 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 							brightdif = (UINT16)compare;
 							firsti = i; // best matching color that's equal brightness or darker
 						}
-					}
+					}*/
+					firsti = color_match_lookup[brightness];
 
 					secondi = firsti+1; // next color in line
 
