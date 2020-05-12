@@ -72,7 +72,7 @@ install:
 
 configuration:
 - SDL
-- SDL64
+#- SDL64
 
 before_build:
 - set "Path=%MINGW_SDK%\bin;%Path%"
