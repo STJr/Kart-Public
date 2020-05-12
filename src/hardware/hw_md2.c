@@ -670,7 +670,6 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 	UINT8 cutoff[16]; // Brightness cutoff before using the next color
 	UINT8 translen = 0;
 	UINT8 i;
-	UINT16 b;
 	UINT8 colorbrightnesses[16];
 	UINT8 color_match_lookup[256]; // optimization attempt
 
@@ -743,6 +742,7 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 
 	if (skinnum == TC_RAINBOW && translen > 0)
 	{
+		UINT16 b;
 		INT32 compare;
 
 		for (i = 0; i < translen; i++) // moved from inside the loop to here
