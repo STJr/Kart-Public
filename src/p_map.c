@@ -732,7 +732,7 @@ static boolean PIT_CheckThing(mobj_t *thing)
 		if (tmthing->z + tmthing->height < thing->z)
 			return true; // underneath
 
-		if (((tmthing->target == thing) || (tmthing->target == thing->target)) && (tmthing->threshold > 0 || (thing->type != MT_PLAYER && thing->threshold > 0)))
+		if (((tmthing->target == thing) || (tmthing->target == thing->target)) && ((tmthing->threshold > 0 && thing->type == MT_PLAYER) || (thing->type != MT_PLAYER && thing->threshold > 0)))
 			return true;
 
 		if (tmthing->health <= 0 || thing->health <= 0)

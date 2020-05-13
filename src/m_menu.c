@@ -231,7 +231,6 @@ static void M_HandleStaffReplay(INT32 choice);
 static void M_ReplayTimeAttack(INT32 choice);
 static void M_ChooseTimeAttack(INT32 choice);
 //static void M_ChooseNightsAttack(INT32 choice);
-static void M_ModeAttackRetry(INT32 choice);
 static void M_ModeAttackEndGame(INT32 choice);
 static void M_SetGuestReplay(INT32 choice);
 //static void M_ChoosePlayer(INT32 choice);
@@ -280,7 +279,7 @@ static void M_ResetControls(INT32 choice);
 // Video & Sound
 menu_t OP_VideoOptionsDef, OP_VideoModeDef;
 #ifdef HWRENDER
-menu_t OP_OpenGLOptionsDef, OP_OpenGLFogDef, OP_OpenGLColorDef;
+menu_t OP_OpenGLOptionsDef, OP_OpenGLColorDef;
 #endif
 menu_t OP_SoundOptionsDef;
 //static void M_RestartAudio(void);
@@ -319,6 +318,7 @@ static void M_PlaybackFastForward(INT32 choice);
 static void M_PlaybackAdvance(INT32 choice);
 static void M_PlaybackSetViews(INT32 choice);
 static void M_PlaybackAdjustView(INT32 choice);
+static void M_PlaybackToggleFreecam(INT32 choice);
 static void M_PlaybackQuit(INT32 choice);
 
 static UINT8 playback_enterheld = 0; // horrid hack to prevent holding the button from being extremely fucked
@@ -346,7 +346,6 @@ static void M_DrawHUDOptions(void);
 static void M_DrawVideoMode(void);
 static void M_DrawMonitorToggles(void);
 #ifdef HWRENDER
-static void M_OGL_DrawFogMenu(void);
 static void M_OGL_DrawColorMenu(void);
 #endif
 static void M_DrawMPMainMenu(void);
@@ -372,9 +371,6 @@ static void M_HandleLevelStats(INT32 choice);
 static void M_HandleConnectIP(INT32 choice);
 #endif
 static void M_HandleSetupMultiPlayer(INT32 choice);
-#ifdef HWRENDER
-static void M_HandleFogColor(INT32 choice);
-#endif
 static void M_HandleVideoMode(INT32 choice);
 static void M_HandleMonitorToggles(INT32 choice);
 
@@ -516,26 +512,26 @@ static menuitem_t MISC_ReplayOptionsMenu[] =
 	{IT_CVAR|IT_STRING, NULL, "Sync Check Interval", &cv_netdemosyncquality,     10},
 };
 
+static tic_t playback_last_menu_interaction_leveltime = 0;
 static menuitem_t PlaybackMenu[] =
 {
-	{IT_CALL   | IT_STRING, "M_PHIDE",  "Hide Menu", M_SelectableClearMenus, 0},
+	{IT_CALL   | IT_STRING, "M_PHIDE",  "Hide Menu (Esc)", M_SelectableClearMenus, 0},
 
-	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_PlaybackRewind,      20},
-	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,       36},
-	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Forward",  M_PlaybackFastForward, 52},
-	{IT_CALL   | IT_STRING, "M_PSTEPB", "Backup Frame",  M_PlaybackRewind,      20},
+	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind ([)",        M_PlaybackRewind,      20},
+	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause (\\)",         M_PlaybackPause,       36},
+	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Forward (])",  M_PlaybackFastForward, 52},
+	{IT_CALL   | IT_STRING, "M_PSTEPB", "Backup Frame ([)",  M_PlaybackRewind,      20},
 	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,       36},
-	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,     52},
+	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame (])", M_PlaybackAdvance,     52},
 
-	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count",  M_PlaybackSetViews, 72},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint",   M_PlaybackAdjustView, 88},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 2", M_PlaybackAdjustView, 104},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3", M_PlaybackAdjustView, 120},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4", M_PlaybackAdjustView, 136},
+	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count (- and =)",  M_PlaybackSetViews, 72},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint (1)",   M_PlaybackAdjustView, 88},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 2 (2)", M_PlaybackAdjustView, 104},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3 (3)", M_PlaybackAdjustView, 120},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4 (4)", M_PlaybackAdjustView, 136},
 
-	//{IT_CALL   | IT_STRING, "M_POPTS",  "More Options...", M_ReplayHut, 156},
-	//{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 172},
-	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 156},
+	{IT_CALL   | IT_STRING, "M_PVIEWS", "Toggle Free Camera (')",	M_PlaybackToggleFreecam, 156},
+	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 172},
 };
 typedef enum
 {
@@ -551,6 +547,7 @@ typedef enum
 	playback_view2,
 	playback_view3,
 	playback_view4,
+	playback_freecamera,
 	//playback_moreoptions,
 	playback_quit
 } playback_e;
@@ -577,7 +574,7 @@ typedef enum
 // ---------------------
 static menuitem_t MPauseMenu[] =
 {
-	{IT_STRING | IT_CALL,     NULL, "Add-ons...",        M_Addons,                8},
+	{IT_STRING | IT_CALL,     NULL, "Addons...",        M_Addons,                8},
 	{IT_STRING | IT_SUBMENU,  NULL, "Scramble Teams...", &MISC_ScrambleTeamDef,  16},
 	{IT_STRING | IT_CALL,     NULL, "Switch Map..."    , M_MapChange,            24},
 
@@ -984,10 +981,9 @@ static menuitem_t MP_MainMenu[] =
 
 static menuitem_t MP_ServerMenu[] =
 {
-	{IT_STRING|IT_CVAR,                NULL, "Max. Player Count",     &cv_maxplayers,         0},
-	{IT_STRING|IT_CALL,                NULL, "Room...",               M_RoomMenu,            10},
-	{IT_STRING|IT_CVAR|IT_CV_STRING,   NULL, "Server Name",           &cv_servername,        20},
-	{IT_STRING|IT_CVAR|IT_CV_PASSWORD, NULL, "Password",              &cv_dummyjoinpassword, 44},
+	{IT_STRING|IT_CVAR,                NULL, "Max. Player Count",     &cv_maxplayers,        10},
+	{IT_STRING|IT_CALL,                NULL, "Room...",               M_RoomMenu,            20},
+	{IT_STRING|IT_CVAR|IT_CV_STRING,   NULL, "Server Name",           &cv_servername,        30},
 
 	{IT_STRING|IT_CVAR,                NULL, "Game Type",             &cv_newgametype,       68},
 	{IT_STRING|IT_CVAR,                NULL, "Level",                 &cv_nextmap,           78},
@@ -1244,15 +1240,13 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR,	NULL,	"Weather Draw Distance",&cv_drawdist_precip,	 55},
 	//{IT_STRING | IT_CVAR,	NULL,	"Weather Density",		&cv_precipdensity,		 65},
 	{IT_STRING | IT_CVAR,	NULL,	"Skyboxes",				&cv_skybox,				 65},
-	{IT_STRING | IT_CVAR,	NULL,	"Field of View",		&cv_fov,					75},
+	{IT_STRING | IT_CVAR,	NULL,	"Field of View",		&cv_fov,				 75},
 
 	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			 90},
 	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			100},
 
 #ifdef HWRENDER
-	{IT_STRING | IT_CVAR,	NULL,	"3D models",            &cv_grmdls,              115},
-	{IT_STRING | IT_CVAR,	NULL,	"Fallback Player 3D Model",	&cv_grfallbackplayermodel,	125},
-	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,   135},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	120},
 #endif
 };
 
@@ -1271,8 +1265,6 @@ enum
 	op_video_fps,
 	op_video_vsync,
 #ifdef HWRENDER
-	op_video_md2,
-	op_video_kartman,
 	op_video_ogl,
 #endif
 };
@@ -1285,36 +1277,19 @@ static menuitem_t OP_VideoModeMenu[] =
 #ifdef HWRENDER
 static menuitem_t OP_OpenGLOptionsMenu[] =
 {
-	{IT_SUBMENU|IT_STRING,      NULL, "Fog...",          &OP_OpenGLFogDef,      10},
-	{IT_SUBMENU|IT_STRING,      NULL, "Gamma...",        &OP_OpenGLColorDef,    20},
+	{IT_STRING | IT_CVAR,	NULL, "3D Models",					&cv_grmdls,					 10},
+	{IT_STRING | IT_CVAR,	NULL, "Fallback Player 3D Model",	&cv_grfallbackplayermodel,	 20},
+	{IT_STRING|IT_CVAR,		NULL, "Shaders",					&cv_grshaders,				 30},
 
-	{IT_STRING|IT_CVAR,         NULL, "Quality",         &cv_scr_depth,         35},
-	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",  &cv_grfiltermode,      45},
-	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",     &cv_granisotropicmode, 55},
-/*#ifdef _WINDOWS
-	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",      &cv_fullscreen,       50},
-#endif
-#ifdef ALAM_LIGHTING
-	{IT_SUBMENU|IT_STRING,      NULL, "Lighting...",     &OP_OpenGLLightingDef,     70},
-#endif*/
-};
+	{IT_STRING|IT_CVAR,		NULL, "Texture Quality",			&cv_scr_depth,				 50},
+	{IT_STRING|IT_CVAR,		NULL, "Texture Filter",				&cv_grfiltermode,			 60},
+	{IT_STRING|IT_CVAR,		NULL, "Anisotropic",				&cv_granisotropicmode,		 70},
 
-#ifdef ALAM_LIGHTING
-static menuitem_t OP_OpenGLLightingMenu[] =
-{
-	{IT_STRING|IT_CVAR, NULL, "Coronas",          &cv_grcoronas,          0},
-	{IT_STRING|IT_CVAR, NULL, "Coronas size",     &cv_grcoronasize,      10},
-	{IT_STRING|IT_CVAR, NULL, "Dynamic lighting", &cv_grdynamiclighting, 20},
-	{IT_STRING|IT_CVAR, NULL, "Static lighting",  &cv_grstaticlighting,  30},
-};
-#endif
+	{IT_STRING|IT_CVAR,		NULL, "Wall Contrast Style",		&cv_grfakecontrast,			 90},
+	{IT_STRING|IT_CVAR,		NULL, "Sprite Billboarding",		&cv_grspritebillboarding,	100},
+	{IT_STRING|IT_CVAR,		NULL, "Software Perspective",		&cv_grshearing,				110},
 
-static menuitem_t OP_OpenGLFogMenu[] =
-{
-	{IT_STRING|IT_CVAR,       NULL, "Fog",         &cv_grfog,        10},
-	{IT_STRING|IT_KEYHANDLER, NULL, "Fog Color",   M_HandleFogColor, 20},
-	{IT_STRING|IT_CVAR,       NULL, "Fog Density", &cv_grfogdensity, 30},
-	{IT_STRING|IT_CVAR,       NULL, "Software Fog",&cv_grsoftwarefog,40},
+	{IT_SUBMENU|IT_STRING,	NULL, "Gamma...",					&OP_OpenGLColorDef,			130},
 };
 
 static menuitem_t OP_OpenGLColorMenu[] =
@@ -1362,7 +1337,7 @@ static menuitem_t OP_SoundOptionsMenu[] =
 static menuitem_t OP_DataOptionsMenu[] =
 {
 	{IT_STRING | IT_CALL,		NULL, "Screenshot Options...",	M_ScreenshotOptions,	 10},
-	{IT_STRING | IT_CALL,		NULL, "Add-on Options...",		M_AddonsOptions,		 20},
+	{IT_STRING | IT_CALL,		NULL, "Addon Options...",		M_AddonsOptions,		 20},
 	{IT_STRING | IT_SUBMENU,	NULL, "Replay Options...",		&MISC_ReplayOptionsDef,	 30},
 
 	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 50},
@@ -1414,7 +1389,7 @@ static menuitem_t OP_AddonsOptionsMenu[] =
 	{IT_HEADER,                      NULL, "Menu",                        NULL,                    0},
 	{IT_STRING|IT_CVAR,              NULL, "Location",                    &cv_addons_option,      10},
 	{IT_STRING|IT_CVAR|IT_CV_STRING, NULL, "Custom Folder",               &cv_addons_folder,      20},
-	{IT_STRING|IT_CVAR,              NULL, "Identify add-ons via",        &cv_addons_md5,         48},
+	{IT_STRING|IT_CVAR,              NULL, "Identify addons via",        &cv_addons_md5,         48},
 	{IT_STRING|IT_CVAR,              NULL, "Show unsupported file types", &cv_addons_showall,     58},
 
 	{IT_HEADER,                      NULL, "Search",                      NULL,                   76},
@@ -1501,7 +1476,7 @@ static menuitem_t OP_ServerOptionsMenu[] =
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 90},
 	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",			&cv_allownewplayer,		100},
-	{IT_STRING | IT_CVAR,    NULL, "Allow Add-on Downloading",		&cv_downloading,		110},
+	{IT_STRING | IT_CVAR,    NULL, "Allow Addon Downloading",		&cv_downloading,		110},
 	{IT_STRING | IT_CVAR,    NULL, "Pause Permission",				&cv_pause,				120},
 	{IT_STRING | IT_CVAR,    NULL, "Mute All Chat",					&cv_mute,				130},
 
@@ -2078,20 +2053,6 @@ menu_t OP_MonitorToggleDef =
 
 #ifdef HWRENDER
 menu_t OP_OpenGLOptionsDef = DEFAULTMENUSTYLE("M_VIDEO", OP_OpenGLOptionsMenu, &OP_VideoOptionsDef, 30, 30);
-#ifdef ALAM_LIGHTING
-menu_t OP_OpenGLLightingDef = DEFAULTMENUSTYLE("M_VIDEO", OP_OpenGLLightingMenu, &OP_OpenGLOptionsDef, 60, 40);
-#endif
-menu_t OP_OpenGLFogDef =
-{
-	"M_VIDEO",
-	sizeof (OP_OpenGLFogMenu)/sizeof (menuitem_t),
-	&OP_OpenGLOptionsDef,
-	OP_OpenGLFogMenu,
-	M_OGL_DrawFogMenu,
-	60, 40,
-	0,
-	NULL
-};
 menu_t OP_OpenGLColorDef =
 {
 	"M_VIDEO",
@@ -2464,9 +2425,6 @@ static void M_NextOpt(void)
 {
 	INT16 oldItemOn = itemOn; // prevent infinite loop
 
-	if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
-		((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value = 0;
-
 	do
 	{
 		if (itemOn + 1 > currentMenu->numitems - 1)
@@ -2479,9 +2437,6 @@ static void M_NextOpt(void)
 static void M_PrevOpt(void)
 {
 	INT16 oldItemOn = itemOn; // prevent infinite loop
-
-	if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
-		((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value = 0;
 
 	do
 	{
@@ -2767,10 +2722,8 @@ boolean M_Responder(event_t *ev)
 	// BP: one of the more big hack i have never made
 	if (routine && (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR)
 	{
-		if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_STRING || (currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
+		if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_STRING)
 		{
-			if (ch == KEY_TAB && (currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
-				((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value ^= 1;
 
 			if (shiftdown && ch >= 32 && ch <= 127)
 				ch = shiftxform[ch];
@@ -2783,8 +2736,9 @@ boolean M_Responder(event_t *ev)
 			routine = M_ChangeCvar;
 	}
 
-	if (currentMenu == &PlaybackMenuDef)
+	if (currentMenu == &PlaybackMenuDef && !con_destlines)
 	{
+		playback_last_menu_interaction_leveltime = leveltime;
 		// Flip left/right with up/down for the playback menu, since it's a horizontal icon row.
 		switch (ch)
 		{
@@ -2792,6 +2746,56 @@ boolean M_Responder(event_t *ev)
 			case KEY_UPARROW: ch = KEY_RIGHTARROW; break;
 			case KEY_RIGHTARROW: ch = KEY_DOWNARROW; break;
 			case KEY_DOWNARROW: ch = KEY_LEFTARROW; break;
+
+			// arbitrary keyboard shortcuts because fuck you
+
+			case '\'':	// toggle freecam
+				M_PlaybackToggleFreecam(0);
+				break;
+
+			case ']':	// ffw / advance frame (depends on if paused or not)
+				if (paused)
+					M_PlaybackAdvance(0);
+				else
+					M_PlaybackFastForward(0);
+				break;
+
+			case '[':	// rewind /backupframe, uses the same function
+				M_PlaybackRewind(0);
+				break;
+
+			case '\\':	// pause
+				M_PlaybackPause(0);
+				break;
+
+			// viewpoints, an annoyance (tm)
+			case '-':	// viewpoint minus
+				M_PlaybackSetViews(-1);	// yeah lol.
+				break;
+
+			case '=':	// viewpoint plus
+				M_PlaybackSetViews(1);	// yeah lol.
+				break;
+
+			// switch viewpoints:
+			case '1':	// viewpoint for p1 (also f12)
+				// maximum laziness:
+				if (!demo.freecam)
+					G_AdjustView(1, 1, true);
+				break;
+			case '2':	// viewpoint for p2
+				if (!demo.freecam)
+					G_AdjustView(2, 1, true);
+				break;
+			case '3':	// viewpoint for p3
+				if (!demo.freecam)
+					G_AdjustView(3, 1, true);
+				break;
+			case '4':	// viewpoint for p4
+				if (!demo.freecam)
+					G_AdjustView(4, 1, true);
+				break;
+
 			default: break;
 		}
 	}
@@ -2846,9 +2850,9 @@ boolean M_Responder(event_t *ev)
 			if (currentMenu == &PlaybackMenuDef)
 			{
 				boolean held = (boolean)playback_enterheld;
-				playback_enterheld = TICRATE/7;
 				if (held)
 					return true;
+				playback_enterheld = 3;
 			}
 
 			if (routine)
@@ -2860,7 +2864,7 @@ boolean M_Responder(event_t *ev)
 					if (((currentMenu->menuitems[itemOn].status & IT_CALLTYPE) & IT_CALL_NOTMODIFIED) && majormods)
 					{
 						S_StartSound(NULL, sfx_menu1);
-						M_StartMessage(M_GetText("This cannot be done with complex add-ons\nor in a cheated game.\n\n(Press a key)\n"), NULL, MM_NOTHING);
+						M_StartMessage(M_GetText("This cannot be done with complex addons\nor in a cheated game.\n\n(Press a key)\n"), NULL, MM_NOTHING);
 						return true;
 					}
 				}
@@ -2950,6 +2954,93 @@ boolean M_Responder(event_t *ev)
 	return true;
 }
 
+// special responder for demos
+boolean M_DemoResponder(event_t *ev)
+{
+
+	INT32 ch = -1;	// cur event data
+	boolean eatinput = false;	// :omnom:
+
+	//should be accounted for beforehand but just to be safe...
+	if (!demo.playback || demo.title)
+		return false;
+
+	if (noFurtherInput)
+	{
+		// Ignore input after enter/escape/other buttons
+		// (but still allow shift keyup so caps doesn't get stuck)
+		return false;
+	}
+	else if (ev->type == ev_keydown && !con_destlines)	// not while the console is on please
+	{
+		ch = ev->data1;
+		// since this is ONLY for demos, there isn't MUCH for us to do.
+		// mirrored from m_responder
+
+		switch (ch)
+		{
+			// arbitrary keyboard shortcuts because fuck you
+
+			case '\'':	// toggle freecam
+				M_PlaybackToggleFreecam(0);
+				eatinput = true;
+				break;
+
+			case ']':	// ffw / advance frame (depends on if paused or not)
+				if (paused)
+					M_PlaybackAdvance(0);
+				else
+					M_PlaybackFastForward(0);
+				eatinput = true;
+				break;
+
+			case '[':	// rewind /backupframe, uses the same function
+				M_PlaybackRewind(0);
+				break;
+
+			case '\\':	// pause
+				M_PlaybackPause(0);
+				eatinput = true;
+				break;
+
+			// viewpoints, an annoyance (tm)
+			case '-':	// viewpoint minus
+				M_PlaybackSetViews(-1);	// yeah lol.
+				eatinput = true;
+				break;
+
+			case '=':	// viewpoint plus
+				M_PlaybackSetViews(1);	// yeah lol.
+				eatinput = true;
+				break;
+
+			// switch viewpoints:
+			case '1':	// viewpoint for p1 (also f12)
+				// maximum laziness:
+				if (!demo.freecam)
+					G_AdjustView(1, 1, true);
+				break;
+			case '2':	// viewpoint for p2
+				if (!demo.freecam)
+					G_AdjustView(2, 1, true);
+				break;
+			case '3':	// viewpoint for p3
+				if (!demo.freecam)
+					G_AdjustView(3, 1, true);
+				break;
+			case '4':	// viewpoint for p4
+				if (!demo.freecam)
+					G_AdjustView(4, 1, true);
+				break;
+
+			default: break;
+		}
+
+	}
+	return eatinput;
+}
+
+
 //
 // M_Drawer
 // Called after the view has been rendered,
@@ -3021,6 +3112,7 @@ void M_StartControlPanel(void)
 	if (demo.playback)
 	{
 		currentMenu = &PlaybackMenuDef;
+		playback_last_menu_interaction_leveltime = leveltime;
 	}
 	else if (!Playing())
 	{
@@ -3336,9 +3428,7 @@ void M_Init(void)
 #ifdef HWRENDER
 	// Permanently hide some options based on render mode
 	if (rendermode == render_soft)
-		OP_VideoOptionsMenu[op_video_ogl].status =
-			OP_VideoOptionsMenu[op_video_kartman].status =
-			OP_VideoOptionsMenu[op_video_md2]    .status = IT_DISABLED;
+		OP_VideoOptionsMenu[op_video_ogl].status = IT_DISABLED;
 #endif
 
 #ifndef NONET
@@ -3722,8 +3812,6 @@ static void M_DrawGenericMenu(void)
 					case IT_CVAR:
 					{
 						consvar_t *cv = (consvar_t *)currentMenu->menuitems[i].itemaction;
-						char asterisks[MAXSTRINGLENGTH+1];
-						size_t sl;
 						switch (currentMenu->menuitems[i].status & IT_CVARTYPE)
 						{
 							case IT_CV_SLIDER:
@@ -3731,27 +3819,6 @@ static void M_DrawGenericMenu(void)
 							case IT_CV_NOPRINT: // color use this
 							case IT_CV_INVISSLIDER: // monitor toggles use this
 								break;
-							case IT_CV_PASSWORD:
-								if (i == itemOn)
-								{
-									V_DrawRightAlignedThinString(x + MAXSTRINGLENGTH*8 + 10, y, V_ALLOWLOWERCASE, va(M_GetText("Tab: %s password"), cv->value ? "hide" : "show"));
-								}
-
-								if (!cv->value || i != itemOn)
-								{
-									sl = strlen(cv->string);
-									memset(asterisks, '*', sl);
-									memset(asterisks + sl, 0, MAXSTRINGLENGTH+1-sl);
-
-									M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
-									V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, asterisks);
-									if (skullAnimCounter < 4 && i == itemOn)
-										V_DrawCharacter(x + 8 + V_StringWidth(asterisks, 0), y + 12,
-											'_' | 0x80, false);
-									y += 16;
-									break;
-								}
-								/* fallthru */
 							case IT_CV_STRING:
 								M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
 								V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, cv->string);
@@ -4503,21 +4570,11 @@ static void M_StopMessage(INT32 choice)
 // You can even put multiple images in one menu!
 static void M_DrawImageDef(void)
 {
-	// this is probably what the V_DrawFixedPatch screen-fill bullshit was for, right
-	//V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31); -- never mind, screen fade
-
-	// Grr.  Need to autodetect for pic_ts.
-	pic_t *pictest = (pic_t *)W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
-	if (!pictest->zero)
-		V_DrawScaledPic(0,0,0,W_GetNumForName(currentMenu->menuitems[itemOn].text));
+	patch_t *patch = W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
+	if (patch->width <= BASEVIDWIDTH)
+		V_DrawScaledPatch(0,0,0,patch);
 	else
-	{
-		patch_t *patch = W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
-		if (patch->height <= BASEVIDHEIGHT)
-			V_DrawScaledPatch(0,0,0,patch);
-		else
-			V_DrawSmallScaledPatch(0,0,0,patch);
-	}
+		V_DrawSmallScaledPatch(0,0,0,patch);
 
 	if (currentMenu->menuitems[itemOn].alphaKey)
 	{
@@ -4587,8 +4644,8 @@ static void M_AddonsOptions(INT32 choice)
 	M_SetupNextMenu(&OP_AddonsOptionsDef);
 }
 
-#define LOCATIONSTRING1 "Visit \x83SRB2.ORG/MODS\x80 to get & make add-ons!"
-#define LOCATIONSTRING2 "Visit \x88SRB2.ORG/MODS\x80 to get & make add-ons!"
+#define LOCATIONSTRING1 "Visit \x83SRB2.ORG/MODS\x80 to get & make addons!"
+#define LOCATIONSTRING2 "Visit \x88SRB2.ORG/MODS\x80 to get & make addons!"
 
 static void M_Addons(INT32 choice)
 {
@@ -4764,7 +4821,7 @@ static boolean M_AddonsRefresh(void)
 		{
 			S_StartSound(NULL, sfx_s26d);
 			if (refreshdirmenu & REFRESHDIR_MAX)
-				message = va("%c%s\x80\nMaximum number of add-ons reached.\nA file could not be loaded.\nIf you wish to play with this add-on, restart the game to clear existing ones.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
+				message = va("%c%s\x80\nMaximum number of addons reached.\nA file could not be loaded.\nIf you wish to play with this addon, restart the game to clear existing ones.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 			else
 				message = va("%c%s\x80\nA file was not loaded.\nCheck the console log for more information.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 		}
@@ -4776,7 +4833,7 @@ static boolean M_AddonsRefresh(void)
 		else if (majormods && !prevmajormods)
 		{
 			S_StartSound(NULL, sfx_s221);
-			message = va("%c%s\x80\nGameplay has now been modified.\nIf you wish to play Record Attack mode, restart the game to clear existing add-ons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
+			message = va("%c%s\x80\nGameplay has now been modified.\nIf you wish to play Record Attack mode, restart the game to clear existing addons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 			prevmajormods = majormods;
 		}
 
@@ -5193,6 +5250,7 @@ void M_ReplayHut(INT32 choice)
 	G_SetGamestate(GS_TIMEATTACK);
 
 	demo.rewinding = false;
+	CL_ClearRewinds();
 
 	S_ChangeMusicInternal("replst", true);
 }
@@ -5205,7 +5263,8 @@ static void M_HandleReplayHutList(INT32 choice)
 		if (dir_on[menudepthleft])
 			dir_on[menudepthleft]--;
 		else
-			M_PrevOpt();
+			return;
+			//M_PrevOpt();
 
 		S_StartSound(NULL, sfx_menu1);
 		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
@@ -5215,7 +5274,8 @@ static void M_HandleReplayHutList(INT32 choice)
 		if (dir_on[menudepthleft] < sizedirmenu-1)
 			dir_on[menudepthleft]++;
 		else
-			itemOn = 0; // Not M_NextOpt because that would take us to the extra dummy item
+			return;
+			//itemOn = 0; // Not M_NextOpt because that would take us to the extra dummy item
 
 		S_StartSound(NULL, sfx_menu1);
 		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
@@ -5668,7 +5728,7 @@ static void M_DrawReplayStartMenu(void)
 
 	case DFILE_ERROR_NOTLOADED:
 	case DFILE_ERROR_INCOMPLETEOUTOFORDER:
-		warning = "Loading addons will mark your game as modified, and record attack may be unavailable.\nYou can watch without loading addons, but desyncs may occur.";
+		warning = "Loading addons will mark your game as modified, and Record Attack may be unavailable.\nYou can watch without loading addons, but desyncs may occur.";
 		break;
 
 	case DFILE_ERROR_EXTRAFILES:
@@ -5722,6 +5782,11 @@ static void M_DrawPlaybackMenu(void)
 	INT16 i;
 	patch_t *icon;
 	UINT8 *activemap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_GOLD, GTC_MENUCACHE);
+	UINT32 transmap = max(0, (INT32)(leveltime - playback_last_menu_interaction_leveltime - 4*TICRATE)) / 5;
+	transmap = min(8, transmap) << V_ALPHASHIFT;
+
+	if (leveltime - playback_last_menu_interaction_leveltime >= 6*TICRATE)
+		playback_last_menu_interaction_leveltime = leveltime - 6*TICRATE;
 
 	// Toggle items
 	if (paused && !demo.rewinding)
@@ -5745,13 +5810,10 @@ static void M_DrawPlaybackMenu(void)
 	{
 		for (i = playback_viewcount; i <= playback_view4; i++)
 			PlaybackMenu[i].status = IT_DISABLED;
+		PlaybackMenu[playback_freecamera].alphaKey = 72;
+		PlaybackMenu[playback_quit].alphaKey = 88;
 
-		//PlaybackMenu[playback_moreoptions].alphaKey = 72;
-		//PlaybackMenu[playback_quit].alphaKey = 88;
-		PlaybackMenu[playback_quit].alphaKey = 72;
-
-		//currentMenu->x = BASEVIDWIDTH/2 - 52;
-		currentMenu->x = BASEVIDWIDTH/2 - 44;
+		currentMenu->x = BASEVIDWIDTH/2 - 52;
 	}
 	else
 	{
@@ -5762,11 +5824,8 @@ static void M_DrawPlaybackMenu(void)
 		for (i = splitscreen+1; i < 4; i++)
 			PlaybackMenu[playback_view1+i].status = IT_DISABLED;
 
-		//PlaybackMenu[playback_moreoptions].alphaKey = 156;
-		//PlaybackMenu[playback_quit].alphaKey = 172;
-		PlaybackMenu[playback_quit].alphaKey = 156;
-
-		//currentMenu->x = BASEVIDWIDTH/2 - 94;
+		PlaybackMenu[playback_freecamera].alphaKey = 156;
+		PlaybackMenu[playback_quit].alphaKey = 172;
 		currentMenu->x = BASEVIDWIDTH/2 - 88;
 	}
 
@@ -5803,16 +5862,16 @@ static void M_DrawPlaybackMenu(void)
 			icon = W_CachePatchName("PLAYRANK", PU_CACHE); // temp
 
 		if ((i == playback_fastforward && cv_playbackspeed.value > 1) || (i == playback_rewind && demo.rewinding))
-			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, V_SNAPTOTOP, icon, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_JAWZ, GTC_MENUCACHE));
+			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, transmap|V_SNAPTOTOP, icon, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_JAWZ, GTC_MENUCACHE));
 		else
-			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, V_SNAPTOTOP, icon, (i == itemOn) ? activemap : inactivemap);
+			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, transmap|V_SNAPTOTOP, icon, (i == itemOn) ? activemap : inactivemap);
 
 		if (i == itemOn)
 		{
 			V_DrawCharacter(currentMenu->x + currentMenu->menuitems[i].alphaKey + 4, currentMenu->y + 14,
-				'\x1A' | V_SNAPTOTOP|highlightflags, false);
+				'\x1A' | transmap|V_SNAPTOTOP|highlightflags, false);
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 18, V_SNAPTOTOP|V_ALLOWLOWERCASE, currentMenu->menuitems[i].text);
+			V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 18, transmap|V_SNAPTOTOP|V_ALLOWLOWERCASE, currentMenu->menuitems[i].text);
 
 			if ((currentMenu->menuitems[i].status & IT_TYPE) == IT_ARROWS)
 			{
@@ -5820,11 +5879,11 @@ static void M_DrawPlaybackMenu(void)
 
 				if (!(i == playback_viewcount && splitscreen == 3))
 					V_DrawCharacter(BASEVIDWIDTH/2 - 4, currentMenu->y + 28 - (skullAnimCounter/5),
-						'\x1A' | V_SNAPTOTOP|highlightflags, false); // up arrow
+						'\x1A' | transmap|V_SNAPTOTOP|highlightflags, false); // up arrow
 
 				if (!(i == playback_viewcount && splitscreen == 0))
 					V_DrawCharacter(BASEVIDWIDTH/2 - 4, currentMenu->y + 48 + (skullAnimCounter/5),
-						'\x1B' | V_SNAPTOTOP|highlightflags, false); // down arrow
+						'\x1B' | transmap|V_SNAPTOTOP|highlightflags, false); // down arrow
 
 				switch (i)
 				{
@@ -5843,7 +5902,7 @@ static void M_DrawPlaybackMenu(void)
 					continue;
 				}
 
-				V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 38, V_SNAPTOTOP|V_ALLOWLOWERCASE|highlightflags, str);
+				V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 38, transmap|V_SNAPTOTOP|V_ALLOWLOWERCASE|highlightflags, str);
 			}
 		}
 	}
@@ -5920,6 +5979,10 @@ static void M_PlaybackAdvance(INT32 choice)
 
 static void M_PlaybackSetViews(INT32 choice)
 {
+
+	if (demo.freecam)
+		return;	// not here.
+
 	if (choice > 0)
 	{
 		if (splitscreen < 3)
@@ -5936,6 +5999,33 @@ static void M_PlaybackAdjustView(INT32 choice)
 {
 	G_AdjustView(itemOn - playback_viewcount, (choice > 0) ? 1 : -1, true);
 }
+
+// this one's rather tricky
+static void M_PlaybackToggleFreecam(INT32 choice)
+{
+	(void)choice;
+	M_ClearMenus(true);
+
+	// remove splitscreen:
+	splitscreen = 0;
+	R_ExecuteSetViewSize();
+
+	P_InitCameraCmd();	// init camera controls
+	if (!demo.freecam)	// toggle on
+	{
+		demo.freecam = true;
+		democam.cam = &camera[0];	// this is rather useful
+	}
+	else	// toggle off
+	{
+		demo.freecam = false;
+		// reset democam vars:
+		democam.cam = NULL;
+		democam.turnheld = false;
+		democam.keyboardlook = false;	// reset only these. localangle / aiming gets set before the cam does anything anyway
+	}
+}
+
 
 static void M_PlaybackQuit(INT32 choice)
 {
@@ -8085,7 +8175,7 @@ static void M_SetGuestReplay(INT32 choice)
 		which(0);
 }
 
-static void M_ModeAttackRetry(INT32 choice)
+void M_ModeAttackRetry(INT32 choice)
 {
 	(void)choice;
 	G_CheckDemoStatus(); // Cancel recording
@@ -8312,15 +8402,13 @@ static void M_DrawConnectMenu(void)
 
 		V_DrawSmallString(currentMenu->x+112, S_LINEY(i)+8, globalflags, gt);
 
+		// display game speed for race gametypes
 		if (serverlist[slindex].info.gametype == GT_RACE)
 		{
 			spd = kartspeed_cons_t[serverlist[slindex].info.kartvars & SV_SPEEDMASK].strvalue;
 
 			V_DrawSmallString(currentMenu->x+132, S_LINEY(i)+8, globalflags, va("(%s Speed)", spd));
 		}
-
-		if (serverlist[slindex].info.kartvars & SV_PASSWORD)
-			V_DrawFixedPatch((currentMenu->x - 9) << FRACBITS, (S_LINEY(i)) << FRACBITS, FRACUNIT, globalflags & (~V_ALLOWLOWERCASE), W_CachePatchName("SERVLOCK", PU_CACHE), NULL);
 
 		MP_ConnectMenu[i+FIRSTSERVERLINE].status = IT_STRING | IT_CALL;
 	}
@@ -8450,7 +8538,7 @@ static void M_ConnectMenuModChecks(INT32 choice)
 
 	if (modifiedgame)
 	{
-		M_StartMessage(M_GetText("Add-ons are currently loaded.\n\nYou will only be able to join a server if\nit has the same ones loaded in the same order, which may be unlikely.\n\nIf you wish to play on other servers,\nrestart the game to clear existing add-ons.\n\n(Press a key)\n"),M_ConnectMenu,MM_EVENTHANDLER);
+		M_StartMessage(M_GetText("Addons are currently loaded.\n\nYou will only be able to join a server if\nit has the same ones loaded in the same order, which may be unlikely.\n\nIf you wish to play on other servers,\nrestart the game to clear existing addons.\n\n(Press a key)\n"),M_ConnectMenu,MM_EVENTHANDLER);
 		return;
 	}
 
@@ -8571,11 +8659,6 @@ static void M_StartServer(INT32 choice)
 
 	// Still need to reset devmode
 	cv_debug = 0;
-
-	if (strlen(cv_dummyjoinpassword.string) > 0)
-		D_SetJoinPassword(cv_dummyjoinpassword.string);
-	else
-		joinpasswordset = false;
 
 	if (demo.playback)
 		G_StopDemo();
@@ -10992,25 +11075,6 @@ static void M_QuitSRB2(INT32 choice)
 // OpenGL specific options
 // =====================================================================
 
-#define FOG_COLOR_ITEM  1
-// ===================
-// M_OGL_DrawFogMenu()
-// ===================
-static void M_OGL_DrawFogMenu(void)
-{
-	INT32 mx, my;
-
-	mx = currentMenu->x;
-	my = currentMenu->y;
-	M_DrawGenericMenu(); // use generic drawer for cursor, items and title
-	V_DrawString(BASEVIDWIDTH - mx - V_StringWidth(cv_grfogcolor.string, 0),
-		my + currentMenu->menuitems[FOG_COLOR_ITEM].alphaKey, highlightflags, cv_grfogcolor.string);
-	// blink cursor on FOG_COLOR_ITEM if selected
-	if (itemOn == FOG_COLOR_ITEM && skullAnimCounter < 4)
-		V_DrawCharacter(BASEVIDWIDTH - mx,
-			my + currentMenu->menuitems[FOG_COLOR_ITEM].alphaKey, '_' | 0x80,false);
-}
-
 // =====================
 // M_OGL_DrawColorMenu()
 // =====================
@@ -11023,62 +11087,5 @@ static void M_OGL_DrawColorMenu(void)
 	M_DrawGenericMenu(); // use generic drawer for cursor, items and title
 	V_DrawString(mx, my + currentMenu->menuitems[0].alphaKey - 10,
 		highlightflags, "Gamma correction");
-}
-
-//===================
-// M_HandleFogColor()
-//===================
-static void M_HandleFogColor(INT32 choice)
-{
-	size_t i, l;
-	char temp[8];
-	boolean exitmenu = false; // exit to previous menu and send name change
-
-	switch (choice)
-	{
-		case KEY_DOWNARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn++;
-			break;
-
-		case KEY_UPARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn--;
-			break;
-
-		case KEY_ESCAPE:
-			exitmenu = true;
-			break;
-
-		case KEY_BACKSPACE:
-			S_StartSound(NULL, sfx_menu1);
-			strcpy(temp, cv_grfogcolor.string);
-			strcpy(cv_grfogcolor.zstring, "000000");
-			l = strlen(temp)-1;
-			for (i = 0; i < l; i++)
-				cv_grfogcolor.zstring[i + 6 - l] = temp[i];
-			break;
-
-		default:
-			if ((choice >= '0' && choice <= '9') || (choice >= 'a' && choice <= 'f')
-				|| (choice >= 'A' && choice <= 'F'))
-			{
-				S_StartSound(NULL, sfx_menu1);
-				strcpy(temp, cv_grfogcolor.string);
-				strcpy(cv_grfogcolor.zstring, "000000");
-				l = strlen(temp);
-				for (i = 0; i < l; i++)
-					cv_grfogcolor.zstring[5 - i] = temp[l - i];
-				cv_grfogcolor.zstring[5] = (char)choice;
-			}
-			break;
-	}
-	if (exitmenu)
-	{
-		if (currentMenu->prevMenu)
-			M_SetupNextMenu(currentMenu->prevMenu);
-		else
-			M_ClearMenus(true);
-	}
 }
 #endif

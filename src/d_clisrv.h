@@ -13,13 +13,18 @@
 #ifndef __D_CLISRV__
 #define __D_CLISRV__
 
-#include "d_event.h"
 #include "d_ticcmd.h"
+#include "d_net.h"
 #include "d_netcmd.h"
 #include "tables.h"
 #include "d_player.h"
 
-#include "md5.h"
+/*
+The 'packet version' is used to distinguish packet formats.
+This version is independent of VERSION and SUBVERSION. Different
+applications may follow different packet versions.
+*/
+#define PACKETVERSION 0
 
 // Network play related stuff.
 // There is a data struct that stores network
@@ -29,7 +34,9 @@
 
 // SOME numpty changed all the gametype constants and it fell out of sync with vanilla and now we have to pretend to be vanilla when talking to the master server...
 #define VANILLA_GT_RACE 2
-#if VERSION < 210
+// Woah, what do these numbers mean? 200 refers to SRB2 2.0, 246 refers to
+// SRB2Riders. Both use the old 2.0 gametype numbers.
+#if VERSION == 200 || VERSION == 246
 #define VANILLA_GT_MATCH 1
 #else
 #define VANILLA_GT_MATCH 3
@@ -37,6 +44,7 @@
 
 // Networking and tick handling related.
 #define BACKUPTICS 32
+#define TICQUEUE 512 // more than enough for most timeouts....
 #define MAXTEXTCMD 256
 //
 // Packet structure
@@ -75,9 +83,6 @@ typedef enum
 	PT_CLIENT4CMD,    // 4P
 	PT_CLIENT4MIS,
 	PT_BASICKEEPALIVE,// Keep the network alive during wipes, as tics aren't advanced and NetUpdate isn't called
-
-	PT_JOINCHALLENGE, // You must give a password to joinnnnn
-	PT_DOWNLOADFILESOKAY, // You can download files from the server....
 
 	PT_CANFAIL,       // This is kind of a priority. Anything bigger than CANFAIL
 	                  // allows HSendPacket(*, true, *, *) to return false.
@@ -342,32 +347,37 @@ typedef struct {
 #pragma warning(default : 4200)
 #endif
 
+#define MAXAPPLICATION 16
+
 typedef struct
 {
+	UINT8 _255;/* see serverinfo_pak */
+	UINT8 packetversion;
+	char application[MAXAPPLICATION];
 	UINT8 version; // Different versions don't work
 	UINT8 subversion; // Contains build version
-	UINT8 localplayers;
-	UINT8 needsdownload;
-	UINT8 challengenum; // Non-zero if trying to join with a password attempt
-	UINT8 challengeanswer[MD5_LEN]; // Join challenge
+	UINT8 localplayers;	// number of splitscreen players
+	UINT8 mode;
 } ATTRPACK clientconfig_pak;
 
-typedef struct
-{
-	UINT8 challengenum; // Number to send back in join attempt
-	UINT8 question[MD5_LEN]; // Challenge data to be manipulated and answered with
-} ATTRPACK joinchallenge_pak;
-
-#define SV_SPEEDMASK 0x03
-#define SV_LOTSOFADDONS 0x20
-#define SV_DEDICATED 0x40
-#define SV_PASSWORD 0x80
+#define SV_SPEEDMASK 0x03		// used to send kartspeed
+#define SV_DEDICATED 0x40		// server is dedicated
+#define SV_LOTSOFADDONS 0x20	// flag used to ask for full file list in d_netfil
 
 #define MAXSERVERNAME 32
 #define MAXFILENEEDED 915
+#define MAX_MIRROR_LENGTH 256
 // This packet is too large
 typedef struct
 {
+	/*
+	In the old packet, 'version' is the first field. Now that field is set
+	to 255 always, so older versions won't be confused with the new
+	versions or vice-versa.
+	*/
+	UINT8 _255;
+	UINT8 packetversion;
+	char  application[MAXAPPLICATION];
 	UINT8 version;
 	UINT8 subversion;
 	UINT8 numberofplayer;
@@ -377,7 +387,6 @@ typedef struct
 	UINT8 cheatsenabled;
 	UINT8 kartvars; // Previously isdedicated, now appropriated for our own nefarious purposes
 	UINT8 fileneedednum;
-	SINT8 adminplayer;
 	tic_t time;
 	tic_t leveltime;
 	char servername[MAXSERVERNAME];
@@ -386,6 +395,7 @@ typedef struct
 	unsigned char mapmd5[16];
 	UINT8 actnum;
 	UINT8 iszone;
+	char httpsource[MAX_MIRROR_LENGTH]; // HTTP URL to download from, always defined for compatibility
 	UINT8 fileneeded[MAXFILENEEDED]; // is filled with writexxx (byteptr.h)
 } ATTRPACK serverinfo_pak;
 
@@ -463,7 +473,6 @@ typedef struct
 		UINT8 textcmd[MAXTEXTCMD+1];        //       66049 bytes (wut??? 64k??? More like 257 bytes...)
 		filetx_pak filetxpak;               //         139 bytes
 		clientconfig_pak clientcfg;         //         153 bytes
-		joinchallenge_pak joinchallenge;    //          17 bytes
 		serverinfo_pak serverinfo;          //        1024 bytes
 		serverrefuse_pak serverrefuse;      //       65025 bytes (somehow I feel like those values are garbage...)
 		askinfo_pak askinfo;                //          61 bytes
@@ -480,7 +489,7 @@ typedef struct
 #pragma pack()
 #endif
 
-#define MAXSERVERLIST 64 // Depends only on the display
+#define MAXSERVERLIST (MAXNETNODES-1)
 typedef struct
 {
 	SINT8 node;
@@ -493,7 +502,7 @@ extern INT32 mapchangepending;
 
 // Points inside doomcom
 extern doomdata_t *netbuffer;
-
+extern consvar_t cv_httpsource;
 extern consvar_t cv_showjoinaddress;
 extern consvar_t cv_playbackspeed;
 
@@ -544,7 +553,7 @@ extern consvar_t
 	cv_netticbuffer, cv_allownewplayer, cv_maxplayers, cv_resynchattempts, cv_blamecfail, cv_maxsend, cv_noticedownload, cv_downloadspeed;
 
 // Used in d_net, the only dependence
-tic_t ExpandTics(INT32 low);
+tic_t ExpandTics(INT32 low, tic_t basetic);
 void D_ClientServerInit(void);
 
 // Initialise the other field
@@ -569,7 +578,6 @@ void CL_Reset(void);
 void CL_ClearPlayer(INT32 playernum);
 void CL_RemovePlayer(INT32 playernum, INT32 reason);
 void CL_UpdateServerList(boolean internetsearch, INT32 room);
-boolean CL_Responder(event_t *ev);
 // Is there a game running
 boolean Playing(void);
 
@@ -602,4 +610,19 @@ UINT8 GetFreeXCmdSize(void);
 
 extern UINT8 hu_resynching;
 extern UINT8 hu_stopped; // kart, true when the game is stopped for players due to a disconnecting or connecting player
+
+typedef struct rewind_s {
+	UINT8 savebuffer[(768*1024)];
+	tic_t leveltime;
+	size_t demopos;
+
+	ticcmd_t oldcmd[MAXPLAYERS];
+	mobj_t oldghost[MAXPLAYERS];
+
+	struct rewind_s *next;
+} rewind_t;
+
+void CL_ClearRewinds(void);
+rewind_t *CL_SaveRewindPoint(size_t demopos);
+rewind_t *CL_RewindToTime(tic_t time);
 #endif

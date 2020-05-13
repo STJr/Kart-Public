@@ -259,6 +259,7 @@ static boolean R_AddSingleSpriteDef(const char *sprname, spritedef_t *spritedef,
 			//BP: we cannot use special tric in hardware mode because feet in ground caused by z-buffer
 			if (rendermode != render_none) // not for psprite
 				spritecachedinfo[numspritelumps].topoffset += 4<<FRACBITS;
+
 			// Being selective with this causes bad things. :( Like the special stage tokens breaking apart.
 			/*if (rendermode != render_none // not for psprite
 			 && SHORT(patch.topoffset)>0 && SHORT(patch.topoffset)<SHORT(patch.height))
@@ -1711,6 +1712,9 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel)
 	INT32 lightnum;
 	fixed_t approx_dist, limit_dist;
 
+	INT32 splitflags;			// check if a mobj has spliscreen flags
+	boolean split_drawsprite;	// used for splitscreen flags
+
 	if (rendermode != render_soft)
 		return;
 
@@ -1744,27 +1748,36 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel)
 	{
 		for (thing = sec->thinglist; thing; thing = thing->snext)
 		{
+			split_drawsprite = false;
+
 			if (thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW)
 				continue;
 
-			if (splitscreen)
+			splitflags = thing->eflags & (MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
+
+			if (splitscreen && splitflags)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (viewssnum != 0)
-						continue;
+					if (viewssnum == 0)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (viewssnum != 1)
-						continue;
+					if (viewssnum == 1)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (viewssnum != 2)
-						continue;
+					if (viewssnum == 2)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (viewssnum != 3)
-						continue;
+					if (viewssnum == 3)
+						split_drawsprite = true;
 			}
+			else
+				split_drawsprite = true;
+
+			if (!split_drawsprite)
+				continue;
 
 			approx_dist = P_AproxDistance(viewx-thing->x, viewy-thing->y);
 
@@ -1779,27 +1792,37 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel)
 		// Draw everything in sector, no checks
 		for (thing = sec->thinglist; thing; thing = thing->snext)
 		{
+
+			split_drawsprite = false;
+
 			if (thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW)
 				continue;
 
-			if (splitscreen)
+			splitflags = thing->eflags & (MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
+
+			if (splitscreen && splitflags)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (viewssnum != 0)
-						continue;
+					if (viewssnum == 0)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (viewssnum != 1)
-						continue;
+					if (viewssnum == 1)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (viewssnum != 2)
-						continue;
+					if (viewssnum == 2)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (viewssnum != 3)
-						continue;
+					if (viewssnum == 3)
+						split_drawsprite = true;
 			}
+			else
+				split_drawsprite = true;
+
+			if (!split_drawsprite)
+				continue;
 
 			R_ProjectSprite(thing);
 		}

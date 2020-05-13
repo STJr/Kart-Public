@@ -56,7 +56,7 @@ static void CV_EnforceExecVersion(void);
 static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr);
 
 static boolean CV_Command(void);
-static consvar_t *CV_FindVar(const char *name);
+consvar_t *CV_FindVar(const char *name);
 static const char *CV_StringValue(const char *var_name);
 static consvar_t *consvar_vars; // list of registered console variables
 
@@ -86,7 +86,7 @@ static boolean joyaxis_default[4] = {false,false,false,false};
 static INT32 joyaxis_count[4] = {0,0,0,0};
 #endif
 
-#define COM_BUF_SIZE 8192 // command buffer size
+#define COM_BUF_SIZE 0x4000 // command buffer size, 0x4000 = 16384
 #define MAX_ALIAS_RECURSION 100 // max recursion allowed for aliases
 
 static INT32 com_wait; // one command per frame (for cmd sequences)
@@ -532,7 +532,6 @@ static void COM_ExecuteString(char *ptext)
 	{
 		if (!stricmp(com_argv[0], cmd->name)) //case insensitive now that we have lower and uppercase!
 		{
-			recursion = 0;
 			cmd->function();
 			return;
 		}
@@ -544,7 +543,7 @@ static void COM_ExecuteString(char *ptext)
 		if (!stricmp(com_argv[0], a->name))
 		{
 			if (recursion > MAX_ALIAS_RECURSION)
-			{
+			{	
 				CONS_Alert(CONS_WARNING, M_GetText("Alias recursion cycle detected!\n"));
 				recursion = 0;
 			}
@@ -585,8 +584,6 @@ static void COM_ExecuteString(char *ptext)
 			return;
 		}
 	}
-
-	recursion = 0;
 
 	// check cvars
 	// Hurdler: added at Ebola's request ;)
@@ -1027,7 +1024,7 @@ static const char *cv_null_string = "";
   * \return Pointer to the variable if found, or NULL.
   * \sa CV_FindNetVar
   */
-static consvar_t *CV_FindVar(const char *name)
+consvar_t *CV_FindVar(const char *name)
 {
 	consvar_t *cvar;
 
@@ -1307,8 +1304,7 @@ found:
 
 	var->string = var->zstring = Z_StrDup(valstr);
 
-	if (var->flags & CV_PASSWORD); // Don't change value for password field
-	else if (override)
+	if (override)
 		var->value = overrideval;
 	else if (var->flags & CV_FLOAT)
 	{

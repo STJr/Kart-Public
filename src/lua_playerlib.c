@@ -81,6 +81,88 @@ static int lib_lenPlayer(lua_State *L)
 	return 1;
 }
 
+// Same deal as the three functions above but for displayplayers
+
+static int lib_iterateDisplayplayers(lua_State *L)
+{
+	INT32 i = -1;
+	INT32 temp = -1;
+	INT32 iter = 0;
+
+	if (lua_gettop(L) < 2)
+	{
+		//return luaL_error(L, "Don't call displayplayers.iterate() directly, use it as 'for player in displayplayers.iterate do <block> end'.");
+		lua_pushcfunction(L, lib_iterateDisplayplayers);
+		return 1;
+	}
+	lua_settop(L, 2);
+	lua_remove(L, 1); // state is unused.
+	if (!lua_isnil(L, 1))
+	{
+		temp = (INT32)(*((player_t **)luaL_checkudata(L, 1, META_PLAYER)) - players);	// get the player # of the last iterated player.
+
+		// @FIXME:
+		// I didn't quite find a better way for this; Here, we go back to which player in displayplayers we last iterated to resume the for loop below for this new function call
+		// I don't understand enough about how the Lua stacks work to get this to work in possibly a single line.
+		// So anyone feel free to correct this!
+
+		for (; iter < MAXSPLITSCREENPLAYERS; iter++)
+		{
+			if (displayplayers[iter] == temp)
+			{
+				i = iter;
+				break;
+			}
+		}
+	}
+
+	for (i++; i < MAXSPLITSCREENPLAYERS; i++)
+	{
+		if (!playeringame[displayplayers[i]] || i > splitscreen)
+			return 0;	// Stop! There are no more players for us to go through. There will never be a player gap in displayplayers.
+
+		if (!players[displayplayers[i]].mo)
+			continue;
+		LUA_PushUserdata(L, &players[displayplayers[i]], META_PLAYER);
+		lua_pushinteger(L, i);	// push this to recall what number we were on for the next function call. I suppose this also means you can retrieve the splitscreen player number with 'for p, n in displayplayers.iterate'!
+		return 2;
+	}
+	return 0;
+}
+
+static int lib_getDisplayplayers(lua_State *L)
+{
+	const char *field;
+	// i -> players[i]
+	if (lua_type(L, 2) == LUA_TNUMBER)
+	{
+		lua_Integer i = luaL_checkinteger(L, 2);
+		if (i < 0 || i >= MAXSPLITSCREENPLAYERS)
+			return luaL_error(L, "displayplayers[] index %d out of range (0 - %d)", i, MAXSPLITSCREENPLAYERS-1);
+		if (!playeringame[displayplayers[i]])
+			return 0;
+		if (!players[displayplayers[i]].mo)
+			return 0;
+		LUA_PushUserdata(L, &players[displayplayers[i]], META_PLAYER);
+		return 1;
+	}
+
+	field = luaL_checkstring(L, 2);
+	if (fastcmp(field,"iterate"))
+	{
+		lua_pushcfunction(L, lib_iterateDisplayplayers);
+		return 1;
+	}
+	return 0;
+}
+
+// #displayplayers -> MAXSPLITSCREENPLAYERS
+static int lib_lenDisplayplayers(lua_State *L)
+{
+	lua_pushinteger(L, MAXSPLITSCREENPLAYERS);
+	return 1;
+}
+
 static int player_get(lua_State *L)
 {
 	player_t *plr = *((player_t **)luaL_checkudata(L, 1, META_PLAYER));
@@ -777,6 +859,18 @@ int LUA_PlayerLib(lua_State *L)
 			lua_setfield(L, -2, "__len");
 		lua_setmetatable(L, -2);
 	lua_setglobal(L, "players");
+
+	// push displayplayers in the same fashion
+	lua_newuserdata(L, 0);
+		lua_createtable(L, 0, 2);
+			lua_pushcfunction(L, lib_getDisplayplayers);
+			lua_setfield(L, -2, "__index");
+
+			lua_pushcfunction(L, lib_lenDisplayplayers);
+			lua_setfield(L, -2, "__len");
+		lua_setmetatable(L, -2);
+	lua_setglobal(L, "displayplayers");
+
 	return 0;
 }
 

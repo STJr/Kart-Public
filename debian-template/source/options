@@ -2,7 +2,10 @@ tar-ignore = "assets/*.srb"
 tar-ignore = "assets/*.pk3"
 tar-ignore = "assets/*.dta"
 tar-ignore = "assets/*.wad"
+<<<<<<< HEAD:debian-template/source/options
 tar-ignore = "assets/*.kart"
+=======
+>>>>>>> e251f9c230beda984cdcdea7e903d765f1c68f6f:debian-template/source/options
 tar-ignore = "assets/debian/${PACKAGE_NAME}-data/*"
 tar-ignore = "assets/debian/tmp/*"
 tar-ignore = "*.obj"

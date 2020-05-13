@@ -98,8 +98,7 @@ typedef enum
 	CV_HIDEN = 1024, // variable is not part of the cvar list so cannot be accessed by the console
 	                 // can only be set when we have the pointer to it
                    // used on menus
-	CV_CHEAT = 2048, // Don't let this be used in multiplayer unless cheats are on.
-	CV_PASSWORD = 4096 // Password field
+	CV_CHEAT = 2048 // Don't let this be used in multiplayer unless cheats are on.
 } cvflags_t;
 
 typedef struct CV_PossibleValue_s
@@ -172,5 +171,8 @@ void CV_ResetCheatNetVars(void);
 
 boolean CV_IsSetToDefault(consvar_t *v);
 UINT8 CV_CheatsEnabled(void);
+
+// Returns cvar by name. Exposed here for Lua.
+consvar_t *CV_FindVar(const char *name);
 
 #endif // __COMMAND_H__
