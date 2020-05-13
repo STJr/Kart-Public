@@ -31,6 +31,8 @@ extern char player_names[MAXPLAYERS][MAXPLAYERNAME+1];
 extern player_t players[MAXPLAYERS];
 extern boolean playeringame[MAXPLAYERS];
 
+extern UINT8 *demo_p;
+
 // ======================================
 // DEMO playback/recording related stuff.
 // ======================================
@@ -60,6 +62,9 @@ struct demovars_s {
 		DSM_WILLSAVE,
 		DSM_SAVED
 	} savemode;
+
+	boolean freecam;
+
 };
 
 extern struct demovars_s demo;

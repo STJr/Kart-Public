@@ -31,6 +31,9 @@
 // Does all the real work of the menu interaction.
 boolean M_Responder(event_t *ev);
 
+// Called by main loop, runs for demo playback. If this returns true, nullify any further user input.
+boolean M_DemoResponder(event_t *ev);
+
 // Called by main loop, only used for menu (skull cursor) animation.
 void M_Ticker(void);
 
@@ -55,6 +58,9 @@ void M_SortServerList(void);
 
 // Draws a box with a texture inside as background for messages
 void M_DrawTextBox(INT32 x, INT32 y, INT32 width, INT32 boxlines);
+
+// Used in d_netcmd to restart time attack
+void M_ModeAttackRetry(INT32 choice);
 
 // the function to show a message box typing with the string inside
 // string must be static (not in the stack)
@@ -121,7 +127,6 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt);
 #define IT_CV_NOPRINT     1536
 #define IT_CV_NOMOD       2048
 #define IT_CV_INVISSLIDER 2560
-#define IT_CV_PASSWORD    3072
 
 //call/submenu specific
 // There used to be a lot more here but ...

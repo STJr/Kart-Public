@@ -19,7 +19,7 @@
 #define __D_NET__
 
 // Max computers in a game
-#define MAXNETNODES (MAXPLAYERS+4)
+#define MAXNETNODES 64
 #define BROADCASTADDR MAXNETNODES
 #define NETSPLITSCREEN // Kart's splitscreen netgame feature
 

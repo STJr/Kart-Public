@@ -181,7 +181,6 @@
 		1E44AE640B67CC2B00BAD059 /* hw_cache.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = hw_cache.c; path = ../../hardware/hw_cache.c; sourceTree = SOURCE_ROOT; };
 		1E44AE650B67CC2B00BAD059 /* hw_dll.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = hw_dll.h; path = ../../hardware/hw_dll.h; sourceTree = SOURCE_ROOT; };
 		1E44AE660B67CC2B00BAD059 /* hw_drv.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = hw_drv.h; path = ../../hardware/hw_drv.h; sourceTree = SOURCE_ROOT; };
-		1E44AE670B67CC2B00BAD059 /* hw_glide.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = hw_glide.h; path = ../../hardware/hw_glide.h; sourceTree = SOURCE_ROOT; };
 		1E44AE680B67CC2B00BAD059 /* hw_light.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = hw_light.c; path = ../../hardware/hw_light.c; sourceTree = SOURCE_ROOT; };
 		1E44AE690B67CC2B00BAD059 /* hw_light.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = hw_light.h; path = ../../hardware/hw_light.h; sourceTree = SOURCE_ROOT; };
 		1E44AE6A0B67CC2B00BAD059 /* hw3sound.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = hw3sound.h; path = ../../hardware/hw3sound.h; sourceTree = SOURCE_ROOT; };
@@ -535,7 +534,6 @@
 				1E44AE640B67CC2B00BAD059 /* hw_cache.c */,
 				1E44AE650B67CC2B00BAD059 /* hw_dll.h */,
 				1E44AE660B67CC2B00BAD059 /* hw_drv.h */,
-				1E44AE670B67CC2B00BAD059 /* hw_glide.h */,
 				1E44AE680B67CC2B00BAD059 /* hw_light.c */,
 				1E44AE690B67CC2B00BAD059 /* hw_light.h */,
 				1E44AE6A0B67CC2B00BAD059 /* hw3sound.h */,
@@ -1219,7 +1217,7 @@
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 2.1.23;
+				CURRENT_PROJECT_VERSION = 2.1.24;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					NORMALSRB2,
@@ -1231,7 +1229,7 @@
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 2.1.23;
+				CURRENT_PROJECT_VERSION = 2.1.24;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (

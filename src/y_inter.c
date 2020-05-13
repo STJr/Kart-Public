@@ -1251,6 +1251,10 @@ void Y_VoteTicker(void)
 	if (paused || P_AutoPause() || !voteclient.loaded)
 		return;
 
+#ifdef HAVE_BLUA
+	LUAh_VoteThinker();
+#endif
+
 	votetic++;
 
 	if (votetic == voteendtic)

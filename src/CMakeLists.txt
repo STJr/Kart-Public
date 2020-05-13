@@ -220,7 +220,7 @@ set(SRB2_CONFIG_HAVE_ZLIB ON CACHE BOOL
 	"Enable zlib support.")
 set(SRB2_CONFIG_HAVE_GME ON CACHE BOOL
 	"Enable GME support.")
-set(SRB2_CONFIG_HAVE_GME ON CACHE BOOL
+set(SRB2_CONFIG_HAVE_CURL ON CACHE BOOL
 	"Enable curl support, used for downloading files via HTTP.")
 set(SRB2_CONFIG_HWRENDER ON CACHE BOOL
 	"Enable hardware rendering through OpenGL.")
@@ -398,9 +398,9 @@ if(${SRB2_CONFIG_HAVE_CURL})
 		set(CURL_FOUND ON)
 		set(CURL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libs/curl)
 		if(${SRB2_SYSTEM_BITS} EQUAL 64)
-			set(CURL_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/curl/lib32 -lcurl")
-		else() # 32-bit
 			set(CURL_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/curl/lib64 -lcurl")
+		else() # 32-bit
+			set(CURL_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/curl/lib32 -lcurl")
 		endif()
 	else()
 		find_package(CURL)
@@ -436,7 +436,6 @@ if(${SRB2_CONFIG_HWRENDER})
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_defs.h
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_dll.h
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_drv.h
-		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_glide.h
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_glob.h
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_light.h
 		${CMAKE_CURRENT_SOURCE_DIR}/hardware/hw_main.h

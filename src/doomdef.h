@@ -138,7 +138,11 @@
 
 #ifdef LOGMESSAGES
 extern FILE *logstream;
+extern char  logfilename[1024];
 #endif
+
+/* A mod name to further distinguish versions. */
+#define SRB2APPLICATION "SRB2Kart"
 
 //#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
 #ifdef DEVELOP
@@ -149,10 +153,10 @@ extern FILE *logstream;
 // most interface strings are ignored in development mode.
 // we use comprevision and compbranch instead.
 #else
-#define VERSION    110 // Game version
-#define SUBVERSION 0 // more precise version number
-#define VERSIONSTRING "v1.1"
-#define VERSIONSTRINGW L"v1.1"
+#define VERSION    1 // Game version
+#define SUBVERSION 2 // more precise version number
+#define VERSIONSTRING "v1.2"
+#define VERSIONSTRINGW L"v1.2"
 // Hey! If you change this, add 1 to the MODVERSION below! Otherwise we can't force updates!
 // And change CMakeLists.txt, for CMake users!
 // AND appveyor.yml, for the build bots!
@@ -225,7 +229,7 @@ extern FILE *logstream;
 // it's only for detection of the version the player is using so the MS can alert them of an update.
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.1.0 is not version "1".
-#define MODVERSION 5
+#define MODVERSION 6
 
 // Filter consvars by version
 // To version config.cfg, MAJOREXECVERSION is set equal to MODVERSION automatically.
@@ -548,6 +552,9 @@ extern INT32 cv_debug;
 extern UINT8 shiftdown, ctrldown, altdown;
 extern boolean capslock;
 
+// WARNING: a should be unsigned but to add with 2048, it isn't!
+#define AIMINGTODY(a) (FINETANGENT((2048+(((INT32)a)>>ANGLETOFINESHIFT)) & FINEMASK)*160)
+
 // if we ever make our alloc stuff...
 #define ZZ_Alloc(x) Z_Malloc(x, PU_STATIC, NULL)
 
@@ -634,11 +641,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 //#define SAVEGAME_OTHERVERSIONS
 
 #if !defined (_NDS) && !defined (_PSP)
-///	Shuffle's incomplete OpenGL sorting code.
-#define SHUFFLE // This has nothing to do with sorting, why was it disabled?
-#endif
-
-#if !defined (_NDS) && !defined (_PSP)
 ///	Allow the use of the SOC RESETINFO command.
 ///	\note	Builds that are tight on memory should disable this.
 ///	    	This stops the game from storing backups of the states, sprites, and mobjinfo tables.
@@ -674,6 +676,9 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 /// on the bright side it fixes some weird issues with translucent walls
 /// \note	SRB2CB port.
 ///      	SRB2CB itself ported this from PrBoom+
-#define NEWCLIP
+//#define NEWCLIP
+
+/// Hardware renderer: OpenGL
+#define GL_SHADERS
 
 #endif // __DOOMDEF__

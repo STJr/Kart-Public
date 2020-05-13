@@ -373,7 +373,9 @@ void F_RunWipe(UINT8 wipetype, boolean drawMenu)
 			HWR_DoWipe(wipetype, wipeframe-1); // send in the wipe type and wipeframe because we need to cache the graphic
 		else
 #endif
-		F_DoWipe(fmask);
+		if (rendermode != render_none) //this allows F_RunWipe to be called in dedicated servers
+			F_DoWipe(fmask);
+
 		I_OsPolling();
 		I_UpdateNoBlit();
 
