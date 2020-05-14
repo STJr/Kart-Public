@@ -8511,6 +8511,7 @@ void A_SPBChase(mobj_t *actor)
 					actor->y + (P_RandomRange(-24,24) * actor->scale),
 					actor->z + (actor->height/2) + (P_RandomRange(-24,24) * actor->scale),
 					MT_FASTLINE);
+				fast->target = actor; // makes it easier to link it back to afterwards
 				fast->angle = R_PointToAngle2(0, 0, actor->momx, actor->momy);
 				//fast->momx = (3*actor->momx)/4;
 				//fast->momy = (3*actor->momy)/4;

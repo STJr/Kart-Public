@@ -4486,6 +4486,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 			player->mo->y + (P_RandomRange(-36,36) * player->mo->scale),
 			player->mo->z + (player->mo->height/2) + (P_RandomRange(-20,20) * player->mo->scale),
 			MT_FASTLINE);
+		fast->target = player.mo; // makes it easier to link it back to afterwards
 		fast->angle = R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy);
 		fast->momx = 3*player->mo->momx/4;
 		fast->momy = 3*player->mo->momy/4;
