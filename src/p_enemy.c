@@ -8517,6 +8517,7 @@ void A_SPBChase(mobj_t *actor)
 				//fast->momz = (3*actor->momz)/4;
 				fast->color = SKINCOLOR_RED;
 				fast->colorized = true;
+				P_SetTarget(&fast->target, actor); // easier lua access
 				K_MatchGenericExtraFlags(fast, actor);
 			}
 
