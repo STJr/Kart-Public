@@ -1142,7 +1142,7 @@ void R_SetupFrame(player_t *player, boolean skybox)
 		aimingangle = player->aiming;
 		viewangle = viewmobj->angle;
 
-		if (/*!demo.playback && */player->playerstate != PST_DEAD)
+		if (!demo.playback && player->playerstate != PST_DEAD)
 		{
 			if (player == &players[consoleplayer])
 			{
