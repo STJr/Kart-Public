@@ -17,6 +17,7 @@
 #include "d_player.h"
 #include "g_game.h"
 #include "p_local.h"
+#include "d_clisrv.h"
 
 #include "lua_script.h"
 #include "lua_libs.h"
@@ -385,6 +386,8 @@ static int player_get(lua_State *L)
 	else if (fastcmp(field,"fovadd"))
 		lua_pushfixed(L, plr->fovadd);
 #endif
+	else if (fastcmp(field,"ping"))
+		lua_pushinteger(L, playerpingtable[( plr - players )]);
 	else {
 		lua_getfield(L, LUA_REGISTRYINDEX, LREG_EXTVARS);
 		I_Assert(lua_istable(L, -1));
