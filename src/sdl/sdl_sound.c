@@ -1173,7 +1173,10 @@ void I_StartupSound(void)
 	const char *sdrv_name = NULL;
 #endif
 #ifndef HAVE_MIXER
-	midi_disabled = digital_disabled = true;
+#ifndef NO_MIDI
+	midi_disabled = 
+#endif
+	digital_disabled = true;
 #endif
 
 	memset(channels, 0, sizeof (channels)); //Alam: Clean it
