@@ -2449,6 +2449,7 @@ static void Command_ClearBans(void)
 		return;
 
 	I_ClearBans();
+	D_SaveBan();
 	reasontail = NULL;
 	while (reasonhead)
 	{
