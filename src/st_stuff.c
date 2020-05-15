@@ -1797,10 +1797,12 @@ static void ST_doItemFinderIconsAndSound(void) // SRB2kart - unused.
 //
 static void ST_overlayDrawer(void)
 {
-	/* SRB2kart doesn't need this stuff
 	//hu_showscores = auto hide score/time/rings when tab rankings are shown
 	if (!(hu_showscores && (netgame || multiplayer)))
 	{
+		K_drawKartHUD();
+
+	/* SRB2kart doesn't need this stuff
 		if (maptol & TOL_NIGHTS)
 			ST_drawNiGHTSHUD();
 		else
@@ -1824,8 +1826,8 @@ static void ST_overlayDrawer(void)
 			)
 				ST_drawLives();
 		}
-	}
 	*/
+	}
 
 	// GAME OVER pic
 	/*if (G_GametypeUsesLives() && stplyr->lives <= 0 && !(hu_showscores && (netgame || multiplayer)))
@@ -1844,8 +1846,6 @@ static void ST_overlayDrawer(void)
 	{
 		// Countdown timer for Race Mode
 		// ...moved to k_kart.c so we can take advantage of the LAPS_Y value
-
-		K_drawKartHUD();
 
 		/* SRB2kart doesn't need this stuff, I think
 		// If you are in overtime, put a big honkin' flashin' message on the screen.
