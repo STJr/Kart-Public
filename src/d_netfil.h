@@ -61,7 +61,7 @@ extern INT32 curl_transfers;
 
 typedef struct HTTP_login HTTP_login;
 
-struct HTTP_login
+extern struct HTTP_login
 {
 	char       * url;
 	char       * auth;

@@ -124,6 +124,7 @@ static UINT32 curl_origfilesize;
 static UINT32 curl_origtotalfilesize;
 static char *curl_realname = NULL;
 fileneeded_t *curl_curfile = NULL;
+HTTP_login *curl_logins;
 #endif
 
 /** Fills a serverinfo packet with information about wad files loaded.
