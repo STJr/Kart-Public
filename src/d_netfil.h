@@ -58,6 +58,16 @@ extern INT32 lastfilenum;
 extern boolean curl_failedwebdownload;
 extern boolean curl_running;
 extern INT32 curl_transfers;
+
+typedef struct HTTP_login HTTP_login;
+
+struct HTTP_login
+{
+	char       * url;
+	char       * auth;
+	HTTP_login * next;
+}
+*curl_logins;
 #endif
 
 UINT8 *PutFileNeeded(UINT16 firstfile);
@@ -93,6 +103,7 @@ size_t nameonlylength(const char *s);
 #ifdef HAVE_CURL
 void CURLPrepareFile(const char* url, int dfilenum);
 void CURLGetFile(void);
+HTTP_login * CURLGetLogin (const char *url, HTTP_login ***return_prev_next);
 #endif
 
 #endif // __D_NETFIL__
