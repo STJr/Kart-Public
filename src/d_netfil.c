@@ -1064,7 +1064,6 @@ int curlprogress_callback(void *clientp, double dltotal, double dlnow, double ul
 void CURLPrepareFile(const char* url, int dfilenum)
 {
 	HTTP_login *login;
-	char *final_url;
 
 #ifdef PARANOIA
 	if (M_CheckParm("-nodownload"))
@@ -1095,11 +1094,12 @@ void CURLPrepareFile(const char* url, int dfilenum)
 		curl_easy_setopt(http_handle, CURLOPT_USERAGENT, va("SRB2Kart/v%d.%d.%d", VERSION/100, VERSION%100, SUBVERSION)); // Set user agent as some servers won't accept invalid user agents.
 
 		// Authenticate if the user so wishes
-		curl_easy_getinfo(http_handle, CURLINFO_EFFECTIVE_URL, &final_url);
-		login = CURLGetLogin(final_url, NULL);
+		login = CURLGetLogin(url, NULL);
 
 		if (login)
+		{
 			curl_easy_setopt(http_handle, CURLOPT_USERPWD, login->auth);
+		}
 
 		// Follow a redirect request, if sent by the server.
 		curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1L);
