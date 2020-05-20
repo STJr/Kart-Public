@@ -5812,14 +5812,19 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 				player->mo->movefactor = 32;
 		}
 
-		// Wipeout slowdown
-		if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
+		// Wipeout slowdown and banana slowdown in offroad (make sure this doesn't apply if we're boosting, however.)
+		if ((player->kartstuff[k_spinouttimer] || player->kartstuff[k_wipeoutslow]) && !player->kartstuff[k_sneakertimer])
 		{
 			if (player->kartstuff[k_offroad])
 				player->mo->friction -= 4912;
 			if (player->kartstuff[k_wipeoutslow] == 1)
 				player->mo->friction -= 9824;
 		}
+
+		// Band-aid to make sure we never get any weird shit (tm) happening on us.
+		if (player->mo->friction < 0)
+			player->mo->friction = 0;
+
 	}
 
 	K_KartDrift(player, onground);
