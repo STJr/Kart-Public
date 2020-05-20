@@ -1907,9 +1907,9 @@ void P_XYMovement(mobj_t *mo)
 	//{ SRB2kart stuff
 	if (mo->type == MT_ORBINAUT || mo->type == MT_JAWZ_DUD || mo->type == MT_JAWZ || mo->type == MT_BALLHOG) //(mo->type == MT_JAWZ && !mo->tracer))
 		return;
-	
+
 	// hey maybe we should check for offroad as well before ignoring literally all friction ever
-	if (mo->player && (mo->player->kartstuff[k_spinouttimer] && !mo->player->kartstuff[k_offroad] && !mo->player->kartstuff[k_wipeoutslow]) && mo->player->speed <= K_GetKartSpeed(mo->player, false)/4)
+	if (mo->player && (mo->player->kartstuff[k_spinouttimer] && !mo->player->kartstuff[k_offroad] && !mo->player->kartstuff[k_wipeoutslow]) && mo->player->speed <= FixedDiv(20*mapobjectscale, mo->player->kartstuff[k_offroad] + FRACUNIT))
 		return;
 	//}
 
