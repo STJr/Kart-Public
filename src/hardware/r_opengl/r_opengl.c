@@ -823,7 +823,7 @@ EXPORT boolean HWRAPI(LoadShaders) (void)
 #ifdef GL_SHADERS
 	GLuint gl_vertShader, gl_fragShader;
 	GLint i, result;
-	
+
 	if (!pglUseProgram) return false;
 
 	gl_customvertexshaders[0] = NULL;
@@ -2002,11 +2002,11 @@ EXPORT void HWRAPI(RenderBatches) (int *sNumPolys, int *sNumVerts, int *sNumCall
 		boolean stopFlag = false;
 		boolean changeState = false;
 		boolean changeShader = false;
-		GLuint nextShader;
+		GLuint nextShader = 0U;
 		boolean changeTexture = false;
-		GLuint nextTexture;
+		GLuint nextTexture = 0U;
 		boolean changePolyFlags = false;
-		FBITFIELD nextPolyFlags;
+		FBITFIELD nextPolyFlags = 0U;
 		boolean changeSurfaceInfo = false;
 		FSurfaceInfo nextSurfaceInfo;
 
@@ -2307,7 +2307,7 @@ EXPORT void HWRAPI(DrawPolygon) (FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUI
 
 				pglColor4ubv((GLubyte*)&pSurf->PolyColor.s);
 			}
-			
+
 			// Tint color
 			tint.red   = byte2float[pSurf->TintColor.s.red];
 			tint.green = byte2float[pSurf->TintColor.s.green];
