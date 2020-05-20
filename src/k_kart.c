@@ -1061,6 +1061,10 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 			bestbumper = players[i].kartstuff[k_bumper];
 	}
 
+	// No forced SPB in 1v1s, it has to be randomly rolled
+	if (pingame <= 2)
+		dontforcespb = true;
+
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsDisplayPlayer(player) && !demo.freecam)
 	{
