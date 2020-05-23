@@ -1270,7 +1270,7 @@ static boolean CL_AskFileList(INT32 firstfile)
 	netbuffer->packettype = PT_TELLFILESNEEDED;
 	netbuffer->u.filesneedednum = firstfile;
 
-	return HSendPacket(servernode, true, 0, sizeof (INT32));
+	return HSendPacket(servernode, false, 0, sizeof (INT32));
 }
 
 /** Sends a special packet to declare how many players in local
