@@ -8634,7 +8634,7 @@ void K_drawKartFreePlay(UINT32 flashtime)
 		return;
 
 	V_DrawKartString((BASEVIDWIDTH - (LAPS_X+1)) - (12*9), // mirror the laps thingy
-		LAPS_Y+3, V_SNAPTOBOTTOM|V_SNAPTORIGHT, "FREE PLAY");
+		LAPS_Y+3, V_SNAPTOBOTTOM|V_SNAPTORIGHT|V_HUDTRANS, "FREE PLAY");
 }
 
 static void K_drawDistributionDebugger(void)
