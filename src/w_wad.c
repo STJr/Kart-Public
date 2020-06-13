@@ -1314,6 +1314,7 @@ size_t W_ReadLumpHeaderPwad(UINT16 wad, UINT16 lump, void *dest, size_t size, si
 				if (zErr == Z_STREAM_END)
 				{
 					M_Memcpy(dest, decData, size);
+					inflateEnd(&strm);
 				}
 				else
 				{
