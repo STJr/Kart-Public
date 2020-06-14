@@ -1494,17 +1494,16 @@ static void P_LoadRawSideDefs2(void *data)
 							color.s.red = (HEX2INT(col[1]) << 4) + HEX2INT(col[2]);
 							color.s.green = (HEX2INT(col[3]) << 4) + HEX2INT(col[4]);
 							color.s.blue = (HEX2INT(col[5]) << 4) + HEX2INT(col[6]);
-							color.s.alpha = 0;
 
 #ifdef GLENCORE
 							if (encoremap)
 							{
 								j = encoremap[NearestColor(color.s.red, color.s.green, color.s.blue)];
 								//CONS_Printf("R_CreateColormap: encoremap[%d] = %d\n", j, encoremap[j]); -- moved encoremap upwards for optimisation
-								color = pLocalPalette[j];
+								color = pLocalPalette[j]; // note: this sets alpha to 255, we will reset it below
 							}
 #endif
-							
+							color.s.alpha = 0; // reset/init the alpha, so the addition below will work correctly
 							sec->extra_colormap->rgba = color.rgba;
 
 							// alpha
@@ -1536,17 +1535,16 @@ static void P_LoadRawSideDefs2(void *data)
 							color.s.red = (HEX2INT(col[1]) << 4) + HEX2INT(col[2]);
 							color.s.green = (HEX2INT(col[3]) << 4) + HEX2INT(col[4]);
 							color.s.blue = (HEX2INT(col[5]) << 4) + HEX2INT(col[6]);
-							color.s.alpha = 0;
 
 #ifdef GLENCORE
 							if (encoremap)
 							{
 								j = encoremap[NearestColor(color.s.red, color.s.green, color.s.blue)];
 								//CONS_Printf("R_CreateColormap: encoremap[%d] = %d\n", j, encoremap[j]); -- moved encoremap upwards for optimisation
-								color = pLocalPalette[j];
+								color = pLocalPalette[j]; // note: this sets alpha to 255, we will reset it below
 							}
 #endif
-
+							color.s.alpha = 0; // reset/init the alpha, so the addition below will work correctly
 							sec->extra_colormap->fadergba = color.rgba;
 
 							// alpha
