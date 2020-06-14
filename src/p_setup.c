@@ -1494,6 +1494,7 @@ static void P_LoadRawSideDefs2(void *data)
 							color.s.red = (HEX2INT(col[1]) << 4) + HEX2INT(col[2]);
 							color.s.green = (HEX2INT(col[3]) << 4) + HEX2INT(col[4]);
 							color.s.blue = (HEX2INT(col[5]) << 4) + HEX2INT(col[6]);
+							color.s.alpha = 0;
 
 #ifdef GLENCORE
 							if (encoremap)
@@ -1535,6 +1536,7 @@ static void P_LoadRawSideDefs2(void *data)
 							color.s.red = (HEX2INT(col[1]) << 4) + HEX2INT(col[2]);
 							color.s.green = (HEX2INT(col[3]) << 4) + HEX2INT(col[4]);
 							color.s.blue = (HEX2INT(col[5]) << 4) + HEX2INT(col[6]);
+							color.s.alpha = 0;
 
 #ifdef GLENCORE
 							if (encoremap)
