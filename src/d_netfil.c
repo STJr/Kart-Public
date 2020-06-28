@@ -457,7 +457,7 @@ INT32 CL_CheckFiles(void)
 }
 
 // Load it now
-void CL_LoadServerFiles(void)
+boolean CL_LoadServerFiles(void)
 {
 	INT32 i;
 
@@ -473,6 +473,7 @@ void CL_LoadServerFiles(void)
 			P_AddWadFile(fileneeded[i].filename);
 			G_SetGameModified(true, false);
 			fileneeded[i].status = FS_OPEN;
+			return false;
 		}
 		else if (fileneeded[i].status == FS_MD5SUMBAD)
 			I_Error("Wrong version of file %s", fileneeded[i].filename);
@@ -498,6 +499,7 @@ void CL_LoadServerFiles(void)
 				fileneeded[i].status, s);
 		}
 	}
+	return true;
 }
 
 // Number of files to send

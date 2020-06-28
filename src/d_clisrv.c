@@ -1095,6 +1095,7 @@ typedef enum
 	CL_SEARCHING,
 	CL_DOWNLOADFILES,
 	CL_ASKJOIN,
+	CL_LOADFILES,
 	CL_WAITJOINRESPONSE,
 #ifdef JOININGAME
 	CL_DOWNLOADSAVEGAME,
@@ -1202,7 +1203,10 @@ static inline void CL_DrawConnectionStatus(void)
 				break;
 #endif
 			case CL_ASKFULLFILELIST:
-				cltext = M_GetText("This server has a LOT of files!");
+				cltext = M_GetText("This server has a LOT of addons!");
+				break;
+			case CL_LOADFILES:
+				cltext = M_GetText("Loading server addons...");
 				break;
 			case CL_ASKJOIN:
 			case CL_WAITJOINRESPONSE:
@@ -1933,7 +1937,7 @@ static boolean CL_FinishedFileList(void)
 		return false;
 	}
 	else if (i == 1)
-		cl_mode = CL_ASKJOIN;
+		cl_mode = CL_LOADFILES;
 	else
 	{
 		// must download something
@@ -2143,7 +2147,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			}
 
 			if (!curl_transfers)
-				cl_mode = CL_ASKJOIN; // don't break case continue to cljoin request now
+				cl_mode = CL_LOADFILES; // don't break case continue to cljoin request now
 
 			break;
 #endif
@@ -2159,11 +2163,12 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			if (waitmore)
 				break; // exit the case
 
-			cl_mode = CL_ASKJOIN; // don't break case continue to cljoin request now
-			/* FALLTHRU */
-
+			cl_mode = CL_LOADFILES; // don't break case continue to cljoin request now
+			break;
+		case CL_LOADFILES:
+			if (!CL_LoadServerFiles())
+				break;
 		case CL_ASKJOIN:
-			CL_LoadServerFiles();
 #ifdef JOININGAME
 			// prepare structures to save the file
 			// WARNING: this can be useless in case of server not in GS_LEVEL
