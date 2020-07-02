@@ -1203,7 +1203,7 @@ static inline void CL_DrawConnectionStatus(void)
 				break;
 #endif
 			case CL_ASKFULLFILELIST:
-				cltext = M_GetText("This server has a LOT of addons!");
+				cltext = M_GetText("Checking server addon list ...");
 				break;
 			case CL_LOADFILES:
 				cltext = M_GetText("Loading server addons...");
