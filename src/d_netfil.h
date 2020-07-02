@@ -25,6 +25,7 @@ typedef enum
 
 typedef enum
 {
+	FS_NOTCHECKED,
 	FS_NOTFOUND,
 	FS_FOUND,
 	FS_REQUESTED,

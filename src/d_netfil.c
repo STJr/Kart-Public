@@ -209,7 +209,7 @@ void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr, UINT16 fi
 	p = (UINT8 *)fileneededstr;
 	for (i = firstfile; i < fileneedednum; i++)
 	{
-		fileneeded[i].status = FS_NOTFOUND; // We haven't even started looking for the file yet
+		fileneeded[i].status = FS_NOTCHECKED; // We haven't even started looking for the file yet
 		filestatus = READUINT8(p); // The first byte is the file status
 		fileneeded[i].willsend = (UINT8)(filestatus >> 4);
 		fileneeded[i].totalsize = READUINT32(p); // The four next bytes are the file size
@@ -373,6 +373,8 @@ boolean Got_RequestFilePak(INT32 node)
   * \return 0 if some files are missing
   *         1 if all files exist
   *         2 if some already loaded files are not requested or are in a different order
+  * 		3 too many files, over WADLIMIT
+  * 		4 still checking, continuing next tic
   *
   */
 INT32 CL_CheckFiles(void)
@@ -381,7 +383,8 @@ INT32 CL_CheckFiles(void)
 	char wadfilename[MAX_WADPATH];
 	INT32 ret = 1;
 	size_t packetsize = 0;
-	size_t filestoget = 0;
+	size_t filestoload = 0;
+	boolean downloadrequired = false;
 
 //	if (M_CheckParm("-nofiles"))
 //		return 1;
@@ -427,6 +430,15 @@ INT32 CL_CheckFiles(void)
 
 	for (i = 0; i < fileneedednum; i++)
 	{
+		if (fileneeded[i].status != FS_OPEN) //little messy, but this will count right by the time we get through the last file
+			filestoload++;
+
+		if (fileneeded[i].status == FS_NOTFOUND)
+			downloadrequired = true;
+
+		if (fileneeded[i].status != FS_NOTCHECKED) //since we're running this over multiple tics now, its possible for us to come across files checked in previous tics
+			continue;
+		
 		CONS_Debug(DBG_NETPLAY, "searching for '%s' ", fileneeded[i].filename);
 
 		// Check in already loaded files
@@ -438,25 +450,24 @@ INT32 CL_CheckFiles(void)
 			{
 				CONS_Debug(DBG_NETPLAY, "already loaded\n");
 				fileneeded[i].status = FS_OPEN;
-				break;
+				return 4;
 			}
 		}
-		if (fileneeded[i].status != FS_NOTFOUND)
-			continue;
 
 		packetsize += nameonlylength(fileneeded[i].filename) + 22;
 
-		if (mainwads+filestoget >= MAX_WADFILES)
-			return 3;
-
-		filestoget++;
-
 		fileneeded[i].status = findfile(fileneeded[i].filename, fileneeded[i].md5sum, true);
 		CONS_Debug(DBG_NETPLAY, "found %d\n", fileneeded[i].status);
-		if (fileneeded[i].status != FS_FOUND)
-			ret = 0;
+		return 4;
 	}
-	return ret;
+
+	//now making it here means we've checked the entire list and no FS_NOTCHECKED files remain
+	if (mainwads+filestoload >= MAX_WADFILES)
+		return 3; //ensure we wouldn't go over the wad limit
+	else if (downloadrequired)
+		return 0; //some stuff is FS_NOTFOUND, needs download
+	else
+		return 1; //everything is FS_OPEN or FS_FOUND, proceed to loading
 }
 
 // Load it now
