@@ -1300,8 +1300,21 @@ static inline void CL_DrawConnectionStatus(void)
 				va(" %2u/%2u Files",downloadcompletednum,totalfilesrequestednum));
 		}
 		else
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-32, V_YELLOWMAP,
+		{
+			INT32 i, animtime = ((ccstime / 4) & 15) + 16;
+			UINT8 palstart = (cl_mode == CL_SEARCHING) ? 128 : 160;
+			// 15 pal entries total.
+
+			//Draw bottom box
+			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
+
+			for (i = 0; i < 16; ++i)
+				V_DrawFill((BASEVIDWIDTH/2-128) + (i * 16), BASEVIDHEIGHT-24, 16, 8, palstart + ((animtime - i) & 15));
+
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP,
 				M_GetText("Waiting to download files..."));
+		}
 	}
 }
 #endif
@@ -1999,11 +2012,11 @@ static boolean CL_FinishedFileList(void)
 				return false;
 			}
 
+			downloadcompletednum = 0;
+			totalfilesrequestednum = 0;
 			if (CL_SendRequestFile())
 			{
 				cl_mode = CL_DOWNLOADFILES;
-				downloadcompletednum = 0;
-				totalfilesrequestednum = 0;
 			}
 		}
 #ifdef HAVE_CURL
@@ -2147,10 +2160,10 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 #ifdef HAVE_CURL
 		case CL_PREPAREHTTPFILES:
+			downloadcompletednum = 0;
+			totalfilesrequestednum = 0;
 			if (http_source[0])
 			{
-				downloadcompletednum = 0;
-				totalfilesrequestednum = 0;
 				for (i = 0; i < fileneedednum; i++)
 					if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
 					{
