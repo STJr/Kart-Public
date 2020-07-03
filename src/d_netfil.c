@@ -143,7 +143,7 @@ UINT8 *PutFileNeeded(UINT16 firstfile)
 	char wadfilename[MAX_WADPATH] = "";
 	UINT8 filestatus;
 
-	for (i = mainwads; i < numwadfiles; i++)
+	for (i = mainwads+1; i < numwadfiles; i++) //mainwads+1, otherwise we start on the first mainwad
 	{
 		// If it has only music/sound lumps, don't put it in the list
 		if (!wadfiles[i]->important)
@@ -430,11 +430,11 @@ INT32 CL_CheckFiles(void)
 
 	for (i = 0; i < fileneedednum; i++)
 	{
-		if (fileneeded[i].status != FS_OPEN) //little messy, but this will count right by the time we get through the last file
-			filestoload++;
-
 		if (fileneeded[i].status == FS_NOTFOUND)
 			downloadrequired = true;
+		
+		if (fileneeded[i].status == FS_FOUND || fileneeded[i].status == FS_NOTFOUND)
+			filestoload++;
 
 		if (fileneeded[i].status != FS_NOTCHECKED) //since we're running this over multiple tics now, its possible for us to come across files checked in previous tics
 			continue;
@@ -462,8 +462,8 @@ INT32 CL_CheckFiles(void)
 	}
 
 	//now making it here means we've checked the entire list and no FS_NOTCHECKED files remain
-	if (mainwads+filestoload >= MAX_WADFILES)
-		return 3; //ensure we wouldn't go over the wad limit
+	if (numwadfiles+filestoload > MAX_WADFILES)
+		return 3;
 	else if (downloadrequired)
 		return 0; //some stuff is FS_NOTFOUND, needs download
 	else
