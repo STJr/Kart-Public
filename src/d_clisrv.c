@@ -1956,7 +1956,7 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 static boolean CL_FinishedFileList(void)
 {
 	INT32 i;
-	CONS_Printf(M_GetText("Checking files...\n"));
+	//CONS_Printf(M_GetText("Checking files...\n"));
 	i = CL_CheckFiles();
 	if (i == 4) // still checking ...
 	{
