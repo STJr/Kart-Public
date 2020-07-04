@@ -2085,17 +2085,9 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 			if (serverlist[i].info.httpsource[0])
 				CONS_Printf("We received a http url from the server, however it will not be used as this build lacks curl support (%s)\n", serverlist[i].info.httpsource);
 #endif
-
-			D_ParseFileneeded(serverlist[i].info.fileneedednum, serverlist[i].info.fileneeded, 0);
-			if (serverlist[i].info.kartvars & SV_LOTSOFADDONS)
-			{
-				cl_mode = CL_ASKFULLFILELIST;
-				cl_lastcheckedfilecount = 0;
-				return true;
-			}
-
-			if (!CL_FinishedFileList())
-				return false;
+			cl_mode = CL_ASKFULLFILELIST;
+			cl_lastcheckedfilecount = 0;
+			return true;
 		}
 		else
 			cl_mode = CL_ASKJOIN; // files need not be checked for the server.
