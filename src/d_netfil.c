@@ -381,7 +381,6 @@ INT32 CL_CheckFiles(void)
 {
 	INT32 i, j;
 	char wadfilename[MAX_WADPATH];
-	INT32 ret = 1;
 	size_t packetsize = 0;
 	size_t filestoload = 0;
 	boolean downloadrequired = false;
