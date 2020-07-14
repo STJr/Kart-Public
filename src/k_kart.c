@@ -3872,11 +3872,17 @@ void K_DropItems(player_t *player)
 
 void K_DropRocketSneaker(player_t *player)
 {
+	if (!(player->mo && !P_MobjWasRemoved(player->mo) && player->mo->hnext && !P_MobjWasRemoved(player->mo->hnext)))
+		return;
+
 	mobj_t *shoe = player->mo;
 	fixed_t flingangle;
 	boolean leftshoe = true; //left shoie is first
 	while ((shoe = shoe->hnext) && !P_MobjWasRemoved(shoe))
 	{
+		if (shoe->type != MT_ROCKETSNEAKER)
+			return; //woah, not a rocketsneaker, bail! safeguard in case this gets used when you're holding non-rocketsneakers
+
 		shoe->flags2 &= ~MF2_DONTDRAW;
 		shoe->flags &= ~MF_NOGRAVITY;
 		shoe->angle += ANGLE_45;
