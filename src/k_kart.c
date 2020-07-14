@@ -3312,7 +3312,8 @@ void K_PuntMine(mobj_t *thismine, mobj_t *punter)
 	if (!thismine || P_MobjWasRemoved(thismine))
 		return;
 
-	if (thismine->type == MT_SSMINE_SHIELD) // Create a new mine
+	//This guarantees you hit a mine being dragged
+	if (thismine->type == MT_SSMINE_SHIELD) // Create a new mine, and clean up the old one
 	{
 		mine = P_SpawnMobj(thismine->x, thismine->y, thismine->z, MT_SSMINE);
 		P_SetTarget(&mine->target, thismine->target);
@@ -3320,7 +3321,19 @@ void K_PuntMine(mobj_t *thismine, mobj_t *punter)
 		mine->flags2 = thismine->flags2;
 		mine->floorz = thismine->floorz;
 		mine->ceilingz = thismine->ceilingz;
+		
+		//Since we aren't using P_KillMobj, we need to clean up the hnext reference
+		{
+			P_SetTarget(&thismine->target->hnext, NULL); //target is the player who owns the mine
+			thismine->target->player->kartstuff[k_bananadrag] = 0;
+			thismine->target->player->kartstuff[k_itemheld] = 0;
+			
+			if (--thismine->target->player->kartstuff[k_itemamount] <= 0)
+				thismine->target->player->kartstuff[k_itemtype] = KITEM_NONE;
+		}
+
 		P_RemoveMobj(thismine);
+
 	}
 	else
 		mine = thismine;
