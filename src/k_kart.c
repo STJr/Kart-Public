@@ -3577,7 +3577,6 @@ static void K_DoShrink(player_t *user)
 				&& !players[i].kartstuff[k_hyudorotimer])
 			{
 				// Start shrinking!
-				K_DropRocketSneaker(&players[i]); //Make sure we handle this
 				K_DropItems(&players[i]);
 				players[i].kartstuff[k_growshrinktimer] = -(20*TICRATE);
 
@@ -5242,7 +5241,7 @@ void K_StripItems(player_t *player)
 	player->kartstuff[k_itemamount] = 0;
 	player->kartstuff[k_itemheld] = 0;
 
-	player->kartstuff[k_rocketsneakertimer] = 0;
+	K_DropRocketSneaker(player);
 
 	if (!player->kartstuff[k_itemroulette] || player->kartstuff[k_roulettetype] != 2)
 	{

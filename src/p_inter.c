@@ -408,7 +408,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			}
 			else
 			{
-				K_DropRocketSneaker(player);
 				K_DropItems(player); //K_StripItems(player);
 				//K_StripOther(player);
 				player->kartstuff[k_itemroulette] = 1;
