@@ -3872,12 +3872,13 @@ void K_DropItems(player_t *player)
 
 void K_DropRocketSneaker(player_t *player)
 {
-	if (!(player->mo && !P_MobjWasRemoved(player->mo) && player->mo->hnext && !P_MobjWasRemoved(player->mo->hnext)))
-		return;
-
 	mobj_t *shoe = player->mo;
 	fixed_t flingangle;
 	boolean leftshoe = true; //left shoe is first
+
+	if (!(player->mo && !P_MobjWasRemoved(player->mo) && player->mo->hnext && !P_MobjWasRemoved(player->mo->hnext)))
+		return;
+
 	while ((shoe = shoe->hnext) && !P_MobjWasRemoved(shoe))
 	{
 		if (shoe->type != MT_ROCKETSNEAKER)
