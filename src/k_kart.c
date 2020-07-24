@@ -3877,7 +3877,7 @@ void K_DropRocketSneaker(player_t *player)
 
 	mobj_t *shoe = player->mo;
 	fixed_t flingangle;
-	boolean leftshoe = true; //left shoie is first
+	boolean leftshoe = true; //left shoe is first
 	while ((shoe = shoe->hnext) && !P_MobjWasRemoved(shoe))
 	{
 		if (shoe->type != MT_ROCKETSNEAKER)
@@ -3910,6 +3910,19 @@ void K_DropRocketSneaker(player_t *player)
 	}
 	P_SetTarget(&player->mo->hnext, NULL);
 	player->kartstuff[k_rocketsneakertimer] = 0;
+}
+
+void K_DropKitchenSink(player_t *player)
+{
+	if (!(player->mo && !P_MobjWasRemoved(player->mo) && player->mo->hnext && !P_MobjWasRemoved(player->mo->hnext)))
+		return;
+
+	if (player->mo->hnext->type != MT_SINK_SHIELD)
+		return; //so we can just call this function regardless of what is being held
+
+	P_KillMobj(player->mo->hnext, NULL, NULL);
+
+	P_SetTarget(&player->mo->hnext, NULL);
 }
 
 // When an item in the hnext chain dies.
@@ -5237,11 +5250,11 @@ void K_KartUpdatePosition(player_t *player)
 //
 void K_StripItems(player_t *player)
 {
+	K_DropRocketSneaker(player);
+	K_DropKitchenSink(player);
 	player->kartstuff[k_itemtype] = KITEM_NONE;
 	player->kartstuff[k_itemamount] = 0;
 	player->kartstuff[k_itemheld] = 0;
-
-	K_DropRocketSneaker(player);
 
 	if (!player->kartstuff[k_itemroulette] || player->kartstuff[k_roulettetype] != 2)
 	{
