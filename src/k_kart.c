@@ -3875,6 +3875,62 @@ void K_DropItems(player_t *player)
 	K_StripItems(player);
 }
 
+void K_DropRocketSneaker(player_t *player)
+{
+	mobj_t *shoe = player->mo;
+	fixed_t flingangle;
+	boolean leftshoe = true; //left shoe is first
+
+	if (!(player->mo && !P_MobjWasRemoved(player->mo) && player->mo->hnext && !P_MobjWasRemoved(player->mo->hnext)))
+		return;
+
+	while ((shoe = shoe->hnext) && !P_MobjWasRemoved(shoe))
+	{
+		if (shoe->type != MT_ROCKETSNEAKER)
+			return; //woah, not a rocketsneaker, bail! safeguard in case this gets used when you're holding non-rocketsneakers
+
+		shoe->flags2 &= ~MF2_DONTDRAW;
+		shoe->flags &= ~MF_NOGRAVITY;
+		shoe->angle += ANGLE_45;
+
+		if (shoe->eflags & MFE_VERTICALFLIP)
+			shoe->z -= shoe->height;
+		else
+			shoe->z += shoe->height;
+
+		//left shoe goes off tot eh left, right shoe off to the right
+		if (leftshoe)
+			flingangle = -(ANG60);
+		else
+			flingangle = ANG60;
+		
+		S_StartSound(shoe, shoe->info->deathsound);
+		P_SetObjectMomZ(shoe, 8*FRACUNIT, false);
+		P_InstaThrust(shoe, R_PointToAngle2(shoe->target->x, shoe->target->y, shoe->x, shoe->y)+flingangle, 16*FRACUNIT);
+		shoe->momx += shoe->target->momx;
+		shoe->momy += shoe->target->momy;
+		shoe->momz += shoe->target->momz;
+		shoe->extravalue2 = 1;
+
+		leftshoe = false;
+	}
+	P_SetTarget(&player->mo->hnext, NULL);
+	player->kartstuff[k_rocketsneakertimer] = 0;
+}
+
+void K_DropKitchenSink(player_t *player)
+{
+	if (!(player->mo && !P_MobjWasRemoved(player->mo) && player->mo->hnext && !P_MobjWasRemoved(player->mo->hnext)))
+		return;
+
+	if (player->mo->hnext->type != MT_SINK_SHIELD)
+		return; //so we can just call this function regardless of what is being held
+
+	P_KillMobj(player->mo->hnext, NULL, NULL);
+
+	P_SetTarget(&player->mo->hnext, NULL);
+}
+
 // When an item in the hnext chain dies.
 void K_RepairOrbitChain(mobj_t *orbit)
 {
@@ -5201,11 +5257,11 @@ void K_KartUpdatePosition(player_t *player)
 //
 void K_StripItems(player_t *player)
 {
+	K_DropRocketSneaker(player);
+	K_DropKitchenSink(player);
 	player->kartstuff[k_itemtype] = KITEM_NONE;
 	player->kartstuff[k_itemamount] = 0;
 	player->kartstuff[k_itemheld] = 0;
-
-	player->kartstuff[k_rocketsneakertimer] = 0;
 
 	if (!player->kartstuff[k_itemroulette] || player->kartstuff[k_roulettetype] != 2)
 	{
