@@ -4833,7 +4833,7 @@ static boolean M_AddonsRefresh(void)
 		else if (majormods && !prevmajormods)
 		{
 			S_StartSound(NULL, sfx_s221);
-			message = va("%c%s\x80\nGameplay has now been modified.\nIf you wish to play Record Attack mode, restart the game to clear existing addons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
+			message = va("%c%s\x80\nYou've loaded a gameplay-modifying addon.\n\nRecord Attack has been disabled, but you\ncan still play alone in local Multiplayer.\n\nIf you wish to play Record Attack mode, restart the game to disable loaded addons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 			prevmajormods = majormods;
 		}
 
@@ -8538,7 +8538,7 @@ static void M_ConnectMenuModChecks(INT32 choice)
 
 	if (modifiedgame)
 	{
-		M_StartMessage(M_GetText("Addons are currently loaded.\n\nYou will only be able to join a server if\nit has the same ones loaded in the same order, which may be unlikely.\n\nIf you wish to play on other servers,\nrestart the game to clear existing addons.\n\n(Press a key)\n"),M_ConnectMenu,MM_EVENTHANDLER);
+		M_StartMessage(M_GetText("You have addons loaded.\nYou won't be able to join netgames!\n\nTo play online, restart the game\nand don't load any addons.\nSRB2Kart will automatically add\neverything you need when you join.\n\n(Press a key)\n"),M_ConnectMenu,MM_EVENTHANDLER);
 		return;
 	}
 

@@ -1500,10 +1500,10 @@ static void P_LoadRawSideDefs2(void *data)
 							{
 								j = encoremap[NearestColor(color.s.red, color.s.green, color.s.blue)];
 								//CONS_Printf("R_CreateColormap: encoremap[%d] = %d\n", j, encoremap[j]); -- moved encoremap upwards for optimisation
-								color = pLocalPalette[j];
+								color = pLocalPalette[j]; // note: this sets alpha to 255, we will reset it below
 							}
 #endif
-							
+							color.s.alpha = 0; // reset/init the alpha, so the addition below will work correctly
 							sec->extra_colormap->rgba = color.rgba;
 
 							// alpha
@@ -1541,10 +1541,10 @@ static void P_LoadRawSideDefs2(void *data)
 							{
 								j = encoremap[NearestColor(color.s.red, color.s.green, color.s.blue)];
 								//CONS_Printf("R_CreateColormap: encoremap[%d] = %d\n", j, encoremap[j]); -- moved encoremap upwards for optimisation
-								color = pLocalPalette[j];
+								color = pLocalPalette[j]; // note: this sets alpha to 255, we will reset it below
 							}
 #endif
-
+							color.s.alpha = 0; // reset/init the alpha, so the addition below will work correctly
 							sec->extra_colormap->fadergba = color.rgba;
 
 							// alpha

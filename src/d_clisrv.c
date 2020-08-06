@@ -1270,7 +1270,7 @@ static boolean CL_AskFileList(INT32 firstfile)
 	netbuffer->packettype = PT_TELLFILESNEEDED;
 	netbuffer->u.filesneedednum = firstfile;
 
-	return HSendPacket(servernode, true, 0, sizeof (INT32));
+	return HSendPacket(servernode, false, 0, sizeof (INT32));
 }
 
 /** Sends a special packet to declare how many players in local
@@ -1923,11 +1923,11 @@ static boolean CL_FinishedFileList(void)
 		CL_Reset();
 		D_StartTitle();
 		M_StartMessage(M_GetText(
-			"You have WAD files loaded or have\n"
-			"modified the game in some way, and\n"
-			"your file list does not match\n"
-			"the server's file list.\n"
-			"Please restart SRB2Kart before connecting.\n\n"
+			"You have the wrong addons loaded.\n\n"
+			"To play on this server, restart\n"
+			"the game and don't load any addons.\n"
+			"SRB2Kart will automatically add\n"
+			"everything you need when you join.\n\n"
 			"Press ESC\n"
 		), NULL, MM_NOTHING);
 		return false;
@@ -1948,11 +1948,12 @@ static boolean CL_FinishedFileList(void)
 				CL_Reset();
 				D_StartTitle();
 				M_StartMessage(M_GetText(
-					"You cannot connect to this server\n"
-					"because you cannot download the files\n"
-					"that you are missing from the server.\n\n"
-					"See the console or log file for\n"
-					"more details.\n\n"
+					"An error occured when trying to\n"
+					"download missing addons.\n"
+					"(This is almost always a problem\n"
+					"with the server, not your game.)\n\n"
+					"See the console or log file\n"
+					"for additional details.\n\n"
 					"Press ESC\n"
 				), NULL, MM_NOTHING);
 				return false;

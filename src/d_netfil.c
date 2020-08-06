@@ -1088,7 +1088,7 @@ void CURLPrepareFile(const char* url, int dfilenum)
 		// Only allow HTTP and HTTPS
 		curl_easy_setopt(http_handle, CURLOPT_PROTOCOLS, CURLPROTO_HTTP|CURLPROTO_HTTPS);
 
-		curl_easy_setopt(http_handle, CURLOPT_USERAGENT, va("SRB2Kart/v%d.%d.%d", VERSION/100, VERSION%100, SUBVERSION)); // Set user agent as some servers won't accept invalid user agents.
+		curl_easy_setopt(http_handle, CURLOPT_USERAGENT, va("SRB2Kart/v%d.%d", VERSION, SUBVERSION)); // Set user agent as some servers won't accept invalid user agents.
 
 		// Follow a redirect request, if sent by the server.
 		curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1L);
