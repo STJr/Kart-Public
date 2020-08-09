@@ -477,7 +477,7 @@ boolean CL_LoadServerFiles(void)
 //	if (M_CheckParm("-nofiles"))
 //		return;
 
-	for (i = 1; i < fileneedednum; i++)
+	for (i = 0; i < fileneedednum; i++)
 	{
 		if (fileneeded[i].status == FS_OPEN)
 			continue; // Already loaded
