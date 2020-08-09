@@ -1093,6 +1093,7 @@ static INT16 Consistancy(void);
 typedef enum
 {
 	CL_SEARCHING,
+	CL_CHECKFILES,
 	CL_DOWNLOADFILES,
 	CL_ASKJOIN,
 	CL_LOADFILES,
@@ -2085,9 +2086,15 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 			if (serverlist[i].info.httpsource[0])
 				CONS_Printf("We received a http url from the server, however it will not be used as this build lacks curl support (%s)\n", serverlist[i].info.httpsource);
 #endif
-			cl_mode = CL_ASKFULLFILELIST;
-			cl_lastcheckedfilecount = 0;
-			return true;
+			D_ParseFileneeded(serverlist[i].info.fileneedednum, serverlist[i].info.fileneeded, 0);
+			if (serverlist[i].info.kartvars & SV_LOTSOFADDONS)
+			{
+				cl_mode = CL_ASKFULLFILELIST;
+				cl_lastcheckedfilecount = 0;
+				return true;
+			}
+
+			cl_mode = CL_CHECKFILES;
 		}
 		else
 			cl_mode = CL_ASKJOIN; // files need not be checked for the server.
@@ -2140,10 +2147,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 		case CL_ASKFULLFILELIST:
 			if (cl_lastcheckedfilecount == UINT16_MAX) // All files retrieved
-			{
-				if (!CL_FinishedFileList())
-					return false;
-			}
+				cl_mode = CL_CHECKFILES;
 			else if (fileneedednum != cl_lastcheckedfilecount || *asksent + NEWTICRATE < I_GetTime())
 			{
 				if (CL_AskFileList(fileneedednum))
@@ -2152,6 +2156,10 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 					*asksent = I_GetTime();
 				}
 			}
+			break;
+		case CL_CHECKFILES:
+			if (!CL_FinishedFileList())
+				return false;
 			break;
 
 #ifdef HAVE_CURL
