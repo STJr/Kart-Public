@@ -54,7 +54,9 @@ extern char downloaddir[512];
 #ifdef CLIENT_LOADINGSCREEN
 extern INT32 lastfilenum;
 extern INT32 downloadcompletednum;
+extern UINT32 downloadcompletedsize;
 extern INT32 totalfilesrequestednum;
+extern UINT32 totalfilesrequestedsize;
 #endif
 
 #ifdef HAVE_CURL

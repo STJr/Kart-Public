@@ -1255,6 +1255,7 @@ static inline void CL_DrawConnectionStatus(void)
 
 			INT32 dldlength;
 			INT32 totalfileslength;
+			UINT32 totaldldsize;
 			static char tempname[28];
 			fileneeded_t *file = &fileneeded[lastfilenum];
 			char *filename = file->filename;
@@ -1292,13 +1293,27 @@ static inline void CL_DrawConnectionStatus(void)
 				va("%3.1fK/s ", ((double)getbps)/1024));
 
 			// Download progress
+
+			if (fileneeded[lastfilenum].currentsize != fileneeded[lastfilenum].totalsize)
+				totaldldsize = downloadcompletedsize+fileneeded[lastfilenum].currentsize; //Add in single file progress download if applicable
+			else
+				totaldldsize = downloadcompletedsize;
+
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-14, V_YELLOWMAP, "Overall Download Progress");
-			totalfileslength = (INT32)((downloadcompletednum/(double)totalfilesrequestednum) * 256);
+			totalfileslength = (INT32)((totaldldsize/(double)totalfilesrequestedsize) * 256);
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, totalfileslength, 8, 160);
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
-				va(" %2u/%2u Files",downloadcompletednum,totalfilesrequestednum));
+
+			if (totalfilesrequestedsize>>20 >= 100) //display in MB if over 100MB
+				V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+					va(" %4uM/%4uM",totaldldsize>>20,totalfilesrequestedsize>>20));
+			else
+				V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+					va(" %4uK/%4uK",totaldldsize>>10,totalfilesrequestedsize>>10));
+			
+			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+					va("%2u/%2u Files ",downloadcompletednum,totalfilesrequestednum));
 		}
 		else
 		{
@@ -2018,7 +2033,9 @@ static boolean CL_FinishedFileList(void)
 			}
 
 			downloadcompletednum = 0;
+			downloadcompletedsize = 0;
 			totalfilesrequestednum = 0;
+			totalfilesrequestedsize = 0;
 			if (CL_SendRequestFile())
 			{
 				cl_mode = CL_DOWNLOADFILES;
@@ -2165,7 +2182,9 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 #ifdef HAVE_CURL
 		case CL_PREPAREHTTPFILES:
 			downloadcompletednum = 0;
+			downloadcompletedsize = 0;
 			totalfilesrequestednum = 0;
+			totalfilesrequestedsize = 0;
 			if (http_source[0])
 			{
 				for (i = 0; i < fileneedednum; i++)
@@ -2173,6 +2192,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 					{
 						curl_transfers++;
 						totalfilesrequestednum++;
+						totalfilesrequestedsize += fileneeded[i].totalsize;
 					}
 				
 				cl_mode = CL_DOWNLOADHTTPFILES;

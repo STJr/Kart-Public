@@ -109,7 +109,9 @@ char downloaddir[512] = "DOWNLOAD";
 // for cl loading screen
 INT32 lastfilenum = -1;
 INT32 downloadcompletednum = 0;
+UINT32 downloadcompletedsize = 0;
 INT32 totalfilesrequestednum = 0;
+UINT32 totalfilesrequestedsize = 0;
 #endif
 
 #ifdef HAVE_CURL
@@ -333,6 +335,7 @@ boolean CL_SendRequestFile(void)
 			strcatbf(fileneeded[i].filename, downloaddir, "/");
 			fileneeded[i].status = FS_REQUESTED;
 			totalfilesrequestednum++;
+			totalfilesrequestedsize += fileneeded[i].totalsize;
 		}
 	WRITEUINT8(p, 0xFF);
 	I_GetDiskFreeSpace(&availablefreespace);
@@ -874,6 +877,7 @@ void Got_Filetxpak(void)
 			CONS_Printf(M_GetText("Downloading %s...(done)\n"),
 				filename);
 			downloadcompletednum++;
+			downloadcompletedsize += file->totalsize;
 		}
 	}
 	else
@@ -1186,6 +1190,7 @@ void CURLGetFile(void)
 				nameonly(curl_realname);
 				CONS_Printf(M_GetText("Finished downloading %s\n"), curl_realname);
 				downloadcompletednum++;
+				downloadcompletedsize += curl_curfile->totalsize;
 				curl_curfile->status = FS_FOUND;
 				fclose(curl_curfile->file);
 			}
