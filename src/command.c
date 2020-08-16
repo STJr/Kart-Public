@@ -716,7 +716,7 @@ static void COM_Exec_Thread (struct COM_Exec_Ctx *ctx)
 
 	// load file
 	// Try with Argv passed verbatim first, for back compat
-	FIL_ReadFile(ctx->filename, &buf);
+	FIL_ReadFile(ctx->filename, &ctx->buf);
 
 #ifdef HAVE_THREADS
 	if (I_thread_is_stopped())
@@ -725,13 +725,13 @@ static void COM_Exec_Thread (struct COM_Exec_Ctx *ctx)
 	}
 #endif
 
-	if (!buf)
+	if (! ctx->buf)
 	{
 		// Now try by searching the file path
 		// filename is modified with the full found path
 		strcpy(filename, ctx->filename);
 		if (findfile(filename, NULL, true) != FS_NOTFOUND)
-			FIL_ReadFile(filename, &buf);
+			FIL_ReadFile(filename, &ctx->buf);
 
 #ifdef HAVE_THREADS
 		if (I_thread_is_stopped())
@@ -741,17 +741,14 @@ static void COM_Exec_Thread (struct COM_Exec_Ctx *ctx)
 #endif
 	}
 
-	if (buf)
+	if (! ctx->buf)
 	{
 		if (! ctx->silent)
 			CONS_Printf(M_GetText("executing %s\n"), ctx->filename);
 
 		// insert text file into the command buffer
-		COM_BufAddText((char *)buf);
+		COM_BufAddText((char *)ctx->buf);
 		COM_BufAddText("\n");
-
-		// free buffer
-		Z_Free(buf);
 	}
 	else
 	{
@@ -759,6 +756,7 @@ static void COM_Exec_Thread (struct COM_Exec_Ctx *ctx)
 			CONS_Printf(M_GetText("couldn't execute file %s\n"), ctx->filename);
 	}
 
+	Free_COM_Exec_Ctx(ctx);
 }
 
 /** Executes a script file.
