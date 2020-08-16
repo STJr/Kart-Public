@@ -34,6 +34,17 @@
 #include "p_setup.h"
 #include "lua_script.h"
 #include "d_netfil.h" // findfile
+#include "i_threads.h"
+
+#ifdef HAVE_THREADS
+static I_mutex com_text_mutex;
+
+#  define Lock_state()    I_lock_mutex(&com_text_mutex)
+#  define Unlock_state() I_unlock_mutex(com_text_mutex)
+#else/*HAVE_THREADS*/
+#  define Lock_state()
+#  define Unlock_state()
+#endif/*HAVE_THREADS*/
 
 //========
 // protos.
@@ -119,12 +130,14 @@ void COM_BufAddText(const char *ptext)
 
 	l = strlen(ptext);
 
+	Lock_state();
+
 	if (com_text.cursize + l >= com_text.maxsize)
-	{
 		CONS_Alert(CONS_WARNING, M_GetText("Command buffer full!\n"));
-		return;
-	}
-	VS_Write(&com_text, ptext, l);
+	else
+		VS_Write(&com_text, ptext, l);
+
+	Unlock_state();
 }
 
 /** Adds command text and executes it immediately.
@@ -136,6 +149,8 @@ void COM_BufInsertText(const char *ptext)
 {
 	char *temp = NULL;
 	size_t templen;
+
+	Lock_state();
 
 	// copy off any commands still remaining in the exec buffer
 	templen = com_text.cursize;
@@ -155,6 +170,8 @@ void COM_BufInsertText(const char *ptext)
 		VS_Write(&com_text, temp, templen);
 		Z_Free(temp);
 	}
+
+	Unlock_state();
 }
 
 /** Progress the wait timer and flush waiting console commands when ready.
@@ -179,6 +196,8 @@ void COM_BufExecute(void)
 	char *ptext;
 	char line[1024] = "";
 	INT32 quotes;
+
+	Lock_state();
 
 	while (com_text.cursize)
 	{
@@ -227,6 +246,8 @@ void COM_BufExecute(void)
 			break;
 		}
 	}
+
+	Unlock_state();
 }
 
 /** Executes a string immediately.  Used for skirting around WAIT commands.
@@ -672,12 +693,79 @@ static void COM_CEchoDuration_f(void)
 		HU_SetCEchoDuration(atoi(COM_Argv(1)));
 }
 
+struct COM_Exec_Ctx
+{
+	char    * filename;
+	boolean   noerror;
+	boolean   silent;
+	UINT8   * buf;
+};
+
+static void Free_COM_Exec_Ctx (struct COM_Exec_Ctx *ctx)
+{
+	Z_Free(ctx->buf);
+	free(ctx->filename);
+	free(ctx);
+}
+
+static void COM_Exec_Thread (struct COM_Exec_Ctx *ctx)
+{
+	char filename[256];
+
+	ctx->buf = NULL;
+
+	// load file
+	// Try with Argv passed verbatim first, for back compat
+	FIL_ReadFile(ctx->filename, &buf);
+
+#ifdef HAVE_THREADS
+	if (I_thread_is_stopped())
+	{
+		return Free_COM_Exec_Ctx(ctx);
+	}
+#endif
+
+	if (!buf)
+	{
+		// Now try by searching the file path
+		// filename is modified with the full found path
+		strcpy(filename, ctx->filename);
+		if (findfile(filename, NULL, true) != FS_NOTFOUND)
+			FIL_ReadFile(filename, &buf);
+
+#ifdef HAVE_THREADS
+		if (I_thread_is_stopped())
+		{
+			return Free_COM_Exec_Ctx(ctx);
+		}
+#endif
+	}
+
+	if (buf)
+	{
+		if (! ctx->silent)
+			CONS_Printf(M_GetText("executing %s\n"), ctx->filename);
+
+		// insert text file into the command buffer
+		COM_BufAddText((char *)buf);
+		COM_BufAddText("\n");
+
+		// free buffer
+		Z_Free(buf);
+	}
+	else
+	{
+		if (! ctx->noerror)
+			CONS_Printf(M_GetText("couldn't execute file %s\n"), ctx->filename);
+	}
+
+}
+
 /** Executes a script file.
   */
 static void COM_Exec_f(void)
 {
-	UINT8 *buf = NULL;
-	char filename[256];
+	struct COM_Exec_Ctx *ctx;
 
 	if (COM_Argc() < 2 || COM_Argc() > 3)
 	{
@@ -685,35 +773,19 @@ static void COM_Exec_f(void)
 		return;
 	}
 
-	// load file
-	// Try with Argv passed verbatim first, for back compat
-	FIL_ReadFile(COM_Argv(1), &buf);
+	ctx = malloc(sizeof *ctx);
 
-	if (!buf)
-	{
-		// Now try by searching the file path
-		// filename is modified with the full found path
-		strcpy(filename, COM_Argv(1));
-		if (findfile(filename, NULL, true) != FS_NOTFOUND)
-			FIL_ReadFile(filename, &buf);
+	ctx->filename = strdup(COM_Argv(1));
 
-		if (!buf)
-		{
-			if (!COM_CheckParm("-noerror"))
-				CONS_Printf(M_GetText("couldn't execute file %s\n"), COM_Argv(1));
-			return;
-		}
-	}
+	ctx->noerror  = COM_CheckParm("-noerror");
+	ctx->silent   = COM_CheckParm("-silent");
 
-	if (!COM_CheckParm("-silent"))
-		CONS_Printf(M_GetText("executing %s\n"), COM_Argv(1));
+#ifdef HAVE_THREADS
+	I_spawn_thread("exec-command", (I_thread_fn)COM_Exec_Thread, ctx);
+#else
+	COM_Exec_Thread(ctx);
+#endif
 
-	// insert text file into the command buffer
-	COM_BufAddText((char *)buf);
-	COM_BufAddText("\n");
-
-	// free buffer
-	Z_Free(buf);
 }
 
 /** Delays execution of the rest of the commands until the next frame.
