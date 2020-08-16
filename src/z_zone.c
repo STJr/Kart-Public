@@ -28,6 +28,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "i_system.h" // I_GetFreeMem
+#include "i_threads.h"
 #include "i_video.h" // rendermode
 #include "z_zone.h"
 #include "m_misc.h" // M_Memcpy
@@ -48,6 +49,16 @@ static boolean Z_calloc = false;
 #ifdef ZDEBUG
 //#define ZDEBUG2
 #endif
+
+#ifdef HAVE_THREADS
+static I_mutex z_mutex;
+
+#  define Lock_state()    I_lock_mutex(&z_mutex)
+#  define Unlock_state() I_unlock_mutex(z_mutex)
+#else/*HAVE_THREADS*/
+#  define Lock_state()
+#  define Unlock_state()
+#endif/*HAVE_THREADS*/
 
 struct memblock_s;
 
@@ -172,6 +183,8 @@ void Z_Free(void *ptr)
 	CONS_Debug(DBG_MEMORY, "Z_Free %s:%d\n", file, line);
 #endif
 
+	Lock_state();
+
 #ifdef ZDEBUG
 	block = Ptr2Memblock2(ptr, "Z_Free", file, line);
 #else
@@ -204,6 +217,8 @@ void Z_Free(void *ptr)
 #ifdef VALGRIND_DESTROY_MEMPOOL
 	VALGRIND_DESTROY_MEMPOOL(block);
 #endif
+
+	Unlock_state();
 }
 
 // malloc() that doesn't accept failure.
@@ -276,6 +291,8 @@ void *Z_MallocAlign(size_t size, INT32 tag, void *user, INT32 alignbits)
 	VALGRIND_MEMPOOL_ALLOC(block, hdr, size + sizeof *hdr);
 #endif
 
+	Lock_state();
+
 	block->next = head.next;
 	block->prev = &head;
 	head.next = block;
@@ -304,7 +321,10 @@ void *Z_MallocAlign(size_t size, INT32 tag, void *user, INT32 alignbits)
 		block->user = user;
 		*(void **)user = given;
 	}
-	else if (tag >= PU_PURGELEVEL)
+
+	Unlock_state();
+
+	if (user == NULL && tag >= PU_PURGELEVEL)
 		I_Error("Z_Malloc: attempted to allocate purgable block "
 			"(size %s) with no user", sizeu1(size));
 
@@ -401,6 +421,8 @@ void Z_FreeTags(INT32 lowtag, INT32 hightag)
 {
 	memblock_t *block, *next;
 
+	Lock_state();
+
 	Z_CheckHeap(420);
 	for (block = head.next; block != &head; block = next)
 	{
@@ -409,6 +431,8 @@ void Z_FreeTags(INT32 lowtag, INT32 hightag)
 		if (block->tag >= lowtag && block->tag <= hightag)
 			Z_Free((UINT8 *)block->hdr + sizeof *block->hdr);
 	}
+
+	Unlock_state();
 }
 
 //
@@ -599,12 +623,16 @@ size_t Z_TagsUsage(INT32 lowtag, INT32 hightag)
 	size_t cnt = 0;
 	memblock_t *rover;
 
+	Lock_state();
+
 	for (rover = head.next; rover != &head; rover = rover->next)
 	{
 		if (rover->tag < lowtag || rover->tag > hightag)
 			continue;
 		cnt += rover->size + sizeof *rover;
 	}
+
+	Unlock_state();
 
 	return cnt;
 }
@@ -617,6 +645,8 @@ size_t Z_TagUsage(INT32 tagnum)
 void Command_Memfree_f(void)
 {
 	UINT32 freebytes, totalbytes;
+
+	Lock_state();
 
 	Z_CheckHeap(-1);
 	CONS_Printf("\x82%s", M_GetText("Memory Info\n"));
@@ -644,6 +674,8 @@ void Command_Memfree_f(void)
 	freebytes = I_GetFreeMem(&totalbytes);
 	CONS_Printf(M_GetText("    Total physical memory: %7u KB\n"), totalbytes>>10);
 	CONS_Printf(M_GetText("Available physical memory: %7u KB\n"), freebytes>>10);
+
+	Unlock_state();
 }
 
 #ifdef ZDEBUG
@@ -659,12 +691,16 @@ static void Command_Memdump_f(void)
 	if ((i = COM_CheckParm("-max")))
 		maxtag = atoi(COM_Argv(i + 1));
 
+	Lock_state();
+
 	for (block = head.next; block != &head; block = block->next)
 		if (block->tag >= mintag && block->tag <= maxtag)
 		{
 			char *filename = strrchr(block->ownerfile, PATHSEP[0]);
 			CONS_Printf("[%3d] %s (%s) bytes @ %s:%d\n", block->tag, sizeu1(block->size), sizeu2(block->realsize), filename ? filename + 1 : block->ownerfile, block->ownerline);
 		}
+
+	Unlock_state();
 }
 #endif
 
