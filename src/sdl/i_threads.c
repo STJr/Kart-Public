@@ -47,6 +47,8 @@ static I_mutex        i_cond_pool_mutex;
 
 static SDL_atomic_t   i_threads_running = {1};
 
+static SDL_threadID   i_main_thread_id;
+
 static Link
 Insert_link (
 		Link * head,
@@ -197,6 +199,12 @@ I_thread_is_stopped (void)
 	return ( ! SDL_AtomicGet(&i_threads_running) );
 }
 
+int
+I_on_main_thread (void)
+{
+	return ( SDL_ThreadID() == i_main_thread_id );
+}
+
 void
 I_start_threads (void)
 {
@@ -211,6 +219,8 @@ I_start_threads (void)
 	)){
 		abort();
 	}
+
+	i_main_thread_id = SDL_ThreadID();
 }
 
 void

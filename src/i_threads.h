@@ -27,6 +27,8 @@ void      I_spawn_thread (const char *name, I_thread_fn, void *userdata);
 /* check in your thread whether to return early */
 int       I_thread_is_stopped (void);
 
+int       I_on_main_thread  (void);
+
 void      I_lock_mutex      (I_mutex *);
 void      I_unlock_mutex    (I_mutex);
 
