@@ -111,10 +111,6 @@ static void DRPC_HandleError(int err, const char *msg)
 --------------------------------------------------*/
 static void DRPC_HandleJoin(const char *secret)
 {
-	// Yes, this is called a "secret", but we send & use it
-	// directly, because if you're hosting SRB2, then you've
-	// already made your IP address totally public.
-
 	CONS_Printf("Connecting to %s via Discord\n", secret);
 	COM_BufAddText(va("connect \"%s\"\n", secret));
 }
