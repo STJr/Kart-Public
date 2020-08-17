@@ -233,7 +233,7 @@ static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 		}
 		else
 		{
-			const char *zonttl = (mapheaderinfo[prevmap]->zonttl[0] ? mapheaderinfo[prevmap]->zonttl : "ZONE");
+			const char *zonttl = (mapheaderinfo[prevmap]->zonttl[0] ? mapheaderinfo[prevmap]->zonttl : "Zone");
 			if (mapheaderinfo[prevmap]->actnum[0])
 				snprintf(data.match.levelstring,
 					sizeof data.match.levelstring,

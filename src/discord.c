@@ -34,33 +34,96 @@
 
 consvar_t cv_discordrp = {"discordrp", "On", CV_SAVE|CV_CALL, CV_OnOff, DRPC_UpdatePresence, 0, NULL, NULL, 0, 0, NULL};
 
-//
-// DRPC_Handle's
-//
-static inline void DRPC_HandleReady(const DiscordUser *user)
+#ifdef HAVE_CURL
+struct SelfIPbuffer
+{
+	CURL *curl;
+	char *pointer;
+	size_t length;
+};
+
+#define IP_SIZE 16
+static char self_ip[IP_SIZE];
+#endif
+
+/*--------------------------------------------------
+	static void DRPC_HandleReady(const DiscordUser *user)
+
+		Handler function, ran when the game connects to Discord.
+
+	Input Arguments:-
+		user - Struct containing Discord user info.
+
+	Return:-
+		None
+--------------------------------------------------*/
+static void DRPC_HandleReady(const DiscordUser *user)
 {
 	CONS_Printf("Discord: connected to %s#%s - %s\n", user->username, user->discriminator, user->userId);
 }
 
-static inline void DRPC_HandleDisconnect(int err, const char *msg)
+/*--------------------------------------------------
+	static void DRPC_HandleDisconnect(int err, const char *msg)
+
+		Handler function, ran when disconnecting from Discord.
+
+	Input Arguments:-
+		err - Error type
+		msg - Error message
+
+	Return:-
+		None
+--------------------------------------------------*/
+static void DRPC_HandleDisconnect(int err, const char *msg)
 {
 	CONS_Printf("Discord: disconnected (%d: %s)\n", err, msg);
 }
 
-static inline void DRPC_HandleError(int err, const char *msg)
+/*--------------------------------------------------
+	static void DRPC_HandleError(int err, const char *msg)
+
+		Handler function, ran when Discord outputs an error.
+
+	Input Arguments:-
+		err - Error type
+		msg - Error message
+
+	Return:-
+		None
+--------------------------------------------------*/
+static void DRPC_HandleError(int err, const char *msg)
 {
-	CONS_Alert(CONS_WARNING, "Discord: error (%d, %s)\n", err, msg);
+	CONS_Alert(CONS_WARNING, "Discord error (%d: %s)\n", err, msg);
 }
 
-static inline void DRPC_HandleJoin(const char *secret)
+/*--------------------------------------------------
+	static void DRPC_HandleJoin(const char *secret)
+
+		Handler function, ran when Discord wants to
+		connect a player to the game via a channel invite
+		or a join request.
+
+	Input Arguments:-
+		secret - Value that links you to the server.
+
+	Return:-
+		None
+--------------------------------------------------*/
+static void DRPC_HandleJoin(const char *secret)
 {
-	CONS_Printf("Discord: connecting to %s\n", secret);
+	// Yes, this is called a "secret", but we send & use it
+	// directly, because if you're hosting SRB2, then you've
+	// already made your IP address totally public.
+
+	CONS_Printf("Connecting to %s via Discord\n", secret);
 	COM_BufAddText(va("connect \"%s\"\n", secret));
 }
 
-//
-// DRPC_Init: starting up the handles, call Discord_initalize
-//
+/*--------------------------------------------------
+	void DRPC_Init(void)
+
+		See header file for description.
+--------------------------------------------------*/
 void DRPC_Init(void)
 {
 	DiscordEventHandlers handlers;
@@ -77,17 +140,21 @@ void DRPC_Init(void)
 }
 
 #ifdef HAVE_CURL
-#define IP_SIZE 16
-static char self_ip[IP_SIZE];
+/*--------------------------------------------------
+	static size_t DRPC_WriteServerIP(char *s, size_t size, size_t n, void *userdata)
 
-struct SelfIPbuffer
-{
-	CURL *curl;
-	char *pointer;
-	size_t length;
-};
+		Writing function for use with curl. Only intended to be used with simple text.
 
-static size_t DRPC_WriteServerIP(char *s, size_t size, size_t n, void *userdata )
+	Input Arguments:-
+		s - Data to write
+		size - Always 1.
+		n - Length of data
+		userdata - Passed in from CURLOPT_WRITEDATA, intended to be SelfIPbuffer
+
+	Return:-
+		Number of bytes wrote in this pass.
+--------------------------------------------------*/
+static size_t DRPC_WriteServerIP(char *s, size_t size, size_t n, void *userdata)
 {
 	struct SelfIPbuffer *buffer;
 	size_t newlength;
@@ -106,9 +173,13 @@ static size_t DRPC_WriteServerIP(char *s, size_t size, size_t n, void *userdata 
 }
 #endif
 
-//
-// DRPC_GetServerIP: Gets the server's IP address, used to 
-//
+/*--------------------------------------------------
+	static const char *DRPC_GetServerIP(void)
+
+		Retrieves the IP address of the server that you're
+		connected to. Will attempt to use curl for getting your
+		own IP address, if it's not yours.
+--------------------------------------------------*/
 static const char *DRPC_GetServerIP(void)
 {
 	const char *address; 
@@ -117,7 +188,11 @@ static const char *DRPC_GetServerIP(void)
 	if (I_GetNodeAddress && (address = I_GetNodeAddress(servernode)) != NULL)
 	{
 		if (strcmp(address, "self"))
-			return address; // We're not the server, so we could successfully get the IP! No problem here :)
+		{
+			// We're not the server, so we could successfully get the IP!
+			// No need to do anything else :)
+			return address; 
+		}
 	}
 
 #ifdef HAVE_CURL
@@ -133,7 +208,10 @@ static const char *DRPC_GetServerIP(void)
 
 		if (curl)
 		{
-			const char *api = "http://ip4only.me/api/"; // API to get your public IP address from
+			// The API to get your public IP address from.
+			// Picked because it's stupid simple and it's been up for a long time.
+			const char *api = "http://ip4only.me/api/"; 
+
 			struct SelfIPbuffer buffer;
 			CURLcode success;
 
@@ -171,9 +249,11 @@ static const char *DRPC_GetServerIP(void)
 		return NULL; // Could not get your IP for whatever reason, so we cannot do Discord invites
 }
 
-//
-// DRPC_UpdatePresence: Called whenever anything changes about server info
-//
+/*--------------------------------------------------
+	void DRPC_UpdatePresence(void)
+
+		See header file for description.
+--------------------------------------------------*/
 void DRPC_UpdatePresence(void)
 {
 	char mapimg[8+1];
@@ -271,10 +351,10 @@ void DRPC_UpdatePresence(void)
 			discordPresence.largeImageText = mapname; // Map name
 		}
 
-		if (gamestate == GS_LEVEL)
+		if (Playing())
 		{
 			const time_t currentTime = time(NULL);
-			const time_t mapTimeStart = currentTime - (leveltime / TICRATE);
+			const time_t mapTimeStart = currentTime - ((leveltime + (modeattacking ? starttime : 0)) / TICRATE);
 
 			discordPresence.startTimestamp = mapTimeStart;
 

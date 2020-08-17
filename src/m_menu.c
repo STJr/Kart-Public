@@ -7474,7 +7474,7 @@ static void M_DrawStatsMaps(int location)
 		else
 			V_DrawString(20, y, 0, va("%s %s %s",
 				mapheaderinfo[mnum]->lvlttl,
-				(mapheaderinfo[mnum]->zonttl[0] ? mapheaderinfo[mnum]->zonttl : "ZONE"),
+				(mapheaderinfo[mnum]->zonttl[0] ? mapheaderinfo[mnum]->zonttl : "Zone"),
 				mapheaderinfo[mnum]->actnum));
 
 		y += 8;

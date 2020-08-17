@@ -19,8 +19,26 @@
 
 extern consvar_t cv_discordrp;
 
+/*--------------------------------------------------
+	void DRPC_Init(void);
+
+		Initalizes Discord Rich Presence by linking the Application ID
+		and setting the handler functions.
+--------------------------------------------------*/
+
 void DRPC_Init(void);
+
+
+/*--------------------------------------------------
+	void DRPC_UpdatePresence(void);
+
+		Updates what is displayed by Rich Presence on the user's profile.
+		Should be called whenever something that is displayed is
+		changed in-game.
+--------------------------------------------------*/
+
 void DRPC_UpdatePresence(void);
+
 
 #endif // HAVE_DISCORDRPC
 

@@ -4725,7 +4725,7 @@ char *G_BuildMapTitle(INT32 mapnum)
 		}
 		else if (!(mapheaderinfo[mapnum-1]->levelflags & LF_NOZONE))
 		{
-			zonetext = M_GetText("ZONE");
+			zonetext = M_GetText("Zone");
 			len += strlen(zonetext) + 1;	// ' ' + zonetext
 		}
 		if (strlen(mapheaderinfo[mapnum-1]->actnum) > 0)

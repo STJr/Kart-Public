@@ -776,7 +776,7 @@ static void ST_drawLevelTitle(void)
 		if (zonttl[0])
 			zonexpos -= V_LevelNameWidth(zonttl); // SRB2kart
 		else
-			zonexpos -= V_LevelNameWidth(M_GetText("ZONE"));
+			zonexpos -= V_LevelNameWidth(M_GetText("Zone"));
 	}
 
 	if (lvlttlxpos < 0)
@@ -813,7 +813,7 @@ static void ST_drawLevelTitle(void)
 	if (strlen(zonttl) > 0)
 		V_DrawLevelTitle(zonexpos, bary+6, 0, zonttl);
 	else if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
-		V_DrawLevelTitle(zonexpos, bary+6, 0, M_GetText("ZONE"));
+		V_DrawLevelTitle(zonexpos, bary+6, 0, M_GetText("Zone"));
 
 	if (actnum[0])
 		V_DrawLevelTitle(ttlnumxpos+12, bary+6, 0, actnum);
