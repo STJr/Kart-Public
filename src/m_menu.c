@@ -81,6 +81,10 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 //int	vsnprintf(char *str, size_t n, const char *fmt, va_list ap);
 #endif
 
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
+#endif
+
 #define SKULLXOFF -32
 #define LINEHEIGHT 16
 #define STRINGHEIGHT 8
@@ -1343,11 +1347,21 @@ static menuitem_t OP_SoundOptionsMenu[] =
 
 static menuitem_t OP_DataOptionsMenu[] =
 {
+#ifdef HAVE_DISCORDRPC
+	{IT_STRING | IT_CVAR,		NULL, "Discord Rich Presence",	&cv_discordrp,			 10},
+
+	{IT_STRING | IT_CALL,		NULL, "Screenshot Options...",	M_ScreenshotOptions,	 30},
+	{IT_STRING | IT_CALL,		NULL, "Addon Options...",		M_AddonsOptions,		 40},
+	{IT_STRING | IT_SUBMENU,	NULL, "Replay Options...",		&MISC_ReplayOptionsDef,	 50},
+
+	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 70},
+#else
 	{IT_STRING | IT_CALL,		NULL, "Screenshot Options...",	M_ScreenshotOptions,	 10},
 	{IT_STRING | IT_CALL,		NULL, "Addon Options...",		M_AddonsOptions,		 20},
 	{IT_STRING | IT_SUBMENU,	NULL, "Replay Options...",		&MISC_ReplayOptionsDef,	 30},
 
 	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 50},
+#endif
 };
 
 static menuitem_t OP_ScreenshotOptionsMenu[] =

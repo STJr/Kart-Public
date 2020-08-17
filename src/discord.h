@@ -1,7 +1,7 @@
-// SONIC ROBO BLAST 2
+// SONIC ROBO BLAST 2 KART
 //-----------------------------------------------------------------------------
-// Copyright (C) 2012-2018 by Sally "TehRealSalt" Cochenour.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2018-2020 by Sally "TehRealSalt" Cochenour.
+// Copyright (C) 2018-2020 by Kart Krew.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
