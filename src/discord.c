@@ -1,7 +1,7 @@
-// SONIC ROBO BLAST 2
+// SONIC ROBO BLAST 2 KART
 //-----------------------------------------------------------------------------
-// Copyright (C) 2012-2018 by Sally "TehRealSalt" Cochenour.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2018-2020 by Sally "TehRealSalt" Cochenour.
+// Copyright (C) 2018-2020 by Kart Krew.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -25,7 +25,7 @@
 #include "discord.h"
 #include "doomdef.h"
 
-#define DISCORD_APPID "503531144395096085" // Feel free to provide your own, if you care.
+#define DISCORD_APPID "503531144395096085" // Feel free to use your own, if you care.
 
 //
 // DRPC_Handle's
@@ -42,7 +42,7 @@ static inline void DRPC_HandleDisconnect(int err, const char *msg)
 
 static inline void DRPC_HandleError(int err, const char *msg)
 {
-	CONS_Printf("Discord: error (%d, %s)\n", err, msg);
+	CONS_Alert(CONS_WARNING, "Discord: error (%d, %s)\n", err, msg);
 }
 
 static inline void DRPC_HandleJoin(const char *secret)
@@ -91,25 +91,28 @@ void DRPC_UpdatePresence(void)
 			case -1: discordPresence.state = "Private"; break; // Private server
 			case 33: discordPresence.state = "Standard"; break;
 			case 28: discordPresence.state = "Casual"; break;
-			default: discordPresence.state = "???"; break; // How?
+			default: discordPresence.state = "???"; break; // HOW
 		}
 
-		discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
-
-		// Grab the host's IP for joining.
-		if (I_GetNodeAddress && (address = I_GetNodeAddress(servernode)) != NULL)
+		if (ms_RoomId != -1)
 		{
-			discordPresence.joinSecret = address;
-			CONS_Printf("%s\n", address);
-		}
+			discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
 
-		discordPresence.partySize = D_NumPlayers(); // Players in server
-		discordPresence.partyMax = cv_maxplayers.value; // Max players (turned into a netvar for this, FOR NOW!)
+			// Grab the host's IP for joining.
+			if (I_GetNodeAddress && (address = I_GetNodeAddress(servernode)) != NULL)
+			{
+				discordPresence.joinSecret = address;
+				CONS_Printf("%s\n", address);
+			}
+
+			discordPresence.partySize = D_NumPlayers(); // Players in server
+			discordPresence.partyMax = cv_maxplayers.value; // Max players (turned into a netvar for this, FOR NOW!)
+		}
 	}
 	else if (Playing())
 		discordPresence.state = "Offline";
-	else if (demoplayback)
-		discordPresence.state = "Watching Demo";
+	else if (demo.playback)
+		discordPresence.state = "Watching Replay";
 	else
 		discordPresence.state = "Menu";
 
