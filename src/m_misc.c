@@ -507,7 +507,7 @@ void M_FirstLoadConfig(void)
 	CV_InitFilterVar();
 
 	// load config, make sure those commands doesnt require the screen...
-	COM_BufInsertText(va("exec \"%s\"\n", configfile));
+	COM_BufInsertText(va("exec \"%s\" -singlethread\n", configfile));
 	// no COM_BufExecute() needed; that does it right away
 
 	// don't filter anymore vars and don't let this convsvar be changed

@@ -778,11 +778,18 @@ static void COM_Exec_f(void)
 	ctx->noerror  = COM_CheckParm("-noerror");
 	ctx->silent   = COM_CheckParm("-silent");
 
+	if (COM_CheckParm("-singlethread"))
+	{
+		COM_Exec_Thread(ctx);
+	}
+	else
+	{
 #ifdef HAVE_THREADS
-	I_spawn_thread("exec-command", (I_thread_fn)COM_Exec_Thread, ctx);
+		I_spawn_thread("exec-command", (I_thread_fn)COM_Exec_Thread, ctx);
 #else
-	COM_Exec_Thread(ctx);
+		COM_Exec_Thread(ctx);
 #endif
+	}
 
 }
 
