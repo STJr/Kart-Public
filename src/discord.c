@@ -287,13 +287,70 @@ void DRPC_UpdatePresence(void)
 	// Character info
 	if (Playing() && playeringame[consoleplayer] && !players[consoleplayer].spectator)
 	{
-		if (players[consoleplayer].skin < 5) // supported skins
+		// Supported skin names
+		static const char *supportedSkins[] = {
+			// base game
+			"sonic",
+			"tails",
+			"knuckles",
+			"eggman",
+			"metalsonic",
+			// bonus chars
+			"flicky",
+			"motobug",
+			"amy",
+			"mighty",
+			"ray",
+			"espio",
+			"vector",
+			"chao",
+			"gamma",
+			"chaos",
+			"shadow",
+			"rouge",
+			"herochao",
+			"darkchao",
+			"cream",
+			"omega",
+			"blaze",
+			"silver",
+			"wonderboy",
+			"arle",
+			"nights",
+			"sakura",
+			"ulala",
+			"beat",
+			"vyse",
+			"aiai",
+			"kiryu",
+			"aigis",
+			"miku",
+			"doom",
+			NULL
+		};
+
+		boolean customChar = true;
+		UINT8 checkSkin = 0;
+
+		// Character image
+		while (supportedSkins[checkSkin] != NULL)
 		{
-			snprintf(charimg, 21, "char%s", skins[players[consoleplayer].skin].name);
-			discordPresence.smallImageKey = charimg; // Character image
+			if (!strcmp(skins[players[consoleplayer].skin].name, supportedSkins[checkSkin]))
+			{
+				snprintf(charimg, 21, "char%s", supportedSkins[checkSkin]);
+				discordPresence.smallImageKey = charimg;
+				customChar = false;
+				break;
+			}
+
+			checkSkin++;
 		}
-		else
-			discordPresence.smallImageKey = "charnull"; // Just so that you can still see the name of custom chars 
+
+		if (customChar == true)
+		{
+			// Use the custom character icon!
+			discordPresence.smallImageKey = "charcustom";
+		}
 
 		snprintf(charname, 28, "Character: %s", skins[players[consoleplayer].skin].realname);
 		discordPresence.smallImageText = charname; // Character name
