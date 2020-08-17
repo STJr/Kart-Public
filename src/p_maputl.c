@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -339,9 +339,9 @@ void P_CameraLineOpening(line_t *linedef)
 		frontceiling = sectors[front->camsec].ceilingheight;
 #ifdef ESLOPE
 		if (sectors[front->camsec].f_slope) // SRB2CBTODO: ESLOPE (sectors[front->heightsec].f_slope)
-			frontfloor = P_GetZAt(sectors[front->camsec].f_slope, camera.x, camera.y);
+			frontfloor = P_GetZAt(sectors[front->camsec].f_slope, camera[0].x, camera[0].y);
 		if (sectors[front->camsec].c_slope)
-			frontceiling = P_GetZAt(sectors[front->camsec].c_slope, camera.x, camera.y);
+			frontceiling = P_GetZAt(sectors[front->camsec].c_slope, camera[0].x, camera[0].y);
 #endif
 
 	}
@@ -351,9 +351,9 @@ void P_CameraLineOpening(line_t *linedef)
 		frontceiling = sectors[front->heightsec].ceilingheight;
 #ifdef ESLOPE
 		if (sectors[front->heightsec].f_slope) // SRB2CBTODO: ESLOPE (sectors[front->heightsec].f_slope)
-			frontfloor = P_GetZAt(sectors[front->heightsec].f_slope, camera.x, camera.y);
+			frontfloor = P_GetZAt(sectors[front->heightsec].f_slope, camera[0].x, camera[0].y);
 		if (sectors[front->heightsec].c_slope)
-			frontceiling = P_GetZAt(sectors[front->heightsec].c_slope, camera.x, camera.y);
+			frontceiling = P_GetZAt(sectors[front->heightsec].c_slope, camera[0].x, camera[0].y);
 #endif
 	}
 	else
@@ -367,9 +367,9 @@ void P_CameraLineOpening(line_t *linedef)
 		backceiling = sectors[back->camsec].ceilingheight;
 #ifdef ESLOPE
 		if (sectors[back->camsec].f_slope) // SRB2CBTODO: ESLOPE (sectors[front->heightsec].f_slope)
-			frontfloor = P_GetZAt(sectors[back->camsec].f_slope, camera.x, camera.y);
+			frontfloor = P_GetZAt(sectors[back->camsec].f_slope, camera[0].x, camera[0].y);
 		if (sectors[back->camsec].c_slope)
-			frontceiling = P_GetZAt(sectors[back->camsec].c_slope, camera.x, camera.y);
+			frontceiling = P_GetZAt(sectors[back->camsec].c_slope, camera[0].x, camera[0].y);
 #endif
 	}
 	else if (back->heightsec >= 0)
@@ -378,9 +378,9 @@ void P_CameraLineOpening(line_t *linedef)
 		backceiling = sectors[back->heightsec].ceilingheight;
 #ifdef ESLOPE
 		if (sectors[back->heightsec].f_slope) // SRB2CBTODO: ESLOPE (sectors[front->heightsec].f_slope)
-			frontfloor = P_GetZAt(sectors[back->heightsec].f_slope, camera.x, camera.y);
+			frontfloor = P_GetZAt(sectors[back->heightsec].f_slope, camera[0].x, camera[0].y);
 		if (sectors[back->heightsec].c_slope)
-			frontceiling = P_GetZAt(sectors[back->heightsec].c_slope, camera.x, camera.y);
+			frontceiling = P_GetZAt(sectors[back->heightsec].c_slope, camera[0].x, camera[0].y);
 #endif
 	}
 	else
@@ -649,7 +649,7 @@ void P_LineOpening(line_t *linedef, mobj_t *mobj)
 				if (!(rover->flags & FF_EXISTS))
 					continue;
 
-				if (mobj->player && (P_CheckSolidLava(mobj, rover) || P_CanRunOnWater(mobj->player, rover)))
+				if (mobj->player && P_CheckSolidLava(mobj, rover))
 					;
 				else if (!((rover->flags & FF_BLOCKPLAYER && mobj->player)
 					|| (rover->flags & FF_BLOCKOTHERS && !mobj->player)))
@@ -693,7 +693,7 @@ void P_LineOpening(line_t *linedef, mobj_t *mobj)
 				if (!(rover->flags & FF_EXISTS))
 					continue;
 
-				if (mobj->player && (P_CheckSolidLava(mobj, rover) || P_CanRunOnWater(mobj->player, rover)))
+				if (mobj->player && P_CheckSolidLava(mobj, rover))
 					;
 				else if (!((rover->flags & FF_BLOCKPLAYER && mobj->player)
 					|| (rover->flags & FF_BLOCKOTHERS && !mobj->player)))

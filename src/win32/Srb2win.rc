@@ -1,3 +1,5 @@
+#include <winuser.h>
+
 //Microsoft Developer Studio generated resource script.
 //
 #include "resource.h"
@@ -21,6 +23,16 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32*/
 
+#ifndef RT_MANIFEST
+#define RT_MANIFEST 24
+#endif
+
+#ifndef CREATEPROCESS_MANIFEST_RESOURCE_ID
+#define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
+#endif
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST srb2kart.exe.manifest
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Icon
@@ -36,18 +48,18 @@ IDI_ICON1               ICON    DISCARDABLE     "Srb2win.ico"
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE DISCARDABLE
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE DISCARDABLE
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE DISCARDABLE
 BEGIN
     "\r\n"
     "\0"
@@ -84,7 +96,7 @@ BEGIN
             VALUE "FileDescription", "Sonic Robo Blast 2\0"
             VALUE "FileVersion", "1, 09\0"
             VALUE "InternalName", "srb2\0"
-            VALUE "LegalCopyright", "Copyright © 1998-2005 Sonic Team Junior\0"
+            VALUE "LegalCopyright", "Copyright ï¿½ 1998-2018 by Sonic Team Junior\0"
             VALUE "LegalTrademarks", "Sonic the Hedgehog and related characters are trademarks of Sega.\0"
             VALUE "OriginalFilename", "srb2win.exe\0"
             VALUE "PrivateBuild", "\0"

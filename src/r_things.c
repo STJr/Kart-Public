@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -39,6 +39,8 @@
 int	snprintf(char *str, size_t n, const char *fmt, ...);
 //int	vsnprintf(char *str, size_t n, const char *fmt, va_list ap);
 #endif
+
+CV_PossibleValue_t Forceskin_cons_t[MAXSKINS+2];
 
 static void R_InitSkins(void);
 
@@ -257,6 +259,7 @@ static boolean R_AddSingleSpriteDef(const char *sprname, spritedef_t *spritedef,
 			//BP: we cannot use special tric in hardware mode because feet in ground caused by z-buffer
 			if (rendermode != render_none) // not for psprite
 				spritecachedinfo[numspritelumps].topoffset += 4<<FRACBITS;
+
 			// Being selective with this causes bad things. :( Like the special stage tokens breaking apart.
 			/*if (rendermode != render_none // not for psprite
 			 && SHORT(patch.topoffset)>0 && SHORT(patch.topoffset)<SHORT(patch.height))
@@ -375,21 +378,28 @@ void R_AddSpriteDefs(UINT16 wadnum)
 	UINT16 start, end;
 	char wadname[MAX_WADPATH];
 
-	// find the sprites section in this pwad
-	// we need at least the S_END
-	// (not really, but for speedup)
+	switch (wadfiles[wadnum]->type)
+	{
+	case RET_WAD:
+		start = W_CheckNumForNamePwad("S_START", wadnum, 0);
+		if (start == INT16_MAX)
+			start = W_CheckNumForNamePwad("SS_START", wadnum, 0); //deutex compatib.
+		if (start == INT16_MAX)
+			start = 0; //let say S_START is lump 0
+		else
+			start++;   // just after S_START
+		end = W_CheckNumForNamePwad("S_END",wadnum,start);
+		if (end == INT16_MAX)
+			end = W_CheckNumForNamePwad("SS_END",wadnum,start);     //deutex compatib.
+		break;
+	case RET_PK3:
+		start = W_CheckNumForFolderStartPK3("Sprites/", wadnum, 0);
+		end = W_CheckNumForFolderEndPK3("Sprites/", wadnum, start);
+		break;
+	default:
+		return;
+	}
 
-	start = W_CheckNumForNamePwad("S_START", wadnum, 0);
-	if (start == INT16_MAX)
-		start = W_CheckNumForNamePwad("SS_START", wadnum, 0); //deutex compatib.
-	if (start == INT16_MAX)
-		start = 0; //let say S_START is lump 0
-	else
-		start++;   // just after S_START
-
-	end = W_CheckNumForNamePwad("S_END",wadnum,start);
-	if (end == INT16_MAX)
-		end = W_CheckNumForNamePwad("SS_END",wadnum,start);     //deutex compatib.
 	if (end == INT16_MAX)
 	{
 		CONS_Debug(DBG_SETUP, "no sprites in pwad %d\n", wadnum);
@@ -918,6 +928,13 @@ static void R_DrawVisSprite(vissprite_t *vis)
 	if (vis->x2 >= vid.width)
 		vis->x2 = vid.width-1;
 
+#if 1
+	// Something is occasionally setting 1px-wide sprites whose frac is exactly the width of the sprite, causing crashes due to
+	// accessing invalid column info. Until the cause is found, let's try to correct those manually...
+	while (frac + vis->xiscale*(vis->x2-vis->x1) > SHORT(patch->width)<<FRACBITS && vis->x2 >= vis->x1)
+		vis->x2--;
+#endif
+
 	for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale)
 	{
 		if (vis->scalestep) // currently papersprites only
@@ -1308,6 +1325,7 @@ static void R_ProjectSprite(mobj_t *thing)
 			return;
 
 		scalestep = (yscale2 - yscale)/(x2 - x1);
+		scalestep = scalestep ? scalestep : 1;
 
 		// The following two are alternate sorting methods which might be more applicable in some circumstances. TODO - maybe enable via MF2?
 		// sortscale = max(yscale, yscale2);
@@ -1687,12 +1705,15 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 // R_AddSprites
 // During BSP traversal, this adds sprites by sector.
 //
-void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
+void R_AddSprites(sector_t *sec, INT32 lightlevel)
 {
 	mobj_t *thing;
 	precipmobj_t *precipthing; // Tails 08-25-2002
 	INT32 lightnum;
 	fixed_t approx_dist, limit_dist;
+
+	INT32 splitflags;			// check if a mobj has spliscreen flags
+	boolean split_drawsprite;	// used for splitscreen flags
 
 	if (rendermode != render_soft)
 		return;
@@ -1727,27 +1748,36 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 	{
 		for (thing = sec->thinglist; thing; thing = thing->snext)
 		{
+			split_drawsprite = false;
+
 			if (thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW)
 				continue;
 
-			if (splitscreen)
+			splitflags = thing->eflags & (MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
+
+			if (splitscreen && splitflags)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (viewnumber != 0)
-						continue;
+					if (viewssnum == 0)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (viewnumber != 1)
-						continue;
+					if (viewssnum == 1)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (viewnumber != 2)
-						continue;
+					if (viewssnum == 2)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (viewnumber != 3)
-						continue;
+					if (viewssnum == 3)
+						split_drawsprite = true;
 			}
+			else
+				split_drawsprite = true;
+
+			if (!split_drawsprite)
+				continue;
 
 			approx_dist = P_AproxDistance(viewx-thing->x, viewy-thing->y);
 
@@ -1762,33 +1792,43 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 		// Draw everything in sector, no checks
 		for (thing = sec->thinglist; thing; thing = thing->snext)
 		{
+
+			split_drawsprite = false;
+
 			if (thing->sprite == SPR_NULL || thing->flags2 & MF2_DONTDRAW)
 				continue;
 
-			if (splitscreen)
+			splitflags = thing->eflags & (MFE_DRAWONLYFORP1|MFE_DRAWONLYFORP2|MFE_DRAWONLYFORP3|MFE_DRAWONLYFORP4);
+
+			if (splitscreen && splitflags)
 			{
 				if (thing->eflags & MFE_DRAWONLYFORP1)
-					if (viewnumber != 0)
-						continue;
+					if (viewssnum == 0)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP2)
-					if (viewnumber != 1)
-						continue;
+					if (viewssnum == 1)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP3 && splitscreen > 1)
-					if (viewnumber != 2)
-						continue;
+					if (viewssnum == 2)
+						split_drawsprite = true;
 
 				if (thing->eflags & MFE_DRAWONLYFORP4 && splitscreen > 2)
-					if (viewnumber != 3)
-						continue;
+					if (viewssnum == 3)
+						split_drawsprite = true;
 			}
+			else
+				split_drawsprite = true;
+
+			if (!split_drawsprite)
+				continue;
 
 			R_ProjectSprite(thing);
 		}
 	}
 
-	// Someone seriously wants infinite draw distance for precipitation?
+	// no, no infinite draw distance for precipitation. this option at zero is supposed to turn it off
 	if ((limit_dist = (fixed_t)cv_drawdist_precip.value << FRACBITS))
 	{
 		for (precipthing = sec->preciplist; precipthing; precipthing = precipthing->snext)
@@ -1803,13 +1843,6 @@ void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber)
 
 			R_ProjectPrecipitationSprite(precipthing);
 		}
-	}
-	else
-	{
-		// Draw everything in sector, no checks
-		for (precipthing = sec->preciplist; precipthing; precipthing = precipthing->snext)
-			if (!(precipthing->precipflags & PCF_INVISIBLE))
-				R_ProjectPrecipitationSprite(precipthing);
 	}
 }
 
@@ -1920,7 +1953,7 @@ static void R_CreateDrawNodes(void)
 			plane = ds->curline->polyseg->visplane;
 			R_PlaneBounds(plane);
 
-			if (plane->low < con_clipviewtop || plane->high > vid.height || plane->high > plane->low)
+			if (plane->low < 0 || plane->high > vid.height || plane->high > plane->low)
 				;
 			else {
 				// Put it in!
@@ -1949,7 +1982,7 @@ static void R_CreateDrawNodes(void)
 					plane = ds->ffloorplanes[p];
 					R_PlaneBounds(plane);
 
-					if (plane->low < con_clipviewtop || plane->high > vid.height || plane->high > plane->low || plane->polyobj)
+					if (plane->low < 0 || plane->high > vid.height || plane->high > plane->low || plane->polyobj)
 					{
 						ds->ffloorplanes[p] = NULL;
 						continue;
@@ -1986,7 +2019,7 @@ static void R_CreateDrawNodes(void)
 		plane = PolyObjects[i].visplane;
 		R_PlaneBounds(plane);
 
-		if (plane->low < con_clipviewtop || plane->high > vid.height || plane->high > plane->low)
+		if (plane->low < 0 || plane->high > vid.height || plane->high > plane->low)
 		{
 			PolyObjects[i].visplane = NULL;
 			continue;
@@ -2493,7 +2526,7 @@ void R_DrawMasked(void)
 // ==========================================================================
 
 INT32 numskins = 0;
-skin_t skins[MAXSKINS+1];
+skin_t skins[MAXSKINS];
 // FIXTHIS: don't work because it must be inistilised before the config load
 //#define SKINVALUES
 #ifdef SKINVALUES
@@ -2517,9 +2550,9 @@ static void Sk_SetDefaultValue(skin_t *skin)
 
 	strcpy(skin->realname, "Someone");
 	strcpy(skin->hudname, "???");
-	strncpy(skin->charsel, "CHRSONIC", 9);
-	strncpy(skin->face, "MISSING", 9);
-	strncpy(skin->superface, "MISSING", 9);
+	strncpy(skin->facerank, "PLAYRANK", 9);
+	strncpy(skin->facewant, "PLAYWANT", 9);
+	strncpy(skin->facemmap, "PLAYMMAP", 9);
 
 	skin->starttranscolor = 160;
 	skin->prefcolor = SKINCOLOR_GREEN;
@@ -2529,29 +2562,11 @@ static void Sk_SetDefaultValue(skin_t *skin)
 	skin->kartweight = 5;
 	//
 
-	skin->normalspeed = 36<<FRACBITS;
-	skin->runspeed = 28<<FRACBITS;
-	skin->thrustfactor = 5;
-	skin->accelstart = 96;
-	skin->acceleration = 40;
-
-	skin->ability = CA_NONE;
-	skin->ability2 = CA2_SPINDASH;
-	skin->jumpfactor = FRACUNIT;
-	skin->actionspd = 30<<FRACBITS;
-	skin->mindash = 15<<FRACBITS;
-	skin->maxdash = 90<<FRACBITS;
-
-	skin->thokitem = -1;
-	skin->spinitem = -1;
-	skin->revitem = -1;
-
 	skin->highresscale = FRACUNIT>>1;
 
 	for (i = 0; i < sfx_skinsoundslot0; i++)
 		if (S_sfx[i].skinsound != -1)
 			skin->soundsid[S_sfx[i].skinsound] = i;
-	strncpy(skin->iconprefix, "SONICICN", 9);
 }
 
 //
@@ -2580,34 +2595,27 @@ void R_InitSkins(void)
 #ifdef SKINVALUES
 	skin_cons_t[0].strvalue = skins[0].name;
 #endif
-	skin->flags = SF_SUPER|SF_SUPERANIMS|SF_SUPERSPIN;
+	skin->flags = 0;
 	strcpy(skin->realname,   "Sonic");
 	strcpy(skin->hudname,    "SONIC");
 
-	strncpy(skin->charsel,   "CHRSONIC", 9);
-	strncpy(skin->face,      "LIVSONIC", 9);
-	strncpy(skin->superface, "LIVSUPER", 9);
+	strncpy(skin->facerank, "PLAYRANK", 9);
+	strncpy(skin->facewant, "PLAYWANT", 9);
+	strncpy(skin->facemmap, "PLAYMMAP", 9);
 	skin->prefcolor = SKINCOLOR_BLUE;
 
-	skin->ability =   CA_THOK;
-	skin->actionspd = 60<<FRACBITS;
-
 	// SRB2kart
-	skin->kartspeed = 7;
-	skin->kartweight = 3;
+	skin->kartspeed = 8;
+	skin->kartweight = 2;
 	//
-
-	skin->normalspeed =  36<<FRACBITS;
-	skin->runspeed =     28<<FRACBITS;
-	skin->thrustfactor =  5;
-	skin->accelstart =   96;
-	skin->acceleration = 40;
 
 	skin->spritedef.numframes = sprites[SPR_PLAY].numframes;
 	skin->spritedef.spriteframes = sprites[SPR_PLAY].spriteframes;
-	ST_LoadFaceGraphics(skin->face, skin->superface, 0);
-	strncpy(skin->iconprefix, "SONICICN", 9);
-	K_LoadIconGraphics(skin->iconprefix, 0);
+	ST_LoadFaceGraphics(skin->facerank, skin->facewant, skin->facemmap, 0);
+
+	// Set values for Sonic skin
+	Forceskin_cons_t[1].value = 0;
+	Forceskin_cons_t[1].strvalue = skin->name;
 
 	//MD2 for sonic doesn't want to load in Linux.
 #ifdef HWRENDER
@@ -2631,7 +2639,7 @@ INT32 R_SkinAvailable(const char *name)
 }
 
 // network code calls this when a 'skin change' is received
-void SetPlayerSkin(INT32 playernum, const char *skinname)
+boolean SetPlayerSkin(INT32 playernum, const char *skinname)
 {
 	INT32 i;
 	player_t *player = &players[playernum];
@@ -2642,7 +2650,7 @@ void SetPlayerSkin(INT32 playernum, const char *skinname)
 		if (stricmp(skins[i].name, skinname) == 0)
 		{
 			SetPlayerSkinByNum(playernum, i);
-			return;
+			return true;
 		}
 	}
 
@@ -2652,6 +2660,7 @@ void SetPlayerSkin(INT32 playernum, const char *skinname)
 		CONS_Alert(CONS_WARNING, M_GetText("Player %d (%s) skin '%s' not found\n"), playernum, player_names[playernum], skinname);
 
 	SetPlayerSkinByNum(playernum, 0);
+	return false;
 }
 
 // Same as SetPlayerSkin, but uses the skin #.
@@ -2667,47 +2676,21 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 		if (player->mo)
 			player->mo->skin = skin;
 
-		player->charability = (UINT8)skin->ability;
-		player->charability2 = (UINT8)skin->ability2;
-
 		player->charflags = (UINT32)skin->flags;
-
-		player->thokitem = skin->thokitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].painchance : (UINT32)skin->thokitem;
-		player->spinitem = skin->spinitem < 0 ? (UINT32)mobjinfo[MT_PLAYER].damage : (UINT32)skin->spinitem;
-		player->revitem = skin->revitem < 0 ? (mobjtype_t)mobjinfo[MT_PLAYER].raisestate : (UINT32)skin->revitem;
-
-		player->actionspd = skin->actionspd;
-		player->mindash = skin->mindash;
-		player->maxdash = skin->maxdash;
 
 		// SRB2kart
 		player->kartspeed = skin->kartspeed;
 		player->kartweight = skin->kartweight;
-		
-		// Cheat Checks
-		if (player->kartspeed < 1) player->kartspeed = 1;
-		if (player->kartspeed > 9) player->kartspeed = 9;
-		if (player->kartweight < 1) player->kartweight = 1;
-		if (player->kartweight > 9) player->kartweight = 9;
-		//
 
-		player->normalspeed = skin->normalspeed;
-		player->runspeed = skin->runspeed;
-		player->thrustfactor = skin->thrustfactor;
-		player->accelstart = skin->accelstart;
-		player->acceleration = skin->acceleration;
-
-		player->jumpfactor = skin->jumpfactor;
-
-		/*if (!(cv_debug || devparm) && !(netgame || multiplayer || demoplayback || modeattacking))
+		/*if (!(cv_debug || devparm) && !(netgame || multiplayer || demo.playback || modeattacking))
 		{
 			if (playernum == consoleplayer)
 				CV_StealthSetValue(&cv_playercolor, skin->prefcolor);
-			else if (playernum == secondarydisplayplayer)
+			else if (playernum == displayplayers[1])
 				CV_StealthSetValue(&cv_playercolor2, skin->prefcolor);
-			else if (playernum == thirddisplayplayer)
+			else if (playernum == displayplayers[2])
 				CV_StealthSetValue(&cv_playercolor3, skin->prefcolor);
-			else if (playernum == fourthdisplayplayer)
+			else if (playernum == displayplayers[3])
 				CV_StealthSetValue(&cv_playercolor4, skin->prefcolor);
 			player->skincolor = skin->prefcolor;
 			if (player->mo)
@@ -2716,6 +2699,9 @@ void SetPlayerSkinByNum(INT32 playernum, INT32 skinnum)
 
 		if (player->mo)
 			P_SetScale(player->mo, player->mo->scale);
+
+		demo_extradata[playernum] |= DXD_SKIN;
+
 		return;
 	}
 
@@ -2763,7 +2749,7 @@ void R_AddSkins(UINT16 wadnum)
 	char *value;
 	size_t size;
 	skin_t *skin;
-	boolean hudname, realname, superface;
+	boolean hudname, realname;
 
 	//
 	// search for all skin markers in pwad
@@ -2774,7 +2760,7 @@ void R_AddSkins(UINT16 wadnum)
 		// advance by default
 		lastlump = lump + 1;
 
-		if (numskins > MAXSKINS)
+		if (numskins >= MAXSKINS)
 		{
 			CONS_Debug(DBG_RENDER, "ignored skin (%d skins maximum)\n", MAXSKINS);
 			continue; // so we know how many skins couldn't be added
@@ -2793,7 +2779,7 @@ void R_AddSkins(UINT16 wadnum)
 		skin = &skins[numskins];
 		Sk_SetDefaultValue(skin);
 		skin->wadnum = wadnum;
-		hudname = realname = superface = false;
+		hudname = realname = false;
 		// parse
 		stoken = strtok (buf2, "\r\n= ");
 		while (stoken)
@@ -2878,53 +2864,37 @@ void R_AddSkins(UINT16 wadnum)
 				strupr(value);
 				strncpy(skin->sprite, value, sizeof skin->sprite);
 			}
-			else if (!stricmp(stoken, "charsel"))
+			else if (!stricmp(stoken, "facerank"))
 			{
 				strupr(value);
-				strncpy(skin->charsel, value, sizeof skin->charsel);
+				strncpy(skin->facerank, value, sizeof skin->facerank);
 			}
-			else if (!stricmp(stoken, "face"))
+			else if (!stricmp(stoken, "facewant"))
 			{
 				strupr(value);
-				strncpy(skin->face, value, sizeof skin->face);
-				if (!superface)
-					strncpy(skin->superface, value, sizeof skin->superface);
+				strncpy(skin->facewant, value, sizeof skin->facewant);
 			}
-			else if (!stricmp(stoken, "superface"))
+			else if (!stricmp(stoken, "facemmap"))
 			{
-				superface = true;
 				strupr(value);
-				strncpy(skin->superface, value, sizeof skin->superface);
+				strncpy(skin->facemmap, value, sizeof skin->facemmap);
 			}
 
 #define FULLPROCESS(field) else if (!stricmp(stoken, #field)) skin->field = get_number(value);
 			// character type identification
 			FULLPROCESS(flags)
-			FULLPROCESS(ability)
-			FULLPROCESS(ability2)
-
-			FULLPROCESS(thokitem)
-			FULLPROCESS(spinitem)
-			FULLPROCESS(revitem)
 #undef FULLPROCESS
 
-#define GETSPEED(field) else if (!stricmp(stoken, #field)) skin->field = atoi(value)<<FRACBITS;
-			GETSPEED(normalspeed)
-			GETSPEED(runspeed)
-			GETSPEED(mindash)
-			GETSPEED(maxdash)
-			GETSPEED(actionspd)
-#undef GETSPEED
-
-#define GETINT(field) else if (!stricmp(stoken, #field)) skin->field = atoi(value);
-			// SRB2kart
-			GETINT(kartspeed)
-			GETINT(kartweight)
-			//
-			GETINT(thrustfactor)
-			GETINT(accelstart)
-			GETINT(acceleration)
-#undef GETINT
+#define GETKARTSTAT(field) \
+	else if (!stricmp(stoken, #field)) \
+	{ \
+		skin->field = atoi(value); \
+		if (skin->field < 1) skin->field = 1; \
+		if (skin->field > 9) skin->field = 9; \
+	}
+			GETKARTSTAT(kartspeed)
+			GETKARTSTAT(kartweight)
+#undef GETKARTSTAT
 
 			// custom translation table
 			else if (!stricmp(stoken, "startcolor"))
@@ -2932,15 +2902,8 @@ void R_AddSkins(UINT16 wadnum)
 
 			else if (!stricmp(stoken, "prefcolor"))
 				skin->prefcolor = K_GetKartColorByName(value);
-			else if (!stricmp(stoken, "jumpfactor"))
-				skin->jumpfactor = FLOAT_TO_FIXED(atof(value));
 			else if (!stricmp(stoken, "highresscale"))
 				skin->highresscale = FLOAT_TO_FIXED(atof(value));
-			else if (!stricmp(stoken, "faceicon"))
-			{
-				strupr(value);
-				strncpy(skin->iconprefix, value, sizeof skin->iconprefix);
-			}
 			else
 			{
 				INT32 found = false;
@@ -3040,11 +3003,12 @@ next_token:
 		skin_cons_t[numskins].strvalue = skin->name;
 #endif
 
+		// Update the forceskin possiblevalues
+		Forceskin_cons_t[numskins+1].value = numskins;
+		Forceskin_cons_t[numskins+1].strvalue = skins[numskins].name;
+
 		// add face graphics
-		ST_LoadFaceGraphics(skin->face, skin->superface, numskins);
-		
-		// load minimap icons
-		K_LoadIconGraphics(skin->iconprefix, numskins);
+		ST_LoadFaceGraphics(skin->facerank, skin->facewant, skin->facemmap, numskins);
 
 #ifdef HWRENDER
 		if (rendermode == render_opengl)

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -32,6 +32,18 @@ extern consvar_t cv_ticrate, cv_usegamma, cv_allcaps, cv_constextsize;
 
 // Allocates buffer screens, call before R_Init.
 void V_Init(void);
+
+// Taken from my videos-in-SRB2 project
+// Generates a color look-up table
+// which has up to 64 colors at each channel
+
+#define COLORBITS 6
+#define SHIFTCOLORBITS (8-COLORBITS)
+#define CLUTSIZE (1<<COLORBITS)
+
+extern UINT8 colorlookup[CLUTSIZE][CLUTSIZE][CLUTSIZE];
+
+void InitColorLUT(void);
 
 // Set the current RGB palette lookup to use for palettized graphics
 void V_SetPalette(INT32 palettenum);
@@ -142,9 +154,6 @@ void V_DrawContinueIcon(INT32 x, INT32 y, INT32 flags, INT32 skinnum, UINT8 skin
 // Draw a linear block of pixels into the view buffer.
 void V_DrawBlock(INT32 x, INT32 y, INT32 scrn, INT32 width, INT32 height, const UINT8 *src);
 
-// draw a pic_t, SCALED
-void V_DrawScaledPic (INT32 px1, INT32 py1, INT32 scrn, INT32 lumpnum);
-
 // fill a box with a single color
 void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c);
 void V_DrawFillConsoleMap(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c);
@@ -152,6 +161,9 @@ void V_DrawFillConsoleMap(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c);
 void V_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 c);
 // fill a box with a flat as a pattern
 void V_DrawFlatFill(INT32 x, INT32 y, INT32 w, INT32 h, lumpnum_t flatnum);
+
+// draw wobbly VHS pause stuff
+void V_DrawVhsEffect(boolean rewind);
 
 // fade down the screen buffer before drawing the menu over
 void V_DrawFadeScreen(UINT16 color, UINT8 strength);
@@ -162,6 +174,7 @@ void V_DrawFadeConsBack(INT32 plines);
 void V_DrawCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed);
 // draw a single character, but for the chat
 void V_DrawChatCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed, UINT8 *colormap);
+
 UINT8 *V_GetStringColormap(INT32 colorflags);
 
 void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string);
@@ -181,6 +194,7 @@ void V_DrawRightAlignedSmallString(INT32 x, INT32 y, INT32 option, const char *s
 
 // draw a string using the tny_font
 void V_DrawThinString(INT32 x, INT32 y, INT32 option, const char *string);
+void V_DrawCenteredThinString(INT32 x, INT32 y, INT32 option, const char *string);
 void V_DrawRightAlignedThinString(INT32 x, INT32 y, INT32 option, const char *string);
 
 void V_DrawStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string);
@@ -188,6 +202,10 @@ void V_DrawStringAtFixed(fixed_t x, fixed_t y, INT32 option, const char *string)
 // Draw tall nums, used for menu, HUD, intermission
 void V_DrawTallNum(INT32 x, INT32 y, INT32 flags, INT32 num);
 void V_DrawPaddedTallNum(INT32 x, INT32 y, INT32 flags, INT32 num, INT32 digits);
+
+// Draw ping numbers. Used by the scoreboard and that one ping option. :P
+// This is a separate function because IMO lua should have access to it as well.
+void V_DrawPingNum(INT32 x, INT32 y, INT32 flags, INT32 num, const UINT8 *colormap);
 
 // Find string width from lt_font chars
 INT32 V_LevelNameWidth(const char *string);

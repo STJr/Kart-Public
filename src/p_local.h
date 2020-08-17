@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -22,6 +22,7 @@
 #include "p_tick.h"
 #include "r_defs.h"
 #include "p_maputl.h"
+#include "doomstat.h" // MAXSPLITSCREENPLAYERS
 
 #define FLOATSPEED (FRACUNIT*4)
 
@@ -40,9 +41,6 @@
 
 // Convenience macro to fix issue with collision along bottom/left edges of blockmap -Red
 #define BMBOUNDFIX(xl, xh, yl, yh) {if (xl > xh) xl = 0; if (yl > yh) yl = 0;}
-
-// player radius used only in am_map.c
-#define PLAYERRADIUS (16*FRACUNIT)
 
 // MAXRADIUS is for precalculated sector block boxes
 // the spider demon is larger,
@@ -111,7 +109,21 @@ typedef struct camera_s
 	fixed_t pan;
 } camera_t;
 
-extern camera_t camera, camera2, camera3, camera4;
+// demo freecam or something before i commit die
+struct demofreecam_s {
+
+	camera_t *cam;	// this is useful when the game is paused, notably
+	mobj_t *soundmobj;	// mobj to play sound from, used in s_sound
+	
+	angle_t localangle;	// keeps track of the cam angle for cmds
+	angle_t localaiming;	// ditto with aiming
+	boolean turnheld;	// holding turn button for gradual turn speed
+	boolean keyboardlook;	// keyboard look
+};
+
+extern struct demofreecam_s democam;
+
+extern camera_t camera[MAXSPLITSCREENPLAYERS];
 extern consvar_t cv_cam_dist, cv_cam_still, cv_cam_height;
 extern consvar_t cv_cam_speed, cv_cam_rotate, cv_cam_rotspeed;
 
@@ -131,16 +143,18 @@ extern fixed_t t_cam4_dist, t_cam4_height, t_cam4_rotate;
 
 fixed_t P_GetPlayerHeight(player_t *player);
 fixed_t P_GetPlayerSpinHeight(player_t *player);
-INT32 P_GetPlayerControlDirection(player_t *player);
 void P_AddPlayerScore(player_t *player, UINT32 amount);
 void P_ResetCamera(player_t *player, camera_t *thiscam);
 boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam);
 void P_SlideCameraMove(camera_t *thiscam);
+void P_DemoCameraMovement(camera_t *cam);
 boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcalled);
+void P_InitCameraCmd(void);
 boolean P_PlayerInPain(player_t *player);
 void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor);
 void P_ResetPlayer(player_t *player);
 boolean P_IsLocalPlayer(player_t *player);
+boolean P_IsDisplayPlayer(player_t *player);
 boolean P_SpectatorJoinGame(player_t *player);
 
 boolean P_IsObjectInGoop(mobj_t *mo);
@@ -182,7 +196,6 @@ boolean P_LookForEnemies(player_t *player);
 void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius);
 void P_HomingAttack(mobj_t *source, mobj_t *enemy); /// \todo doesn't belong in p_user
 //boolean P_SuperReady(player_t *player);
-void P_DoJump(player_t *player, boolean soundandstate);
 boolean P_AnalogMove(player_t *player);
 /*boolean P_TransferToNextMare(player_t *player);
 UINT8 P_FindLowestMare(void);*/
@@ -191,8 +204,6 @@ UINT8 P_FindHighestLap(void);
 void P_FindEmerald(void);
 //void P_TransferToAxis(player_t *player, INT32 axisnum);
 boolean P_PlayerMoving(INT32 pnum);
-void P_SpawnThokMobj(player_t *player);
-void P_SpawnSpinMobj(player_t *player, mobjtype_t type);
 void P_Telekinesis(player_t *player, fixed_t thrust, fixed_t range);
 
 void P_PlayLivesJingle(player_t *player);
@@ -277,8 +288,6 @@ boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled
 
 void P_Attract(mobj_t *source, mobj_t *enemy, boolean nightsgrab);
 mobj_t *P_GetClosestAxis(mobj_t *source);
-
-boolean P_CanRunOnWater(player_t *player, ffloor_t *rover);
 
 void P_FlashPal(player_t *pl, UINT16 type, UINT16 duration);
 #define PAL_WHITE    1

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -49,7 +49,9 @@ static tic_t stoptimer;
 static boolean keypressed = false;
 
 // (no longer) De-Demo'd Title Screen
-static UINT8  curDemo = 0;
+#if 0
+static UINT8  laststaff = 0;
+#endif
 static UINT32 demoDelayLeft;
 static UINT32 demoIdleLeft;
 
@@ -152,96 +154,46 @@ static void F_NewCutscene(const char *basetext)
 }
 
 //
-// F_DrawPatchCol
-//
-static void F_DrawPatchCol(INT32 x, patch_t *patch, INT32 col)
-{
-	const column_t *column;
-	const UINT8 *source;
-	UINT8 *desttop, *dest = NULL;
-	const UINT8 *deststop, *destbottom;
-	size_t count;
-
-	desttop = screens[0] + x*vid.dupx;
-	deststop = screens[0] + vid.rowbytes * vid.height;
-	destbottom = desttop + vid.height*vid.width;
-
-	do {
-		INT32 topdelta, prevdelta = -1;
-		column = (column_t *)((UINT8 *)patch + LONG(patch->columnofs[col]));
-
-		// step through the posts in a column
-		while (column->topdelta != 0xff)
-		{
-			topdelta = column->topdelta;
-			if (topdelta <= prevdelta)
-				topdelta += prevdelta;
-			prevdelta = topdelta;
-			source = (const UINT8 *)column + 3;
-			dest = desttop + topdelta*vid.width;
-			count = column->length;
-
-			while (count--)
-			{
-				INT32 dupycount = vid.dupy;
-
-				while (dupycount-- && dest < destbottom)
-				{
-					INT32 dupxcount = vid.dupx;
-					while (dupxcount-- && dest <= deststop)
-						*dest++ = *source;
-
-					dest += (vid.width - vid.dupx);
-				}
-				source++;
-			}
-			column = (const column_t *)((const UINT8 *)column + column->length + 4);
-		}
-
-		desttop += SHORT(patch->height)*vid.dupy*vid.width;
-	} while(dest < destbottom);
-}
-
-//
 // F_SkyScroll
 //
 static void F_SkyScroll(INT32 scrollspeed)
 {
-	INT32 scrolled, x, mx, fakedwidth;
-	patch_t *pat;
+	INT32 x, y, w;
+	patch_t *pat, *pat2;
+	INT32 anim2 = 0;
 
-	pat = W_CachePatchName("TITLESKY", PU_CACHE);
+	pat = W_CachePatchName("TITLEBG1", PU_CACHE);
+	pat2 = W_CachePatchName("TITLEBG2", PU_CACHE);
+
+	w = vid.width / vid.dupx;
 
 	animtimer = ((finalecount*scrollspeed)/16) % SHORT(pat->width);
+	anim2 = SHORT(pat2->width) - (((finalecount*scrollspeed)/16) % SHORT(pat2->width));
 
-	fakedwidth = vid.width / vid.dupx;
+	// SRB2Kart: F_DrawPatchCol is over-engineered; recoded to be less shitty and error-prone
+	if (rendermode != render_none)
+	{
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 
-	if (rendermode == render_soft)
-	{ // if only hardware rendering could be this elegant and complete
-		scrolled = (SHORT(pat->width) - animtimer) - 1;
-		for (x = 0, mx = scrolled; x < fakedwidth; x++, mx = (mx+1)%SHORT(pat->width))
-			F_DrawPatchCol(x, pat, mx);
-	}
-#ifdef HWRENDER
-	else if (rendermode != render_none)
-	{ // if only software rendering could be this simple and retarded
-		INT32 dupz = (vid.dupx < vid.dupy ? vid.dupx : vid.dupy);
-		INT32 y, pw = SHORT(pat->width) * dupz, ph = SHORT(pat->height) * dupz;
-		scrolled = animtimer * dupz;
-		for (x = 0; x < vid.width; x += pw)
+		x = -((INT32)animtimer);
+		y = 0;
+		while (x < w)
 		{
-			for (y = 0; y < vid.height; y += ph)
-			{
-				if (scrolled > 0)
-					V_DrawScaledPatch(scrolled - pw, y, V_NOSCALESTART, pat);
+			V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, FRACUNIT, V_SNAPTOTOP|V_SNAPTOLEFT, pat, NULL);
+			x += SHORT(pat->width);
+		}
 
-				V_DrawScaledPatch(x + scrolled, y, V_NOSCALESTART, pat);
-			}
+		x = -anim2;
+		y = BASEVIDHEIGHT - SHORT(pat2->height);
+		while (x < w)
+		{
+			V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTOLEFT, pat2, NULL);
+			x += SHORT(pat2->width);
 		}
 	}
-#endif
 
 	W_UnlockCachedPatch(pat);
+	W_UnlockCachedPatch(pat2);
 }
 
 // =============
@@ -263,6 +215,14 @@ void F_StartCustomCutscene(INT32 cutscenenum, boolean precutscene, boolean reset
 
 void F_StartIntro(void)
 {
+	if (gamestate)
+	{
+		F_WipeStartScreen();
+		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+		F_WipeEndScreen();
+		F_RunWipe(wipedefs[wipe_level_final], false);
+	}
+
 	if (introtoplay)
 	{
 		if (!cutscenes[introtoplay - 1])
@@ -278,7 +238,6 @@ void F_StartIntro(void)
 	gameaction = ga_nothing;
 	paused = false;
 	CON_ToggleOff();
-	CON_ClearHUD();
 	F_NewCutscene(introtext[0]);
 
 	intro_scenenum = 0;
@@ -462,81 +421,123 @@ boolean F_IntroResponder(event_t *event)
 //  CREDITS
 // =========
 static const char *credits[] = {
-	"\1SRB2 Kart",
+	"\1SRB2Kart",
 	"\1Credits",
 	"",
 	"\1Game Design",
-	"\"Chaos Zero 64\"",
-	"\"Iceman404\" aka \"VelocitOni\"",
-	"\"ZarroTsu\"",
+	"Sally \"TehRealSalt\" Cochenour",
+	"Jeffery \"Chromatian\" Scott",
+	"\"VelocitOni\"",
 	"",
-	"\1Programming",
-	"\"Chaos Zero 64\"",
+	"\1Lead Programming",
 	"Sally \"TehRealSalt\" Cochenour",
 	"Vivian \"toaster\" Grannell",
-	"\"Lat\'\"",
-	"\"Monster Iestyn\"",
 	"Sean \"Sryder\" Ryder",
 	"Ehab \"wolfs\" Saeed",
 	"\"ZarroTsu\"",
 	"",
-	"\1Artists",
-	"\"Chaos Zero 64\"",
-	"Sally \"TehRealSalt\" Cochenour",
+	"\1Support Programming",
+	"Colette \"fickleheart\" Bordelon",
+	"James R.",
+	"\"Lat\'\"",
+	"\"Monster Iestyn\"",
+	"\"Shuffle\"",
+	"\"SteelT\"",
+	"",
+	"\1Lead Artists",
 	"Desmond \"Blade\" DesJardins",
-	"Sherman \"CoatRack\" DesJardin",
+	"\"VelocitOni\"",
+	"",
+	"\1Support Artists",
+	"Sally \"TehRealSalt\" Cochenour",
+	"Sherman \"CoatRack\" DesJardins",
+	"\"DrTapeworm\"",
+	"Jesse \"Jeck Jims\" Emerick",
 	"Wesley \"Charyb\" Gillebaard",
+	"Vivian \"toaster\" Grannell",
 	"James \"SeventhSentinel\" Hall",
-	"\"Iceman404\"",
-	"\"MotorRoach\"",
-	"\"VAdaPEGA\"",
+	"\"Lat\'\"",
+	"\"Tyrannosaur Chao\"",
 	"\"ZarroTsu\"",
 	"",
-	"\1Music and Sound",
-	"Karl Brueggemann",
+	"\1External Artists",
+	"\"1-Up Mason\"",
+	"\"Chengi\"",
+	"\"Chrispy\"",
+	"\"DirkTheHusky\"",
+	"\"LJSTAR\"",
+	"\"MotorRoach\"",
+	"\"Nev3r\"",
+	"\"rairai104n\"",
+	"\"Ritz\"",
+	"\"Rob\"",
+	"\"SmithyGNC\"",
+	"\"Snu\"",
+	"\"Spherallic\"",
+	"\"TelosTurntable\"",
+	"\"VAdaPEGA\"",
+	"\"Virt\"",
+	"\"Voltrix\"",
+	"",
+	"\1Sound Design",
+	"James \"SeventhSentinel\" Hall",
+	"Sonic Team",
+	"\"VAdaPEGA\"",
+	"\"VelocitOni\"",
+	"",
+	"\1Music",
+	"\"DrTapeworm\"",
 	"Wesley \"Charyb\" Gillebaard",
 	"James \"SeventhSentinel\" Hall",
-	"\"MaxieDaMan\"",
 	"",
-	"\1Level Design",
+	"\1Lead Level Design",
 	"\"Blitz-T\"",
-	"\"D00D64-X\"",
-	"\"Chaos Zero 64\"",
-	"Paul \"Boinciel\" Clempson",
 	"Sally \"TehRealSalt\" Cochenour",
 	"Desmond \"Blade\" DesJardins",
-	"Sherman \"CoatRack\" DesJardin",
+	"Jeffery \"Chromatian\" Scott",
+	"\"Tyrannosaur Chao\"",
+	"",
+	"\1Support Level Design",
+	"\"Chaos Zero 64\"",
+	"\"D00D64\"",
+	"\"DrTapeworm\"",
+	"Paul \"Boinciel\" Clempson",
+	"Sherman \"CoatRack\" DesJardins",
+	"Colette \"fickleheart\" Bordelon",
+	"Vivian \"toaster\" Grannell",
+	"\"Gunla\"",
 	"James \"SeventhSentinel\" Hall",
+	"\"Lat\'\"",
+	"\"MK\"",
+	"\"Ninferno\"",
 	"Sean \"Sryder\" Ryder",
 	"\"Ryuspark\"",
-	"Jeffery \"Chromatian\" Scott",
 	"\"Simsmagic\"",
-	"\"Tyrannosaur Chao\" aka \"Chaotic Chao\"",
+	"\"SP47\"",
+	"\"TG\"",
+	"\"Victor Rush Turbo\"",
 	"\"ZarroTsu\"",
 	"",
 	"\1Testing",
 	"\"CyberIF\"",
 	"\"Dani\"",
 	"Karol \"Fooruman\" D""\x1E""browski", // Dąbrowski, <Sryder> accents in srb2 :ytho:
-	"Jesse \"Jeck Jims\" Emerick",
 	"\"VirtAnderson\"",
 	"",
 	"\1Special Thanks",
-	"Sonic Team Jr. & SRB2 (www.srb2.org)",
-	"Bandit \"Bobby\" Cochenour", // i <3 my dog
-	"Bear", // i <3 MY dog too
-	"\"Chrispy\"",
-	"\"DirkTheHusky\"",
-	"\"fickle\"", // and my sharki
-	"\"Nev3r\"",
-	"\"Ritz\"",
-	"\"Spherallic\"",
+	"SEGA",
+	"Sonic Team",
+	"SRB2 & Sonic Team Jr. (www.srb2.org)",
+	"\"blazethecat\"",
+	"\"Chaos Zero 64\"",
+	"\"Rob\"",
 	"",
 	"\1Produced By",
 	"Kart Krew",
 	"",
 	"\1In Memory of",
 	"\"Tyler52\"",
+	"",
 	"",
 	"\1Thank you",
 	"\1for playing!",
@@ -546,18 +547,29 @@ static const char *credits[] = {
 static struct {
 	UINT32 x, y;
 	const char *patch;
+	UINT8 colorize;
 } credits_pics[] = {
-	/*{  8, 80+200* 1, "CREDIT01"},
-	{  4, 80+200* 2, "CREDIT13"},
-	{250, 80+200* 3, "CREDIT12"},
-	{  8, 80+200* 4, "CREDIT03"},
-	{248, 80+200* 5, "CREDIT11"},
-	{  8, 80+200* 6, "CREDIT04"},
-	{112, 80+200* 7, "CREDIT10"},
-	{240, 80+200* 8, "CREDIT05"},
-	{120, 80+200* 9, "CREDIT06"},*/
-	{112, 80+100+200*10, "TYLER52"},
-	{0, 0, NULL}
+	// We don't have time to be fancy, let's just colorize some item sprites :V
+	{224, 80+(200* 1), "K_ITJAWZ", SKINCOLOR_CREAMSICLE},
+	{224, 80+(200* 2), "K_ITSPB",  SKINCOLOR_GARDEN},
+	{224, 80+(200* 3), "K_ITBANA", SKINCOLOR_LILAC},
+	{224, 80+(200* 4), "K_ITHYUD", SKINCOLOR_DREAM},
+	{224, 80+(200* 5), "K_ITBHOG", SKINCOLOR_TANGERINE},
+	{224, 80+(200* 6), "K_ITSHRK", SKINCOLOR_JAWZ},
+	{224, 80+(200* 7), "K_ITSHOE", SKINCOLOR_MINT},
+	{224, 80+(200* 8), "K_ITGROW", SKINCOLOR_RUBY},
+	{224, 80+(200* 9), "K_ITPOGO", SKINCOLOR_SAPPHIRE},
+	{224, 80+(200*10), "K_ITRSHE", SKINCOLOR_YELLOW},
+	{224, 80+(200*11), "K_ITORB4", SKINCOLOR_DUSK},
+	{224, 80+(200*12), "K_ITEGGM", SKINCOLOR_GREEN},
+	{224, 80+(200*13), "K_ITMINE", SKINCOLOR_BRONZE},
+	{224, 80+(200*14), "K_ITTHNS", SKINCOLOR_RASPBERRY},
+	{224, 80+(200*15), "K_ITINV1", SKINCOLOR_GREY},
+	// This Tyler52 gag is troublesome
+	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
+	// Current max image spacing: (200*17)
+	{112, (15*100)+(17*38)+(88*15), "TYLER52", SKINCOLOR_NONE},
+	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
 void F_StartCredits(void)
@@ -580,10 +592,10 @@ void F_StartCredits(void)
 	gameaction = ga_nothing;
 	paused = false;
 	CON_ToggleOff();
-	CON_ClearHUD();
 	S_StopMusic();
 
 	S_ChangeMusicInternal("credit", false);
+	S_ShowMusicCredit();
 
 	finalecount = 0;
 	animtimer = 0;
@@ -605,7 +617,21 @@ void F_CreditDrawer(void)
 
 	// Draw pictures
 	for (i = 0; credits_pics[i].patch; i++)
-		V_DrawSciencePatch(credits_pics[i].x<<FRACBITS, (credits_pics[i].y<<FRACBITS) - 4*(animtimer<<FRACBITS)/5, 0, W_CachePatchName(credits_pics[i].patch, PU_CACHE), FRACUNIT>>1);
+	{
+		UINT8 *colormap = NULL;
+		fixed_t sc = FRACUNIT>>1;
+
+		if (credits_pics[i].colorize != SKINCOLOR_NONE)
+		{
+			colormap = R_GetTranslationColormap(TC_RAINBOW, credits_pics[i].colorize, GTC_MENUCACHE);
+			sc = FRACUNIT; // quick hack so I don't have to add another field to credits_pics
+		}
+
+		V_DrawFixedPatch(credits_pics[i].x<<FRACBITS, (credits_pics[i].y<<FRACBITS) - 4*(animtimer<<FRACBITS)/5, sc, 0, W_CachePatchName(credits_pics[i].patch, PU_CACHE), colormap);
+	}
+
+	// Dim the background
+	//V_DrawFadeScreen();
 
 	// Draw credits text on top
 	for (i = 0; credits[i]; i++)
@@ -629,16 +655,34 @@ void F_CreditDrawer(void)
 		if (((y>>FRACBITS) * vid.dupy) > vid.height)
 			break;
 	}
+}
 
+void F_CreditTicker(void)
+{
+	// "Simulate" the drawing of the credits so that dedicated mode doesn't get stuck
+	UINT16 i;
+	fixed_t y = (80<<FRACBITS) - 5*(animtimer<<FRACBITS)/8;
+
+	// Draw credits text on top
+	for (i = 0; credits[i]; i++)
+	{
+		switch(credits[i][0])
+		{
+			case 0: y += 80<<FRACBITS; break;
+			case 1: y += 30<<FRACBITS; break;
+			default: y += 12<<FRACBITS; break;
+		}
+		if (FixedMul(y,vid.dupy) > vid.height)
+			break;
+	}
+
+	// Do this here rather than in the drawer you doofus! (this is why dedicated mode broke at credits)
 	if (!credits[i] && y <= 120<<FRACBITS && !finalecount)
 	{
 		timetonext = 5*TICRATE+1;
 		finalecount = 5*TICRATE;
 	}
-}
 
-void F_CreditTicker(void)
-{
 	if (timetonext)
 		timetonext--;
 	else
@@ -741,7 +785,6 @@ void F_StartGameEvaluation(void)
 	gameaction = ga_nothing;
 	paused = false;
 	CON_ToggleOff();
-	CON_ClearHUD();
 
 	finalecount = 0;
 }
@@ -851,7 +894,6 @@ void F_StartGameEnd(void)
 	gameaction = ga_nothing;
 	paused = false;
 	CON_ToggleOff();
-	CON_ClearHUD();
 	S_StopMusic();
 
 	// In case menus are still up?!!
@@ -865,6 +907,7 @@ void F_StartGameEnd(void)
 //
 void F_GameEndDrawer(void)
 {
+	// this function does nothing
 }
 
 //
@@ -894,7 +937,9 @@ void F_StartTitleScreen(void)
 	// IWAD dependent stuff.
 
 	// music is started in the ticker
-	S_StopMusic();
+	if (!demo.fromtitle) // SRB2Kart: Don't reset music if the right track is already playing
+		S_StopMusic();
+	demo.fromtitle = false;
 
 	animtimer = 0;
 
@@ -971,13 +1016,13 @@ void F_TitleScreenTicker(boolean run)
 
 		if (finalecount == 10)
 		{
-			S_StartSound(NULL, sfx_spin);
+			S_StartSound(NULL, sfx_s23e);
 		}
 		else if (finalecount == 50)
 		{
 			// Now start the music
 			S_ChangeMusicInternal("titles", looptitle);
-			S_StartSound(NULL, sfx_zoom);
+			S_StartSound(NULL, sfx_s23c);
 		}
 	}
 
@@ -985,8 +1030,8 @@ void F_TitleScreenTicker(boolean run)
 	if (gameaction != ga_nothing || gamestate != GS_TITLESCREEN)
 		return;
 
-	// no demos to play? or, are they disabled?
-	if (!cv_rollingdemos.value || !numDemos)
+	// are demos disabled?
+	if (!cv_rollingdemos.value)
 		return;
 
 	// Wait for a while (for the music to finish, preferably)
@@ -1007,31 +1052,83 @@ void F_TitleScreenTicker(boolean run)
 	// is it time?
 	if (!(--demoIdleLeft))
 	{
+		//static boolean use_netreplay = false;
+
 		char dname[9];
 		lumpnum_t l;
+		const char *mapname;
+		UINT8 numstaff;
+
+		//@TODO uncomment this when this goes into vanilla
+		/*if ((use_netreplay = !use_netreplay))*/
+		{
+			numstaff = 1;
+			while ((l = W_CheckNumForName(va("TDEMO%03u", numstaff))) != LUMPERROR)
+				numstaff++;
+			numstaff--;
+
+			if (numstaff)
+			{
+				numstaff = M_RandomKey(numstaff)+1;
+				snprintf(dname, 9, "TDEMO%03u", numstaff);
+				goto loadreplay;
+			}
+		}
 
 		// prevent console spam if failed
 		demoIdleLeft = demoIdleTime;
 
+		if ((l = W_CheckNumForName("MAP01S01")) == LUMPERROR) // gotta have ONE
+		{
+			F_StartIntro();
+			return;
+		}
+
 		// Replay intro when done cycling through demos
-		if (curDemo == numDemos)
+		/*if (curDemo == numDemos) -- uuuh... we have a LOT of maps AND a big devteam... probably not gonna see a repeat unless you're super unlucky :V
 		{
 			curDemo = 0;
 			F_StartIntro();
 			return;
+		}*/
+
+		mapname = G_BuildMapName(G_RandMap(TOL_RACE, -2, false, 0, false, NULL)+1);
+
+		numstaff = 1;
+		while (numstaff < 99 && (l = W_CheckNumForName(va("%sS%02u",mapname,numstaff+1))) != LUMPERROR)
+			numstaff++;
+
+#if 0 // turns out this isn't how we're gonna organise 'em
+		if (numstaff > 1)
+		{
+			if (laststaff && laststaff <= numstaff) // don't do the same staff member twice in a row, even if they're on different maps
+			{
+				numstaff = M_RandomKey(numstaff-1)+1;
+				if (numstaff >= laststaff)
+					numstaff++;
+			}
+			else
+				numstaff = M_RandomKey(numstaff)+1;
 		}
+		laststaff = numstaff;
+#else
+		numstaff = M_RandomKey(numstaff)+1;
+#endif
 
 		// Setup demo name
-		snprintf(dname, 9, "DEMO_%03u", ++curDemo);
+		snprintf(dname, 9, "%sS%02u", mapname, numstaff);
 
-		if ((l = W_CheckNumForName(dname)) == LUMPERROR)
+		/*if ((l = W_CheckNumForName(dname)) == LUMPERROR) -- we KNOW it exists now
 		{
 			CONS_Alert(CONS_ERROR, M_GetText("Demo lump \"%s\" doesn't exist\n"), dname);
 			F_StartIntro();
 			return;
-		}
+		}*/
 
-		titledemo = true;
+loadreplay:
+		demo.title = demo.fromtitle = true;
+		demo.ignorefiles = true;
+		demo.loadfiles = false;
 		G_DoPlayDemo(dname);
 	}
 }
@@ -1055,11 +1152,15 @@ void F_StartWaitingPlayers(void)
 	finalecount = 0;
 
 	randskin = M_RandomKey(numskins);
+
+	if (waitcolormap)
+		Z_Free(waitcolormap);
+
 	waitcolormap = R_GetTranslationColormap(randskin, skins[randskin].prefcolor, 0);
 
 	for (i = 0; i < 2; i++)
 	{
-		sprframe = &skins[randskin].spritedef.spriteframes[(6+i) & FF_FRAMEMASK];
+		sprframe = &skins[randskin].spritedef.spriteframes[(6+(i*3)) & FF_FRAMEMASK];
 		driver[i] = W_CachePatchNum(sprframe->lumppat[1], PU_LEVEL);
 	}
 }
@@ -1107,7 +1208,6 @@ void F_StartContinue(void)
 	keypressed = false;
 	paused = false;
 	CON_ToggleOff();
-	CON_ClearHUD();
 
 	// In case menus are still up?!!
 	M_ClearMenus(true);
@@ -1227,9 +1327,10 @@ static void F_AdvanceToNextScene(void)
 	picypos = cutscenes[cutnum]->scene[scenenum].ycoord[picnum];
 
 	if (cutscenes[cutnum]->scene[scenenum].musswitch[0])
-		S_ChangeMusic(cutscenes[cutnum]->scene[scenenum].musswitch,
+		S_ChangeMusicEx(cutscenes[cutnum]->scene[scenenum].musswitch,
 			cutscenes[cutnum]->scene[scenenum].musswitchflags,
-			cutscenes[cutnum]->scene[scenenum].musicloop);
+			cutscenes[cutnum]->scene[scenenum].musicloop,
+			cutscenes[cutnum]->scene[scenenum].musswitchposition, 0, 0);
 
 	// Fade to the next
 	dofadenow = true;
@@ -1246,7 +1347,7 @@ static void F_AdvanceToNextScene(void)
 
 void F_EndCutScene(void)
 {
-	cutsceneover = true; // do this first, just in case Y_EndGame or something wants to turn it back false later
+	cutsceneover = true; // do this first, just in case G_EndGame or something wants to turn it back false later
 	if (runningprecutscene)
 	{
 		if (server)
@@ -1261,7 +1362,7 @@ void F_EndCutScene(void)
 		else if (nextmap < 1100-1)
 			G_NextLevel();
 		else
-			Y_EndGame();
+			G_EndGame();
 	}
 }
 
@@ -1277,8 +1378,6 @@ void F_StartCustomCutscene(INT32 cutscenenum, boolean precutscene, boolean reset
 	CON_ToggleOff();
 
 	F_NewCutscene(cutscenes[cutscenenum]->scene[0].text);
-
-	CON_ClearHUD();
 
 	cutsceneover = false;
 	runningprecutscene = precutscene;
@@ -1300,9 +1399,10 @@ void F_StartCustomCutscene(INT32 cutscenenum, boolean precutscene, boolean reset
 	stoptimer = 0;
 
 	if (cutscenes[cutnum]->scene[0].musswitch[0])
-		S_ChangeMusic(cutscenes[cutnum]->scene[0].musswitch,
+		S_ChangeMusicEx(cutscenes[cutnum]->scene[0].musswitch,
 			cutscenes[cutnum]->scene[0].musswitchflags,
-			cutscenes[cutnum]->scene[0].musicloop);
+			cutscenes[cutnum]->scene[0].musicloop,
+			cutscenes[cutnum]->scene[scenenum].musswitchposition, 0, 0);
 	else
 		S_StopMusic();
 }

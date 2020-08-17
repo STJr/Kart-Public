@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2012-2016 by John "JTE" Muniz.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2012-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -38,6 +38,8 @@
 void LUA_ClearExtVars(void);
 #endif
 
+void LUA_ClearState(void);
+
 void LUA_LoadLump(UINT16 wad, UINT16 lump);
 #ifdef LUA_ALLOW_BYTECODE
 void LUA_DumpFile(const char *filename);
@@ -51,6 +53,10 @@ void LUA_InvalidatePlayer(player_t *player);
 void LUA_Step(void);
 void LUA_Archive(void);
 void LUA_UnArchive(void);
+
+void LUA_ArchiveDemo(void);
+void LUA_UnArchiveDemo(void);
+
 void Got_Luacmd(UINT8 **cp, INT32 playernum); // lua_consolelib.c
 void LUA_CVarChanged(const char *name); // lua_consolelib.c
 int Lua_optoption(lua_State *L, int narg,

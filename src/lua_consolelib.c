@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2012-2016 by John "JTE" Muniz.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2012-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -118,14 +118,14 @@ void COM_Lua_f(void)
 		flags = (UINT8)lua_tointeger(gL, -1);
 	lua_pop(gL, 1); // pop flags
 
-	if (flags & 2) // flag 2: splitscreen player command.
+	if (flags & 2) // flag 2: splitscreen player command. TODO: support 4P
 	{
 		if (!splitscreen)
 		{
 			lua_pop(gL, 1); // pop command info table
 			return; // can't execute splitscreen command without player 2!
 		}
-		playernum = secondarydisplayplayer;
+		playernum = displayplayers[1];
 	}
 
 	if (netgame)
@@ -413,6 +413,30 @@ static int lib_cvRegisterVar(lua_State *L)
 	return 1;
 }
 
+// For some reason I couldn't cherry pick this.
+// Credits for this function go to james. All hail birb.		-Lat'
+
+static int lib_cvFindVar(lua_State *L)
+{
+	consvar_t *cv;
+	if (( cv = CV_FindVar(luaL_checkstring(L,1)) ))
+	{
+		lua_settop(L,1);/* We only want one argument in the stack. */
+		lua_pushlightuserdata(L, cv);/* Now the second value on stack. */
+		luaL_getmetatable(L, META_CVAR);
+		/*
+		The metatable is the last value on the stack, so this
+		applies it to the second value, which is the cvar.
+		*/
+		lua_setmetatable(L,2);
+		lua_pushvalue(L,2);
+		return 1;
+	}
+	else
+		return 0;
+}
+
+
 // CONS_Printf for a single player
 // Use 'print' in baselib for a global message.
 static int lib_consPrintf(lua_State *L)
@@ -452,6 +476,7 @@ static luaL_Reg lib[] = {
 	{"COM_BufInsertText", lib_comBufInsertText},
 	{"CV_RegisterVar", lib_cvRegisterVar},
 	{"CONS_Printf", lib_consPrintf},
+	{"CV_FindVar", lib_cvFindVar},
 	{NULL, NULL}
 };
 

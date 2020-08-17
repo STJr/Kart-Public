@@ -236,7 +236,7 @@ static void Snd_UnlockAudio(void) //Alam: Unlock audio data and reinstall audio 
 #endif
 }
 
-FUNCMATH static inline Uint16 Snd_LowerRate(Uint16 sr)
+static inline Uint16 Snd_LowerRate(Uint16 sr)
 {
 	if (sr <= audio.freq) // already lowered rate?
 		return sr; // good then
@@ -1435,7 +1435,7 @@ static boolean LoadSong(void *data, size_t lumplength, size_t selectpos)
 
 	if (fwrite(data, lumplength, 1, midfile) == 0)
 	{
-		CONS_Printf(M_GetText("Couldn't write music into file %s because %s\n"), tempname, strerror(ferror(midfile)));
+		CONS_Printf(M_GetText("Couldn't write music into file %s because %s\n"), tempname, M_FileError(midfile));
 		Z_Free(data);
 		fclose(midfile);
 		return false;

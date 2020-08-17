@@ -1,17 +1,12 @@
-// Emacs style mode select   -*- C++ -*-
+// SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-//
+// Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
+// Copyright (C) 1999-2019 by Sonic Team Junior.
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// This program is free software distributed under the
+// terms of the GNU General Public License, version 2.
+// See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
 /// \file
 /// \brief MD2 Handling
@@ -43,6 +38,7 @@
 #include "../r_draw.h"
 #include "../p_tick.h"
 #include "../k_kart.h" // colortranslations
+#include "hw_model.h"
 
 #include "hw_main.h"
 #include "../v_video.h"
@@ -75,172 +71,6 @@
 #include "errno.h"
 #endif
 
-#define NUMVERTEXNORMALS 162
-float avertexnormals[NUMVERTEXNORMALS][3] = {
-{-0.525731f, 0.000000f, 0.850651f},
-{-0.442863f, 0.238856f, 0.864188f},
-{-0.295242f, 0.000000f, 0.955423f},
-{-0.309017f, 0.500000f, 0.809017f},
-{-0.162460f, 0.262866f, 0.951056f},
-{0.000000f, 0.000000f, 1.000000f},
-{0.000000f, 0.850651f, 0.525731f},
-{-0.147621f, 0.716567f, 0.681718f},
-{0.147621f, 0.716567f, 0.681718f},
-{0.000000f, 0.525731f, 0.850651f},
-{0.309017f, 0.500000f, 0.809017f},
-{0.525731f, 0.000000f, 0.850651f},
-{0.295242f, 0.000000f, 0.955423f},
-{0.442863f, 0.238856f, 0.864188f},
-{0.162460f, 0.262866f, 0.951056f},
-{-0.681718f, 0.147621f, 0.716567f},
-{-0.809017f, 0.309017f, 0.500000f},
-{-0.587785f, 0.425325f, 0.688191f},
-{-0.850651f, 0.525731f, 0.000000f},
-{-0.864188f, 0.442863f, 0.238856f},
-{-0.716567f, 0.681718f, 0.147621f},
-{-0.688191f, 0.587785f, 0.425325f},
-{-0.500000f, 0.809017f, 0.309017f},
-{-0.238856f, 0.864188f, 0.442863f},
-{-0.425325f, 0.688191f, 0.587785f},
-{-0.716567f, 0.681718f, -0.147621f},
-{-0.500000f, 0.809017f, -0.309017f},
-{-0.525731f, 0.850651f, 0.000000f},
-{0.000000f, 0.850651f, -0.525731f},
-{-0.238856f, 0.864188f, -0.442863f},
-{0.000000f, 0.955423f, -0.295242f},
-{-0.262866f, 0.951056f, -0.162460f},
-{0.000000f, 1.000000f, 0.000000f},
-{0.000000f, 0.955423f, 0.295242f},
-{-0.262866f, 0.951056f, 0.162460f},
-{0.238856f, 0.864188f, 0.442863f},
-{0.262866f, 0.951056f, 0.162460f},
-{0.500000f, 0.809017f, 0.309017f},
-{0.238856f, 0.864188f, -0.442863f},
-{0.262866f, 0.951056f, -0.162460f},
-{0.500000f, 0.809017f, -0.309017f},
-{0.850651f, 0.525731f, 0.000000f},
-{0.716567f, 0.681718f, 0.147621f},
-{0.716567f, 0.681718f, -0.147621f},
-{0.525731f, 0.850651f, 0.000000f},
-{0.425325f, 0.688191f, 0.587785f},
-{0.864188f, 0.442863f, 0.238856f},
-{0.688191f, 0.587785f, 0.425325f},
-{0.809017f, 0.309017f, 0.500000f},
-{0.681718f, 0.147621f, 0.716567f},
-{0.587785f, 0.425325f, 0.688191f},
-{0.955423f, 0.295242f, 0.000000f},
-{1.000000f, 0.000000f, 0.000000f},
-{0.951056f, 0.162460f, 0.262866f},
-{0.850651f, -0.525731f, 0.000000f},
-{0.955423f, -0.295242f, 0.000000f},
-{0.864188f, -0.442863f, 0.238856f},
-{0.951056f, -0.162460f, 0.262866f},
-{0.809017f, -0.309017f, 0.500000f},
-{0.681718f, -0.147621f, 0.716567f},
-{0.850651f, 0.000000f, 0.525731f},
-{0.864188f, 0.442863f, -0.238856f},
-{0.809017f, 0.309017f, -0.500000f},
-{0.951056f, 0.162460f, -0.262866f},
-{0.525731f, 0.000000f, -0.850651f},
-{0.681718f, 0.147621f, -0.716567f},
-{0.681718f, -0.147621f, -0.716567f},
-{0.850651f, 0.000000f, -0.525731f},
-{0.809017f, -0.309017f, -0.500000f},
-{0.864188f, -0.442863f, -0.238856f},
-{0.951056f, -0.162460f, -0.262866f},
-{0.147621f, 0.716567f, -0.681718f},
-{0.309017f, 0.500000f, -0.809017f},
-{0.425325f, 0.688191f, -0.587785f},
-{0.442863f, 0.238856f, -0.864188f},
-{0.587785f, 0.425325f, -0.688191f},
-{0.688191f, 0.587785f, -0.425325f},
-{-0.147621f, 0.716567f, -0.681718f},
-{-0.309017f, 0.500000f, -0.809017f},
-{0.000000f, 0.525731f, -0.850651f},
-{-0.525731f, 0.000000f, -0.850651f},
-{-0.442863f, 0.238856f, -0.864188f},
-{-0.295242f, 0.000000f, -0.955423f},
-{-0.162460f, 0.262866f, -0.951056f},
-{0.000000f, 0.000000f, -1.000000f},
-{0.295242f, 0.000000f, -0.955423f},
-{0.162460f, 0.262866f, -0.951056f},
-{-0.442863f, -0.238856f, -0.864188f},
-{-0.309017f, -0.500000f, -0.809017f},
-{-0.162460f, -0.262866f, -0.951056f},
-{0.000000f, -0.850651f, -0.525731f},
-{-0.147621f, -0.716567f, -0.681718f},
-{0.147621f, -0.716567f, -0.681718f},
-{0.000000f, -0.525731f, -0.850651f},
-{0.309017f, -0.500000f, -0.809017f},
-{0.442863f, -0.238856f, -0.864188f},
-{0.162460f, -0.262866f, -0.951056f},
-{0.238856f, -0.864188f, -0.442863f},
-{0.500000f, -0.809017f, -0.309017f},
-{0.425325f, -0.688191f, -0.587785f},
-{0.716567f, -0.681718f, -0.147621f},
-{0.688191f, -0.587785f, -0.425325f},
-{0.587785f, -0.425325f, -0.688191f},
-{0.000000f, -0.955423f, -0.295242f},
-{0.000000f, -1.000000f, 0.000000f},
-{0.262866f, -0.951056f, -0.162460f},
-{0.000000f, -0.850651f, 0.525731f},
-{0.000000f, -0.955423f, 0.295242f},
-{0.238856f, -0.864188f, 0.442863f},
-{0.262866f, -0.951056f, 0.162460f},
-{0.500000f, -0.809017f, 0.309017f},
-{0.716567f, -0.681718f, 0.147621f},
-{0.525731f, -0.850651f, 0.000000f},
-{-0.238856f, -0.864188f, -0.442863f},
-{-0.500000f, -0.809017f, -0.309017f},
-{-0.262866f, -0.951056f, -0.162460f},
-{-0.850651f, -0.525731f, 0.000000f},
-{-0.716567f, -0.681718f, -0.147621f},
-{-0.716567f, -0.681718f, 0.147621f},
-{-0.525731f, -0.850651f, 0.000000f},
-{-0.500000f, -0.809017f, 0.309017f},
-{-0.238856f, -0.864188f, 0.442863f},
-{-0.262866f, -0.951056f, 0.162460f},
-{-0.864188f, -0.442863f, 0.238856f},
-{-0.809017f, -0.309017f, 0.500000f},
-{-0.688191f, -0.587785f, 0.425325f},
-{-0.681718f, -0.147621f, 0.716567f},
-{-0.442863f, -0.238856f, 0.864188f},
-{-0.587785f, -0.425325f, 0.688191f},
-{-0.309017f, -0.500000f, 0.809017f},
-{-0.147621f, -0.716567f, 0.681718f},
-{-0.425325f, -0.688191f, 0.587785f},
-{-0.162460f, -0.262866f, 0.951056f},
-{0.442863f, -0.238856f, 0.864188f},
-{0.162460f, -0.262866f, 0.951056f},
-{0.309017f, -0.500000f, 0.809017f},
-{0.147621f, -0.716567f, 0.681718f},
-{0.000000f, -0.525731f, 0.850651f},
-{0.425325f, -0.688191f, 0.587785f},
-{0.587785f, -0.425325f, 0.688191f},
-{0.688191f, -0.587785f, 0.425325f},
-{-0.955423f, 0.295242f, 0.000000f},
-{-0.951056f, 0.162460f, 0.262866f},
-{-1.000000f, 0.000000f, 0.000000f},
-{-0.850651f, 0.000000f, 0.525731f},
-{-0.955423f, -0.295242f, 0.000000f},
-{-0.951056f, -0.162460f, 0.262866f},
-{-0.864188f, 0.442863f, -0.238856f},
-{-0.951056f, 0.162460f, -0.262866f},
-{-0.809017f, 0.309017f, -0.500000f},
-{-0.864188f, -0.442863f, -0.238856f},
-{-0.951056f, -0.162460f, -0.262866f},
-{-0.809017f, -0.309017f, -0.500000f},
-{-0.681718f, 0.147621f, -0.716567f},
-{-0.681718f, -0.147621f, -0.716567f},
-{-0.850651f, 0.000000f, -0.525731f},
-{-0.688191f, 0.587785f, -0.425325f},
-{-0.587785f, 0.425325f, -0.688191f},
-{-0.425325f, 0.688191f, -0.587785f},
-{-0.425325f, -0.688191f, -0.587785f},
-{-0.587785f, -0.425325f, -0.688191f},
-{-0.688191f, -0.587785f, -0.425325f},
-};
-
 md2_t md2_models[NUMSPRITES];
 md2_t md2_playermodels[MAXSKINS];
 
@@ -248,187 +78,28 @@ md2_t md2_playermodels[MAXSKINS];
 /*
  * free model
  */
-static void md2_freeModel (md2_model_t *model)
+#if 0
+static void md2_freeModel (model_t *model)
 {
-	if (model)
-	{
-		if (model->skins)
-			free(model->skins);
-
-		if (model->texCoords)
-			free(model->texCoords);
-
-		if (model->triangles)
-			free(model->triangles);
-
-		if (model->frames)
-		{
-			size_t i;
-
-			for (i = 0; i < model->header.numFrames; i++)
-			{
-				if (model->frames[i].vertices)
-					free(model->frames[i].vertices);
-			}
-			free(model->frames);
-		}
-
-		if (model->glCommandBuffer)
-			free(model->glCommandBuffer);
-
-		free(model);
-	}
+	UnloadModel(model);
 }
-
+#endif
 
 //
 // load model
 //
 // Hurdler: the current path is the Legacy.exe path
-static md2_model_t *md2_readModel(const char *filename)
+static model_t *md2_readModel(const char *filename)
 {
-	FILE *file;
-	md2_model_t *model;
-	UINT8 buffer[MD2_MAX_FRAMESIZE];
-	size_t i;
-
-	model = calloc(1, sizeof (*model));
-	if (model == NULL)
-		return 0;
-
 	//Filename checking fixed ~Monster Iestyn and Golden
-	file = fopen(va("%s"PATHSEP"%s", srb2home, filename), "rb");
-	if (!file)
-	{
-		free(model);
-		return 0;
-	}
-
-	// initialize model and read header
-
-	if (fread(&model->header, sizeof (model->header), 1, file) != 1
-		|| model->header.magic !=
-		(INT32)(('2' << 24) + ('P' << 16) + ('D' << 8) + 'I'))
-	{
-		fclose(file);
-		free(model);
-		return 0;
-	}
-
-	model->header.numSkins = 1;
-
-#define MD2LIMITCHECK(field, max, msgname) \
-	if (field > max) \
-	{ \
-		CONS_Alert(CONS_ERROR, "md2_readModel: %s has too many " msgname " (# found: %d, maximum: %d)\n", filename, field, max); \
-		md2_freeModel (model); \
-		return 0; \
-	}
-
-	// Uncomment if these are actually needed
-//	MD2LIMITCHECK(model->header.numSkins,     MD2_MAX_SKINS,     "skins")
-//	MD2LIMITCHECK(model->header.numTexCoords, MD2_MAX_TEXCOORDS, "texture coordinates")
-	MD2LIMITCHECK(model->header.numTriangles, MD2_MAX_TRIANGLES, "triangles")
-	MD2LIMITCHECK(model->header.numFrames,    MD2_MAX_FRAMES,    "frames")
-	MD2LIMITCHECK(model->header.numVertices,  MD2_MAX_VERTICES,  "vertices")
-
-#undef MD2LIMITCHECK
-
-	// read skins
-	fseek(file, model->header.offsetSkins, SEEK_SET);
-	if (model->header.numSkins > 0)
-	{
-		model->skins = calloc(sizeof (md2_skin_t), model->header.numSkins);
-		if (!model->skins || model->header.numSkins !=
-			fread(model->skins, sizeof (md2_skin_t), model->header.numSkins, file))
-		{
-			md2_freeModel (model);
-			return 0;
-		}
-	}
-
-	// read texture coordinates
-	fseek(file, model->header.offsetTexCoords, SEEK_SET);
-	if (model->header.numTexCoords > 0)
-	{
-		model->texCoords = calloc(sizeof (md2_textureCoordinate_t), model->header.numTexCoords);
-		if (!model->texCoords || model->header.numTexCoords !=
-			fread(model->texCoords, sizeof (md2_textureCoordinate_t), model->header.numTexCoords, file))
-		{
-			md2_freeModel (model);
-			return 0;
-		}
-	}
-
-	// read triangles
-	fseek(file, model->header.offsetTriangles, SEEK_SET);
-	if (model->header.numTriangles > 0)
-	{
-		model->triangles = calloc(sizeof (md2_triangle_t), model->header.numTriangles);
-		if (!model->triangles || model->header.numTriangles !=
-			fread(model->triangles, sizeof (md2_triangle_t), model->header.numTriangles, file))
-		{
-			md2_freeModel (model);
-			return 0;
-		}
-	}
-
-	// read alias frames
-	fseek(file, model->header.offsetFrames, SEEK_SET);
-	if (model->header.numFrames > 0)
-	{
-		model->frames = calloc(sizeof (md2_frame_t), model->header.numFrames);
-		if (!model->frames)
-		{
-			md2_freeModel (model);
-			return 0;
-		}
-
-		for (i = 0; i < model->header.numFrames; i++)
-		{
-			md2_alias_frame_t *frame = (md2_alias_frame_t *)(void *)buffer;
-			size_t j;
-
-			model->frames[i].vertices = calloc(sizeof (md2_triangleVertex_t), model->header.numVertices);
-			if (!model->frames[i].vertices || model->header.frameSize !=
-				fread(frame, 1, model->header.frameSize, file))
-			{
-				md2_freeModel (model);
-				return 0;
-			}
-
-			strcpy(model->frames[i].name, frame->name);
-			for (j = 0; j < model->header.numVertices; j++)
-			{
-				model->frames[i].vertices[j].vertex[0] = (float) ((INT32) frame->alias_vertices[j].vertex[0]) * frame->scale[0] + frame->translate[0];
-				model->frames[i].vertices[j].vertex[2] = -1* ((float) ((INT32) frame->alias_vertices[j].vertex[1]) * frame->scale[1] + frame->translate[1]);
-				model->frames[i].vertices[j].vertex[1] = (float) ((INT32) frame->alias_vertices[j].vertex[2]) * frame->scale[2] + frame->translate[2];
-				model->frames[i].vertices[j].normal[0] = avertexnormals[frame->alias_vertices[j].lightNormalIndex][0];
-				model->frames[i].vertices[j].normal[1] = avertexnormals[frame->alias_vertices[j].lightNormalIndex][1];
-				model->frames[i].vertices[j].normal[2] = avertexnormals[frame->alias_vertices[j].lightNormalIndex][2];
-			}
-		}
-	}
-
-	// read gl commands
-	fseek(file, model->header.offsetGlCommands, SEEK_SET);
-	if (model->header.numGlCommands)
-	{
-		model->glCommandBuffer = calloc(sizeof (INT32), model->header.numGlCommands);
-		if (!model->glCommandBuffer || model->header.numGlCommands !=
-			fread(model->glCommandBuffer, sizeof (INT32), model->header.numGlCommands, file))
-		{
-			md2_freeModel (model);
-			return 0;
-		}
-	}
-
-	fclose(file);
-
-	return model;
+	if (FIL_FileExists(va("%s"PATHSEP"%s", srb2home, filename)))
+		return LoadModel(va("%s"PATHSEP"%s", srb2home, filename), PU_STATIC);
+	else if (FIL_FileExists(va("%s"PATHSEP"%s", srb2path, filename)))
+		return LoadModel(va("%s"PATHSEP"%s", srb2path, filename), PU_STATIC);
+	return NULL;
 }
 
-static inline void md2_printModelInfo (md2_model_t *model)
+static inline void md2_printModelInfo (model_t *model)
 {
 #if 0
 	INT32 i;
@@ -474,7 +145,7 @@ static void PNG_warn(png_structp PNG, png_const_charp pngtext)
 	CONS_Debug(DBG_RENDER, "libpng warning at %p: %s", PNG, pngtext);
 }
 
-static GrTextureFormat_t PNG_Load(const char *filename, int *w, int *h, GLPatch_t *grpatch)
+static GLTextureFormat_t PNG_Load(const char *filename, int *w, int *h, GLPatch_t *grpatch)
 {
 	png_structp png_ptr;
 	png_infop png_info_ptr;
@@ -485,16 +156,20 @@ static GrTextureFormat_t PNG_Load(const char *filename, int *w, int *h, GLPatch_
 	jmp_buf jmpbuf;
 #endif
 #endif
-	png_FILE_p png_FILE;
+	volatile png_FILE_p png_FILE;
 	//Filename checking fixed ~Monster Iestyn and Golden
-	char *pngfilename = va("%s"PATHSEP"md2"PATHSEP"%s", srb2home, filename);
+	char *pngfilename = va("%s"PATHSEP"mdls"PATHSEP"%s", srb2home, filename);
 
 	FIL_ForceExtension(pngfilename, ".png");
 	png_FILE = fopen(pngfilename, "rb");
 	if (!png_FILE)
 	{
+		pngfilename = va("%s"PATHSEP"mdls"PATHSEP"%s", srb2path, filename);
+		FIL_ForceExtension(pngfilename, ".png");
+		png_FILE = fopen(pngfilename, "rb");
 		//CONS_Debug(DBG_RENDER, "M_SavePNG: Error on opening %s for loading\n", filename);
-		return 0;
+		if (!png_FILE)
+			return 0;
 	}
 
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL,
@@ -524,7 +199,7 @@ static GrTextureFormat_t PNG_Load(const char *filename, int *w, int *h, GLPatch_
 		//CONS_Debug(DBG_RENDER, "libpng load error on %s\n", filename);
 		png_destroy_read_struct(&png_ptr, &png_info_ptr, NULL);
 		fclose(png_FILE);
-		Z_Free(grpatch->mipmap.grInfo.data);
+		Z_Free(grpatch->mipmap->grInfo.data);
 		return 0;
 	}
 #ifdef USE_FAR_KEYWORD
@@ -565,7 +240,7 @@ static GrTextureFormat_t PNG_Load(const char *filename, int *w, int *h, GLPatch_
 
 	{
 		png_uint_32 i, pitch = png_get_rowbytes(png_ptr, png_info_ptr);
-		png_bytep PNG_image = Z_Malloc(pitch*height, PU_HWRCACHE, &grpatch->mipmap.grInfo.data);
+		png_bytep PNG_image = Z_Malloc(pitch*height, PU_HWRCACHE, &grpatch->mipmap->grInfo.data);
 		png_bytepp row_pointers = png_malloc(png_ptr, height * sizeof (png_bytep));
 		for (i = 0; i < height; i++)
 			row_pointers[i] = PNG_image + i*pitch;
@@ -604,7 +279,7 @@ typedef struct
 	UINT8 filler[54];
 } PcxHeader;
 
-static GrTextureFormat_t PCX_Load(const char *filename, int *w, int *h,
+static GLTextureFormat_t PCX_Load(const char *filename, int *w, int *h,
 	GLPatch_t *grpatch)
 {
 	PcxHeader header;
@@ -616,12 +291,18 @@ static GrTextureFormat_t PCX_Load(const char *filename, int *w, int *h,
 	INT32 ch, rep;
 	FILE *file;
 	//Filename checking fixed ~Monster Iestyn and Golden
-	char *pcxfilename = va("%s"PATHSEP"md2"PATHSEP"%s", srb2home, filename);
+	char *pcxfilename = va("%s"PATHSEP"mdls"PATHSEP"%s", srb2home, filename);
 
 	FIL_ForceExtension(pcxfilename, ".pcx");
 	file = fopen(pcxfilename, "rb");
 	if (!file)
-		return 0;
+	{
+		pcxfilename = va("%s"PATHSEP"mdls"PATHSEP"%s", srb2path, filename);
+		FIL_ForceExtension(pcxfilename, ".pcx");
+		file = fopen(pcxfilename, "rb");
+		if (!file)
+			return 0;
+	}
 
 	if (fread(&header, sizeof (PcxHeader), 1, file) != 1)
 	{
@@ -639,7 +320,7 @@ static GrTextureFormat_t PCX_Load(const char *filename, int *w, int *h,
 
 	pw = *w = header.xmax - header.xmin + 1;
 	ph = *h = header.ymax - header.ymin + 1;
-	image = Z_Malloc(pw*ph*4, PU_HWRCACHE, &grpatch->mipmap.grInfo.data);
+	image = Z_Malloc(pw*ph*4, PU_HWRCACHE, &grpatch->mipmap->grInfo.data);
 
 	if (fread(palette, sizeof (UINT8), PALSIZE, file) != PALSIZE)
 	{
@@ -687,37 +368,43 @@ static void md2_loadTexture(md2_t *model)
 	if (model->grpatch)
 	{
 		grpatch = model->grpatch;
-		Z_Free(grpatch->mipmap.grInfo.data);
+		Z_Free(grpatch->mipmap->grInfo.data);
 	}
 	else
+	{
 		grpatch = Z_Calloc(sizeof *grpatch, PU_HWRPATCHINFO,
 		                   &(model->grpatch));
+		grpatch->mipmap = Z_Calloc(sizeof (GLMipmap_t), PU_HWRPATCHINFO, NULL);
+	}
 
-	if (!grpatch->mipmap.downloaded && !grpatch->mipmap.grInfo.data)
+	if (!grpatch->mipmap->downloaded && !grpatch->mipmap->grInfo.data)
 	{
 		int w = 0, h = 0;
 #ifdef HAVE_PNG
-		grpatch->mipmap.grInfo.format = PNG_Load(filename, &w, &h, grpatch);
-		if (grpatch->mipmap.grInfo.format == 0)
+		grpatch->mipmap->grInfo.format = PNG_Load(filename, &w, &h, grpatch);
+		if (grpatch->mipmap->grInfo.format == 0)
 #endif
-		grpatch->mipmap.grInfo.format = PCX_Load(filename, &w, &h, grpatch);
-		if (grpatch->mipmap.grInfo.format == 0)
+		grpatch->mipmap->grInfo.format = PCX_Load(filename, &w, &h, grpatch);
+		if (grpatch->mipmap->grInfo.format == 0)
+		{
+			grpatch->notfound = true;// mark it so its not searched for again repeatedly
 			return;
+		}
 
-		grpatch->mipmap.downloaded = 0;
-		grpatch->mipmap.flags = 0;
+		grpatch->mipmap->downloaded = 0;
+		grpatch->mipmap->flags = 0;
 
 		grpatch->width = (INT16)w;
 		grpatch->height = (INT16)h;
-		grpatch->mipmap.width = (UINT16)w;
-		grpatch->mipmap.height = (UINT16)h;
+		grpatch->mipmap->width = (UINT16)w;
+		grpatch->mipmap->height = (UINT16)h;
 
 		// not correct!
-		grpatch->mipmap.grInfo.smallLodLog2 = GR_LOD_LOG2_256;
-		grpatch->mipmap.grInfo.largeLodLog2 = GR_LOD_LOG2_256;
-		grpatch->mipmap.grInfo.aspectRatioLog2 = GR_ASPECT_LOG2_1x1;
+		grpatch->mipmap->grInfo.smallLodLog2 = GR_LOD_LOG2_256;
+		grpatch->mipmap->grInfo.largeLodLog2 = GR_LOD_LOG2_256;
+		grpatch->mipmap->grInfo.aspectRatioLog2 = GR_ASPECT_LOG2_1x1;
 	}
-	HWD.pfnSetTexture(&grpatch->mipmap);
+	HWD.pfnSetTexture(grpatch->mipmap);
 	HWR_UnlockCachedPatch(grpatch);
 }
 
@@ -735,40 +422,44 @@ static void md2_loadBlendTexture(md2_t *model)
 	if (model->blendgrpatch)
 	{
 		grpatch = model->blendgrpatch;
-		Z_Free(grpatch->mipmap.grInfo.data);
+		Z_Free(grpatch->mipmap->grInfo.data);
 	}
 	else
+	{
 		grpatch = Z_Calloc(sizeof *grpatch, PU_HWRPATCHINFO,
 		                   &(model->blendgrpatch));
+		grpatch->mipmap = Z_Calloc(sizeof (GLMipmap_t), PU_HWRPATCHINFO, NULL);
+	}
 
-	if (!grpatch->mipmap.downloaded && !grpatch->mipmap.grInfo.data)
+	if (!grpatch->mipmap->downloaded && !grpatch->mipmap->grInfo.data)
 	{
 		int w = 0, h = 0;
 #ifdef HAVE_PNG
-		grpatch->mipmap.grInfo.format = PNG_Load(filename, &w, &h, grpatch);
-		if (grpatch->mipmap.grInfo.format == 0)
+		grpatch->mipmap->grInfo.format = PNG_Load(filename, &w, &h, grpatch);
+		if (grpatch->mipmap->grInfo.format == 0)
 #endif
-		grpatch->mipmap.grInfo.format = PCX_Load(filename, &w, &h, grpatch);
-		if (grpatch->mipmap.grInfo.format == 0)
+		grpatch->mipmap->grInfo.format = PCX_Load(filename, &w, &h, grpatch);
+		if (grpatch->mipmap->grInfo.format == 0)
 		{
+			grpatch->notfound = true;// mark it so its not searched for again repeatedly
 			Z_Free(filename);
 			return;
 		}
 
-		grpatch->mipmap.downloaded = 0;
-		grpatch->mipmap.flags = 0;
+		grpatch->mipmap->downloaded = 0;
+		grpatch->mipmap->flags = 0;
 
 		grpatch->width = (INT16)w;
 		grpatch->height = (INT16)h;
-		grpatch->mipmap.width = (UINT16)w;
-		grpatch->mipmap.height = (UINT16)h;
+		grpatch->mipmap->width = (UINT16)w;
+		grpatch->mipmap->height = (UINT16)h;
 
 		// not correct!
-		grpatch->mipmap.grInfo.smallLodLog2 = GR_LOD_LOG2_256;
-		grpatch->mipmap.grInfo.largeLodLog2 = GR_LOD_LOG2_256;
-		grpatch->mipmap.grInfo.aspectRatioLog2 = GR_ASPECT_LOG2_1x1;
+		grpatch->mipmap->grInfo.smallLodLog2 = GR_LOD_LOG2_256;
+		grpatch->mipmap->grInfo.largeLodLog2 = GR_LOD_LOG2_256;
+		grpatch->mipmap->grInfo.aspectRatioLog2 = GR_ASPECT_LOG2_1x1;
 	}
-	HWD.pfnSetTexture(&grpatch->mipmap); // We do need to do this so that it can be cleared and knows to recreate it when necessary
+	HWD.pfnSetTexture(grpatch->mipmap); // We do need to do this so that it can be cleared and knows to recreate it when necessary
 	HWR_UnlockCachedPatch(grpatch);
 
 	Z_Free(filename);
@@ -805,23 +496,28 @@ void HWR_InitMD2(void)
 		md2_models[i].error = false;
 	}
 
-	// read the md2.dat file
+	// read the mdls.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, "kmd2.dat"), "rt");
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "mdls.dat"), "rt");
 
 	if (!f)
 	{
-		CONS_Printf("%s %s\n", M_GetText("Error while loading kmd2.dat:"), strerror(errno));
-		nomd2s = true;
-		return;
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "mdls.dat"), "rt");
+		if (!f)
+		{
+			CONS_Printf("%s %s\n", M_GetText("Error while loading mdls.dat:"), strerror(errno));
+			nomd2s = true;
+			return;
+		}
 	}
 	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
 	{
-		if (stricmp(name, "PLAY") == 0)
+		/*if (stricmp(name, "PLAY") == 0)
 		{
-			CONS_Printf("MD2 for sprite PLAY detected in kmd2.dat, use a player skin instead!\n");
+			CONS_Printf("MD2 for sprite PLAY detected in mdls.dat, use a player skin instead!\n");
 			continue;
-		}
+		}*/
+		// 8/1/19: Allow PLAY to load for default MD2.
 
 		for (i = 0; i < NUMSPRITES; i++)
 		{
@@ -852,8 +548,8 @@ void HWR_InitMD2(void)
 				goto md2found;
 			}
 		}
-		// no sprite/player skin name found?!?
-		CONS_Printf("Unknown sprite/player skin %s detected in kmd2.dat\n", name);
+		// no sprite/player skin name found?!?D
+		CONS_Printf("Unknown sprite/player skin %s detected in mdls.dat\n", name);
 md2found:
 		// move on to next line...
 		continue;
@@ -872,18 +568,22 @@ void HWR_AddPlayerMD2(int skin) // For MD2's that were added after startup
 
 	CONS_Printf("AddPlayerMD2()...\n");
 
-	// read the md2.dat file
+	// read the mdls.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, "kmd2.dat"), "rt");
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "mdls.dat"), "rt");
 
 	if (!f)
 	{
-		CONS_Printf("Error while loading kmd2.dat\n");
-		nomd2s = true;
-		return;
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "mdls.dat"), "rt");
+		if (!f)
+		{
+			CONS_Printf("%s %s\n", M_GetText("Error while loading mdls.dat:"), strerror(errno));
+			nomd2s = true;
+			return;
+		}
 	}
 
-	// Check for any MD2s that match the names of player skins!
+	// Check for any MD2s that match the names of sprite names!
 	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
 	{
 		if (stricmp(name, skins[skin].name) == 0)
@@ -907,7 +607,7 @@ playermd2found:
 void HWR_AddSpriteMD2(size_t spritenum) // For MD2s that were added after startup
 {
 	FILE *f;
-	// name[18] is used to check for names in the kmd2.dat file that match with sprites or player skins
+	// name[18] is used to check for names in the mdls.dat file that match with sprites or player skins
 	// sprite names are always 4 characters long, and names is for player skins can be up to 19 characters long
 	char name[18], filename[32];
 	float scale, offset;
@@ -920,16 +620,20 @@ void HWR_AddSpriteMD2(size_t spritenum) // For MD2s that were added after startu
 
 	// Read the md2.dat file
 	//Filename checking fixed ~Monster Iestyn and Golden
-	f = fopen(va("%s"PATHSEP"%s", srb2home, "kmd2.dat"), "rt");
+	f = fopen(va("%s"PATHSEP"%s", srb2home, "mdls.dat"), "rt");
 
 	if (!f)
 	{
-		CONS_Printf("Error while loading kmd2.dat\n");
-		nomd2s = true;
-		return;
+		f = fopen(va("%s"PATHSEP"%s", srb2path, "mdls.dat"), "rt");
+		if (!f)
+		{
+			CONS_Printf("%s %s\n", M_GetText("Error while loading mdls.dat:"), strerror(errno));
+			nomd2s = true;
+			return;
+		}
 	}
 
-	// Check for any MD2s that match the names of player skins!
+	// Check for any MD2s that match the names of sprite names!
 	while (fscanf(f, "%19s %31s %f %f", name, filename, &scale, &offset) == 4)
 	{
 		if (stricmp(name, sprnames[spritenum]) == 0)
@@ -955,18 +659,26 @@ spritemd2found:
 // 0.0722 to blue
 // (See this same define in k_kart.c!)
 #define SETBRIGHTNESS(brightness,r,g,b) \
-	brightness = (UINT8)(((1063*((UINT16)r)/5000) + (3576*((UINT16)g)/5000) + (361*((UINT16)b)/5000)) / 3)
-	
+	brightness = (UINT8)(((1063*(UINT16)(r))/5000) + ((3576*(UINT16)(g))/5000) + ((361*(UINT16)(b))/5000))
+
 static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, GLMipmap_t *grmip, INT32 skinnum, skincolors_t color)
 {
-	UINT8 i;
 	UINT16 w = gpatch->width, h = gpatch->height;
 	UINT32 size = w*h;
 	RGBA_t *image, *blendimage, *cur, blendcolor;
+	UINT8 translation[16]; // First the color index
+	UINT8 cutoff[16]; // Brightness cutoff before using the next color
+	UINT8 translen = 0;
+	UINT8 i;
+	UINT8 colorbrightnesses[16];
+	UINT8 color_match_lookup[256]; // optimization attempt
+
+	blendcolor = V_GetColor(0); // initialize
+	memset(translation, 0, sizeof(translation));
+	memset(cutoff, 0, sizeof(cutoff));
 
 	if (grmip->width == 0)
 	{
-
 		grmip->width = gpatch->width;
 		grmip->height = gpatch->height;
 
@@ -976,110 +688,323 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 		grmip->grInfo.format = GR_RGBA;
 	}
 
-	Z_Free(grmip->grInfo.data);
-	grmip->grInfo.data = NULL;
+	if (grmip->grInfo.data)
+	{
+		Z_Free(grmip->grInfo.data);
+		grmip->grInfo.data = NULL;
+	}
 
 	cur = Z_Malloc(size*4, PU_HWRCACHE, &grmip->grInfo.data);
 	memset(cur, 0x00, size*4);
 
-	image = gpatch->mipmap.grInfo.data;
-	blendimage = blendgpatch->mipmap.grInfo.data;
+	image = gpatch->mipmap->grInfo.data;
+	blendimage = blendgpatch->mipmap->grInfo.data;
 
-	// Average all of the translation's colors
+	// TC_METALSONIC includes an actual skincolor translation, on top of its flashing.
+	if (skinnum == TC_METALSONIC)
+		color = SKINCOLOR_BLUEBERRY;
+
+	if (color != SKINCOLOR_NONE)
 	{
-		const UINT8 div = 6;
-		const UINT8 start = 4;
-		UINT32 r, g, b;
+		UINT8 numdupes = 1;
+		UINT8 prevdupes = numdupes;
 
-		blendcolor = V_GetColor(colortranslations[color][start]);
-		r = (UINT32)(blendcolor.s.red*blendcolor.s.red);
-		g = (UINT32)(blendcolor.s.green*blendcolor.s.green);
-		b = (UINT32)(blendcolor.s.blue*blendcolor.s.blue);
+		translation[translen] = colortranslations[color][0];
+		cutoff[translen] = 255;
 
-		for (i = 1; i < div; i++)
+		for (i = 1; i < 16; i++)
 		{
-			RGBA_t nextcolor = V_GetColor(colortranslations[color][start+i]);
-			r += (UINT32)(nextcolor.s.red*nextcolor.s.red);
-			g += (UINT32)(nextcolor.s.green*nextcolor.s.green);
-			b += (UINT32)(nextcolor.s.blue*nextcolor.s.blue);
+			if (translation[translen] == colortranslations[color][i])
+			{
+				numdupes++;
+				continue;
+			}
+
+			if (translen > 0)
+			{
+				INT16 newcutoff = cutoff[translen-1] - (255 / (16 / prevdupes));
+
+				if (newcutoff < 0)
+					newcutoff = 0;
+
+				cutoff[translen] = (UINT8)newcutoff;
+			}
+
+			prevdupes = numdupes;
+			numdupes = 1;
+			translen++;
+
+			translation[translen] = (UINT8)colortranslations[color][i];
 		}
 
-		blendcolor.s.red = (UINT8)(FixedSqrt((r/div)<<FRACBITS)>>FRACBITS);
-		blendcolor.s.green = (UINT8)(FixedSqrt((g/div)<<FRACBITS)>>FRACBITS);
-		blendcolor.s.blue = (UINT8)(FixedSqrt((b/div)<<FRACBITS)>>FRACBITS);
+		translen++;
 	}
 
-	// rainbow support, could theoretically support boss ones too
-	if (skinnum == TC_RAINBOW)
+	if (skinnum == TC_RAINBOW && translen > 0)
 	{
-		while (size--)
+		UINT16 b;
+		INT32 compare;
+
+		for (i = 0; i < translen; i++) // moved from inside the loop to here
 		{
-			if (image->s.alpha == 0 && blendimage->s.alpha == 0)
+			RGBA_t tempc = V_GetColor(translation[i]);
+			SETBRIGHTNESS(colorbrightnesses[i], tempc.s.red, tempc.s.green, tempc.s.blue); // store brightnesses for comparison
+		}
+		// generate lookup table for color brightness matching
+		for (b = 0; b < 256; b++)
+		{
+			UINT16 brightdif = 256;
+
+			color_match_lookup[i] = 0;
+			for (i = 0; i < translen; i++)
 			{
-				// Don't bother with blending the pixel if the alpha of the blend pixel is 0
-				cur->rgba = image->rgba;
+				if (b > colorbrightnesses[i]) // don't allow greater matches (because calculating a makeshift gradient for this is already a huge mess as is)
+					continue;
+
+				compare = abs((INT16)(colorbrightnesses[i]) - (INT16)(b));
+
+				if (compare < brightdif)
+				{
+					brightdif = (UINT16)compare;
+					color_match_lookup[b] = i; // best matching color that's equal brightness or darker
+				}
+			}
+		}
+	}
+
+	while (size--)
+	{
+		if (skinnum == TC_BOSS)
+		{
+			// Turn everything below a certain threshold white
+			if ((image->s.red == image->s.green) && (image->s.green == image->s.blue) && image->s.blue < 127)
+			{
+				// Lactozilla: Invert the colors
+				cur->s.red = cur->s.green = cur->s.blue = (255 - image->s.blue);
 			}
 			else
+			{
+				cur->s.red = image->s.red;
+				cur->s.green = image->s.green;
+				cur->s.blue = image->s.blue;
+			}
+
+			cur->s.alpha = image->s.alpha;
+		}
+		else if (skinnum == TC_ALLWHITE)
+		{
+			// Turn everything white
+			cur->s.red = cur->s.green = cur->s.blue = 255;
+			cur->s.alpha = image->s.alpha;
+		}
+		else
+		{
+			// All settings that use skincolors!
+			UINT16 brightness;
+
+			// Everything below requires a blend image
+			if (blendimage == NULL)
+			{
+				cur->rgba = image->rgba;
+				goto skippixel;
+			}
+
+			if (translen <= 0)
+			{
+				cur->rgba = image->rgba;
+				goto skippixel;
+			}
+
+			// Don't bother with blending the pixel if the alpha of the blend pixel is 0
+			if (skinnum == TC_RAINBOW)
+			{
+				if (image->s.alpha == 0 && blendimage->s.alpha == 0)
+				{
+					cur->rgba = image->rgba;
+					goto skippixel;
+				}
+				else
+				{
+					UINT16 imagebright, blendbright;
+					SETBRIGHTNESS(imagebright,image->s.red,image->s.green,image->s.blue);
+					SETBRIGHTNESS(blendbright,blendimage->s.red,blendimage->s.green,blendimage->s.blue);
+					// slightly dumb average between the blend image color and base image colour, usually one or the other will be fully opaque anyway
+					brightness = (imagebright*(255-blendimage->s.alpha))/255 + (blendbright*blendimage->s.alpha)/255;
+				}
+			}
+			else
+			{
+				if (blendimage->s.alpha == 0)
+				{
+					cur->rgba = image->rgba;
+					goto skippixel; // for metal sonic blend
+				}
+				else
+				{
+					SETBRIGHTNESS(brightness,blendimage->s.red,blendimage->s.green,blendimage->s.blue);
+				}
+			}
+
+			// Calculate a sort of "gradient" for the skincolor
+			// (Me splitting this into a function didn't work, so I had to ruin this entire function's groove...)
+			{
+				RGBA_t nextcolor;
+				UINT8 firsti, secondi, mul, mulmax;
+				INT32 r, g, b;
+
+				// Rainbow needs to find the closest match to the textures themselves, instead of matching brightnesses to other colors.
+				// Ensue horrible mess.
+				if (skinnum == TC_RAINBOW)
+				{
+					//UINT16 brightdif = 256;
+					INT32 /*compare,*/ m, d;
+
+					// Ignore pure white & pitch black
+					if (brightness > 253 || brightness < 2)
+					{
+						cur->rgba = image->rgba;
+						cur++; image++; blendimage++;
+						continue;
+					}
+
+					firsti = 0;
+					mul = 0;
+					mulmax = 1;
+
+					/*for (i = 0; i < translen; i++)
+					{
+						if (brightness > colorbrightnesses[i]) // don't allow greater matches (because calculating a makeshift gradient for this is already a huge mess as is)
+							continue;
+
+						compare = abs((INT16)(colorbrightnesses[i]) - (INT16)(brightness));
+
+						if (compare < brightdif)
+						{
+							brightdif = (UINT16)compare;
+							firsti = i; // best matching color that's equal brightness or darker
+						}
+					}*/
+					firsti = color_match_lookup[brightness];
+
+					secondi = firsti+1; // next color in line
+
+					m = (INT16)brightness - (INT16)colorbrightnesses[secondi];
+					d = (INT16)colorbrightnesses[firsti] - (INT16)colorbrightnesses[secondi];
+
+					if (m >= d)
+						m = d-1;
+
+					mulmax = 16;
+
+					// calculate the "gradient" multiplier based on how close this color is to the one next in line
+					if (m <= 0 || d <= 0)
+						mul = 0;
+					else
+						mul = (mulmax-1) - ((m * mulmax) / d);
+				}
+				else
+				{
+					// Just convert brightness to a skincolor value, use distance to next position to find the gradient multipler
+					firsti = 0;
+
+					for (i = 1; i < translen; i++)
+					{
+						if (brightness >= cutoff[i])
+							break;
+						firsti = i;
+					}
+
+					secondi = firsti+1;
+
+					mulmax = cutoff[firsti] - cutoff[secondi];
+					mul = cutoff[firsti] - brightness;
+				}
+
+				blendcolor = V_GetColor(translation[firsti]);
+
+				if (mul > 0) // If it's 0, then we only need the first color.
+				{
+					nextcolor = V_GetColor(translation[secondi]);
+
+					// Find difference between points
+					r = (INT32)(nextcolor.s.red - blendcolor.s.red);
+					g = (INT32)(nextcolor.s.green - blendcolor.s.green);
+					b = (INT32)(nextcolor.s.blue - blendcolor.s.blue);
+
+					// Find the gradient of the two points
+					r = ((mul * r) / mulmax);
+					g = ((mul * g) / mulmax);
+					b = ((mul * b) / mulmax);
+
+					// Add gradient value to color
+					blendcolor.s.red += r;
+					blendcolor.s.green += g;
+					blendcolor.s.blue += b;
+				}
+			}
+
+			if (skinnum == TC_RAINBOW)
 			{
 				UINT32 tempcolor;
-				UINT16 imagebright, blendbright, finalbright, colorbright;
-				SETBRIGHTNESS(imagebright,image->s.red,image->s.green,image->s.blue);
-				SETBRIGHTNESS(blendbright,blendimage->s.red,blendimage->s.green,blendimage->s.blue);
-				// slightly dumb average between the blend image color and base image colour, usually one or the other will be fully opaque anyway
-				finalbright = (imagebright*(255-blendimage->s.alpha))/255 + (blendbright*blendimage->s.alpha)/255;
-				SETBRIGHTNESS(colorbright,blendcolor.s.red,blendcolor.s.green,blendcolor.s.blue);
+				UINT16 colorbright;
 
-				tempcolor = (finalbright*blendcolor.s.red)/colorbright;
+				SETBRIGHTNESS(colorbright,blendcolor.s.red,blendcolor.s.green,blendcolor.s.blue);
+				if (colorbright == 0)
+					colorbright = 1; // no dividing by 0 please
+
+				tempcolor = (brightness * blendcolor.s.red) / colorbright;
 				tempcolor = min(255, tempcolor);
 				cur->s.red = (UINT8)tempcolor;
-				tempcolor = (finalbright*blendcolor.s.green)/colorbright;
+
+				tempcolor = (brightness * blendcolor.s.green) / colorbright;
 				tempcolor = min(255, tempcolor);
 				cur->s.green = (UINT8)tempcolor;
-				tempcolor = (finalbright*blendcolor.s.blue)/colorbright;
+
+				tempcolor = (brightness * blendcolor.s.blue) / colorbright;
 				tempcolor = min(255, tempcolor);
 				cur->s.blue = (UINT8)tempcolor;
 				cur->s.alpha = image->s.alpha;
-			}
-
-			cur++; image++; blendimage++;
-		}
-	}
-	else
-	{
-		while (size--)
-		{
-			if (blendimage->s.alpha == 0)
-			{
-				// Don't bother with blending the pixel if the alpha of the blend pixel is 0
-				cur->rgba = image->rgba;
 			}
 			else
 			{
+				// Color strength depends on image alpha
 				INT32 tempcolor;
-				INT16 tempmult, tempalpha;
-				tempalpha = -(abs(blendimage->s.red-127)-127)*2;
-				if (tempalpha > 255)
-					tempalpha = 255;
-				else if (tempalpha < 0)
-					tempalpha = 0;
 
-				tempmult = (blendimage->s.red-127)*2;
-				if (tempmult > 255)
-					tempmult = 255;
-				else if (tempmult < 0)
-					tempmult = 0;
-
-				tempcolor = (image->s.red*(255-blendimage->s.alpha))/255 + ((tempmult + ((tempalpha*blendcolor.s.red)/255)) * blendimage->s.alpha)/255;
+				tempcolor = ((image->s.red * (255-blendimage->s.alpha)) / 255) + ((blendcolor.s.red * blendimage->s.alpha) / 255);
+				tempcolor = min(255, tempcolor);
 				cur->s.red = (UINT8)tempcolor;
-				tempcolor = (image->s.green*(255-blendimage->s.alpha))/255 + ((tempmult + ((tempalpha*blendcolor.s.green)/255)) * blendimage->s.alpha)/255;
+
+				tempcolor = ((image->s.green * (255-blendimage->s.alpha)) / 255) + ((blendcolor.s.green * blendimage->s.alpha) / 255);
+				tempcolor = min(255, tempcolor);
 				cur->s.green = (UINT8)tempcolor;
-				tempcolor = (image->s.blue*(255-blendimage->s.alpha))/255 + ((tempmult + ((tempalpha*blendcolor.s.blue)/255)) * blendimage->s.alpha)/255;
+
+				tempcolor = ((image->s.blue * (255-blendimage->s.alpha)) / 255) + ((blendcolor.s.blue * blendimage->s.alpha) / 255);
+				tempcolor = min(255, tempcolor);
 				cur->s.blue = (UINT8)tempcolor;
 				cur->s.alpha = image->s.alpha;
 			}
 
-			cur++; image++; blendimage++;
+skippixel:
+
+			// *Now* we can do Metal Sonic's flashing
+			if (skinnum == TC_METALSONIC)
+			{
+				// Blend dark blue into white
+				if (cur->s.alpha > 0 && cur->s.red == 0 && cur->s.green == 0 && cur->s.blue < 255 && cur->s.blue > 31)
+				{
+					// Sal: Invert non-blue
+					cur->s.red = cur->s.green = (255 - cur->s.blue);
+					cur->s.blue = 255;
+				}
+
+				cur->s.alpha = image->s.alpha;
+			}
 		}
+
+		cur++; image++;
+
+		if (blendimage != NULL)
+			blendimage++;
 	}
 
 	return;
@@ -1095,13 +1020,13 @@ static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, INT
 	if (colormap == colormaps || colormap == NULL)
 	{
 		// Don't do any blending
-		HWD.pfnSetTexture(&gpatch->mipmap);
+		HWD.pfnSetTexture(gpatch->mipmap);
 		return;
 	}
 
 	// search for the mimmap
 	// skip the first (no colormap translated)
-	for (grmip = &gpatch->mipmap; grmip->nextcolormap; )
+	for (grmip = gpatch->mipmap; grmip->nextcolormap; )
 	{
 		grmip = grmip->nextcolormap;
 		if (grmip->colormap == colormap)
@@ -1137,36 +1062,21 @@ static void HWR_GetBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, INT
 
 // -----------------+
 // HWR_DrawMD2      : Draw MD2
-//                  : (monsters, bonuses, weapons, lights, ...)
+//                  :
 // Returns          :
 // -----------------+
-	/*
-	wait/stand
-	death
-	pain
-	walk
-	shoot/fire
 
-	die?
-	atka?
-	atkb?
-	attacka/b/c/d?
-	res?
-	run?
-	*/
-#define NORMALFOG 0x00000000
-#define FADEFOG 0x19000000
 void HWR_DrawMD2(gr_vissprite_t *spr)
 {
-	FSurfaceInfo Surf;
+	md2_t *md2;
 
 	char filename[64];
-	INT32 frame;
+	INT32 frame = 0;
+	INT32 nextFrame = -1;
 	FTransform p;
-	md2_t *md2;
-	UINT8 color[4];
+	FSurfaceInfo Surf;
 
-	if (!cv_grmd2.value)
+	if (!cv_grmdls.value)
 		return;
 
 	if (spr->precip)
@@ -1174,10 +1084,11 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 
 	// MD2 colormap fix
 	// colormap test
+	if (spr->mobj->subsector)
 	{
 		sector_t *sector = spr->mobj->subsector->sector;
-		UINT8 lightlevel = 255;
 		extracolormap_t *colormap = sector->extra_colormap;
+		UINT8 lightlevel = 255;
 
 		if (sector->numlights)
 		{
@@ -1200,19 +1111,19 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 				colormap = sector->extra_colormap;
 		}
 
-		if (colormap)
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, colormap->rgba, colormap->fadergba, false, false);
-		else
-			Surf.FlatColor.rgba = HWR_Lighting(lightlevel, NORMALFOG, FADEFOG, false, false);
+		HWR_Lighting(&Surf, lightlevel, colormap);
+	}
+	else
+	{
+		Surf.PolyColor.rgba = 0xFFFFFFFF;
 	}
 
 	// Look at HWR_ProjectSprite for more
 	{
 		GLPatch_t *gpatch;
-		INT32 *buff;
 		INT32 durs = spr->mobj->state->tics;
 		INT32 tics = spr->mobj->tics;
-		md2_frame_t *curr, *next = NULL;
+		//mdlframe_t *next = NULL;
 		const UINT8 flip = (UINT8)((spr->mobj->eflags & MFE_VERTICALFLIP) == MFE_VERTICALFLIP);
 		spritedef_t *sprdef;
 		spriteframe_t *sprframe;
@@ -1223,36 +1134,37 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			//durs = tics;
 
 		if (spr->mobj->flags2 & MF2_SHADOW)
-			Surf.FlatColor.s.alpha = 0x40;
+			Surf.PolyColor.s.alpha = 0x40;
 		else if (spr->mobj->frame & FF_TRANSMASK)
 			HWR_TranstableToAlpha((spr->mobj->frame & FF_TRANSMASK)>>FF_TRANSSHIFT, &Surf);
 		else
-			Surf.FlatColor.s.alpha = 0xFF;
+			Surf.PolyColor.s.alpha = 0xFF;
 
 		// dont forget to enabled the depth test because we can't do this like
 		// before: polygons models are not sorted
 
 		// 1. load model+texture if not already loaded
 		// 2. draw model with correct position, rotation,...
-		if (spr->mobj->skin && spr->mobj->sprite == SPR_PLAY) // Use the player MD2 list if the mobj has a skin and is using the player sprites
+		if (spr->mobj->skin && spr->mobj->sprite == SPR_PLAY && !md2_playermodels[(skin_t*)spr->mobj->skin-skins].notfound) // Use the player MD2 list if the mobj has a skin and is using the player sprites
 		{
 			md2 = &md2_playermodels[(skin_t*)spr->mobj->skin-skins];
 			md2->skin = (skin_t*)spr->mobj->skin-skins;
 		}
-		else
+		else	// if we can't find the player md2, use SPR_PLAY's MD2.
 			md2 = &md2_models[spr->mobj->sprite];
 
 		if (md2->error)
 			return; // we already failed loading this before :(
 		if (!md2->model)
 		{
-			//CONS_Debug(DBG_RENDER, "Loading MD2... (%s)", sprnames[spr->mobj->sprite]);
-			sprintf(filename, "md2/%s", md2->filename);
+			CONS_Debug(DBG_RENDER, "Loading model... (%s, %s)", sprnames[spr->mobj->sprite], md2->filename);
+			sprintf(filename, "mdls/%s", md2->filename);
 			md2->model = md2_readModel(filename);
 
 			if (md2->model)
 			{
 				md2_printModelInfo(md2->model);
+				HWD.pfnCreateModelVBOs(md2->model);
 			}
 			else
 			{
@@ -1261,25 +1173,26 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 				return;
 			}
 		}
-		//HWD.pfnSetBlend(blend); // This seems to actually break translucency?
 		finalscale = md2->scale;
 		//Hurdler: arf, I don't like that implementation at all... too much crappy
 		gpatch = md2->grpatch;
-		if (!gpatch || !gpatch->mipmap.grInfo.format || !gpatch->mipmap.downloaded)
+		if (!gpatch || ((!gpatch->mipmap->grInfo.format || !gpatch->mipmap->downloaded) && !gpatch->notfound))
 			md2_loadTexture(md2);
 		gpatch = md2->grpatch; // Load it again, because it isn't being loaded into gpatch after md2_loadtexture...
 
-		if ((gpatch && gpatch->mipmap.grInfo.format) // don't load the blend texture if the base texture isn't available
-			&& (!md2->blendgrpatch || !((GLPatch_t *)md2->blendgrpatch)->mipmap.grInfo.format || !((GLPatch_t *)md2->blendgrpatch)->mipmap.downloaded))
+		if ((gpatch && gpatch->mipmap->grInfo.format) // don't load the blend texture if the base texture isn't available
+			&& (!md2->blendgrpatch
+			|| ((!((GLPatch_t *)md2->blendgrpatch)->mipmap->grInfo.format || !((GLPatch_t *)md2->blendgrpatch)->mipmap->downloaded)
+			&& !((GLPatch_t *)md2->blendgrpatch)->notfound)))
 			md2_loadBlendTexture(md2);
 
-		if (gpatch && gpatch->mipmap.grInfo.format) // else if meant that if a texture couldn't be loaded, it would just end up using something else's texture
+		if (gpatch && gpatch->mipmap->grInfo.format) // else if meant that if a texture couldn't be loaded, it would just end up using something else's texture
 		{
 			if ((skincolors_t)spr->mobj->color != SKINCOLOR_NONE &&
-				md2->blendgrpatch && ((GLPatch_t *)md2->blendgrpatch)->mipmap.grInfo.format
+				md2->blendgrpatch && ((GLPatch_t *)md2->blendgrpatch)->mipmap->grInfo.format
 				&& gpatch->width == ((GLPatch_t *)md2->blendgrpatch)->width && gpatch->height == ((GLPatch_t *)md2->blendgrpatch)->height)
 			{
-				INT32 skinnum;
+				INT32 skinnum = TC_DEFAULT;
 				if ((spr->mobj->flags & MF_BOSS) && (spr->mobj->flags2 & MF2_FRET) && (leveltime & 1)) // Bosses "flash"
 				{
 					if (spr->mobj->type == MT_CYBRAKDEMON)
@@ -1307,7 +1220,7 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			else
 			{
 				// This is safe, since we know the texture has been downloaded
-				HWD.pfnSetTexture(&gpatch->mipmap);
+				HWD.pfnSetTexture(gpatch->mipmap);
 			}
 		}
 		else
@@ -1325,29 +1238,31 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 		}
 
 		//FIXME: this is not yet correct
-		frame = (spr->mobj->frame & FF_FRAMEMASK) % md2->model->header.numFrames;
-		buff = md2->model->glCommandBuffer;
-		curr = &md2->model->frames[frame];
-		if (cv_grmd2.value == 1 && tics <= durs)
+		frame = (spr->mobj->frame & FF_FRAMEMASK) % md2->model->meshes[0].numFrames;
+
+#ifdef USE_MODEL_NEXTFRAME
+		if (cv_grmdls.value == 1 && tics <= durs)
 		{
 			// frames are handled differently for states with FF_ANIMATE, so get the next frame differently for the interpolation
 			if (spr->mobj->frame & FF_ANIMATE)
 			{
-				UINT32 nextframe = (spr->mobj->frame & FF_FRAMEMASK) + 1;
-				if (nextframe >= (UINT32)spr->mobj->state->var1)
-					nextframe = (spr->mobj->state->frame & FF_FRAMEMASK);
-				nextframe %= md2->model->header.numFrames;
-				next = &md2->model->frames[nextframe];
+				nextFrame = (spr->mobj->frame & FF_FRAMEMASK) + 1;
+				if (nextFrame >= spr->mobj->state->var1)
+					nextFrame = (spr->mobj->state->frame & FF_FRAMEMASK);
+				nextFrame %= md2->model->meshes[0].numFrames;
+				//next = &md2->model->meshes[0].frames[nextFrame];
 			}
 			else
 			{
-				if (spr->mobj->state->nextstate != S_NULL && states[spr->mobj->state->nextstate].sprite != SPR_NULL)
+				if (spr->mobj->state->nextstate != S_NULL && states[spr->mobj->state->nextstate].sprite != SPR_NULL
+					&& !(spr->mobj->player && (spr->mobj->state->nextstate == S_PLAY_TAP1 || spr->mobj->state->nextstate == S_PLAY_TAP2) && spr->mobj->state == &states[S_PLAY_STND]))
 				{
-					const UINT32 nextframe = (states[spr->mobj->state->nextstate].frame & FF_FRAMEMASK) % md2->model->header.numFrames;
-					next = &md2->model->frames[nextframe];
+					nextFrame = (states[spr->mobj->state->nextstate].frame & FF_FRAMEMASK) % md2->model->meshes[0].numFrames;
+					//next = &md2->model->meshes[0].frames[nextFrame];
 				}
 			}
 		}
+#endif
 
 		//Hurdler: it seems there is still a small problem with mobj angle
 		p.x = FIXED_TO_FLOAT(spr->mobj->x);
@@ -1380,19 +1295,31 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 			p.angley = FIXED_TO_FLOAT(anglef);
 		}
 		p.anglex = 0.0f;
-
-		color[0] = Surf.FlatColor.s.red;
-		color[1] = Surf.FlatColor.s.green;
-		color[2] = Surf.FlatColor.s.blue;
-		color[3] = Surf.FlatColor.s.alpha;
+#ifdef USE_FTRANSFORM_ANGLEZ
+		// Slope rotation from Kart
+		p.anglez = 0.0f;
+		if (spr->mobj->standingslope)
+		{
+			fixed_t tempz = spr->mobj->standingslope->normal.z;
+			fixed_t tempy = spr->mobj->standingslope->normal.y;
+			fixed_t tempx = spr->mobj->standingslope->normal.x;
+			fixed_t tempangle = AngleFixed(R_PointToAngle2(0, 0, FixedSqrt(FixedMul(tempy, tempy) + FixedMul(tempz, tempz)), tempx));
+			p.anglez = FIXED_TO_FLOAT(tempangle);
+			tempangle = -AngleFixed(R_PointToAngle2(0, 0, tempz, tempy));
+			p.anglex = FIXED_TO_FLOAT(tempangle);
+		}
+#endif
 
 		// SRB2CBTODO: MD2 scaling support
 		finalscale *= FIXED_TO_FLOAT(spr->mobj->scale);
 
 		p.flip = atransform.flip;
-		p.mirror = atransform.mirror;
+#ifdef USE_FTRANSFORM_MIRROR
+		p.mirror = atransform.mirror; // from Kart
+#endif
 
-		HWD.pfnDrawMD2i(buff, curr, durs, tics, next, &p, finalscale, flip, color);
+		HWD.pfnSetShader(4);	// model shader
+		HWD.pfnDrawModel(md2->model, frame, durs, tics, nextFrame, &p, finalscale, flip, &Surf);
 	}
 }
 

@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -126,6 +126,8 @@ typedef enum
 
 // mouse values are used once
 extern consvar_t cv_mousesens, cv_mouseysens;
+extern consvar_t cv_mousesens2, cv_mouseysens2;
+extern consvar_t cv_controlperkey;
 
 extern INT32 mousex, mousey;
 extern INT32 mlooky; //mousey with mlookSensitivity
@@ -159,12 +161,13 @@ INT32 G_KeyStringtoNum(const char *keystr);
 
 // detach any keys associated to the given game control
 void G_ClearControlKeys(INT32 (*setupcontrols)[2], INT32 control);
+void G_ClearAllControlKeys(void);
 void Command_Setcontrol_f(void);
 void Command_Setcontrol2_f(void);
 void Command_Setcontrol3_f(void);
 void Command_Setcontrol4_f(void);
-void G_Controldefault(void);
+void G_Controldefault(UINT8 player);
 void G_SaveKeySetting(FILE *f);
-void G_CheckDoubleUsage(INT32 keynum);
+INT32 G_CheckDoubleUsage(INT32 keynum, boolean modify);
 
 #endif

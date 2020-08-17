@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -812,6 +812,8 @@ void T_BounceCheese(levelspecthink_t *bouncer)
 		{
 			bouncer->sector->ceilingheight = actionsector->ceilingheight;
 			bouncer->sector->floorheight = bouncer->sector->ceilingheight - (halfheight*2);
+			T_MovePlane(bouncer->sector, 0, bouncer->sector->ceilingheight, 0, 1, -1); // update things on ceiling
+			T_MovePlane(bouncer->sector, 0, bouncer->sector->floorheight, 0, 0, -1); // update things on floor
 			P_RecalcPrecipInSector(actionsector);
 			bouncer->sector->ceilingdata = NULL;
 			bouncer->sector->floordata = NULL;
@@ -826,6 +828,8 @@ void T_BounceCheese(levelspecthink_t *bouncer)
 		{
 			bouncer->sector->ceilingheight = floorheight + (halfheight << 1);
 			bouncer->sector->floorheight = floorheight;
+			T_MovePlane(bouncer->sector, 0, bouncer->sector->ceilingheight, 0, 1, -1); // update things on ceiling
+			T_MovePlane(bouncer->sector, 0, bouncer->sector->floorheight, 0, 0, -1); // update things on floor
 			P_RecalcPrecipInSector(actionsector);
 			bouncer->sector->ceilingdata = NULL;
 			bouncer->sector->floordata = NULL;
@@ -842,9 +846,9 @@ void T_BounceCheese(levelspecthink_t *bouncer)
 		}
 
 		T_MovePlane(bouncer->sector, bouncer->speed/2, bouncer->sector->ceilingheight -
-			70*FRACUNIT, 0, 1, -1); // move floor
+			70*FRACUNIT, 0, 1, -1); // move ceiling
 		T_MovePlane(bouncer->sector, bouncer->speed/2, bouncer->sector->floorheight - 70*FRACUNIT,
-			0, 0, -1); // move ceiling
+			0, 0, -1); // move floor
 
 		bouncer->sector->floorspeed = -bouncer->speed/2;
 		bouncer->sector->ceilspeed = 42;
@@ -894,6 +898,8 @@ void T_BounceCheese(levelspecthink_t *bouncer)
 		{
 			bouncer->sector->floorheight = bouncer->floorwasheight;
 			bouncer->sector->ceilingheight = bouncer->ceilingwasheight;
+			T_MovePlane(bouncer->sector, 0, bouncer->sector->ceilingheight, 0, 1, -1); // update things on ceiling
+			T_MovePlane(bouncer->sector, 0, bouncer->sector->floorheight, 0, 0, -1); // update things on floor
 			bouncer->sector->ceilingdata = NULL;
 			bouncer->sector->floordata = NULL;
 			bouncer->sector->floorspeed = 0;
@@ -1975,7 +1981,7 @@ void T_ThwompSector(levelspecthink_t *thwomp)
 					continue;
 
 				mo = (mobj_t *)th;
-				if (mo->type == MT_PLAYER && mo->health && mo->player && !mo->player->spectator 
+				if (mo->type == MT_PLAYER && mo->health && mo->player && !mo->player->spectator
 				    && mo->z <= thwomp->sector->ceilingheight
 					&& P_AproxDistance(thwompx - mo->x, thwompy - mo->y) <= 96*FRACUNIT)
 				{
@@ -2530,9 +2536,9 @@ void T_CameraScanner(elevator_t *elevator)
 		lastleveltime = leveltime;
 	}
 
-	if (players[displayplayer].mo)
+	if (players[displayplayers[0]].mo)
 	{
-		if (players[displayplayer].mo->subsector->sector == elevator->actionsector)
+		if (players[displayplayers[0]].mo->subsector->sector == elevator->actionsector)
 		{
 			if (t_cam_dist == -42)
 				t_cam_dist = cv_cam_dist.value;
@@ -2558,9 +2564,9 @@ void T_CameraScanner(elevator_t *elevator)
 		}
 	}
 
-	if (splitscreen && players[secondarydisplayplayer].mo)
+	if (splitscreen && players[displayplayers[1]].mo)
 	{
-		if (players[secondarydisplayplayer].mo->subsector->sector == elevator->actionsector)
+		if (players[displayplayers[1]].mo->subsector->sector == elevator->actionsector)
 		{
 			if (t_cam2_rotate == -42)
 				t_cam2_dist = cv_cam2_dist.value;
@@ -2586,9 +2592,9 @@ void T_CameraScanner(elevator_t *elevator)
 		}
 	}
 
-	if (splitscreen > 1 && players[thirddisplayplayer].mo)
+	if (splitscreen > 1 && players[displayplayers[2]].mo)
 	{
-		if (players[thirddisplayplayer].mo->subsector->sector == elevator->actionsector)
+		if (players[displayplayers[2]].mo->subsector->sector == elevator->actionsector)
 		{
 			if (t_cam3_rotate == -42)
 				t_cam3_dist = cv_cam3_dist.value;
@@ -2614,9 +2620,9 @@ void T_CameraScanner(elevator_t *elevator)
 		}
 	}
 
-	if (splitscreen > 2 && players[fourthdisplayplayer].mo)
+	if (splitscreen > 2 && players[displayplayers[3]].mo)
 	{
-		if (players[fourthdisplayplayer].mo->subsector->sector == elevator->actionsector)
+		if (players[displayplayers[3]].mo->subsector->sector == elevator->actionsector)
 		{
 			if (t_cam4_rotate == -42)
 				t_cam4_dist = cv_cam4_dist.value;
@@ -3003,6 +3009,7 @@ void EV_CrumbleChain(sector_t *sec, ffloor_t *rover)
 	fixed_t topz;
 	fixed_t a, b, c;
 	mobjtype_t type = MT_ROCKCRUMBLE1;
+	const fixed_t spacing = 48*mapobjectscale;
 
 	// If the control sector has a special
 	// of Section3:7-15, use the custom debris.
@@ -3034,16 +3041,16 @@ void EV_CrumbleChain(sector_t *sec, ffloor_t *rover)
 	rightx = sec->lines[rightmostvertex]->v1->x;
 	topy = sec->lines[topmostvertex]->v1->y-(16<<FRACBITS);
 	bottomy = sec->lines[bottommostvertex]->v1->y;
-	topz = *rover->topheight-(16<<FRACBITS);
+	topz = *rover->topheight-(spacing/2);
 
-	for (a = leftx; a < rightx; a += (32<<FRACBITS))
+	for (a = leftx; a < rightx; a += spacing)
 	{
-		for (b = topy; b > bottomy; b -= (32<<FRACBITS))
+		for (b = topy; b > bottomy; b -= spacing)
 		{
 			if (R_PointInSubsector(a, b)->sector == sec)
 			{
 				mobj_t *spawned = NULL;
-				for (c = topz; c > *rover->bottomheight; c -= (32<<FRACBITS))
+				for (c = topz; c > *rover->bottomheight; c -= spacing)
 				{
 					spawned = P_SpawnMobj(a, b, c, type);
 					spawned->fuse = 3*TICRATE;

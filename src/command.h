@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -44,6 +44,9 @@ void COM_ImmedExecute(const char *ptext);
 
 // Execute commands in buffer, flush them
 void COM_BufExecute(void);
+
+// As above; and progress the wait timer.
+void COM_BufTicker(void);
 
 // setup command buffer, at game tartup
 void COM_Init(void);
@@ -129,6 +132,11 @@ extern CV_PossibleValue_t CV_Natural[];
 // SRB2kart
 extern CV_PossibleValue_t kartspeed_cons_t[];
 
+extern consvar_t cv_execversion;
+
+void CV_InitFilterVar(void);
+void CV_ToggleExecVersion(boolean enable);
+
 // register a variable for use at the console
 void CV_RegisterVar(consvar_t *variable);
 
@@ -155,7 +163,7 @@ void CV_AddValue(consvar_t *var, INT32 increment);
 void CV_SaveVariables(FILE *f);
 
 // load/save gamesate (load and save option and for network join in game)
-void CV_SaveNetVars(UINT8 **p);
+void CV_SaveNetVars(UINT8 **p, boolean isdemorecording);
 void CV_LoadNetVars(UINT8 **p);
 
 // reset cheat netvars after cheats is deactivated
@@ -163,5 +171,8 @@ void CV_ResetCheatNetVars(void);
 
 boolean CV_IsSetToDefault(consvar_t *v);
 UINT8 CV_CheatsEnabled(void);
+
+// Returns cvar by name. Exposed here for Lua.
+consvar_t *CV_FindVar(const char *name);
 
 #endif // __COMMAND_H__

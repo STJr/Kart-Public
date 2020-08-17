@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -17,6 +17,7 @@
 // Need data structure definitions.
 #include "d_player.h"
 #include "r_data.h"
+#include "doomstat.h" // MAXSPLITSCREENPLAYERS
 
 #ifdef __GNUG__
 #pragma interface
@@ -88,8 +89,9 @@ extern side_t *sides;
 //
 extern fixed_t viewx, viewy, viewz;
 extern angle_t viewangle, aimingangle;
+extern UINT8 viewssnum; // splitscreen view number
 extern boolean viewsky, skyVisible;
-extern boolean skyVisible1, skyVisible2, skyVisible3, skyVisible4; // saved values of skyVisible for P1 and P2, for splitscreen
+extern boolean skyVisiblePerPlayer[MAXSPLITSCREENPLAYERS]; // saved values of skyVisible of each splitscreen player
 extern sector_t *viewsector;
 extern player_t *viewplayer;
 extern UINT8 portalrender;

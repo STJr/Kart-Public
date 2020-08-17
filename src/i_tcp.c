@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -260,6 +260,33 @@ static void wattcp_outch(char s)
 	if (s == '\r') CONS_Printf("\n");
 	else if (s != '\n') CONS_Printf(pr);
 }
+#endif
+
+#ifdef USE_WINSOCK
+// stupid microsoft makes things complicated
+static char *get_WSAErrorStr(int e)
+{
+	static char buf[256]; // allow up to 255 bytes
+
+	buf[0] = '\0';
+
+	FormatMessageA(
+		FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		(DWORD)e,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)buf,
+		sizeof (buf),
+		NULL);
+
+	if (!buf[0]) // provide a fallback error message if no message is available for some reason
+		sprintf(buf, "Unknown error");
+
+	return buf;
+}
+#undef strerror
+#define strerror get_WSAErrorStr
 #endif
 
 #ifdef USE_WINSOCK2
@@ -585,7 +612,7 @@ static boolean SOCK_Get(void)
 		if (c != ERRSOCKET)
 		{
 			// find remote node number
-			for (j = 0; j <= MAXNETNODES; j++) //include LAN
+			for (j = 1; j <= MAXNETNODES; j++) //include LAN
 			{
 				if (SOCK_cmpaddr(&fromaddress, &clientaddress[j], 0))
 				{
@@ -740,9 +767,13 @@ static void SOCK_Send(void)
 		c = SOCK_SendToAddr(nodesocket[doomcom->remotenode], &clientaddress[doomcom->remotenode]);
 	}
 
-	if (c == ERRSOCKET && errno != ECONNREFUSED && errno != EWOULDBLOCK)
-		I_Error("SOCK_Send, error sending to node %d (%s) #%u: %s", doomcom->remotenode,
-			SOCK_GetNodeAddress(doomcom->remotenode), errno, strerror(errno));
+	if (c == ERRSOCKET)
+	{
+		int e = errno; // save error code so it can't be modified later
+		if (e != ECONNREFUSED && e != EWOULDBLOCK)
+			I_Error("SOCK_Send, error sending to node %d (%s) #%u: %s", doomcom->remotenode,
+				SOCK_GetNodeAddress(doomcom->remotenode), e, strerror(e));
+	}
 }
 #endif
 
@@ -782,6 +813,8 @@ static SOCKET_TYPE UDP_Bind(int family, struct sockaddr *addr, socklen_t addrlen
 #endif
 #endif
 	mysockaddr_t straddr;
+	struct sockaddr_in sin;
+	socklen_t len = sizeof(sin);
 
 	if (s == (SOCKET_TYPE)ERRSOCKET)
 		return (SOCKET_TYPE)ERRSOCKET;
@@ -875,12 +908,16 @@ static SOCKET_TYPE UDP_Bind(int family, struct sockaddr *addr, socklen_t addrlen
 			CONS_Printf(M_GetText("Network system buffer set to: %dKb\n"), opt>>10);
 	}
 
+	if (getsockname(s, (struct sockaddr *)&sin, &len) == -1)
+		CONS_Alert(CONS_WARNING, M_GetText("Failed to get port number\n"));
+	else
+		current_port = (UINT16)ntohs(sin.sin_port);
+
 	return s;
 }
 
 static boolean UDP_Socket(void)
 {
-	const char *sock_port = NULL;
 	size_t s;
 	struct my_addrinfo *ai, *runp, hints;
 	int gaie;
@@ -902,20 +939,11 @@ static boolean UDP_Socket(void)
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
 
-	if (M_CheckParm("-clientport"))
-	{
-		if (!M_IsNextParm())
-			I_Error("syntax: -clientport <portnum>");
-		sock_port = M_GetNextParm();
-	}
-	else
-		sock_port = port_name;
-
 	if (M_CheckParm("-bindaddr"))
 	{
 		while (M_IsNextParm())
 		{
-			gaie = I_getaddrinfo(M_GetNextParm(), sock_port, &hints, &ai);
+			gaie = I_getaddrinfo(M_GetNextParm(), port_name, &hints, &ai);
 			if (gaie == 0)
 			{
 				runp = ai;
@@ -936,7 +964,7 @@ static boolean UDP_Socket(void)
 	}
 	else
 	{
-		gaie = I_getaddrinfo("0.0.0.0", sock_port, &hints, &ai);
+		gaie = I_getaddrinfo("0.0.0.0", port_name, &hints, &ai);
 		if (gaie == 0)
 		{
 			runp = ai;
@@ -951,8 +979,8 @@ static boolean UDP_Socket(void)
 #ifdef HAVE_MINIUPNPC
 					if (UPNP_support)
 					{
-						I_UPnP_rem(sock_port, "UDP");
-						I_UPnP_add(NULL, sock_port, "UDP");
+						I_UPnP_rem(port_name, "UDP");
+						I_UPnP_add(NULL, port_name, "UDP");
 					}
 #endif
 				}
@@ -969,7 +997,7 @@ static boolean UDP_Socket(void)
 		{
 			while (M_IsNextParm())
 			{
-				gaie = I_getaddrinfo(M_GetNextParm(), sock_port, &hints, &ai);
+				gaie = I_getaddrinfo(M_GetNextParm(), port_name, &hints, &ai);
 				if (gaie == 0)
 				{
 					runp = ai;
@@ -990,7 +1018,7 @@ static boolean UDP_Socket(void)
 		}
 		else
 		{
-			gaie = I_getaddrinfo("::", sock_port, &hints, &ai);
+			gaie = I_getaddrinfo("::", port_name, &hints, &ai);
 			if (gaie == 0)
 			{
 				runp = ai;
@@ -1279,11 +1307,11 @@ void I_ShutdownTcpDriver(void)
 static SINT8 SOCK_NetMakeNodewPort(const char *address, const char *port)
 {
 	SINT8 newnode = -1;
-	struct my_addrinfo *ai, *runp, hints;
+	struct my_addrinfo *ai = NULL, *runp, hints;
 	int gaie;
 
 	 if (!port || !port[0])
-		port = port_name;
+		port = DEFAULTPORT;
 
 	DEBFILE(va("Creating new node: %s@%s\n", address, port));
 
@@ -1309,8 +1337,12 @@ static SINT8 SOCK_NetMakeNodewPort(const char *address, const char *port)
 	while (runp != NULL)
 	{
 		// find ip of the server
-		memcpy(&clientaddress[newnode], runp->ai_addr, runp->ai_addrlen);
-		runp = NULL;
+		if (sendto(mysockets[0], NULL, 0, 0, runp->ai_addr, runp->ai_addrlen) == 0)
+		{
+			memcpy(&clientaddress[newnode], runp->ai_addr, runp->ai_addrlen);
+			break;
+		}
+		runp = runp->ai_next;
 	}
 	I_freeaddrinfo(ai);
 	return newnode;
@@ -1443,14 +1475,15 @@ boolean I_InitTcpNetwork(void)
 	if (!I_InitTcpDriver())
 		return false;
 
-	if (M_CheckParm("-udpport"))
+	if (M_CheckParm("-port"))
+	// Combined -udpport and -clientport into -port
+	// As it was really redundant having two seperate parms that does the same thing
 	{
 		if (M_IsNextParm())
 			strcpy(port_name, M_GetNextParm());
 		else
 			strcpy(port_name, "0");
 	}
-	current_port = (UINT16)atoi(port_name);
 
 	// parse network game options,
 	if (M_CheckParm("-server") || dedicated)

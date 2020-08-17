@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -49,6 +49,7 @@ void (*splatfunc)(void); // span drawer w/ transparency
 void (*basespanfunc)(void); // default span func for color mode
 void (*transtransfunc)(void); // translucent translated column drawer
 void (*twosmultipatchfunc)(void); // for cols with transparent pixels
+void (*twosmultipatchtransfunc)(void); // for cols with transparent pixels AND translucency
 
 // ------------------
 // global video state
@@ -57,6 +58,8 @@ viddef_t vid;
 INT32 setmodeneeded; //video mode change needed if > 0 (the mode number to set + 1)
 
 static CV_PossibleValue_t scr_depth_cons_t[] = {{8, "8 bits"}, {16, "16 bits"}, {24, "24 bits"}, {32, "32 bits"}, {0, NULL}};
+
+static CV_PossibleValue_t shittyscreen_cons_t[] = {{0, "Okay"}, {1, "Shitty"}, {2, "Extra Shitty"}, {0, NULL}};
 
 //added : 03-02-98: default screen mode, as loaded/saved in config
 #ifdef WII
@@ -69,12 +72,10 @@ consvar_t cv_scr_height = {"scr_height", "800", CV_SAVE, CV_Unsigned, NULL, 0, N
 consvar_t cv_scr_depth = {"scr_depth", "16 bits", CV_SAVE, scr_depth_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 #endif
 consvar_t cv_renderview = {"renderview", "On", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_vhseffect = {"vhspause", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_shittyscreen = {"televisionsignal", "Okay", CV_NOSHOWHELP, shittyscreen_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-#ifdef DIRECTFULLSCREEN
 static void SCR_ChangeFullscreen (void);
-#else
-static void SCR_ChangeFullscreen (void);
-#endif
 
 consvar_t cv_fullscreen = {"fullscreen", "Yes", CV_SAVE|CV_CALL, CV_YesNo, SCR_ChangeFullscreen, 0, NULL, NULL, 0, 0, NULL};
 
@@ -127,6 +128,7 @@ void SCR_SetMode(void)
 		fuzzcolfunc = R_DrawTranslucentColumn_8;
 		walldrawerfunc = R_DrawWallColumn_8;
 		twosmultipatchfunc = R_Draw2sMultiPatchColumn_8;
+		twosmultipatchtransfunc = R_Draw2sMultiPatchTranslucentColumn_8;
 #ifdef RUSEASM
 		if (R_ASM)
 		{
@@ -282,7 +284,10 @@ void SCR_Recalc(void)
 	vid.fdupy = FixedDiv(vid.height*FRACUNIT, BASEVIDHEIGHT*FRACUNIT);
 
 #ifdef HWRENDER
-	if (rendermode != render_opengl && rendermode != render_none) // This was just placing it incorrectly at non aspect correct resolutions in opengl
+	//if (rendermode != render_opengl && rendermode != render_none) // This was just placing it incorrectly at non aspect correct resolutions in opengl
+	// 13/11/18:
+	// The above is no longer necessary, since we want OpenGL to be just like software now
+	// -- Monster Iestyn
 #endif
 		vid.fdupx = vid.fdupy = (vid.fdupx < vid.fdupy ? vid.fdupx : vid.fdupy);
 
@@ -307,14 +312,6 @@ void SCR_Recalc(void)
 	// be calculated next time the automap is activated.
 	if (automapactive)
 		AM_Stop();
-
-	// r_plane stuff: visplanes, openings, floorclip, ceilingclip, spanstart,
-	//                spanstop, yslope, distscale, cachedheight, cacheddistance,
-	//                cachedxstep, cachedystep
-	//             -> allocated at the maximum vidsize, static.
-
-	// r_main: xtoviewangle, allocated at the maximum size.
-	// r_things: negonearray, screenheightarray allocated max. size.
 
 	// set the screen[x] ptrs on the new vidbuffers
 	V_Init();
@@ -410,7 +407,7 @@ void SCR_DisplayTicRate(void)
 	tic_t i;
 	tic_t ontic = I_GetTime();
 	tic_t totaltics = 0;
-	INT32 ticcntcolor = 0;
+	const UINT8 *ticcntcolor = NULL;
 
 	for (i = lasttic + 1; i < TICRATE+lasttic && i < ontic; ++i)
 		fpsgraph[i % TICRATE] = false;
@@ -421,13 +418,36 @@ void SCR_DisplayTicRate(void)
 		if (fpsgraph[i])
 			++totaltics;
 
-	if (totaltics <= TICRATE/2) ticcntcolor = V_REDMAP;
-	else if (totaltics == TICRATE) ticcntcolor = V_GREENMAP;
+	if (totaltics <= TICRATE/2) ticcntcolor = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SALMON, GTC_CACHE);
+	else if (totaltics == TICRATE) ticcntcolor = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_MINT, GTC_CACHE);
 
-	V_DrawString(vid.width-(24*vid.dupx), vid.height-(16*vid.dupy),
+	/*V_DrawString(vid.width-(24*vid.dupx), vid.height-(16*vid.dupy),
 		V_YELLOWMAP|V_NOSCALESTART, "FPS");
 	V_DrawString(vid.width-(40*vid.dupx), vid.height-( 8*vid.dupy),
-		ticcntcolor|V_NOSCALESTART, va("%02d/%02u", totaltics, TICRATE));
+		ticcntcolor|V_NOSCALESTART, va("%02d/%02u", totaltics, TICRATE));*/
+
+	// draw "FPS"
+	V_DrawFixedPatch(306<<FRACBITS, 183<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTORIGHT, framecounter, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_YELLOW, GTC_CACHE));
+	// draw total frame:
+	V_DrawPingNum(318, 190, V_SNAPTOBOTTOM|V_SNAPTORIGHT, TICRATE, ticcntcolor);
+	// draw "/"
+	V_DrawFixedPatch(306<<FRACBITS, 190<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTORIGHT, frameslash, ticcntcolor);
+	// draw our actual framerate
+	V_DrawPingNum(306, 190, V_SNAPTOBOTTOM|V_SNAPTORIGHT, totaltics, ticcntcolor);
+
 
 	lasttic = ontic;
+}
+
+// SCR_DisplayLocalPing
+// Used to draw the user's local ping next to the framerate for a quick check without having to hold TAB for instance. By default, it only shows up if your ping is too high and risks getting you kicked.
+
+void SCR_DisplayLocalPing(void)
+{
+	UINT32 ping = playerpingtable[consoleplayer];	// consoleplayer's ping is everyone's ping in a splitnetgame :P
+	if (cv_showping.value == 1 || (cv_showping.value == 2 && ping > servermaxping))	// only show 2 (warning) if our ping is at a bad level
+	{
+		INT32 dispy = cv_ticrate.value ? 160 : 181;
+		HU_drawPing(307, dispy, ping, V_SNAPTORIGHT | V_SNAPTOBOTTOM);
+	}
 }

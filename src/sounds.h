@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -54,7 +54,7 @@ typedef enum
 } skinsound_t;
 
 // free sfx for S_AddSoundFx()
-#define NUMSFXFREESLOTS 800 // Matches SOC Editor.
+#define NUMSFXFREESLOTS 1600 // Matches SOC Editor.
 #define NUMSKINSFXSLOTS (MAXSKINS*NUMSKINSOUNDS)
 
 //
@@ -843,53 +843,54 @@ typedef enum
 	sfx_kc6e,
 
 	// SRB2kart
-	sfx_lkt1,
-	sfx_lkt2,
-	sfx_lkt3,
-	sfx_mlap,
-	sfx_sboost,
-	sfx_mush,
+	sfx_slip,
+	sfx_screec,
+	sfx_drift,
+	sfx_ruburn,
+	sfx_ddash,
+	sfx_tossed,
+	sfx_itpick,
+	sfx_peel,
+	sfx_hogbom,
+	sfx_zio3,
+	sfx_kpogos,
+	sfx_alarmi,
+	sfx_alarmg,
 	sfx_kinvnc,
 	sfx_kgrow,
-	sfx_bomb,
-	sfx_bomb2,
-	sfx_peel,
-	sfx_slip,
-	sfx_fake,
-	sfx_grnshl,
-	sfx_redshl,
-	sfx_shbrk,
-	sfx_mkdrft,
-	sfx_mkslid,
-	sfx_mkitem,
-	sfx_mkitm1,
-	sfx_mkitm2,
-	sfx_mkitm3,
-	sfx_mkitm4,
-	sfx_mkitm5,
-	sfx_mkitm6,
-	sfx_mkitm7,
-	sfx_mkitm8,
-	sfx_mkitmF,
-	sfx_mkitmE,
-	sfx_clash,
-	sfx_tossed,
-	sfx_shelit,
+	sfx_itrol1,
+	sfx_itrol2,
+	sfx_itrol3,
+	sfx_itrol4,
+	sfx_itrol5,
+	sfx_itrol6,
+	sfx_itrol7,
+	sfx_itrol8,
+	sfx_itrolf,
+	sfx_itrolm,
+	sfx_itrolk,
+	sfx_itrole,
 	sfx_vroom,
-	sfx_boing,
-	sfx_smkinv,
-	sfx_screec,
+	sfx_chaooo,
 	sfx_yeeeah,
 	sfx_noooo1,
 	sfx_noooo2,
 	sfx_ruby1,
 	sfx_ruby2,
-	sfx_hogbom,
-	sfx_kpogos,
-	sfx_ddash,
-	sfx_zio3,
-	sfx_mcitm1,
-	sfx_chaooo,
+	sfx_tcart,
+	sfx_bfare,
+	sfx_merry,
+	sfx_bowlh,
+	sfx_tppop,
+	sfx_hsdoor,
+	sfx_hstrn,
+	sfx_aspkb,
+	sfx_wind1,
+	sfx_fire2,
+	sfx_chain,
+	sfx_mkuma,
+	sfx_toada,
+	sfx_bsnipe,
 	sfx_itfree,
 	sfx_dbgsal,
 

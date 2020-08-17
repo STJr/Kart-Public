@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2014-2016 by John "JTE" Muniz.
-// Copyright (C) 2014-2016 by Sonic Team Junior.
+// Copyright (C) 2014-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -13,26 +13,22 @@
 enum hud {
 	hud_stagetitle = 0,
 	hud_textspectator,
-	// Singleplayer / Co-op
-	hud_score,
+
 	hud_time,
-	hud_rings,
-	hud_lives,
-	// Match / CTF / Tag / Ringslinger
-	hud_weaponrings,
-	hud_powerstones,
-	// NiGHTS mode
-	hud_nightslink,
-	hud_nightsdrill,
-	hud_nightsrings,
-	hud_nightsscore,
-	hud_nightstime,
-	hud_nightsrecords,
-	// TAB scores overlays
-	hud_rankings,
-	hud_coopemeralds,
-	hud_tokens,
-	hud_tabemblems,
+	hud_gametypeinfo,
+	hud_minimap,
+	hud_item,
+	hud_position,
+	hud_check,			// "CHECK" f-zero indicator
+	hud_minirankings,	// Rankings to the left
+	hud_battlebumpers,	// mini rankings battle bumpers.
+	hud_battlefullscreen,	// battle huge text (WAIT, WIN, LOSE ...) + karma comeback time
+	hud_battlecomebacktimer,	// comeback timer in battlefullscreen. separated for ease of use.
+	hud_wanted,
+	hud_speedometer,
+	hud_freeplay,
+	hud_rankings,		// Tab rankings
+
 	hud_MAX
 };
 

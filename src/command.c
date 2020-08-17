@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -33,6 +33,7 @@
 #include "hu_stuff.h"
 #include "p_setup.h"
 #include "lua_script.h"
+#include "d_netfil.h" // findfile
 
 //========
 // protos.
@@ -49,9 +50,13 @@ static void COM_Exec_f(void);
 static void COM_Wait_f(void);
 static void COM_Help_f(void);
 static void COM_Toggle_f(void);
+static void COM_Add_f(void);
+
+static void CV_EnforceExecVersion(void);
+static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr);
 
 static boolean CV_Command(void);
-static consvar_t *CV_FindVar(const char *name);
+consvar_t *CV_FindVar(const char *name);
 static const char *CV_StringValue(const char *var_name);
 static consvar_t *consvar_vars; // list of registered console variables
 
@@ -68,7 +73,21 @@ CV_PossibleValue_t kartspeed_cons_t[] = {
 	{0, "Easy"}, {1, "Normal"}, {2, "Hard"},
 	{0, NULL}};
 
-#define COM_BUF_SIZE 8192 // command buffer size
+// Filter consvars by EXECVERSION
+// First implementation is 2 (1.0.2), so earlier configs default at 1 (1.0.0)
+// Also set CV_HIDEN during runtime, after config is loaded
+
+static boolean execversion_enabled = false;
+consvar_t cv_execversion = {"execversion","1",CV_CALL,CV_Unsigned, CV_EnforceExecVersion, 0, NULL, NULL, 0, 0, NULL};
+
+// for default joyaxis detection
+#if 0
+static boolean joyaxis_default[4] = {false,false,false,false};
+static INT32 joyaxis_count[4] = {0,0,0,0};
+#endif
+
+#define COM_BUF_SIZE 0x4000 // command buffer size, 0x4000 = 16384
+#define MAX_ALIAS_RECURSION 100 // max recursion allowed for aliases
 
 static INT32 com_wait; // one command per frame (for cmd sequences)
 
@@ -138,6 +157,20 @@ void COM_BufInsertText(const char *ptext)
 	}
 }
 
+/** Progress the wait timer and flush waiting console commands when ready.
+  */
+void
+COM_BufTicker(void)
+{
+	if (com_wait)
+	{
+		com_wait--;
+		return;
+	}
+
+	COM_BufExecute();
+}
+
 /** Flushes (executes) console commands in the buffer.
   */
 void COM_BufExecute(void)
@@ -146,12 +179,6 @@ void COM_BufExecute(void)
 	char *ptext;
 	char line[1024] = "";
 	INT32 quotes;
-
-	if (com_wait)
-	{
-		com_wait--;
-		return;
-	}
 
 	while (com_text.cursize)
 	{
@@ -273,6 +300,7 @@ void COM_Init(void)
 	COM_AddCommand("wait", COM_Wait_f);
 	COM_AddCommand("help", COM_Help_f);
 	COM_AddCommand("toggle", COM_Toggle_f);
+	COM_AddCommand("add", COM_Add_f);
 	RegisterNetXCmd(XD_NETVAR, Got_NetVar);
 }
 
@@ -491,6 +519,7 @@ static void COM_ExecuteString(char *ptext)
 {
 	xcommand_t *cmd;
 	cmdalias_t *a;
+	static INT32 recursion = 0; // detects recursion and stops it if it goes too far
 
 	COM_TokenizeString(ptext);
 
@@ -513,7 +542,44 @@ static void COM_ExecuteString(char *ptext)
 	{
 		if (!stricmp(com_argv[0], a->name))
 		{
-			COM_BufInsertText(a->value);
+			if (recursion > MAX_ALIAS_RECURSION)
+				CONS_Alert(CONS_WARNING, M_GetText("Alias recursion cycle detected!\n"));
+			else
+			{
+				char buf[1024];
+				char *write = buf, *read = a->value, *seek = read;
+
+				while ((seek = strchr(seek, '$')) != NULL)
+				{
+					memcpy(write, read, seek-read);
+					write += seek-read;
+
+					seek++;
+
+					if (*seek >= '1' && *seek <= '9')
+					{
+						if (com_argc > (size_t)(*seek - '0'))
+						{
+							memcpy(write, com_argv[*seek - '0'], strlen(com_argv[*seek - '0']));
+							write += strlen(com_argv[*seek - '0']);
+						}
+						seek++;
+					}
+					else
+					{
+						*write = '$';
+						write++;
+					}
+
+					read = seek;
+				}
+				WRITESTRING(write, read);
+
+				// Monster Iestyn: keep track of how many levels of recursion we're in
+				recursion++;
+				COM_BufInsertText(buf);
+				recursion--;
+			}
 			return;
 		}
 	}
@@ -534,8 +600,6 @@ static void COM_ExecuteString(char *ptext)
 static void COM_Alias_f(void)
 {
 	cmdalias_t *a;
-	char cmd[1024];
-	size_t i, c;
 
 	if (COM_Argc() < 3)
 	{
@@ -548,19 +612,9 @@ static void COM_Alias_f(void)
 	com_alias = a;
 
 	a->name = Z_StrDup(COM_Argv(1));
-
-	// copy the rest of the command line
-	cmd[0] = 0; // start out with a null string
-	c = COM_Argc();
-	for (i = 2; i < c; i++)
-	{
-		strcat(cmd, COM_Argv(i));
-		if (i != c)
-			strcat(cmd, " ");
-	}
-	strcat(cmd, "\n");
-
-	a->value = Z_StrDup(cmd);
+	// Just use arg 2 if it's the only other argument, in case the alias is wrapped in quotes (backward compat, or multiple commands in one string).
+	// Otherwise pull the whole string and seek to the end of the alias name. The strctr is in case the alias is quoted.
+	a->value = Z_StrDup(COM_Argc() == 3 ? COM_Argv(2) : (strchr(COM_Args() + strlen(a->name), ' ') + 1));
 }
 
 /** Prints a line of text to the console.
@@ -623,6 +677,7 @@ static void COM_CEchoDuration_f(void)
 static void COM_Exec_f(void)
 {
 	UINT8 *buf = NULL;
+	char filename[256];
 
 	if (COM_Argc() < 2 || COM_Argc() > 3)
 	{
@@ -631,13 +686,23 @@ static void COM_Exec_f(void)
 	}
 
 	// load file
+	// Try with Argv passed verbatim first, for back compat
 	FIL_ReadFile(COM_Argv(1), &buf);
 
 	if (!buf)
 	{
-		if (!COM_CheckParm("-noerror"))
-			CONS_Printf(M_GetText("couldn't execute file %s\n"), COM_Argv(1));
-		return;
+		// Now try by searching the file path
+		// filename is modified with the full found path
+		strcpy(filename, COM_Argv(1));
+		if (findfile(filename, NULL, true) != FS_NOTFOUND)
+			FIL_ReadFile(filename, &buf);
+
+		if (!buf)
+		{
+			if (!COM_CheckParm("-noerror"))
+				CONS_Printf(M_GetText("couldn't execute file %s\n"), COM_Argv(1));
+			return;
+		}
 	}
 
 	if (!COM_CheckParm("-silent"))
@@ -672,10 +737,11 @@ static void COM_Help_f(void)
 
 	if (COM_Argc() > 1)
 	{
-		cvar = CV_FindVar(COM_Argv(1));
+		const char *help = COM_Argv(1);
+		cvar = CV_FindVar(help);
 		if (cvar)
 		{
-			CONS_Printf(M_GetText("Variable %s:\n"), cvar->name);
+			CONS_Printf("\x82""Variable %s:\n", cvar->name);
 			CONS_Printf(M_GetText("  flags :"));
 			if (cvar->flags & CV_SAVE)
 				CONS_Printf("AUTOSAVE ");
@@ -690,43 +756,77 @@ static void COM_Help_f(void)
 			CONS_Printf("\n");
 			if (cvar->PossibleValue)
 			{
-				if (stricmp(cvar->PossibleValue[0].strvalue, "MIN") == 0)
+				if (!stricmp(cvar->PossibleValue[0].strvalue, "MIN") && !stricmp(cvar->PossibleValue[1].strvalue, "MAX"))
 				{
-					for (i = 1; cvar->PossibleValue[i].strvalue != NULL; i++)
-						if (!stricmp(cvar->PossibleValue[i].strvalue, "MAX"))
-							break;
-					CONS_Printf(M_GetText("  range from %d to %d\n"), cvar->PossibleValue[0].value,
-						cvar->PossibleValue[i].value);
-					CONS_Printf(M_GetText(" Current value: %d\n"), cvar->value);
+					CONS_Printf("  range from %d to %d\n", cvar->PossibleValue[0].value,
+						cvar->PossibleValue[1].value);
+					i = 2;
 				}
-				else
+
 				{
 					const char *cvalue = NULL;
-					CONS_Printf(M_GetText("  possible value : %s\n"), cvar->name);
+					//CONS_Printf(M_GetText("  possible value : %s\n"), cvar->name);
 					while (cvar->PossibleValue[i].strvalue)
 					{
-						CONS_Printf("    %-2d : %s\n", cvar->PossibleValue[i].value,
+						CONS_Printf("  %-2d : %s\n", cvar->PossibleValue[i].value,
 							cvar->PossibleValue[i].strvalue);
 						if (cvar->PossibleValue[i].value == cvar->value)
 							cvalue = cvar->PossibleValue[i].strvalue;
 						i++;
 					}
 					if (cvalue)
-						CONS_Printf(M_GetText(" Current value: %s\n"), cvalue);
+						CONS_Printf(" Current value: %s\n", cvalue);
 					else
-						CONS_Printf(M_GetText(" Current value: %d\n"), cvar->value);
+						CONS_Printf(" Current value: %d\n", cvar->value);
 				}
 			}
 			else
-				CONS_Printf(M_GetText(" Current value: %d\n"), cvar->value);
+				CONS_Printf(" Current value: %d\n", cvar->value);
 		}
 		else
-			CONS_Printf(M_GetText("No help for this command/variable\n"));
+		{
+			for (cmd = com_commands; cmd; cmd = cmd->next)
+			{
+				if (strcmp(cmd->name, help))
+					continue;
+
+				CONS_Printf("\x82""Command %s:\n", cmd->name);
+				CONS_Printf("  help is not available for commands");
+				CONS_Printf("\x82""\nCheck wiki.srb2.org for more or try typing <name> without arguments\n");
+				return;
+			}
+
+			CONS_Printf("No exact match, searching...\n");
+			// commands
+			CONS_Printf("\x82""Commands:\n");
+			for (cmd = com_commands; cmd; cmd = cmd->next)
+			{
+				if (!strstr(cmd->name, help))
+					continue;
+				CONS_Printf("%s ",cmd->name);
+				i++;
+			}
+
+			// variables
+			CONS_Printf("\x82""\nVariables:\n");
+			for (cvar = consvar_vars; cvar; cvar = cvar->next)
+			{
+				if ((cvar->flags & CV_NOSHOWHELP) || (!strstr(cvar->name, help)))
+					continue;
+				CONS_Printf("%s ", cvar->name);
+				i++;
+			}
+
+			CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command or variable>\n");
+
+			CONS_Debug(DBG_GAMELOGIC, "\x87Total : %d\n", i);
+		}
+		return;
 	}
-	else
+
 	{
 		// commands
-		CONS_Printf("\x82%s", M_GetText("Commands\n"));
+		CONS_Printf("\x82""Commands:\n");
 		for (cmd = com_commands; cmd; cmd = cmd->next)
 		{
 			CONS_Printf("%s ",cmd->name);
@@ -734,15 +834,16 @@ static void COM_Help_f(void)
 		}
 
 		// variables
-		CONS_Printf("\n\x82%s", M_GetText("Variables\n"));
+		CONS_Printf("\x82""\nVariables:\n");
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
-			if (!(cvar->flags & CV_NOSHOWHELP))
-				CONS_Printf("%s ", cvar->name);
+			if (cvar->flags & CV_NOSHOWHELP)
+				continue;
+			CONS_Printf("%s ", cvar->name);
 			i++;
 		}
 
-		CONS_Printf("\n\x82%s", M_GetText("Read help file for more or type help <command or variable>\n"));
+		CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command or variable>\n");
 
 		CONS_Debug(DBG_GAMELOGIC, "\x82Total : %d\n", i);
 	}
@@ -777,6 +878,30 @@ static void COM_Toggle_f(void)
 	// netcvar don't change imediately
 	cvar->flags |= CV_SHOWMODIFONETIME;
 	CV_AddValue(cvar, +1);
+}
+
+/** Command variant of CV_AddValue
+  */
+static void COM_Add_f(void)
+{
+	consvar_t *cvar;
+
+	if (COM_Argc() != 3)
+	{
+		CONS_Printf(M_GetText("Add <cvar_name> <value>: Add to the value of a cvar. Negative values work too!\n"));
+		return;
+	}
+	cvar = CV_FindVar(COM_Argv(1));
+	if (!cvar)
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("%s is not a cvar\n"), COM_Argv(1));
+		return;
+	}
+
+	if (( cvar->flags & CV_FLOAT ))
+		CV_Set(cvar, va("%f", FIXED_TO_FLOAT (cvar->value) + atof(COM_Argv(2))));
+	else
+		CV_AddValue(cvar, atoi(COM_Argv(2)));
 }
 
 // =========================================================================
@@ -898,7 +1023,7 @@ static const char *cv_null_string = "";
   * \return Pointer to the variable if found, or NULL.
   * \sa CV_FindNetVar
   */
-static consvar_t *CV_FindVar(const char *name)
+consvar_t *CV_FindVar(const char *name)
 {
 	consvar_t *cvar;
 
@@ -943,6 +1068,9 @@ static consvar_t *CV_FindNetVar(UINT16 netid)
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		if (cvar->netid == netid)
 			return cvar;
+
+	if (netid == 44542) // ouch this hack
+		return &cv_karteliminatelast;
 
 	return NULL;
 }
@@ -1041,9 +1169,15 @@ const char *CV_CompleteVar(char *partial, INT32 skips)
 
 	// check variables
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
-		if (!strncmp(partial, cvar->name, len))
-			if (!skips--)
-				return cvar->name;
+	{
+		if (cvar->flags & CV_NOSHOWHELP)
+			continue;
+		if (strncmp(partial, cvar->name, len))
+			continue;
+		if (skips--)
+			continue;
+		return cvar->name;
+	}
 
 	return NULL;
 }
@@ -1072,7 +1206,7 @@ static void Setvalue(consvar_t *var, const char *valstr, boolean stealth)
 		if (var->flags & CV_FLOAT)
 		{
 			double d = atof(valstr);
-			if (!d && valstr[0] != '0')
+			if (fpclassify(d) == FP_ZERO && valstr[0] != '0')
 				v = INT32_MIN;
 			else
 				v = (INT32)(d * FRACUNIT);
@@ -1270,7 +1404,7 @@ static void Got_NetVar(UINT8 **p, INT32 playernum)
 	Setvalue(cvar, svalue, stealth);
 }
 
-void CV_SaveNetVars(UINT8 **p)
+void CV_SaveNetVars(UINT8 **p, boolean isdemorecording)
 {
 	consvar_t *cvar;
 	UINT8 *count_p = *p;
@@ -1280,10 +1414,32 @@ void CV_SaveNetVars(UINT8 **p)
 	// the client will reset all netvars to default before loading
 	WRITEUINT16(*p, 0x0000);
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
-		if ((cvar->flags & CV_NETVAR) && !CV_IsSetToDefault(cvar))
+		if (((cvar->flags & CV_NETVAR) && !CV_IsSetToDefault(cvar)) || (isdemorecording && cvar->netid == cv_numlaps.netid))
 		{
 			WRITEUINT16(*p, cvar->netid);
-			WRITESTRING(*p, cvar->string);
+
+			// UGLY HACK: Save proper lap count in net replays
+			if (isdemorecording && cvar->netid == cv_numlaps.netid)
+			{
+				if (cv_basenumlaps.value &&
+					(!(mapheaderinfo[gamemap - 1]->levelflags & LF_SECTIONRACE)
+					|| (mapheaderinfo[gamemap - 1]->numlaps > cv_basenumlaps.value))
+				)
+				{
+					WRITESTRING(*p, cv_basenumlaps.string);
+				}
+				else
+				{
+					char buf[9];
+					sprintf(buf, "%d", mapheaderinfo[gamemap - 1]->numlaps);
+					WRITESTRING(*p, buf);
+				}
+			}
+			else
+			{
+				WRITESTRING(*p, cvar->string);
+			}
+
 			WRITEUINT8(*p, false);
 			++count;
 		}
@@ -1641,6 +1797,108 @@ void CV_AddValue(consvar_t *var, INT32 increment)
 	var->changed = 1; // user has changed it now
 }
 
+void CV_InitFilterVar(void)
+{
+#if 0
+	UINT8 i;
+	for (i = 0; i < 4; i++)
+	{
+		joyaxis_default[i] = true;
+		joyaxis_count[i] = 0;
+	}
+#endif
+}
+
+void CV_ToggleExecVersion(boolean enable)
+{
+	execversion_enabled = enable;
+}
+
+static void CV_EnforceExecVersion(void)
+{
+	if (!execversion_enabled)
+		CV_StealthSetValue(&cv_execversion, EXECVERSION);
+}
+
+static boolean CV_FilterJoyAxisVars(consvar_t *v, const char *valstr)
+{
+#if 1
+	// We don't have changed axis defaults yet
+	(void)v;
+	(void)valstr;
+#else
+	UINT8 i;
+
+	// If ALL axis settings are previous defaults, set them to the new defaults
+	// EXECVERSION < 26 (2.1.21)
+
+	for (i = 0; i < 4; i++)
+	{
+		if (joyaxis_default[i])
+		{
+			if (!stricmp(v->name, "joyaxis_fire"))
+			{
+				if (joyaxis_count[i] > 7) return false;
+				else if (joyaxis_count[i] == 7) return true;
+
+				if (!stricmp(valstr, "None")) joyaxis_count[i]++;
+				else joyaxis_default[i] = false;
+			}
+			// reset all axis settings to defaults
+			if (joyaxis_count[i] == 7)
+			{
+				switch (i)
+				{
+					default:
+						COM_BufInsertText(va("%s \"%s\"\n", cv_turnaxis.name, cv_turnaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_moveaxis.name, cv_moveaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_brakeaxis.name, cv_brakeaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_aimaxis.name, cv_aimaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_lookaxis.name, cv_lookaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_fireaxis.name, cv_fireaxis.defaultvalue));
+						COM_BufInsertText(va("%s \"%s\"\n", cv_driftaxis.name, cv_driftaxis.defaultvalue));
+						break;
+				}
+				joyaxis_count[i]++;
+				return false;
+			}
+		}
+	}
+#endif
+
+	// we haven't reached our counts yet, or we're not default
+	return true;
+}
+
+static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr)
+{
+	// True means allow the CV change, False means block it
+
+	// We only care about CV_SAVE because this filters the user's config files
+	// We do this same check in CV_Command
+	if (!(v->flags & CV_SAVE))
+		return true;
+
+	if (GETMAJOREXECVERSION(cv_execversion.value) < 2) // 2 = 1.0.2
+	{
+#if 0
+		// We don't have changed saved cvars yet
+		if (!stricmp(v->name, "alwaysmlook")
+			|| !stricmp(v->name, "alwaysmlook2")
+			|| !stricmp(v->name, "mousemove")
+			|| !stricmp(v->name, "mousemove2"))
+			return false;
+#endif
+
+		// axis defaults were changed to be friendly to 360 controllers
+		// if ALL axis settings are defaults, then change them to new values
+		if (!CV_FilterJoyAxisVars(v, valstr))
+			return false;
+	}
+
+	return true;
+}
+
 /** Displays or changes a variable from the console.
   * Since the user is presumed to have been directly responsible
   * for this change, the variable is marked as changed this game.
@@ -1665,8 +1923,11 @@ static boolean CV_Command(void)
 		return true;
 	}
 
-	CV_Set(v, COM_Argv(1));
-	v->changed = 1; // now it's been changed by (presumably) the user
+	if (!(v->flags & CV_SAVE) || CV_FilterVarByVersion(v, COM_Argv(1)))
+	{
+		CV_Set(v, COM_Argv(1));
+		v->changed = 1; // now it's been changed by (presumably) the user
+	}
 	return true;
 }
 

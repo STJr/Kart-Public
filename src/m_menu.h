@@ -3,7 +3,7 @@
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 2011-2016 by Matthew "Inuyasha" Walsh.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -29,6 +29,9 @@
 // Does all the real work of the menu interaction.
 boolean M_Responder(event_t *ev);
 
+// Called by main loop, runs for demo playback. If this returns true, nullify any further user input.
+boolean M_DemoResponder(event_t *ev);
+
 // Called by main loop, only used for menu (skull cursor) animation.
 void M_Ticker(void);
 
@@ -37,6 +40,9 @@ void M_Drawer(void);
 
 // Called by D_SRB2Main, loads the config file.
 void M_Init(void);
+
+// Called by D_SRB2Main also, sets up the playermenu and description tables.
+void M_InitCharacterTables(void);
 
 // Called by intro code to force menu up upon a keypress,
 // does nothing if menu is already up.
@@ -50,6 +56,9 @@ void M_SortServerList(void);
 
 // Draws a box with a texture inside as background for messages
 void M_DrawTextBox(INT32 x, INT32 y, INT32 width, INT32 boxlines);
+
+// Used in d_netcmd to restart time attack
+void M_ModeAttackRetry(INT32 choice);
 
 // the function to show a message box typing with the string inside
 // string must be static (not in the stack)
@@ -68,7 +77,6 @@ void M_QuitResponse(INT32 ch);
 
 // Determines whether to show a level in the list
 boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt);
-
 
 // flags for items in the menu
 // menu handle (what we do when key is pressed
@@ -151,7 +159,7 @@ typedef struct menuitem_s
 	UINT8 alphaKey;
 } menuitem_t;
 
-extern menuitem_t PlayerMenu[32];
+extern menuitem_t PlayerMenu[MAXSKINS];
 
 typedef struct menu_s
 {
@@ -172,6 +180,10 @@ extern menu_t *currentMenu;
 
 extern menu_t MainDef;
 extern menu_t SP_LoadDef;
+
+// Call upon joystick hotplug
+void M_SetupJoystickMenu(INT32 choice);
+extern menu_t OP_JoystickSetDef;
 
 // Stuff for customizing the player select screen
 typedef struct
@@ -206,10 +218,13 @@ typedef struct
 	UINT8 netgame;
 } saveinfo_t;
 
-extern description_t description[32];
+extern description_t description[MAXSKINS];
 
+extern consvar_t cv_showfocuslost;
 extern consvar_t cv_newgametype, cv_nextmap, cv_chooseskin, cv_serversort;
 extern CV_PossibleValue_t gametype_cons_t[];
+
+extern char dummystaffname[22];
 
 extern INT16 startmap;
 extern INT32 ultimate_selectable;
@@ -227,6 +242,11 @@ void Screenshot_option_Onchange(void);
 
 // Addons menu updating
 void Addons_option_Onchange(void);
+
+void M_ReplayHut(INT32 choice);
+void M_SetPlaybackMenuPointer(void);
+
+INT32 HU_GetHighlightColor(void);
 
 // These defines make it a little easier to make menus
 #define DEFAULTMENUSTYLE(header, source, prev, x, y)\

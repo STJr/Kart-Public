@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 2013-2016 by Matthew "Inuyasha" Walsh.
 // Copyright (C) 2013      by "Ninji".
-// Copyright (C) 2013-2016 by Sonic Team Junior.
+// Copyright (C) 2013-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -18,6 +18,10 @@
 #include "z_zone.h"
 #include "v_video.h"
 #include "i_video.h"
+
+#ifdef HWRENDER
+#include "hardware/hw_main.h"
+#endif
 
 // GIFs are always little-endian
 #include "byteptr.h"
@@ -452,6 +456,32 @@ const UINT8 gifframe_gchead[4] = {0x21,0xF9,0x04,0x04}; // GCE, bytes, packed by
 static UINT8 *gifframe_data = NULL;
 static size_t gifframe_size = 8192;
 
+#ifdef HWRENDER
+static void hwrconvert(void)
+{
+	UINT8 *linear = HWR_GetScreenshot();
+	UINT8 *dest = screens[2];
+	UINT8 r, g, b;
+	INT32 x, y;
+	size_t i = 0;
+
+	InitColorLUT();
+
+	for (y = 0; y < vid.height; y++)
+	{
+		for (x = 0; x < vid.width; x++, i += 3)
+		{
+			r = (UINT8)linear[i];
+			g = (UINT8)linear[i + 1];
+			b = (UINT8)linear[i + 2];
+			dest[(y * vid.width) + x] = colorlookup[r >> SHIFTCOLORBITS][g >> SHIFTCOLORBITS][b >> SHIFTCOLORBITS];
+		}
+	}
+
+	free(linear);
+}
+#endif
+
 //
 // GIF_framewrite
 // writes a frame into the file.
@@ -477,7 +507,12 @@ static void GIF_framewrite(void)
 		GIF_optimizeregion(cur_screen, movie_screen, &blitx, &blity, &blitw, &blith);
 
 		// blit to temp screen
-		I_ReadScreen(movie_screen);
+		if (rendermode == render_soft)
+			I_ReadScreen(movie_screen);
+#ifdef HWRENDER
+		else if (rendermode == render_opengl)
+			hwrconvert();
+#endif
 	}
 	else
 	{
@@ -486,14 +521,25 @@ static void GIF_framewrite(void)
 		blith = vid.height;
 
 		if (gif_frames == 0)
-			I_ReadScreen(movie_screen);
+		{
+			if (rendermode == render_soft)
+				I_ReadScreen(movie_screen);
+#ifdef HWRENDER
+			else if (rendermode == render_opengl)
+			{
+				hwrconvert();
+				VID_BlitLinearScreen(screens[2], screens[0], vid.width*vid.bpp, vid.height, vid.width*vid.bpp, vid.rowbytes);
+			}
+#endif
+		}
+
 		movie_screen = screens[0];
 	}
 
 	// screen regions are handled in GIF_lzw
 	{
-		int d1 = (int)((100.0/NEWTICRATE)*(gif_frames+1));
-		int d2 = (int)((100.0/NEWTICRATE)*(gif_frames));
+		int d1 = (int)((100.0f/NEWTICRATE)*(gif_frames+1));
+		int d2 = (int)((100.0f/NEWTICRATE)*(gif_frames));
 		UINT16 delay = d1-d2;
 		INT32 startline;
 
@@ -575,7 +621,7 @@ static void GIF_framewrite(void)
 //
 INT32 GIF_open(const char *filename)
 {
-#ifdef HWRENDER
+#if 0
 	if (rendermode != render_soft)
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("GIFs cannot be taken in non-software modes!\n"));

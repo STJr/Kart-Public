@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -138,24 +138,32 @@
 
 #ifdef LOGMESSAGES
 extern FILE *logstream;
+extern char  logfilename[1024];
 #endif
 
-#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
+/* A mod name to further distinguish versions. */
+#define SRB2APPLICATION "SRB2Kart"
+
+//#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
 #ifdef DEVELOP
-#define VERSION    104 // Game version
-#define SUBVERSION 8 // more precise version number
+#define VERSION    0 // Game version
+#define SUBVERSION 0 // more precise version number
 #define VERSIONSTRING "Development EXE"
-#define VERSIONSTRINGW "v1.4.8"
+#define VERSIONSTRINGW L"Development EXE"
 // most interface strings are ignored in development mode.
 // we use comprevision and compbranch instead.
 #else
-#define VERSION    104 // Game version
-#define SUBVERSION 8 // more precise version number
-#define VERSIONSTRING "DevEXE v1.4.8"
-#define VERSIONSTRINGW L"v1.4.8"
-// Hey! If you change this, add 1 to the MODVERSION below!
-// Otherwise we can't force updates!
+#define VERSION    1 // Game version
+#define SUBVERSION 2 // more precise version number
+#define VERSIONSTRING "v1.2"
+#define VERSIONSTRINGW L"v1.2"
+// Hey! If you change this, add 1 to the MODVERSION below! Otherwise we can't force updates!
+// And change CMakeLists.txt, for CMake users!
+// AND appveyor.yml, for the build bots!
 #endif
+
+// Maintain compatibility with 1.0.x record attack replays?
+#define DEMO_COMPAT_100
 
 // Does this version require an added patch file?
 // Comment or uncomment this as necessary.
@@ -163,6 +171,9 @@ extern FILE *logstream;
 
 // Kart has it's own, as well.
 #define USE_PATCH_KART
+
+// Use .kart extension addons
+#define USE_KART
 
 // Modification options
 // If you want to take advantage of the Master Server's ability to force clients to update
@@ -176,7 +187,7 @@ extern FILE *logstream;
 // Please change to apply to your modification (we don't want everyone asking where your mod is on SRB2.org!).
 #define UPDATE_ALERT_STRING \
 "A new update is available for SRB2Kart.\n"\
-"Please visit the forums on SRB2.org to download it.\n"\
+"Please visit mb.srb2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
@@ -193,7 +204,7 @@ extern FILE *logstream;
 // Generally less filled with newlines, since Windows gives you lots more room to work with.
 #define UPDATE_ALERT_STRING_CONSOLE \
 "A new update is available for SRB2Kart.\n"\
-"Please visit the forums on SRB2.org to download it.\n"\
+"Please visit mb.srb2.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
@@ -211,13 +222,29 @@ extern FILE *logstream;
 // The Modification ID; must be obtained from Rob ( https://mb.srb2.org/private.php?do=newpm&u=546 ).
 // DO NOT try to set this otherwise, or your modification will be unplayable through the Master Server.
 // "12" is the default mod ID for version 2.1
-#define MODID 12
+// "17" is the 2.1 Kart's mod ID
+#define MODID 17
 
 // The Modification Version, starting from 1. Do not follow your version string for this,
 // it's only for detection of the version the player is using so the MS can alert them of an update.
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.1.0 is not version "1".
-#define MODVERSION 1
+#define MODVERSION 6
+
+// Filter consvars by version
+// To version config.cfg, MAJOREXECVERSION is set equal to MODVERSION automatically.
+// Increment MINOREXECVERSION whenever a config change is needed that does not correspond
+// to an increment in MODVERSION. This might never happen in practice.
+// If MODVERSION increases, set MINOREXECVERSION to 0.
+#define MAJOREXECVERSION MODVERSION
+#define MINOREXECVERSION 0
+// (It would have been nice to use VERSION and SUBVERSION but those are zero'd out for DEVELOP builds)
+
+// Macros
+#define GETMAJOREXECVERSION(v) (v & 0xFFFF)
+#define GETMINOREXECVERSION(v) (v >> 16)
+#define GETEXECVERSION(major,minor) (major + (minor << 16))
+#define EXECVERSION GETEXECVERSION(MAJOREXECVERSION, MINOREXECVERSION)
 
 // =========================================================================
 
@@ -225,9 +252,12 @@ extern FILE *logstream;
 // NOTE: it needs more than this to increase the number of players...
 
 #define MAXPLAYERS 16
-#define MAXSKINS 32
+#define MAXSKINS 128
 #define PLAYERSMASK (MAXPLAYERS-1)
 #define MAXPLAYERNAME 21
+
+// Master Server compatibility ONLY
+#define MSCOMPAT_MAXPLAYERS (32)
 
 typedef enum
 {
@@ -237,19 +267,33 @@ typedef enum
 	SKINCOLOR_GREY,
 	SKINCOLOR_NICKEL,
 	SKINCOLOR_BLACK,
+	SKINCOLOR_SKUNK,
+	SKINCOLOR_FAIRY,
+	SKINCOLOR_POPCORN,
+	SKINCOLOR_ARTICHOKE,
+	SKINCOLOR_PIGEON,
 	SKINCOLOR_SEPIA,
 	SKINCOLOR_BEIGE,
+	SKINCOLOR_WALNUT,
 	SKINCOLOR_BROWN,
 	SKINCOLOR_LEATHER,
 	SKINCOLOR_SALMON,
 	SKINCOLOR_PINK,
 	SKINCOLOR_ROSE,
+	SKINCOLOR_BRICK,
+	SKINCOLOR_CINNAMON,
 	SKINCOLOR_RUBY,
 	SKINCOLOR_RASPBERRY,
+	SKINCOLOR_CHERRY,
 	SKINCOLOR_RED,
 	SKINCOLOR_CRIMSON,
+	SKINCOLOR_MAROON,
+	SKINCOLOR_LEMONADE,
+	SKINCOLOR_FLAME,
+	SKINCOLOR_SCARLET,
 	SKINCOLOR_KETCHUP,
 	SKINCOLOR_DAWN,
+	SKINCOLOR_SUNSET,
 	SKINCOLOR_CREAMSICLE,
 	SKINCOLOR_ORANGE,
 	SKINCOLOR_PUMPKIN,
@@ -258,67 +302,134 @@ typedef enum
 	SKINCOLOR_TANGERINE,
 	SKINCOLOR_PEACH,
 	SKINCOLOR_CARAMEL,
+	SKINCOLOR_CREAM,
 	SKINCOLOR_GOLD,
+	SKINCOLOR_ROYAL,
 	SKINCOLOR_BRONZE,
+	SKINCOLOR_COPPER,
+	SKINCOLOR_QUARRY,
 	SKINCOLOR_YELLOW,
 	SKINCOLOR_MUSTARD,
+	SKINCOLOR_CROCODILE,
 	SKINCOLOR_OLIVE,
 	SKINCOLOR_VOMIT,
 	SKINCOLOR_GARDEN,
 	SKINCOLOR_LIME,
+	SKINCOLOR_HANDHELD,
 	SKINCOLOR_TEA,
 	SKINCOLOR_PISTACHIO,
-	SKINCOLOR_ROBOHOOD,
 	SKINCOLOR_MOSS,
+	SKINCOLOR_CAMOUFLAGE,
+	SKINCOLOR_ROBOHOOD,
 	SKINCOLOR_MINT,
 	SKINCOLOR_GREEN,
 	SKINCOLOR_PINETREE,
 	SKINCOLOR_EMERALD,
 	SKINCOLOR_SWAMP,
 	SKINCOLOR_DREAM,
+	SKINCOLOR_PLAGUE,
+	SKINCOLOR_ALGAE,
+	SKINCOLOR_CARIBBEAN,
+	SKINCOLOR_AZURE,
 	SKINCOLOR_AQUA,
 	SKINCOLOR_TEAL,
 	SKINCOLOR_CYAN,
 	SKINCOLOR_JAWZ, // Oni's torment
 	SKINCOLOR_CERULEAN,
 	SKINCOLOR_NAVY,
+	SKINCOLOR_PLATINUM,
 	SKINCOLOR_SLATE,
 	SKINCOLOR_STEEL,
+	SKINCOLOR_THUNDER,
+	SKINCOLOR_RUST,
+	SKINCOLOR_WRISTWATCH,
 	SKINCOLOR_JET,
-	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave – slender aphrodite has overcome me with longing for a girl
+	SKINCOLOR_SAPPHIRE, // sweet mother, i cannot weave - slender aphrodite has overcome me with longing for a girl
 	SKINCOLOR_PERIWINKLE,
 	SKINCOLOR_BLUE,
 	SKINCOLOR_BLUEBERRY,
+	SKINCOLOR_NOVA,
+	SKINCOLOR_PASTEL,
+	SKINCOLOR_MOONSLAM,
+	SKINCOLOR_ULTRAVIOLET,
 	SKINCOLOR_DUSK,
+	SKINCOLOR_BUBBLEGUM,
 	SKINCOLOR_PURPLE,
+	SKINCOLOR_FUCHSIA,
+	SKINCOLOR_TOXIC,
+	SKINCOLOR_MAUVE,
 	SKINCOLOR_LAVENDER,
 	SKINCOLOR_BYZANTIUM,
 	SKINCOLOR_POMEGRANATE,
 	SKINCOLOR_LILAC,
 
-	// Careful! MAXSKINCOLORS cannot be greater than 0x40 -- Which it is now.
+	// "Careful! MAXSKINCOLORS cannot be greater than 0x40 -- Which it is now."
+	// (This comment is a dirty liar! This is only limited by the integer type, so 255 for UINT8.)
 	MAXSKINCOLORS,
 
 	// Super special awesome Super flashing colors!
+	// Super Sonic Yellow
 	SKINCOLOR_SUPER1 = MAXSKINCOLORS,
 	SKINCOLOR_SUPER2,
 	SKINCOLOR_SUPER3,
 	SKINCOLOR_SUPER4,
 	SKINCOLOR_SUPER5,
 
-	// Super Tails
+	// Super Tails Orange
 	SKINCOLOR_TSUPER1,
 	SKINCOLOR_TSUPER2,
 	SKINCOLOR_TSUPER3,
 	SKINCOLOR_TSUPER4,
 	SKINCOLOR_TSUPER5,
 
-	// Super Knuckles
+	// Super Knuckles Red
 	SKINCOLOR_KSUPER1,
 	SKINCOLOR_KSUPER2,
 	SKINCOLOR_KSUPER3,
 	SKINCOLOR_KSUPER4,
 	SKINCOLOR_KSUPER5,
+
+	// Hyper Sonic Pink
+	SKINCOLOR_PSUPER1,
+	SKINCOLOR_PSUPER2,
+	SKINCOLOR_PSUPER3,
+	SKINCOLOR_PSUPER4,
+	SKINCOLOR_PSUPER5,
+
+	// Hyper Sonic Blue
+	SKINCOLOR_BSUPER1,
+	SKINCOLOR_BSUPER2,
+	SKINCOLOR_BSUPER3,
+	SKINCOLOR_BSUPER4,
+	SKINCOLOR_BSUPER5,
+
+	// Aqua Super
+	SKINCOLOR_ASUPER1,
+	SKINCOLOR_ASUPER2,
+	SKINCOLOR_ASUPER3,
+	SKINCOLOR_ASUPER4,
+	SKINCOLOR_ASUPER5,
+
+	// Hyper Sonic Green
+	SKINCOLOR_GSUPER1,
+	SKINCOLOR_GSUPER2,
+	SKINCOLOR_GSUPER3,
+	SKINCOLOR_GSUPER4,
+	SKINCOLOR_GSUPER5,
+
+	// Hyper Sonic White
+	SKINCOLOR_WSUPER1,
+	SKINCOLOR_WSUPER2,
+	SKINCOLOR_WSUPER3,
+	SKINCOLOR_WSUPER4,
+	SKINCOLOR_WSUPER5,
+
+	// Creamy Super (Shadow?)
+	SKINCOLOR_CSUPER1,
+	SKINCOLOR_CSUPER2,
+	SKINCOLOR_CSUPER3,
+	SKINCOLOR_CSUPER4,
+	SKINCOLOR_CSUPER5,
 
 	MAXTRANSLATIONS
 } skincolors_t;
@@ -328,6 +439,8 @@ typedef enum
 #define TICRATE 35
 #define NEWTICRATERATIO 1 // try 4 for 140 fps :)
 #define NEWTICRATE (TICRATE*NEWTICRATERATIO)
+
+#define MUSICRATE 1000 // sound timing is calculated by milliseconds
 
 #define RING_DIST 1280*FRACUNIT // how close you need to be to a ring to attract it
 
@@ -345,9 +458,9 @@ enum {
 // Name of local directory for config files and savegames
 #if !defined(_arch_dreamcast) && !defined(_WIN32_WCE) && !defined(GP2X) && !defined(_WII) && !defined(_PS3)
 #if (((defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON)) && !defined (__CYGWIN__)) && !defined (__APPLE__)
-#define DEFAULTDIR ".srb2"
+#define DEFAULTDIR ".srb2kart"
 #else
-#define DEFAULTDIR "srb2"
+#define DEFAULTDIR "srb2kart"
 #endif
 #endif
 
@@ -393,7 +506,7 @@ void CONS_Debug(INT32 debugflags, const char *fmt, ...) FUNCDEBUG;
 
 // Things that used to be in dstrings.h
 #define SAVEGAMENAME "srb2sav"
-char savegamename[256];
+extern char savegamename[256];
 
 // m_misc.h
 #ifdef GETTEXT
@@ -439,6 +552,9 @@ extern INT32 cv_debug;
 extern UINT8 shiftdown, ctrldown, altdown;
 extern boolean capslock;
 
+// WARNING: a should be unsigned but to add with 2048, it isn't!
+#define AIMINGTODY(a) (FINETANGENT((2048+(((INT32)a)>>ANGLETOFINESHIFT)) & FINEMASK)*160)
+
 // if we ever make our alloc stuff...
 #define ZZ_Alloc(x) Z_Malloc(x, PU_STATIC, NULL)
 
@@ -450,6 +566,19 @@ INT32 I_GetKey(void);
 #endif
 #ifndef max // Double-Check with WATTCP-32's cdefs.h
 #define max(x, y) (((x) > (y)) ? (x) : (y))
+#endif
+
+#ifndef M_PIl
+#define M_PIl 3.1415926535897932384626433832795029L
+#endif
+
+// Floating point comparison epsilons from float.h
+#ifndef FLT_EPSILON
+#define FLT_EPSILON 1.1920928955078125e-7f
+#endif
+
+#ifndef DBL_EPSILON
+#define DBL_EPSILON 2.2204460492503131e-16l
 #endif
 
 // An assert-type mechanism.
@@ -499,9 +628,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 ///	Polyobject fake flat code
 #define POLYOBJECTS_PLANES
 
-///	Improved way of dealing with ping values and a ping limit.
-#define NEWPING
-
 ///	See name of player in your crosshair
 #define SEENAMES
 
@@ -513,11 +639,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 ///	\note	XMOD port.
 ///	    	Most modifications should probably enable this.
 //#define SAVEGAME_OTHERVERSIONS
-
-#if !defined (_NDS) && !defined (_PSP)
-///	Shuffle's incomplete OpenGL sorting code.
-#define SHUFFLE // This has nothing to do with sorting, why was it disabled?
-#endif
 
 #if !defined (_NDS) && !defined (_PSP)
 ///	Allow the use of the SOC RESETINFO command.
@@ -545,7 +666,19 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 #define SECTORSPECIALSAFTERTHINK
 
 /// SRB2Kart: Camera always has noclip.
-/// \note   Kind of problematic. If we decide to keep this on, we'll need serious map changes.
 #define NOCLIPCAM
+
+/// SRB2Kart: MIDI support is shitty and busted and we don't want it, lets throw it behind a define
+#define NO_MIDI
+
+/// FINALLY some real clipping that doesn't make walls dissappear AND speeds the game up
+/// (that was the original comment from SRB2CB, sadly it is a lie and actually slows game down)
+/// on the bright side it fixes some weird issues with translucent walls
+/// \note	SRB2CB port.
+///      	SRB2CB itself ported this from PrBoom+
+//#define NEWCLIP
+
+/// Hardware renderer: OpenGL
+#define GL_SHADERS
 
 #endif // __DOOMDEF__

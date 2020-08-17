@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -55,7 +55,7 @@ void R_DelSpriteDefs(UINT16 wadnum);
 #endif
 
 //SoM: 6/5/2000: Light sprites correctly!
-void R_AddSprites(sector_t *sec, INT32 lightlevel, UINT8 viewnumber);
+void R_AddSprites(sector_t *sec, INT32 lightlevel);
 void R_InitSprites(void);
 void R_ClearSprites(void);
 void R_ClipSprites(void);
@@ -81,30 +81,12 @@ typedef struct
 
 	char realname[SKINNAMESIZE+1]; // Display name for level completion.
 	char hudname[SKINNAMESIZE+1]; // HUD name to display (officially exactly 5 characters long)
-	char charsel[9], face[9], superface[9]; // Arbitrarily named patch lumps
-
-	UINT8 ability; // ability definition
-	UINT8 ability2; // secondary ability definition
-	INT32 thokitem;
-	INT32 spinitem;
-	INT32 revitem;
-	fixed_t actionspd;
-	fixed_t mindash;
-	fixed_t maxdash;
+	char facerank[9], facewant[9], facemmap[9]; // Arbitrarily named patch lumps
 
 	// SRB2kart
 	UINT8 kartspeed;
 	UINT8 kartweight;
 	//
-
-	fixed_t normalspeed; // Normal ground
-	fixed_t runspeed; // Speed that you break into your run animation
-
-	UINT8 thrustfactor; // Thrust = thrustfactor * acceleration
-	UINT8 accelstart; // Acceleration if speed = 0
-	UINT8 acceleration; // Acceleration
-
-	fixed_t jumpfactor; // multiple of standard jump height
 
 	// Definable color translation table
 	UINT8 starttranscolor;
@@ -113,10 +95,9 @@ typedef struct
 
 	// specific sounds per skin
 	sfxenum_t soundsid[NUMSKINSOUNDS]; // sound # in S_sfx table
-
-	// minimap icons
-	char iconprefix[9];
 } skin_t;
+
+extern CV_PossibleValue_t Forceskin_cons_t[];
 
 // -----------
 // NOT SKINS STUFF !
@@ -195,9 +176,9 @@ typedef struct drawnode_s
 } drawnode_t;
 
 extern INT32 numskins;
-extern skin_t skins[MAXSKINS + 1];
+extern skin_t skins[MAXSKINS];
 
-void SetPlayerSkin(INT32 playernum,const char *skinname);
+boolean SetPlayerSkin(INT32 playernum,const char *skinname);
 void SetPlayerSkinByNum(INT32 playernum,INT32 skinnum); // Tails 03-16-2002
 INT32 R_SkinAvailable(const char *name);
 void R_AddSkins(UINT16 wadnum);
@@ -234,6 +215,7 @@ FUNCMATH FUNCINLINE static ATTRINLINE char R_Frame2Char(UINT8 frame)
 FUNCMATH FUNCINLINE static ATTRINLINE UINT8 R_Char2Frame(char cn)
 {
 #if 1 // 2.1 compat
+	if (cn == '+') return '\\' - 'A'; // PK3 can't use backslash, so use + instead
 	return cn - 'A';
 #else
 	if (cn >= 'A' && cn <= 'Z') return cn - 'A';

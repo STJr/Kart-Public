@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -102,12 +102,15 @@ extern lumpnum_t viewborderlump[8];
 // ------------------------------------------------
 
 #define GTC_CACHE 1
+#define GTC_MENUCACHE GTC_CACHE
+//@TODO Add a separate caching mechanism for menu colormaps distinct from in-level GTC_CACHE. For now this is still preferable to memory leaks...
 
 #define TC_DEFAULT    -1
 #define TC_BOSS       -2
 #define TC_METALSONIC -3 // For Metal Sonic battle
 #define TC_ALLWHITE   -4 // For Cy-Brak-demon
 #define TC_RAINBOW    -5 // For invincibility power
+#define TC_BLINK      -6 // For item blinking
 
 // Initialize color translation tables, for player rendering etc.
 void R_InitTranslationTables(void);
@@ -164,6 +167,7 @@ void R_DrawSplat_8(void);
 void R_DrawTranslucentSplat_8(void);
 void R_DrawTranslucentSpan_8(void);
 void R_Draw2sMultiPatchColumn_8(void);
+void R_Draw2sMultiPatchTranslucentColumn_8(void);
 void R_DrawFogSpan_8(void);
 void R_DrawFogColumn_8(void);
 void R_DrawColumnShadowed_8(void);

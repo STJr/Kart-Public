@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -285,10 +285,13 @@ void P_InitPicAnims(void)
 				Z_Free(animatedLump);
 			}
 
-			// Now find ANIMDEFS
+			// Find ANIMDEFS lump in the WAD
 			animdefsLumpNum = W_CheckNumForNamePwad("ANIMDEFS", w, 0);
-			if (animdefsLumpNum != INT16_MAX)
+			while (animdefsLumpNum != INT16_MAX)
+			{
 				P_ParseANIMDEFSLump(w, animdefsLumpNum);
+				animdefsLumpNum = W_CheckNumForNamePwad("ANIMDEFS", (UINT16)w, animdefsLumpNum + 1);
+			}
 		}
 		// Define the last one
 		animdefs[maxanims].istexture = -1;
@@ -1755,12 +1758,12 @@ boolean P_RunTriggerLinedef(line_t *triggerline, mobj_t *actor, sector_t *caller
 
 	switch (specialtype)
 	{
-		case 305: // continuous
+		/*case 305: // continuous
 		case 306: // each time
 		case 307: // once
 			if (!(actor && actor->player && actor->player->charability == dist/10))
 				return false;
-			break;
+			break;*/
 		case 309: // continuous
 		case 310: // each time
 			// Only red team members can activate this.
@@ -1941,6 +1944,7 @@ boolean P_RunTriggerLinedef(line_t *triggerline, mobj_t *actor, sector_t *caller
 	 || specialtype == 318  // Unlockable trigger - Once
 	 || specialtype == 320  // Unlockable - Once
 	 || specialtype == 321 || specialtype == 322 // Trigger on X calls - Continuous + Each Time
+	 || specialtype == 323  // Record attack only - Once
 	 || specialtype == 328 // Encore Load
 	 || specialtype == 399) // Level Load
 		triggerline->special = 0; // Clear it out
@@ -1978,6 +1982,7 @@ void P_LinedefExecute(INT16 tag, mobj_t *actor, sector_t *caller)
 		if (lines[masterline].special == 313
 		 || lines[masterline].special == 399
 		 || lines[masterline].special == 328
+		 || lines[masterline].special == 323
 		 // Each-time executors handle themselves, too
 		 || lines[masterline].special == 301 // Each time
 		 || lines[masterline].special == 306 // Character ability - Each time
@@ -2240,7 +2245,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 	I_Assert(!mo || !P_MobjWasRemoved(mo)); // If mo is there, mo must be valid!
 
 	if (mo && mo->player && botingame)
-		bot = players[secondarydisplayplayer].mo;
+		bot = players[displayplayers[1]].mo;
 
 	// note: only commands with linedef types >= 400 && < 500 can be used
 	switch (line->special)
@@ -2378,35 +2383,21 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 
 					if (mo->player)
 					{
+						UINT8 i;
+
 						if (bot) // This might put poor Tails in a wall if he's too far behind! D: But okay, whatever! >:3
 							P_TeleportMove(bot, bot->x + x, bot->y + y, bot->z + z);
-						if (splitscreen > 2 && mo->player == &players[fourthdisplayplayer] && camera4.chase)
+
+						for (i = 0; i <= splitscreen; i++)
 						{
-							camera4.x += x;
-							camera4.y += y;
-							camera4.z += z;
-							camera4.subsector = R_PointInSubsector(camera4.x, camera4.y);
-						}
-						else if (splitscreen > 1 && mo->player == &players[thirddisplayplayer] && camera3.chase)
-						{
-							camera3.x += x;
-							camera3.y += y;
-							camera3.z += z;
-							camera3.subsector = R_PointInSubsector(camera3.x, camera3.y);
-						}
-						else if (splitscreen && mo->player == &players[secondarydisplayplayer] && camera2.chase)
-						{
-							camera2.x += x;
-							camera2.y += y;
-							camera2.z += z;
-							camera2.subsector = R_PointInSubsector(camera2.x, camera2.y);
-						}
-						else if (camera.chase && mo->player == &players[displayplayer])
-						{
-							camera.x += x;
-							camera.y += y;
-							camera.z += z;
-							camera.subsector = R_PointInSubsector(camera.x, camera.y);
+							if (mo->player == &players[displayplayers[i]] && camera[i].chase)
+							{
+								camera[i].x += x;
+								camera[i].y += y;
+								camera[i].z += z;
+								camera[i].subsector = R_PointInSubsector(camera[i].x, camera[i].y);
+								break;
+							}
 						}
 					}
 				}
@@ -2437,16 +2428,71 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 			// console player only unless NOCLIMB is set
 			if ((line->flags & ML_NOCLIMB) || (mo && mo->player && P_IsLocalPlayer(mo->player)))
 			{
-				UINT16 tracknum = (UINT16)sides[line->sidenum[0]].bottomtexture;
+				boolean musicsame = (!sides[line->sidenum[0]].text[0] || !strnicmp(sides[line->sidenum[0]].text, S_MusicName(), 7));
+				UINT16 tracknum = (UINT16)max(sides[line->sidenum[0]].bottomtexture, 0);
+				INT32 position = (INT32)max(sides[line->sidenum[0]].midtexture, 0);
+				UINT32 prefadems = (UINT32)max(sides[line->sidenum[0]].textureoffset >> FRACBITS, 0);
+				UINT32 postfadems = (UINT32)max(sides[line->sidenum[0]].rowoffset >> FRACBITS, 0);
+				UINT8 fadetarget = (UINT8)max((line->sidenum[1] != 0xffff) ? sides[line->sidenum[1]].textureoffset >> FRACBITS : 0, 0);
+				INT16 fadesource = (INT16)max((line->sidenum[1] != 0xffff) ? sides[line->sidenum[1]].rowoffset >> FRACBITS : -1, -1);
 
-				strncpy(mapmusname, sides[line->sidenum[0]].text, 7);
-				mapmusname[6] = 0;
+				// Seek offset from current song position
+				if (line->flags & ML_EFFECT1)
+				{
+					// adjust for loop point if subtracting
+					if (position < 0 && S_GetMusicLength() &&
+						S_GetMusicPosition() > S_GetMusicLoopPoint() &&
+						S_GetMusicPosition() + position < S_GetMusicLoopPoint())
+						position = max(S_GetMusicLength() - (S_GetMusicLoopPoint() - (S_GetMusicPosition() + position)), 0);
+					else
+						position = max(S_GetMusicPosition() + position, 0);
+				}
 
-				mapmusflags = tracknum & MUSIC_TRACKMASK;
-				if (!(line->flags & ML_BLOCKMONSTERS))
-					mapmusflags |= MUSIC_RELOADRESET;
+				// Fade current music to target volume (if music won't be changed)
+				if ((line->flags & ML_EFFECT2) && fadetarget && musicsame)
+				{
+					// 0 fadesource means fade from current volume.
+					// meaning that we can't specify volume 0 as the source volume -- this starts at 1.
+					if (!fadesource)
+						fadesource = -1;
 
-				S_ChangeMusic(mapmusname, mapmusflags, !(line->flags & ML_EFFECT4));
+					if (!postfadems)
+						S_SetInternalMusicVolume(fadetarget);
+					else
+						S_FadeMusicFromVolume(fadetarget, fadesource, postfadems);
+
+					if (!(line->flags & ML_EFFECT3))
+						S_ShowMusicCredit();
+
+					if (position)
+						S_SetMusicPosition(position);
+				}
+				// Change the music and apply position/fade operations
+				else
+				{
+					strncpy(mapmusname, sides[line->sidenum[0]].text, 7);
+					mapmusname[6] = 0;
+
+					mapmusflags = tracknum & MUSIC_TRACKMASK;
+					if (!(line->flags & ML_BLOCKMONSTERS))
+						mapmusflags |= MUSIC_RELOADRESET;
+					if (line->flags & ML_BOUNCY)
+						mapmusflags |= MUSIC_FORCERESET;
+
+					mapmusposition = position;
+
+					S_ChangeMusicEx(mapmusname, mapmusflags, !(line->flags & ML_EFFECT4), position,
+						!(line->flags & ML_EFFECT2) ? prefadems : 0,
+						!(line->flags & ML_EFFECT2) ? postfadems : 0);
+
+					if ((line->flags & ML_EFFECT2) && fadetarget)
+					{
+						if (!postfadems)
+							S_SetInternalMusicVolume(fadetarget);
+						else
+							S_FadeMusicFromVolume(fadetarget, fadesource, postfadems);
+					}
+				}
 
 				// Except, you can use the ML_BLOCKMONSTERS flag to change this behavior.
 				// if (mapmusflags & MUSIC_RELOADRESET) then it will reset the music in G_PlayerReborn.
@@ -2510,8 +2556,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 				if (line->flags & ML_NOCLIMB)
 				{
 					// play the sound from nowhere, but only if display player triggered it
-					if (mo && mo->player && (mo->player == &players[displayplayer] || mo->player == &players[secondarydisplayplayer]
-						|| mo->player == &players[thirddisplayplayer] || mo->player == &players[fourthdisplayplayer]))
+					if (mo && mo->player && P_IsDisplayPlayer(mo->player))
 						S_StartSound(NULL, sfxnum);
 				}
 				else if (line->flags & ML_EFFECT4)
@@ -3219,7 +3264,7 @@ void P_SetupSignExit(player_t *player)
 
 		// SRB2Kart: Set sign spinning variables
 		thing->movefactor = thing->z;
-		thing->z += (768<<FRACBITS) * P_MobjFlip(thing);
+		thing->z += (768*thing->scale) * P_MobjFlip(thing);
 		thing->movecount = 1;
 
 		++numfound;
@@ -3247,7 +3292,7 @@ void P_SetupSignExit(player_t *player)
 
 		// SRB2Kart: Set sign spinning variables
 		thing->movefactor = thing->z;
-		thing->z += (768<<FRACBITS) * P_MobjFlip(thing);
+		thing->z += (768*thing->scale) * P_MobjFlip(thing);
 		thing->movecount = 1;
 
 		++numfound;
@@ -3259,7 +3304,7 @@ void P_SetupSignExit(player_t *player)
 	// SRB2Kart: FINALLY, add in an alternative if no place is found
 	if (player->mo)
 	{
-		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768<<FRACBITS), MT_SIGN);
+		mobj_t *sign = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z + (768*mapobjectscale), MT_SIGN);
 
 		P_SetTarget(&sign->target, player->mo);
 		P_SetMobjState(sign, S_SIGN1);
@@ -3767,14 +3812,16 @@ DoneSection2:
 		case 1: // SRB2kart: Spring Panel
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+				const fixed_t hscale = mapobjectscale + (mapobjectscale - player->mo->scale);
 				const fixed_t minspeed = 24*hscale;
+				angle_t pushangle = FixedHypot(player->mo->momx, player->mo->momy) ? R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy) : player->mo->angle;
+				// if we have no speed for SOME REASON, use the player's angle, otherwise we'd be forcefully thrusted to what I can only assume is angle 0
 
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
 
 				if (player->speed < minspeed) // Push forward to prevent getting stuck
-					P_InstaThrust(player->mo, player->mo->angle, minspeed);
+					P_InstaThrust(player->mo, pushangle, minspeed);
 
 				player->kartstuff[k_pogospring] = 1;
 				K_DoPogoSpring(player->mo, 0, 1);
@@ -3787,17 +3834,19 @@ DoneSection2:
 		case 3: // SRB2kart: Spring Panel (capped speed)
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				const fixed_t hscale = mapheaderinfo[gamemap-1]->mobj_scale + (mapheaderinfo[gamemap-1]->mobj_scale - player->mo->scale);
+				const fixed_t hscale = mapobjectscale + (mapobjectscale - player->mo->scale);
 				const fixed_t minspeed = 24*hscale;
 				const fixed_t maxspeed = 28*hscale;
+				angle_t pushangle = FixedHypot(player->mo->momx, player->mo->momy) ? R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy) : player->mo->angle;
+				// if we have no speed for SOME REASON, use the player's angle, otherwise we'd be forcefully thrusted to what I can only assume is angle 0
 
 				if (player->mo->eflags & MFE_SPRUNG)
 					break;
 
 				if (player->speed > maxspeed) // Prevent overshooting jumps
-					P_InstaThrust(player->mo, R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy), maxspeed);
+					P_InstaThrust(player->mo, pushangle, maxspeed);
 				else if (player->speed < minspeed) // Push forward to prevent getting stuck
-					P_InstaThrust(player->mo, player->mo->angle, minspeed);
+					P_InstaThrust(player->mo, pushangle, minspeed);
 
 				player->kartstuff[k_pogospring] = 2;
 				K_DoPogoSpring(player->mo, 0, 1);
@@ -3826,19 +3875,19 @@ DoneSection2:
 
 				// SRB2Kart: Scale the speed you get from them!
 				// This is scaled differently from other horizontal speed boosts from stuff like springs, because of how this is used for some ramp jumps.
-				if (player->mo->scale > mapheaderinfo[gamemap-1]->mobj_scale)
-					linespeed = FixedMul(linespeed, mapheaderinfo[gamemap-1]->mobj_scale + (player->mo->scale - mapheaderinfo[gamemap-1]->mobj_scale));
+				if (player->mo->scale > mapobjectscale)
+					linespeed = FixedMul(linespeed, mapobjectscale + (player->mo->scale - mapobjectscale));
 
-				if (!demoplayback || P_AnalogMove(player))
+				if (!demo.playback || P_AnalogMove(player))
 				{
 					if (player == &players[consoleplayer])
-						localangle = player->mo->angle;
-					else if (player == &players[secondarydisplayplayer])
-						localangle2 = player->mo->angle;
-					else if (player == &players[thirddisplayplayer])
-						localangle3 = player->mo->angle;
-					else if (player == &players[fourthdisplayplayer])
-						localangle4 = player->mo->angle;
+						localangle[0] = player->mo->angle;
+					else if (player == &players[displayplayers[1]])
+						localangle[1] = player->mo->angle;
+					else if (player == &players[displayplayers[2]])
+						localangle[2] = player->mo->angle;
+					else if (player == &players[displayplayers[3]])
+						localangle[3] = player->mo->angle;
 				}
 
 				if (!(lines[i].flags & ML_EFFECT4))
@@ -3859,15 +3908,10 @@ DoneSection2:
 
 				P_InstaThrust(player->mo, player->mo->angle, linespeed);
 
-				/*if (GETSECSPECIAL(sector->special, 3) == 6 && (player->charability2 == CA2_SPINDASH)) // SRB2kart
-				{
-					if (!(player->pflags & PF_SPINNING))
-						player->pflags |= PF_SPINNING;
-
-					//P_SetPlayerMobjState(player->mo, S_PLAY_ATK1); 
-				}*/
-
 				player->kartstuff[k_dashpadcooldown] = TICRATE/3;
+				player->kartstuff[k_drift] = 0;
+				player->kartstuff[k_driftcharge] = 0;
+				player->kartstuff[k_pogospring] = 0;
 				S_StartSound(player->mo, sfx_spdpad);
 
 				{
@@ -4027,10 +4071,10 @@ DoneSection2:
 			}
 			break;
 
-		case 7: // SRB2kart 190117 - Oil Slick
+		case 7: // SRB2kart 190117 - Oil Slick (deprecated)
 			if (roversector || P_MobjReadyToTrigger(player->mo, sector))
 			{
-				K_SpinPlayer(player, NULL, 0, false);
+				K_SpinPlayer(player, NULL, 0, NULL, false);
 			}
 			break;
 
@@ -4095,7 +4139,6 @@ DoneSection2:
 				P_SetTarget(&player->mo->tracer, waypoint);
 				player->speed = speed;
 				player->pflags &= ~PF_SPINNING; // SRB2kart 200117
-				player->pflags |= PF_SPINNING;
 				player->pflags &= ~PF_JUMPED;
 				player->pflags &= ~PF_GLIDING;
 				player->climbing = 0;
@@ -4173,7 +4216,6 @@ DoneSection2:
 				P_SetTarget(&player->mo->tracer, waypoint);
 				player->speed = speed;
 				player->pflags &= ~PF_SPINNING; // SRB2kart 200117
-				player->pflags |= PF_SPINNING;
 				player->pflags &= ~PF_JUMPED;
 
 				if (!(player->mo->state >= &states[S_KART_RUN1] && player->mo->state <= &states[S_KART_RUN2]))
@@ -4189,14 +4231,40 @@ DoneSection2:
 
 		case 10: // Finish Line
 			// SRB2kart - 150117
-			if (G_RaceGametype() && (player->starpostcount >= numstarposts/2 || player->exiting))
+			if (G_RaceGametype() && (player->starpostnum >= (numstarposts - (numstarposts/2)) || player->exiting))
 				player->kartstuff[k_starpostwp] = player->kartstuff[k_waypoint] = 0;
 			//
 			if (G_RaceGametype() && !player->exiting)
 			{
-				if (player->starpostcount >= numstarposts/2) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
+				if (player->starpostnum >= (numstarposts - (numstarposts/2))) // srb2kart: must have touched *enough* starposts (was originally "(player->starpostnum == numstarposts)")
 				{
+					UINT8 nump = 0;
+
+					for (i = 0; i < MAXPLAYERS; i++)
+					{
+						if (!playeringame[i] || players[i].spectator)
+							continue;
+						nump++;
+					}
+
 					player->laps++;
+
+					// Set up lap animation vars
+					if (nump > 1)
+					{
+						if (K_IsPlayerLosing(player))
+							player->kartstuff[k_laphand] = 3;
+						else
+						{
+							if (nump > 2 && player->kartstuff[k_position] == 1) // 1st place in 1v1 uses thumbs up
+								player->kartstuff[k_laphand] = 1;
+							else
+								player->kartstuff[k_laphand] = 2;
+						}
+					}
+					else
+						player->kartstuff[k_laphand] = 0; // No hands in FREE PLAY
+
 					player->kartstuff[k_lapanimation] = 80;
 
 					if (player->pflags & PF_NIGHTSMODE)
@@ -4213,13 +4281,25 @@ DoneSection2:
 						curlap = 0;
 					}
 
-					// Reset starposts (checkpoints) info
-					// SRB2kart 200117
-					player->starpostangle = player->starpostnum = 0;
-					player->starpostx = player->starposty = player->starpostz = 0;
-					player->starpostcount = 0;
-					//except the time!
 					player->starposttime = player->realtime;
+					player->starpostnum = 0;
+
+					if (mapheaderinfo[gamemap - 1]->levelflags & LF_SECTIONRACE)
+					{
+						// SRB2Kart 281118
+						// Save the player's time and position.
+						player->starpostx = player->mo->x>>FRACBITS;
+						player->starposty = player->mo->y>>FRACBITS;
+						player->starpostz = player->mo->floorz>>FRACBITS;
+						player->kartstuff[k_starpostflip] = player->mo->flags2 & MF2_OBJECTFLIP;	// store flipping
+						player->starpostangle = player->mo->angle; //R_PointToAngle2(0, 0, player->mo->momx, player->mo->momy); torn; a momentum-based guess is less likely to be wrong in general, but when it IS wrong, it fucks you over entirely...
+					}
+					else
+					{
+						// SRB2kart 200117
+						// Reset starposts (checkpoints) info
+						player->starpostangle = player->starpostx = player->starposty = player->starpostz = player->kartstuff[k_starpostflip] = 0;
+					}
 
 					if (P_IsLocalPlayer(player))
 					{
@@ -4237,15 +4317,9 @@ DoneSection2:
 
 					// Figure out how many are playing on the last lap, to prevent spectate griefing
 					if (!nospectategrief && player->laps >= (UINT8)(cv_numlaps.value - 1))
-					{
-						UINT8 i;
-						for (i = 0; i < MAXPLAYERS; i++)
-						{
-							if (!playeringame[i] || players[i].spectator)
-								continue;
-							nospectategrief++;
-						}
-					}
+						nospectategrief = nump;
+
+					thwompsactive = true; // Lap 2 effects
 				}
 				else if (player->starpostnum)
 				{
@@ -5586,7 +5660,7 @@ static void P_RunLevelLoadExecutors(void)
 
 	for (i = 0; i < numlines; i++)
 	{
-		if (lines[i].special == 399 || lines[i].special == 328)
+		if (lines[i].special == 399 || lines[i].special == 328 || lines[i].special == 323)
 			P_RunTriggerLinedef(&lines[i], NULL, NULL);
 	}
 }
@@ -5744,7 +5818,7 @@ void P_SpawnSpecials(INT32 fromnetsave)
 				lines[i].special = 0;
 				continue;
 			}
-			/*else -- commented out because irrelevant to kart
+			/*else -- commented out because irrelevant to kart. keeping here because we can use these flags for something else now
 			{
 				if ((players[consoleplayer].charability == CA_THOK && (lines[i].flags & ML_NOSONIC))
 				|| (players[consoleplayer].charability == CA_FLY && (lines[i].flags & ML_NOTAILS))
@@ -6384,8 +6458,20 @@ void P_SpawnSpecials(INT32 fromnetsave)
 			case 259: // Make-Your-Own FOF!
 				if (lines[i].sidenum[1] != 0xffff)
 				{
-					UINT8 *data = W_CacheLumpNum(lastloadedmaplumpnum + ML_SIDEDEFS,PU_STATIC);
+					UINT8 *data;
 					UINT16 b;
+
+					if (W_IsLumpWad(lastloadedmaplumpnum)) // welp it's a map wad in a pk3
+					{ // HACK: Open wad file rather quickly so we can get the data from the sidedefs lump
+						UINT8 *wadData = W_CacheLumpNum(lastloadedmaplumpnum, PU_STATIC);
+						filelump_t *fileinfo = (filelump_t *)(wadData + ((wadinfo_t *)wadData)->infotableofs);
+						fileinfo += ML_SIDEDEFS; // we only need the SIDEDEFS lump
+						data = Z_Malloc(fileinfo->size, PU_STATIC, NULL);
+						M_Memcpy(data, wadData + fileinfo->filepos, fileinfo->size); // copy data
+						Z_Free(wadData); // we're done with this now
+					}
+					else // phew it's just a WAD
+						data = W_CacheLumpNum(lastloadedmaplumpnum + ML_SIDEDEFS,PU_STATIC);
 
 					for (b = 0; b < (INT16)numsides; b++)
 					{
@@ -6473,6 +6559,11 @@ void P_SpawnSpecials(INT32 fromnetsave)
 					sec = sides[*lines[i].sidenum].sector - sectors;
 					P_AddEachTimeThinker(&sectors[sec], &lines[i]);
 				}
+				break;
+			// Record attack only linedef exec
+			case 323:
+				if (!modeattacking)
+					lines[i].special = 0;
 				break;
 
 			case 328: // Encore-only linedef execute on map load
@@ -7799,44 +7890,44 @@ void T_Pusher(pusher_t *p)
 				thing->player->pflags |= PF_SLIDING;
 				thing->angle = R_PointToAngle2 (0, 0, xspeed<<(FRACBITS-PUSH_FACTOR), yspeed<<(FRACBITS-PUSH_FACTOR));
 
-				if (!demoplayback || P_AnalogMove(thing->player))
+				if (!demo.playback || P_AnalogMove(thing->player))
 				{
 					if (thing->player == &players[consoleplayer])
 					{
-						if (thing->angle - localangle > ANGLE_180)
-							localangle -= (localangle - thing->angle) / 8;
+						if (thing->angle - localangle[0] > ANGLE_180)
+							localangle[0] -= (localangle[0] - thing->angle) / 8;
 						else
-							localangle += (thing->angle - localangle) / 8;
+							localangle[0] += (thing->angle - localangle[0]) / 8;
 					}
-					else if (thing->player == &players[secondarydisplayplayer])
+					else if (thing->player == &players[displayplayers[1]])
 					{
-						if (thing->angle - localangle2 > ANGLE_180)
-							localangle2 -= (localangle2 - thing->angle) / 8;
+						if (thing->angle - localangle[1] > ANGLE_180)
+							localangle[1] -= (localangle[1] - thing->angle) / 8;
 						else
-							localangle2 += (thing->angle - localangle2) / 8;
+							localangle[1] += (thing->angle - localangle[1]) / 8;
 					}
-					else if (thing->player == &players[thirddisplayplayer])
+					else if (thing->player == &players[displayplayers[2]])
 					{
-						if (thing->angle - localangle3 > ANGLE_180)
-							localangle3 -= (localangle3 - thing->angle) / 8;
+						if (thing->angle - localangle[2] > ANGLE_180)
+							localangle[2] -= (localangle[2] - thing->angle) / 8;
 						else
-							localangle3 += (thing->angle - localangle3) / 8;
+							localangle[2] += (thing->angle - localangle[2]) / 8;
 					}
-					else if (thing->player == &players[fourthdisplayplayer])
+					else if (thing->player == &players[displayplayers[3]])
 					{
-						if (thing->angle - localangle4 > ANGLE_180)
-							localangle4 -= (localangle4 - thing->angle) / 8;
+						if (thing->angle - localangle[3] > ANGLE_180)
+							localangle[3] -= (localangle[3] - thing->angle) / 8;
 						else
-							localangle4 += (thing->angle - localangle4) / 8;
+							localangle[3] += (thing->angle - localangle[3]) / 8;
 					}
 					/*if (thing->player == &players[consoleplayer])
-						localangle = thing->angle;
-					else if (thing->player == &players[secondarydisplayplayer])
-						localangle2 = thing->angle;
-					else if (thing->player == &players[thirddisplayplayer])
-						localangle3 = thing->angle;
-					else if (thing->player == &players[fourthdisplayplayer])
-						localangle4 = thing->angle;*/
+						localangle[0] = thing->angle;
+					else if (thing->player == &players[displayplayers[1]])
+						localangle[1] = thing->angle;
+					else if (thing->player == &players[displayplayers[2]])
+						localangle[2] = thing->angle;
+					else if (thing->player == &players[displayplayers[3]])
+						localangle[3] = thing->angle;*/
 				}
 			}
 
@@ -7948,12 +8039,13 @@ static void P_SearchForDisableLinedefs(void)
 			}
 			else if ((lines[i].flags & ML_NETONLY) == ML_NETONLY)
 				continue; // Net-only never triggers in single player
-			else if (players[consoleplayer].charability == CA_THOK && (lines[i].flags & ML_NOSONIC))
+			// commented out because irrelevant to kart. keeping here because we can use these flags for something else now
+			/*else if (players[consoleplayer].charability == CA_THOK && (lines[i].flags & ML_NOSONIC))
 				continue;
 			else if (players[consoleplayer].charability == CA_FLY && (lines[i].flags & ML_NOTAILS))
 				continue;
 			else if (players[consoleplayer].charability == CA_GLIDEANDCLIMB && (lines[i].flags & ML_NOKNUX))
-				continue;
+				continue;*/
 
 			// Disable any linedef specials with our tag.
 			for (j = -1; (j = P_FindLineFromLineTag(&lines[i], j)) >= 0;)

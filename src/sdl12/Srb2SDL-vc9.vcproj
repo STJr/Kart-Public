@@ -2411,10 +2411,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\hardware\hw_glide.h"
-				>
-			</File>
-			<File
 				RelativePath="..\hardware\hw_glob.h"
 				>
 			</File>
@@ -2790,6 +2786,50 @@
 		<Filter
 			Name="M_Misc"
 			>
+			<File
+				RelativePath="..\apng.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\apng.h"
+				>
+			</File>
 			<File
 				RelativePath="..\m_argv.c"
 				>

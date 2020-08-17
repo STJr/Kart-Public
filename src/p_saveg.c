@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -198,7 +198,6 @@ static void P_NetArchivePlayers(void)
 		WRITEINT16(save_p, players[i].starposty);
 		WRITEINT16(save_p, players[i].starpostz);
 		WRITEINT32(save_p, players[i].starpostnum);
-		WRITEINT32(save_p, players[i].starpostcount);
 		WRITEANGLE(save_p, players[i].starpostangle);
 
 		WRITEANGLE(save_p, players[i].angle_pos);
@@ -250,6 +249,8 @@ static void P_NetArchivePlayers(void)
 
 		WRITEUINT32(save_p, players[i].jointime);
 
+		WRITEUINT8(save_p, players[i].splitscreenindex);
+
 		WRITEUINT16(save_p, flags);
 
 		if (flags & CAPSULE)
@@ -264,25 +265,17 @@ static void P_NetArchivePlayers(void)
 		if (flags & AWAYVIEW)
 			WRITEUINT32(save_p, players[i].awayviewmobj->mobjnum);
 
-		WRITEUINT8(save_p, players[i].charability);
-		WRITEUINT8(save_p, players[i].charability2);
 		WRITEUINT32(save_p, players[i].charflags);
-		WRITEUINT32(save_p, (UINT32)players[i].thokitem);
-		WRITEUINT32(save_p, (UINT32)players[i].spinitem);
-		WRITEUINT32(save_p, (UINT32)players[i].revitem);
-		WRITEFIXED(save_p, players[i].actionspd);
-		WRITEFIXED(save_p, players[i].mindash);
-		WRITEFIXED(save_p, players[i].maxdash);
 		// SRB2kart
 		WRITEUINT8(save_p, players[i].kartspeed);
 		WRITEUINT8(save_p, players[i].kartweight);
 		//
-		WRITEFIXED(save_p, players[i].normalspeed);
-		WRITEFIXED(save_p, players[i].runspeed);
-		WRITEUINT8(save_p, players[i].thrustfactor);
-		WRITEUINT8(save_p, players[i].accelstart);
-		WRITEUINT8(save_p, players[i].acceleration);
-		WRITEFIXED(save_p, players[i].jumpfactor);
+
+		for (j = 0; j < MAXPREDICTTICS; j++)
+		{
+			WRITEINT16(save_p, players[i].lturn_max[j]);
+			WRITEINT16(save_p, players[i].rturn_max[j]);
+		}
 	}
 }
 
@@ -382,7 +375,6 @@ static void P_NetUnArchivePlayers(void)
 		players[i].starposty = READINT16(save_p);
 		players[i].starpostz = READINT16(save_p);
 		players[i].starpostnum = READINT32(save_p);
-		players[i].starpostcount = READINT32(save_p);
 		players[i].starpostangle = READANGLE(save_p);
 
 		players[i].angle_pos = READANGLE(save_p);
@@ -422,6 +414,8 @@ static void P_NetUnArchivePlayers(void)
 
 		players[i].jointime = READUINT32(save_p);
 
+		players[i].splitscreenindex = READUINT8(save_p);
+
 		flags = READUINT16(save_p);
 
 		if (flags & CAPSULE)
@@ -439,25 +433,17 @@ static void P_NetUnArchivePlayers(void)
 		players[i].viewheight = 32<<FRACBITS;
 
 		//SetPlayerSkinByNum(i, players[i].skin);
-		players[i].charability = READUINT8(save_p);
-		players[i].charability2 = READUINT8(save_p);
 		players[i].charflags = READUINT32(save_p);
-		players[i].thokitem = (mobjtype_t)READUINT32(save_p);
-		players[i].spinitem = (mobjtype_t)READUINT32(save_p);
-		players[i].revitem = (mobjtype_t)READUINT32(save_p);
-		players[i].actionspd = READFIXED(save_p);
-		players[i].mindash = READFIXED(save_p);
-		players[i].maxdash = READFIXED(save_p);
 		// SRB2kart
 		players[i].kartspeed = READUINT8(save_p);
 		players[i].kartweight = READUINT8(save_p);
 		//
-		players[i].normalspeed = READFIXED(save_p);
-		players[i].runspeed = READFIXED(save_p);
-		players[i].thrustfactor = READUINT8(save_p);
-		players[i].accelstart = READUINT8(save_p);
-		players[i].acceleration = READUINT8(save_p);
-		players[i].jumpfactor = READFIXED(save_p);
+
+		for (j = 0; j < MAXPREDICTTICS; j++)
+		{
+			players[i].lturn_max[j] = READINT16(save_p);
+			players[i].rturn_max[j] = READINT16(save_p);
+		}
 	}
 }
 
@@ -507,16 +493,34 @@ static void P_NetArchiveWorld(void)
 	UINT8 *put;
 
 	// reload the map just to see difference
-	const mapsector_t *ms;
-	const mapsidedef_t *msd;
-	const maplinedef_t *mld;
+	mapsector_t *ms;
+	mapsidedef_t *msd;
+	maplinedef_t *mld;
 	const sector_t *ss = sectors;
 	UINT8 diff, diff2;
 
 	WRITEUINT32(save_p, ARCHIVEBLOCK_WORLD);
 	put = save_p;
 
-	ms = W_CacheLumpNum(lastloadedmaplumpnum+ML_SECTORS, PU_CACHE);
+	if (W_IsLumpWad(lastloadedmaplumpnum)) // welp it's a map wad in a pk3
+	{ // HACK: Open wad file rather quickly so we can get the data from the relevant lumps
+		UINT8 *wadData = W_CacheLumpNum(lastloadedmaplumpnum, PU_STATIC);
+		filelump_t *fileinfo = (filelump_t *)(wadData + ((wadinfo_t *)wadData)->infotableofs);
+#define retrieve_mapdata(d, f)\
+		d = Z_Malloc((f)->size, PU_CACHE, NULL); \
+		M_Memcpy(d, wadData + (f)->filepos, (f)->size)
+		retrieve_mapdata(ms, fileinfo + ML_SECTORS);
+		retrieve_mapdata(mld, fileinfo + ML_LINEDEFS);
+		retrieve_mapdata(msd, fileinfo + ML_SIDEDEFS);
+#undef retrieve_mapdata
+		Z_Free(wadData); // we're done with this now
+	}
+	else // phew it's just a WAD
+	{
+			ms = W_CacheLumpNum(lastloadedmaplumpnum+ML_SECTORS, PU_CACHE);
+			mld = W_CacheLumpNum(lastloadedmaplumpnum+ML_LINEDEFS, PU_CACHE);
+			msd = W_CacheLumpNum(lastloadedmaplumpnum+ML_SIDEDEFS, PU_CACHE);
+	}
 
 	for (i = 0; i < numsectors; i++, ss++, ms++)
 	{
@@ -647,8 +651,6 @@ static void P_NetArchiveWorld(void)
 
 	WRITEUINT16(put, 0xffff);
 
-	mld = W_CacheLumpNum(lastloadedmaplumpnum+ML_LINEDEFS, PU_CACHE);
-	msd = W_CacheLumpNum(lastloadedmaplumpnum+ML_SIDEDEFS, PU_CACHE);
 	// do lines
 	for (i = 0; i < numlines; i++, mld++, li++)
 	{
@@ -667,13 +669,13 @@ static void P_NetArchiveWorld(void)
 				diff |= LD_S1TEXOFF;
 			//SoM: 4/1/2000: Some textures are colormaps. Don't worry about invalid textures.
 			if (R_CheckTextureNumForName(msd[li->sidenum[0]].toptexture) != -1
-				&& si->toptexture != R_TextureNumForName(msd[li->sidenum[0]].toptexture))
+					&& si->toptexture != R_TextureNumForName(msd[li->sidenum[0]].toptexture))
 				diff |= LD_S1TOPTEX;
 			if (R_CheckTextureNumForName(msd[li->sidenum[0]].bottomtexture) != -1
-				&& si->bottomtexture != R_TextureNumForName(msd[li->sidenum[0]].bottomtexture))
+					&& si->bottomtexture != R_TextureNumForName(msd[li->sidenum[0]].bottomtexture))
 				diff |= LD_S1BOTTEX;
 			if (R_CheckTextureNumForName(msd[li->sidenum[0]].midtexture) != -1
-				&& si->midtexture != R_TextureNumForName(msd[li->sidenum[0]].midtexture))
+					&& si->midtexture != R_TextureNumForName(msd[li->sidenum[0]].midtexture))
 				diff |= LD_S1MIDTEX;
 		}
 		if (li->sidenum[1] != 0xffff)
@@ -682,13 +684,13 @@ static void P_NetArchiveWorld(void)
 			if (si->textureoffset != SHORT(msd[li->sidenum[1]].textureoffset)<<FRACBITS)
 				diff2 |= LD_S2TEXOFF;
 			if (R_CheckTextureNumForName(msd[li->sidenum[1]].toptexture) != -1
-				&& si->toptexture != R_TextureNumForName(msd[li->sidenum[1]].toptexture))
+					&& si->toptexture != R_TextureNumForName(msd[li->sidenum[1]].toptexture))
 				diff2 |= LD_S2TOPTEX;
 			if (R_CheckTextureNumForName(msd[li->sidenum[1]].bottomtexture) != -1
-				&& si->bottomtexture != R_TextureNumForName(msd[li->sidenum[1]].bottomtexture))
+					&& si->bottomtexture != R_TextureNumForName(msd[li->sidenum[1]].bottomtexture))
 				diff2 |= LD_S2BOTTEX;
 			if (R_CheckTextureNumForName(msd[li->sidenum[1]].midtexture) != -1
-				&& si->midtexture != R_TextureNumForName(msd[li->sidenum[1]].midtexture))
+					&& si->midtexture != R_TextureNumForName(msd[li->sidenum[1]].midtexture))
 				diff2 |= LD_S2MIDTEX;
 			if (diff2)
 				diff |= LD_DIFF2;
@@ -1116,7 +1118,7 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 		diff |= MD_SCALE;
 	if (mobj->destscale != mobj->scale)
 		diff |= MD_DSCALE;
-	if (mobj->scalespeed != FRACUNIT/12)
+	if (mobj->scalespeed != mapobjectscale/12)
 		diff2 |= MD2_SCALESPEED;
 
 	if (mobj == redflag)
@@ -2076,13 +2078,13 @@ static void LoadMobjThinker(actionf_p1 thinker)
 		mobj->player->mo = mobj;
 		// added for angle prediction
 		if (consoleplayer == i)
-			localangle = mobj->angle;
-		if (secondarydisplayplayer == i)
-			localangle2 = mobj->angle;
-		if (thirddisplayplayer == i)
-			localangle3 = mobj->angle;
-		if (fourthdisplayplayer == i)
-			localangle4 = mobj->angle;
+			localangle[0] = mobj->angle;
+		if (displayplayers[1] == i)
+			localangle[1] = mobj->angle;
+		if (displayplayers[2] == i)
+			localangle[2] = mobj->angle;
+		if (displayplayers[3] == i)
+			localangle[3] = mobj->angle;
 	}
 	if (diff & MD_MOVEDIR)
 		mobj->movedir = READANGLE(save_p);
@@ -2123,7 +2125,7 @@ static void LoadMobjThinker(actionf_p1 thinker)
 	if (diff2 & MD2_SCALESPEED)
 		mobj->scalespeed = READFIXED(save_p);
 	else
-		mobj->scalespeed = FRACUNIT/12;
+		mobj->scalespeed = mapobjectscale/12;
 	if (diff2 & MD2_CUSVAL)
 		mobj->cusval = READINT32(save_p);
 	if (diff2 & MD2_CVMEM)
@@ -3262,10 +3264,11 @@ static void P_NetArchiveMisc(void)
 	WRITEINT16(save_p, scrambletotal);
 	WRITEINT16(save_p, scramblecount);
 
-	WRITEUINT32(save_p, countdown);
-	WRITEUINT32(save_p, countdown2);
+	WRITEUINT32(save_p, racecountdown);
+	WRITEUINT32(save_p, exitcountdown);
 
 	WRITEFIXED(save_p, gravity);
+	WRITEFIXED(save_p, mapobjectscale);
 
 	WRITEUINT32(save_p, countdowntimer);
 	WRITEUINT8(save_p, countdowntimeup);
@@ -3284,10 +3287,11 @@ static void P_NetArchiveMisc(void)
 
 	WRITEUINT32(save_p, wantedcalcdelay);
 	WRITEUINT32(save_p, indirectitemcooldown);
-	WRITEUINT32(save_p, spbincoming);
-	WRITEUINT8(save_p, spbplayer);
+	WRITEUINT32(save_p, hyubgone);
 	WRITEUINT32(save_p, mapreset);
 	WRITEUINT8(save_p, nospectategrief);
+	WRITEUINT8(save_p, thwompsactive);
+	WRITESINT8(save_p, spbplace);
 
 	// Is it paused?
 	if (paused)
@@ -3369,10 +3373,11 @@ static inline boolean P_NetUnArchiveMisc(void)
 	scrambletotal = READINT16(save_p);
 	scramblecount = READINT16(save_p);
 
-	countdown = READUINT32(save_p);
-	countdown2 = READUINT32(save_p);
+	racecountdown = READUINT32(save_p);
+	exitcountdown = READUINT32(save_p);
 
 	gravity = READFIXED(save_p);
+	mapobjectscale = READFIXED(save_p);
 
 	countdowntimer = (tic_t)READUINT32(save_p);
 	countdowntimeup = (boolean)READUINT8(save_p);
@@ -3391,10 +3396,11 @@ static inline boolean P_NetUnArchiveMisc(void)
 
 	wantedcalcdelay = READUINT32(save_p);
 	indirectitemcooldown = READUINT32(save_p);
-	spbincoming = READUINT32(save_p);
-	spbplayer = READUINT8(save_p);
+	hyubgone = READUINT32(save_p);
 	mapreset = READUINT32(save_p);
 	nospectategrief = READUINT8(save_p);
+	thwompsactive = (boolean)READUINT8(save_p);
+	spbplace = READSINT8(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)
@@ -3417,7 +3423,7 @@ void P_SaveNetGame(void)
 	mobj_t *mobj;
 	INT32 i = 1; // don't start from 0, it'd be confused with a blank pointer otherwise
 
-	CV_SaveNetVars(&save_p);
+	CV_SaveNetVars(&save_p, false);
 	P_NetArchiveMisc();
 
 	// Assign the mobjnumber for pointer tracking

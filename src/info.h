@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -166,9 +166,18 @@ void A_ToggleFlameJet();
 void A_ItemPop(); // SRB2kart
 void A_JawzChase(); // SRB2kart
 void A_JawzExplode(); // SRB2kart
+void A_SPBChase(); // SRB2kart
 void A_MineExplode(); // SRB2kart
 void A_BallhogExplode(); // SRB2kart
 void A_LightningFollowPlayer();	// SRB2kart: Lightning shield effect player chasing
+void A_FZBoomFlash(); // SRB2kart
+void A_FZBoomSmoke(); // SRB2kart
+void A_RandomShadowFrame();	//SRB2kart: Shadow spawner frame randomizer
+void A_RoamingShadowThinker();	// SRB2kart: Roaming Shadow moving + attacking players.
+void A_MayonakaArrow();	//SRB2kart: midnight channel arrow sign
+void A_ReaperThinker();	//SRB2kart: mementos reaper
+void A_MementosTPParticles();	//SRB2kart: mementos teleporter particles. Man that's a lot of actions for my shite.
+void A_FlameParticle(); // SRB2kart
 void A_OrbitNights();
 void A_GhostMe();
 void A_SetObjectState();
@@ -217,7 +226,7 @@ void A_NapalmScatter();
 void A_SpawnFreshCopy();
 
 // ratio of states to sprites to mobj types is roughly 6 : 1 : 1
-#define NUMMOBJFREESLOTS 256
+#define NUMMOBJFREESLOTS 512
 #define NUMSPRITEFREESLOTS NUMMOBJFREESLOTS
 #define NUMSTATEFREESLOTS (NUMMOBJFREESLOTS*8)
 
@@ -593,20 +602,20 @@ typedef enum sprite
 	SPR_KINF, // Invincibility flash
 	SPR_WIPD, // Wipeout dust trail
 	SPR_DRIF, // Drift Sparks
+	SPR_BDRF, // Brake drift sparks
 	SPR_DUST, // Drift Dust
 
 	// Kart Items
 	SPR_RSHE, // Rocket sneaker
 	SPR_FITM, // Eggman Monitor
- 	SPR_BANA, // Banana Peel
+	SPR_BANA, // Banana Peel
 	SPR_ORBN, // Orbinaut
 	SPR_JAWZ, // Jawz
 	SPR_SSMN, // SS Mine
 	SPR_KRBM, // SS Mine BOOM
 	SPR_BHOG, // Ballhog
 	SPR_BHBM, // Ballhog BOOM
-	SPR_BLIG, // Self-Propelled Bomb
-	SPR_LIGH, // Grow/shrink beams (Metallic Maddness)
+	SPR_SPBM, // Self-Propelled Bomb
 	SPR_THNS, // Thunder Shield
 	SPR_SINK, // Kitchen Sink
 	SPR_SITR, // Kitchen Sink Trail
@@ -644,6 +653,11 @@ typedef enum sprite
 	SPR_WANT,
 
 	SPR_PBOM, // player bomb
+
+	SPR_HIT1, // battle points
+	SPR_HIT2, // battle points
+	SPR_HIT3, // battle points
+
 	SPR_RETI, // player reticule
 
 	SPR_AIDU,
@@ -653,8 +667,122 @@ typedef enum sprite
 	SPR_LZI2, // ditto
 	SPR_KLIT, // You have a twisted mind. But this actually is for the diagonal lightning.
 
-	SPR_VIEW, // First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw!
-	
+	SPR_FZSM, // F-Zero NO CONTEST explosion
+	SPR_FZBM,
+	SPR_FPRT,
+
+	// Various plants
+	SPR_SBUS,
+
+	SPR_MARB, // Marble Zone sprites
+	SPR_FUFO, // CD Special Stage UFO (don't ask me why it begins with an F)
+
+	SPR_RUST, // Rusty Rig sprites
+
+	SPR_BLON, // D2 Balloon Panic
+
+	SPR_VAPE, // Volcanic Valley
+
+	// Hill Top Zone
+	SPR_HTZA,
+	SPR_HTZB,
+
+	// Ports of gardens
+	SPR_SGVA,
+	SPR_SGVB,
+	SPR_SGVC,
+	SPR_PGTR,
+	SPR_PGF1,
+	SPR_PGF2,
+	SPR_PGF3,
+	SPR_PGBH,
+	SPR_DPLR,
+
+	// Midnight Channel stuff:
+	SPR_SPTL,	// Spotlight
+	SPR_ENM1,	// Shadows (Roaming and static)
+	SPR_GARU,	// Wind attack roaming shadows use.
+	SPR_MARR,	// Mayonaka Arrow
+
+	//Mementos stuff:
+	SPR_REAP,
+
+	SPR_JITB,	// Jack In The Box
+
+	// Color Drive stuff:
+	SPR_CDMO,
+	SPR_CDBU,
+
+	// Daytona Speedway
+	SPR_PINE,
+
+	// Egg Zeppelin
+	SPR_PPLR,
+
+	// Desert Palace
+	SPR_DPPT,
+
+	// Aurora Atoll
+	SPR_AATR,
+	SPR_COCO,
+
+	// Barren Badlands
+	SPR_BDST,
+	SPR_FROG,
+	SPR_CBRA,
+	SPR_HOLE,
+	SPR_BBRA,
+
+	// Eerie Grove
+	SPR_EGFG,
+
+	// SMK ports
+	SPR_SMKP,
+	SPR_MTYM,
+	SPR_THWP,
+	SPR_SNOB,
+	SPR_ICEB,
+
+	// Ezo's maps - many single-use sprites!
+	SPR_CNDL,
+	SPR_DOCH,
+	SPR_DUCK,
+	SPR_GTRE,
+	SPR_CHES,
+	SPR_CHIM,
+	SPR_DRGN,
+	SPR_LZMN,
+	SPR_PGSS,
+	SPR_ZTCH,
+	SPR_MKMA,
+	SPR_MKMP,
+	SPR_RTCH,
+	SPR_BOWL,
+	SPR_BOWH,
+	SPR_BRRL,
+	SPR_BRRR,
+	SPR_HRSE,
+	SPR_TOAH,
+	SPR_BFRT,
+	SPR_OFRT,
+	SPR_RFRT,
+	SPR_PFRT,
+	SPR_ASPK,
+	SPR_HBST,
+	SPR_HBSO,
+	SPR_HBSF,
+	SPR_WBLZ,
+	SPR_WBLN,
+
+	SPR_FWRK,
+
+	// Xmas-specific sprites that don't fit aboxe
+	SPR_XMS4,
+	SPR_XMS5,
+
+	// First person view sprites; this is a sprite so that it can be replaced by a specialized MD2 draw later
+	SPR_VIEW,
+
 	SPR_FIRSTFREESLOT,
 	SPR_LASTFREESLOT = SPR_FIRSTFREESLOT + NUMSPRITEFREESLOTS - 1,
 	NUMSPRITES
@@ -2110,6 +2238,10 @@ typedef enum state
 	S_XMASPOLE,
 	S_CANDYCANE,
 	S_SNOWMAN,
+	S_SNOWMANHAT,
+	S_LAMPPOST1,
+	S_LAMPPOST2,
+	S_HANGSTAR,
 
 	// Botanic Serenity's loads of scenery states
 	S_BSZTALLFLOWER_RED,
@@ -3083,6 +3215,9 @@ typedef enum state
 	S_DRIFTSPARK_C1,
 	S_DRIFTSPARK_C2,
 
+	// Brake drift sparks
+	S_BRAKEDRIFT,
+
 	// Drift Smoke
 	S_DRIFTDUST1,
 	S_DRIFTDUST2,
@@ -3163,31 +3298,31 @@ typedef enum state
 	S_ROCKETSNEAKER_RVIBRATE,
 
 	//{ Eggman Monitor
-	S_FAKEITEM1,
-	S_FAKEITEM2,
-	S_FAKEITEM3,
-	S_FAKEITEM4,
-	S_FAKEITEM5,
-	S_FAKEITEM6,
-	S_FAKEITEM7,
-	S_FAKEITEM8,
-	S_FAKEITEM9,
-	S_FAKEITEM10,
-	S_FAKEITEM11,
-	S_FAKEITEM12,
-	S_FAKEITEM13,
-	S_FAKEITEM14,
-	S_FAKEITEM15,
-	S_FAKEITEM16,
-	S_FAKEITEM17,
-	S_FAKEITEM18,
-	S_FAKEITEM19,
-	S_FAKEITEM20,
-	S_FAKEITEM21,
-	S_FAKEITEM22,
-	S_FAKEITEM23,
-	S_FAKEITEM24,
-	S_DEADFAKEITEM,
+	S_EGGMANITEM1,
+	S_EGGMANITEM2,
+	S_EGGMANITEM3,
+	S_EGGMANITEM4,
+	S_EGGMANITEM5,
+	S_EGGMANITEM6,
+	S_EGGMANITEM7,
+	S_EGGMANITEM8,
+	S_EGGMANITEM9,
+	S_EGGMANITEM10,
+	S_EGGMANITEM11,
+	S_EGGMANITEM12,
+	S_EGGMANITEM13,
+	S_EGGMANITEM14,
+	S_EGGMANITEM15,
+	S_EGGMANITEM16,
+	S_EGGMANITEM17,
+	S_EGGMANITEM18,
+	S_EGGMANITEM19,
+	S_EGGMANITEM20,
+	S_EGGMANITEM21,
+	S_EGGMANITEM22,
+	S_EGGMANITEM23,
+	S_EGGMANITEM24,
+	S_EGGMANITEM_DEAD,
 	//}
 
 	// Banana
@@ -3317,18 +3452,28 @@ typedef enum state
 	S_BALLHOGBOOM15,
 	S_BALLHOGBOOM16,
 
-	// Self-Propelled Bomb - just an explosion for now...
-	S_BLUELIGHTNING1,
-	S_BLUELIGHTNING2,
-	S_BLUELIGHTNING3,
-	S_BLUELIGHTNING4,
-	S_BLUEEXPLODE,
-
-	// Grow/Shrink
-	S_LIGHTNING1,
-	S_LIGHTNING2,
-	S_LIGHTNING3,
-	S_LIGHTNING4,
+	// Self-Propelled Bomb
+	S_SPB1,
+	S_SPB2,
+	S_SPB3,
+	S_SPB4,
+	S_SPB5,
+	S_SPB6,
+	S_SPB7,
+	S_SPB8,
+	S_SPB9,
+	S_SPB10,
+	S_SPB11,
+	S_SPB12,
+	S_SPB13,
+	S_SPB14,
+	S_SPB15,
+	S_SPB16,
+	S_SPB17,
+	S_SPB18,
+	S_SPB19,
+	S_SPB20,
+	S_SPB_DEAD,
 
 	// Thunder Shield
 	S_THUNDERSHIELD1,
@@ -3371,17 +3516,6 @@ typedef enum state
 	// DEZ Laser respawn
 	S_DEZLASER,
 
-	// Pokey
-	S_POKEY1,
-	S_POKEY2,
-	S_POKEY3,
-	S_POKEY4,
-	S_POKEY5,
-	S_POKEY6,
-	S_POKEY7,
-	S_POKEY8,
-	S_POKEYIDLE,
-
 	// Audience Members
 	S_RANDOMAUDIENCE,
 	S_AUDIENCE_CHAO_CHEER1,
@@ -3389,15 +3523,6 @@ typedef enum state
 	S_AUDIENCE_CHAO_WIN1,
 	S_AUDIENCE_CHAO_WIN2,
 	S_AUDIENCE_CHAO_LOSE,
-
-	S_FANCHAR_KOTE,
-	S_FANCHAR_RYAN,
-	S_FANCHAR_WENDY,
-	S_FANCHAR_FREEZOR,
-	S_FANCHAR_METALKO,
-	S_FANCHAR_BLACKOUT,
-	S_FANCHAR_BLADE,
-	S_FANCHAR_HINOTE,
 
 	// 1.0 Kart Decoratives
 	S_FLAYM1,
@@ -3559,12 +3684,61 @@ typedef enum state
 	S_PLAYERARROW_WANTED6,
 	S_PLAYERARROW_WANTED7,
 
-	S_PLAYERBOMB,
+	S_PLAYERBOMB1, // Karma player overlays
+	S_PLAYERBOMB2,
+	S_PLAYERBOMB3,
+	S_PLAYERBOMB4,
+	S_PLAYERBOMB5,
+	S_PLAYERBOMB6,
+	S_PLAYERBOMB7,
+	S_PLAYERBOMB8,
+	S_PLAYERBOMB9,
+	S_PLAYERBOMB10,
+	S_PLAYERBOMB11,
+	S_PLAYERBOMB12,
+	S_PLAYERBOMB13,
+	S_PLAYERBOMB14,
+	S_PLAYERBOMB15,
+	S_PLAYERBOMB16,
+	S_PLAYERBOMB17,
+	S_PLAYERBOMB18,
+	S_PLAYERBOMB19,
+	S_PLAYERBOMB20,
 	S_PLAYERITEM,
 	S_PLAYERFAKE,
 
 	S_KARMAWHEEL,
-	
+
+	S_BATTLEPOINT1A, // Battle point indicators
+	S_BATTLEPOINT1B,
+	S_BATTLEPOINT1C,
+	S_BATTLEPOINT1D,
+	S_BATTLEPOINT1E,
+	S_BATTLEPOINT1F,
+	S_BATTLEPOINT1G,
+	S_BATTLEPOINT1H,
+	S_BATTLEPOINT1I,
+
+	S_BATTLEPOINT2A,
+	S_BATTLEPOINT2B,
+	S_BATTLEPOINT2C,
+	S_BATTLEPOINT2D,
+	S_BATTLEPOINT2E,
+	S_BATTLEPOINT2F,
+	S_BATTLEPOINT2G,
+	S_BATTLEPOINT2H,
+	S_BATTLEPOINT2I,
+
+	S_BATTLEPOINT3A,
+	S_BATTLEPOINT3B,
+	S_BATTLEPOINT3C,
+	S_BATTLEPOINT3D,
+	S_BATTLEPOINT3E,
+	S_BATTLEPOINT3F,
+	S_BATTLEPOINT3G,
+	S_BATTLEPOINT3H,
+	S_BATTLEPOINT3I,
+
 	// Thunder shield use stuff;
 	S_KSPARK1,	// Sparkling Radius
 	S_KSPARK2,
@@ -3612,6 +3786,277 @@ typedef enum state
 	S_KLIT10,
 	S_KLIT11,
 	S_KLIT12,
+
+	S_FZEROSMOKE1, // F-Zero NO CONTEST explosion
+	S_FZEROSMOKE2,
+	S_FZEROSMOKE3,
+	S_FZEROSMOKE4,
+	S_FZEROSMOKE5,
+
+	S_FZEROBOOM1,
+	S_FZEROBOOM2,
+	S_FZEROBOOM3,
+	S_FZEROBOOM4,
+	S_FZEROBOOM5,
+	S_FZEROBOOM6,
+	S_FZEROBOOM7,
+	S_FZEROBOOM8,
+	S_FZEROBOOM9,
+	S_FZEROBOOM10,
+	S_FZEROBOOM11,
+	S_FZEROBOOM12,
+
+	S_FZSLOWSMOKE1,
+	S_FZSLOWSMOKE2,
+	S_FZSLOWSMOKE3,
+	S_FZSLOWSMOKE4,
+	S_FZSLOWSMOKE5,
+
+	// Various plants
+	S_SONICBUSH,
+
+	// Marble Zone
+	S_FLAMEPARTICLE,
+	S_MARBLETORCH,
+	S_MARBLELIGHT,
+	S_MARBLEBURNER,
+
+	// CD Special Stage
+	S_CDUFO,
+	S_CDUFO_DIE,
+
+	// Rusty Rig
+	S_RUSTYLAMP_ORANGE,
+	S_RUSTYCHAIN,
+
+	// D2 Balloon Panic
+	S_BALLOON,
+	S_BALLOONPOP1,
+	S_BALLOONPOP2,
+	S_BALLOONPOP3,
+
+	// Smokin' & Vapin' (Don't try this at home, kids!)
+	S_PETSMOKE0,
+	S_PETSMOKE1,
+	S_PETSMOKE2,
+	S_PETSMOKE3,
+	S_PETSMOKE4,
+	S_PETSMOKE5,
+	S_VVVAPING0,
+	S_VVVAPING1,
+	S_VVVAPING2,
+	S_VVVAPING3,
+	S_VVVAPING4,
+	S_VVVAPING5,
+	S_VVVAPE,
+
+	// Hill Top Zone
+	S_HTZTREE,
+	S_HTZBUSH,
+
+	// Ports of gardens
+	S_SGVINE1,
+	S_SGVINE2,
+	S_SGVINE3,
+	S_PGTREE,
+	S_PGFLOWER1,
+	S_PGFLOWER2,
+	S_PGFLOWER3,
+	S_PGBUSH,
+	S_DHPILLAR,
+
+	// Midnight Channel stuff:
+	S_SPOTLIGHT,	// Spotlight decoration
+	S_RANDOMSHADOW,	// Random Shadow. They're static and don't do nothing.
+	S_GARU1,
+	S_GARU2,
+	S_GARU3,
+	S_TGARU0,
+	S_TGARU1,
+	S_TGARU2,
+	S_TGARU3,	// Wind attack used by Roaming Shadows on Players.
+	S_ROAMINGSHADOW,	// Roaming Shadow (the one that uses above's wind attack or smth)
+	S_MAYONAKAARROW,	// Arrow sign
+
+	// Mementos stuff:
+	S_REAPER_INVIS,		// Reaper waiting for spawning
+	S_REAPER,			// Reaper main frame where its thinker is handled
+	S_MEMENTOSTP,		// Mementos teleporter state. (Used for spawning particles)
+
+	// JackInTheBox
+	S_JITB1,
+	S_JITB2,
+	S_JITB3,
+	S_JITB4,
+	S_JITB5,
+	S_JITB6,
+
+	// Color Drive
+	S_CDMOONSP,
+	S_CDBUSHSP,
+	S_CDTREEASP,
+	S_CDTREEBSP,
+
+	// Daytona Speedway
+	S_PINETREE,
+	S_PINETREE_SIDE,
+
+	// Egg Zeppelin
+	S_EZZPROPELLER,
+	S_EZZPROPELLER_BLADE,
+
+	// Desert Palace
+	S_DP_PALMTREE,
+
+	// Aurora Atoll
+	S_AAZTREE_SEG,
+	S_AAZTREE_COCONUT,
+	S_AAZTREE_LEAF,
+
+	// Barren Badlands
+	S_BBZDUST1, // Dust
+	S_BBZDUST2,
+	S_BBZDUST3,
+	S_BBZDUST4,
+	S_FROGGER, // Frog badniks
+	S_FROGGER_ATTACK,
+	S_FROGGER_JUMP,
+	S_FROGTONGUE,
+	S_FROGTONGUE_JOINT,
+	S_ROBRA, // Black cobra badniks
+	S_ROBRA_HEAD,
+	S_ROBRA_JOINT,
+	S_ROBRASHELL_INSIDE,
+	S_ROBRASHELL_OUTSIDE,
+	S_BLUEROBRA, // Blue cobra badniks
+	S_BLUEROBRA_HEAD,
+	S_BLUEROBRA_JOINT,
+
+	// Eerie Grove
+	S_EERIEFOG1,
+	S_EERIEFOG2,
+	S_EERIEFOG3,
+	S_EERIEFOG4,
+	S_EERIEFOG5,
+
+	// SMK ports
+	S_SMK_PIPE1, // Generic pipes
+	S_SMK_PIPE2,
+	S_SMK_MOLE, // Donut Plains Monty Moles
+	S_SMK_THWOMP, // Bowser Castle Thwomps
+	S_SMK_SNOWBALL, // Vanilla Lake snowballs
+	S_SMK_ICEBLOCK, // Vanilla Lake breakable ice blocks
+	S_SMK_ICEBLOCK2,
+	S_SMK_ICEBLOCK_DEBRIS,
+	S_SMK_ICEBLOCK_DEBRIS2,
+
+	// Ezo's maps
+	S_BLUEFIRE1,
+	S_BLUEFIRE2,
+	S_BLUEFIRE3,
+	S_BLUEFIRE4,
+
+	S_GREENFIRE1,
+	S_GREENFIRE2,
+	S_GREENFIRE3,
+	S_GREENFIRE4,
+
+	S_REGALCHEST,
+	S_CHIMERASTATUE,
+	S_DRAGONSTATUE,
+	S_LIZARDMANSTATUE,
+	S_PEGASUSSTATUE,
+
+	S_ZELDAFIRE1,
+	S_ZELDAFIRE2,
+	S_ZELDAFIRE3,
+	S_ZELDAFIRE4,
+
+	S_GANBARETHING,
+	S_GANBAREDUCK,
+	S_GANBARETREE,
+
+	S_MONOIDLE,
+	S_MONOCHASE1,
+	S_MONOCHASE2,
+	S_MONOCHASE3,
+	S_MONOCHASE4,
+	S_MONOPAIN,
+
+	S_REDZELDAFIRE1,
+	S_REDZELDAFIRE2,
+	S_REDZELDAFIRE3,
+	S_REDZELDAFIRE4,
+
+	S_BOWLINGPIN,
+	S_BOWLINGHIT1,
+	S_BOWLINGHIT2,
+	S_BOWLINGHIT3,
+	S_BOWLINGHIT4,
+
+	S_ARIDTOAD,
+	S_TOADHIT1,
+	S_TOADHIT2,
+	S_TOADHIT3,
+	S_TOADHIT4,
+
+	S_EBARRELIDLE,
+	S_EBARREL1,
+	S_EBARREL2,
+	S_EBARREL3,
+	S_EBARREL4,
+	S_EBARREL5,
+	S_EBARREL6,
+	S_EBARREL7,
+	S_EBARREL8,
+	S_EBARREL9,
+	S_EBARREL10,
+	S_EBARREL11,
+	S_EBARREL12,
+	S_EBARREL13,
+	S_EBARREL14,
+	S_EBARREL15,
+	S_EBARREL16,
+	S_EBARREL17,
+	S_EBARREL18,
+
+	S_MERRYHORSE,
+
+	S_BLUEFRUIT,
+	S_ORANGEFRUIT,
+	S_REDFRUIT,
+	S_PINKFRUIT,
+
+	S_ADVENTURESPIKEA1,
+	S_ADVENTURESPIKEA2,
+	S_ADVENTURESPIKEB1,
+	S_ADVENTURESPIKEB2,
+	S_ADVENTURESPIKEC1,
+	S_ADVENTURESPIKEC2,
+
+	S_BOOSTPROMPT1,
+	S_BOOSTPROMPT2,
+
+	S_BOOSTOFF1,
+	S_BOOSTOFF2,
+
+	S_BOOSTON1,
+	S_BOOSTON2,
+
+	S_LIZARDMAN,
+	S_LIONMAN,
+
+	S_KARMAFIREWORK1,
+	S_KARMAFIREWORK2,
+	S_KARMAFIREWORK3,
+	S_KARMAFIREWORK4,
+	S_KARMAFIREWORKTRAIL,
+
+	S_OPAQUESMOKE1,
+	S_OPAQUESMOKE2,
+	S_OPAQUESMOKE3,
+	S_OPAQUESMOKE4,
+	S_OPAQUESMOKE5,
 
 #ifdef SEENAMES
 	S_NAMECHECK,
@@ -3856,7 +4301,7 @@ typedef enum mobj_type
 
 	// Castle Eggman Scenery
 	MT_CHAIN, // CEZ Chain
-	MT_FLAME, // Flame (has corona)
+	MT_FLAME, // Flame
 	MT_EGGSTATUE, // Eggman Statue
 	MT_MACEPOINT, // Mace rotation point
 	MT_SWINGMACEPOINT, // Mace swinging point
@@ -3916,6 +4361,10 @@ typedef enum mobj_type
 	MT_XMASPOLE,
 	MT_CANDYCANE,
 	MT_SNOWMAN,
+	MT_SNOWMANHAT,
+	MT_LAMPPOST1,
+	MT_LAMPPOST2,
+	MT_HANGSTAR,
 
 	// Botanic Serenity scenery
 	MT_BSZTALLFLOWER_RED,
@@ -4160,22 +4609,23 @@ typedef enum mobj_type
 	MT_INVULNFLASH,
 	MT_WIPEOUTTRAIL,
 	MT_DRIFTSPARK,
+	MT_BRAKEDRIFT,
 	MT_DRIFTDUST,
 
 	MT_ROCKETSNEAKER,
 
-	MT_FAKESHIELD,
-	MT_FAKEITEM,
+	MT_EGGMANITEM, // Eggman items
+	MT_EGGMANITEM_SHIELD,
 
 	MT_BANANA, // Banana Stuff
-	MT_BANANA_SHIELD, 
+	MT_BANANA_SHIELD,
 
 	MT_ORBINAUT, // Orbinaut stuff
 	MT_ORBINAUT_SHIELD,
 
 	MT_JAWZ, // Jawz stuff
 	MT_JAWZ_DUD,
-	MT_JAWZ_SHIELD, 
+	MT_JAWZ_SHIELD,
 
 	MT_PLAYERRETICULE, // Jawz reticule
 
@@ -4191,9 +4641,8 @@ typedef enum mobj_type
 	MT_BALLHOG, // Ballhog
 	MT_BALLHOGBOOM,
 
-	MT_BLUELIGHTNING, // Grow/shrink stuff
-	MT_BLUEEXPLOSION,
-	MT_LIGHTNING,
+	MT_SPB, // SPB stuff
+	MT_SPBEXPLOSION,
 
 	MT_THUNDERSHIELD, // Thunder Shield stuff
 
@@ -4205,20 +4654,9 @@ typedef enum mobj_type
 
 	MT_DEZLASER,
 
-	MT_POKEY, // Huh, thought this was a default asset for some reason, guess not.
-
-	MT_ENEMYFLIP,
 	MT_WAYPOINT,
 
 	MT_RANDOMAUDIENCE,
-	MT_FANCHAR_KOTE,
-	MT_FANCHAR_RYAN,
-	MT_FANCHAR_WENDY,
-	MT_FANCHAR_FREEZOR,
-	MT_FANCHAR_METALKO,
-	MT_FANCHAR_BLACKOUT,
-	MT_FANCHAR_BLADE,
-	MT_FANCHAR_HINOTE,
 
 	MT_FLAYM,
 	MT_DEVIL,
@@ -4282,6 +4720,147 @@ typedef enum mobj_type
 
 	MT_KARMAHITBOX,
 	MT_KARMAWHEEL,
+
+	MT_BATTLEPOINT,
+
+	MT_FZEROBOOM,
+
+	// Various plants
+	MT_SONICBUSH,
+
+	// Marble Zone
+	MT_FLAMEPARTICLE,
+	MT_MARBLETORCH,
+	MT_MARBLELIGHT,
+	MT_MARBLEBURNER,
+
+	// CD Special Stage
+	MT_CDUFO,
+
+	// Rusty Rig
+	MT_RUSTYLAMP_ORANGE,
+	MT_RUSTYCHAIN,
+
+	// D2 Balloon Panic
+	MT_BALLOON,
+
+	// Smokin' & Vapin' (Don't try this at home, kids!)
+	MT_PETSMOKER,
+	MT_PETSMOKE,
+	MT_VVVAPE,
+
+	// Hill Top Zone
+	MT_HTZTREE,
+	MT_HTZBUSH,
+
+	// Ports of gardens
+	MT_SGVINE1,
+	MT_SGVINE2,
+	MT_SGVINE3,
+	MT_PGTREE,
+	MT_PGFLOWER1,
+	MT_PGFLOWER2,
+	MT_PGFLOWER3,
+	MT_PGBUSH,
+	MT_DHPILLAR,
+
+	// Midnight Channel stuff:
+	MT_SPOTLIGHT,		// Spotlight Object
+	MT_RANDOMSHADOW,	// Random static Shadows.
+	MT_ROAMINGSHADOW,	// Roaming Shadows.
+	MT_MAYONAKAARROW,	// Arrow static signs for Mayonaka
+
+	// Mementos stuff
+	MT_REAPERWAYPOINT,
+	MT_REAPER,
+	MT_MEMENTOSTP,
+	MT_MEMENTOSPARTICLE,
+
+	MT_JACKINTHEBOX,
+
+	// Color Drive:
+	MT_CDMOON,
+	MT_CDBUSH,
+	MT_CDTREEA,
+	MT_CDTREEB,
+
+	// Daytona Speedway
+	MT_PINETREE,
+	MT_PINETREE_SIDE,
+
+	// Egg Zeppelin
+	MT_EZZPROPELLER,
+	MT_EZZPROPELLER_BLADE,
+
+	// Desert Palace
+	MT_DP_PALMTREE,
+
+	// Aurora Atoll
+	MT_AAZTREE_HELPER,
+	MT_AAZTREE_SEG,
+	MT_AAZTREE_COCONUT,
+	MT_AAZTREE_LEAF,
+
+	// Barren Badlands
+	MT_BBZDUST,
+	MT_FROGGER,
+	MT_FROGTONGUE,
+	MT_FROGTONGUE_JOINT,
+	MT_ROBRA,
+	MT_ROBRA_HEAD,
+	MT_ROBRA_JOINT,
+	MT_BLUEROBRA,
+	MT_BLUEROBRA_HEAD,
+	MT_BLUEROBRA_JOINT,
+
+	// Eerie Grove
+	MT_EERIEFOG,
+	MT_EERIEFOGGEN,
+
+	// SMK ports
+	MT_SMK_PIPE,
+	MT_SMK_MOLESPAWNER,
+	MT_SMK_MOLE,
+	MT_SMK_THWOMP,
+	MT_SMK_SNOWBALL,
+	MT_SMK_ICEBLOCK,
+	MT_SMK_ICEBLOCK_SIDE,
+	MT_SMK_ICEBLOCK_DEBRIS,
+
+	// Ezo's maps
+	MT_BLUEFIRE,
+	MT_GREENFIRE,
+	MT_REGALCHEST,
+	MT_CHIMERASTATUE,
+	MT_DRAGONSTATUE,
+	MT_LIZARDMANSTATUE,
+	MT_PEGASUSSTATUE,
+	MT_ZELDAFIRE,
+	MT_GANBARETHING,
+	MT_GANBAREDUCK,
+	MT_GANBARETREE,
+	MT_MONOKUMA,
+	MT_REDZELDAFIRE,
+	MT_BOWLINGPIN,
+	MT_MERRYAMBIENCE,
+	MT_TWINKLECARTAMBIENCE,
+	MT_EXPLODINGBARREL,
+	MT_MERRYHORSE,
+	MT_ARIDTOAD,
+	MT_BLUEFRUIT,
+	MT_ORANGEFRUIT,
+	MT_REDFRUIT,
+	MT_PINKFRUIT,
+	MT_ADVENTURESPIKEA,
+	MT_ADVENTURESPIKEB,
+	MT_ADVENTURESPIKEC,
+	MT_BOOSTPROMPT,
+	MT_BOOSTOFF,
+	MT_BOOSTON,
+	MT_LIZARDMAN,
+	MT_LIONMAN,
+
+	MT_KARMAFIREWORK,
 
 #ifdef SEENAMES
 	MT_NAMECHECK,

@@ -42,9 +42,6 @@ extern size_t dir_on[menudepth];
 extern UINT8 refreshdirmenu;
 extern char *refreshdirname;
 
-extern size_t packetsizetally;
-extern size_t mainwadstally;
-
 typedef enum
 {
 	EXT_FOLDER = 0,
@@ -55,8 +52,10 @@ typedef enum
 	EXT_CFG,
 	EXT_LOADSTART,
 	EXT_WAD = EXT_LOADSTART,
+#ifdef USE_KART
 	EXT_KART,
-	//EXT_PK3,
+#endif
+	EXT_PK3,
 	EXT_SOC,
 	EXT_LUA, // allowed even if not HAVE_BLUA so that we can yell on load attempt
 	NUM_EXT,
@@ -86,11 +85,12 @@ typedef enum
 	REFRESHDIR_WARNING = 4,
 	REFRESHDIR_ERROR = 8,
 	REFRESHDIR_NOTLOADED = 16,
-	REFRESHDIR_MAX = 32
+	REFRESHDIR_MAX = 32,
+	REFRESHDIR_GAMEDATA = 64
 } refreshdir_enum;
 
 void closefilemenu(boolean validsize);
 void searchfilemenu(char *tempname);
-boolean preparefilemenu(boolean samedepth);
+boolean preparefilemenu(boolean samedepth, boolean replayhut);
 
 #endif // __FILESRCH_H__

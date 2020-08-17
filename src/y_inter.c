@@ -1,6 +1,6 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
-// Copyright (C) 2004-2016 by Sonic Team Junior.
+// Copyright (C) 2004-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -40,6 +40,7 @@
 #include "g_input.h" // PLAYER1INPUTDOWN
 #include "k_kart.h" // colortranslations
 #include "console.h" // cons_menuhighlight
+#include "lua_hook.h" // IntermissionThinker hook
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -275,6 +276,8 @@ static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 
 	for (j = 0; j < numplayersingame; j++)
 	{
+		INT32 nump = ((G_RaceGametype() && nospectategrief > 0) ? nospectategrief : numplayersingame);
+
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (!playeringame[i] || players[i].spectator || completed[i])
@@ -296,11 +299,20 @@ static void Y_CalculateMatchData(UINT8 rankingsmode, void (*comparison)(INT32))
 		else
 			data.match.pos[data.match.numplayers] = data.match.numplayers+1;
 
-		if (!rankingsmode && !(players[i].pflags & PF_TIMEOVER) && (data.match.pos[data.match.numplayers] < nospectategrief))
+		if (!rankingsmode && !(players[i].pflags & PF_TIMEOVER) && (data.match.pos[data.match.numplayers] < nump))
 		{
-			data.match.increase[i] = nospectategrief - data.match.pos[data.match.numplayers];
+			data.match.increase[i] = nump - data.match.pos[data.match.numplayers];
 			players[i].score += data.match.increase[i];
 		}
+
+		if (demo.recording && !rankingsmode)
+			G_WriteStanding(
+				data.match.pos[data.match.numplayers],
+				data.match.name[data.match.numplayers],
+				*data.match.character[data.match.numplayers],
+				*data.match.color[data.match.numplayers],
+				data.match.val[data.match.numplayers]
+			);
 
 		data.match.numplayers++;
 	}
@@ -346,10 +358,10 @@ void Y_IntermissionDrawer(void)
 		V_DrawPatchFill(bgtile);
 
 	if (usebuffer) // Fade everything out
-		V_DrawFadeScreen(0xFF00, 20);
+		V_DrawFadeScreen(0xFF00, 22);
 
 	if (!splitscreen)
-		whiteplayer = demoplayback ? displayplayer : consoleplayer;
+		whiteplayer = demo.playback ? displayplayers[0] : consoleplayer;
 
 	if (cons_menuhighlight.value)
 		hilicol = cons_menuhighlight.value;
@@ -358,7 +370,7 @@ void Y_IntermissionDrawer(void)
 	else
 		hilicol = ((intertype == int_race) ? V_SKYMAP : V_REDMAP);
 
-	if (sorttic != -1 && intertic > sorttic)
+	if (sorttic != -1 && intertic > sorttic && !demo.playback)
 	{
 		INT32 count = (intertic - sorttic);
 
@@ -414,7 +426,8 @@ void Y_IntermissionDrawer(void)
 	else*/ if (intertype == int_race || intertype == int_match)
 	{
 #define NUMFORNEWCOLUMN 8
-		INT32 y = 48, gutter = ((data.match.numplayers > NUMFORNEWCOLUMN) ? 0 : (BASEVIDWIDTH/2));
+		INT32 y = 41, gutter = ((data.match.numplayers > NUMFORNEWCOLUMN) ? 0 : (BASEVIDWIDTH/2));
+		INT32 dupadjust = (vid.width/vid.dupx), duptweak = (dupadjust - BASEVIDWIDTH)/2;
 		const char *timeheader;
 
 		if (data.match.rankingsmode)
@@ -423,26 +436,27 @@ void Y_IntermissionDrawer(void)
 			timeheader = (intertype == int_race ? "TIME" : "SCORE");
 
 		// draw the level name
-		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20, 0, data.match.levelstring);
-		V_DrawFill(x, 42, 312, 1, 0);
+		V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 12, 0, data.match.levelstring);
+		V_DrawFill((x-3) - duptweak, 34, dupadjust-2, 1, 0);
 
 		if (data.match.encore)
-			V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 20-8, hilicol, "ENCORE MODE");
+			V_DrawCenteredString(-4 + x + BASEVIDWIDTH/2, 12-8, hilicol, "ENCORE MODE");
 
-		if (!gutter)
+		if (data.match.numplayers > NUMFORNEWCOLUMN)
 		{
-			V_DrawFill(x+156, 32, 1, 152, 0);
+			V_DrawFill(x+156, 24, 1, 158, 0);
+			V_DrawFill((x-3) - duptweak, 182, dupadjust-2, 1, 0);
 
-			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 32, hilicol, "#");
-			V_DrawString(x+36+(BASEVIDWIDTH/2), 32, hilicol, "NAME");
+			V_DrawCenteredString(x+6+(BASEVIDWIDTH/2), 24, hilicol, "#");
+			V_DrawString(x+36+(BASEVIDWIDTH/2), 24, hilicol, "NAME");
 
-			V_DrawRightAlignedString(x+152, 32, hilicol, timeheader);
+			V_DrawRightAlignedString(x+152, 24, hilicol, timeheader);
 		}
 
-		V_DrawCenteredString(x+6, 32, hilicol, "#");
-		V_DrawString(x+36, 32, hilicol, "NAME");
+		V_DrawCenteredString(x+6, 24, hilicol, "#");
+		V_DrawString(x+36, 24, hilicol, "NAME");
 
-		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, hilicol, timeheader);
+		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 24, hilicol, timeheader);
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
@@ -458,24 +472,24 @@ void Y_IntermissionDrawer(void)
 
 				V_DrawCenteredString(x+6, y, 0, va("%d", data.match.pos[i]));
 
-				if (data.match.color[i] == 0)
-					V_DrawSmallScaledPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]]);
-				else
+				if (data.match.color[i])
 				{
 					UINT8 *colormap = R_GetTranslationColormap(*data.match.character[i], *data.match.color[i], GTC_CACHE);
-					V_DrawSmallMappedPatch(x+16, y-4, 0,faceprefix[*data.match.character[i]], colormap);
+					V_DrawMappedPatch(x+16, y-4, 0, facerankprefix[*data.match.character[i]], colormap);
 				}
 
-				if (!gutter)
-					strlcpy(strtime, data.match.name[i], 6);
-				else
-					STRBUFCPY(strtime, data.match.name[i]);
+				if (data.match.num[i] == whiteplayer)
+				{
+					UINT8 cursorframe = (intertic / 4) % 8;
+					V_DrawScaledPatch(x+16, y-4, 0, W_CachePatchName(va("K_CHILI%d", cursorframe+1), PU_CACHE));
+				}
 
-				V_DrawString(x+36, y,
-					((data.match.num[i] == whiteplayer)
-						? hilicol|V_ALLOWLOWERCASE
-						: V_ALLOWLOWERCASE),
-					strtime);
+				STRBUFCPY(strtime, data.match.name[i]);
+
+				if (data.match.numplayers > NUMFORNEWCOLUMN)
+					V_DrawThinString(x+36, y-1, ((data.match.num[i] == whiteplayer) ? hilicol : 0)|V_ALLOWLOWERCASE|V_6WIDTHSPACE, strtime);
+				else
+					V_DrawString(x+36, y, ((data.match.num[i] == whiteplayer) ? hilicol : 0)|V_ALLOWLOWERCASE, strtime);
 
 				if (data.match.rankingsmode)
 				{
@@ -486,17 +500,23 @@ void Y_IntermissionDrawer(void)
 						else
 							snprintf(strtime, sizeof strtime, "(+  %d)", data.match.increase[data.match.num[i]]);
 
-						V_DrawRightAlignedString(x+120+gutter, y, 0, strtime);
+						if (data.match.numplayers > NUMFORNEWCOLUMN)
+							V_DrawRightAlignedThinString(x+135+gutter, y-1, V_6WIDTHSPACE, strtime);
+						else
+							V_DrawRightAlignedString(x+120+gutter, y, 0, strtime);
 					}
 
 					snprintf(strtime, sizeof strtime, "%d", data.match.val[i]);
 
-					V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
+					if (data.match.numplayers > NUMFORNEWCOLUMN)
+						V_DrawRightAlignedThinString(x+152+gutter, y-1, V_6WIDTHSPACE, strtime);
+					else
+						V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
 				}
 				else
 				{
 					if (data.match.val[i] == (UINT32_MAX-1))
-						V_DrawRightAlignedThinString(x+152+gutter, y-1, 0, "NO CONTEST.");
+						V_DrawRightAlignedThinString(x+152+gutter, y-1, (data.match.numplayers > NUMFORNEWCOLUMN ? V_6WIDTHSPACE : 0), "NO CONTEST.");
 					else
 					{
 						if (intertype == int_race)
@@ -505,10 +525,18 @@ void Y_IntermissionDrawer(void)
 							G_TicsToSeconds(data.match.val[i]), G_TicsToCentiseconds(data.match.val[i]));
 							strtime[sizeof strtime - 1] = '\0';
 
-							V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
+							if (data.match.numplayers > NUMFORNEWCOLUMN)
+								V_DrawRightAlignedThinString(x+152+gutter, y-1, V_6WIDTHSPACE, strtime);
+							else
+								V_DrawRightAlignedString(x+152+gutter, y, 0, strtime);
 						}
 						else
-							V_DrawRightAlignedString(x+152+gutter, y, 0, va("%i", data.match.val[i]));
+						{
+							if (data.match.numplayers > NUMFORNEWCOLUMN)
+								V_DrawRightAlignedThinString(x+152+gutter, y-1, V_6WIDTHSPACE, va("%i", data.match.val[i]));
+							else
+								V_DrawRightAlignedString(x+152+gutter, y, 0, va("%i", data.match.val[i]));
+						}
 					}
 				}
 
@@ -518,11 +546,11 @@ void Y_IntermissionDrawer(void)
 			else
 				data.match.num[i] = MAXPLAYERS; // this should be the only field setting in this function
 
-			y += 16;
+			y += 18;
 
 			if (i == NUMFORNEWCOLUMN-1)
 			{
-				y = 48;
+				y = 41;
 				x += BASEVIDWIDTH/2;
 			}
 #undef NUMFORNEWCOLUMN
@@ -532,10 +560,36 @@ void Y_IntermissionDrawer(void)
 dotimer:
 	if (timer)
 	{
+		char *string;
 		INT32 tickdown = (timer+1)/TICRATE;
+
+		if (multiplayer && demo.playback)
+			string = va("Replay ends in %d", tickdown);
+		else
+			string = va("%s starts in %d", cv_advancemap.string, tickdown);
+
 		V_DrawCenteredString(BASEVIDWIDTH/2, 188, hilicol,
-			va("%s starts in %d", cv_advancemap.string, tickdown));
+			string);
 	}
+
+	if ((demo.recording || demo.savemode == DSM_SAVED) && !demo.playback)
+		switch (demo.savemode)
+		{
+		case DSM_NOTSAVING:
+			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Look Backward: Save replay");
+			break;
+
+		case DSM_SAVED:
+			V_DrawRightAlignedThinString(BASEVIDWIDTH - 2, 2, V_SNAPTOTOP|V_SNAPTORIGHT|V_ALLOWLOWERCASE|hilicol, "Replay saved!");
+			break;
+
+		case DSM_TITLEENTRY:
+			ST_DrawDemoTitleEntry();
+			break;
+
+		default: // Don't render any text here
+			break;
+		}
 
 	// Make it obvious that scrambling is happening next round.
 	if (cv_scrambleonchange.value && cv_teamscramble.value && (intertic/TICRATE % 2 == 0))
@@ -552,9 +606,22 @@ void Y_Ticker(void)
 	if (intertype == int_none)
 		return;
 
+	if (demo.recording)
+	{
+		if (demo.savemode == DSM_NOTSAVING && InputDown(gc_lookback, 1))
+			demo.savemode = DSM_TITLEENTRY;
+
+		if (demo.savemode == DSM_WILLSAVE || demo.savemode == DSM_WILLAUTOSAVE)
+			G_SaveDemo();
+	}
+
 	// Check for pause or menu up in single player
 	if (paused || P_AutoPause())
 		return;
+
+#ifdef HAVE_BLUA
+	LUAh_IntermissionThinker();
+#endif
 
 	intertic++;
 
@@ -595,7 +662,7 @@ void Y_Ticker(void)
 		{
 			if (sorttic == -1)
 				sorttic = intertic + max((cv_inttime.value/2)-2, 2)*TICRATE; // 8 second pause after match results
-			else
+			else if (!(multiplayer && demo.playback)) // Don't advance to rankings in replays
 			{
 				if (!data.match.rankingsmode && (intertic >= sorttic + 8))
 					Y_CalculateMatchData(1, Y_CompareRank);
@@ -702,7 +769,13 @@ static void Y_UpdateRecordReplays(void)
 
 	// Check emblems when level data is updated
 	if ((earnedEmblems = M_CheckLevelEmblems()))
-		CONS_Printf(M_GetText("\x82" "Earned %hu emblem%s for Record Attack records.\n"), (UINT16)earnedEmblems, earnedEmblems > 1 ? "s" : "");
+		CONS_Printf(M_GetText("\x82" "Earned %hu medal%s for Record Attack records.\n"), (UINT16)earnedEmblems, earnedEmblems > 1 ? "s" : "");
+
+	if (M_UpdateUnlockablesAndExtraEmblems(false))
+		S_StartSound(NULL, sfx_ncitem);
+
+	// SRB2Kart - save here so you NEVER lose your earned times/medals.
+	G_SaveGameData(false);
 
 	// Update timeattack menu's replay availability.
 	CV_AddValue(&cv_nextmap, 1);
@@ -738,6 +811,8 @@ void Y_StartIntermission(void)
 	{
 		if (cv_inttime.value == 0 && gametype == GT_COOP)
 			timer = 0;
+		else if (demo.playback) // Override inttime (which is pulled from the replay anyway
+			timer = 10*TICRATE;
 		else
 		{
 			timer = cv_inttime.value*TICRATE;
@@ -772,7 +847,7 @@ void Y_StartIntermission(void)
 		}
 		case int_race: // (time-only race)
 		{
-			if ((!modifiedgame || savemoddata) && !multiplayer && !demoplayback) // remove this once we have a proper time attack screen
+			if (!majormods && !multiplayer && !demo.playback) // remove this once we have a proper time attack screen
 			{
 				// Update visitation flags
 				mapvisited[gamemap-1] |= MV_BEATEN;
@@ -821,62 +896,14 @@ void Y_EndIntermission(void)
 }
 
 //
-// Y_EndGame
-//
-// Why end the game?
-// Because Y_FollowIntermission and F_EndCutscene would
-// both do this exact same thing *in different ways* otherwise,
-// which made it so that you could only unlock Ultimate mode
-// if you had a cutscene after the final level and crap like that.
-// This function simplifies it so only one place has to be updated
-// when something new is added.
-void Y_EndGame(void)
-{
-	// Only do evaluation and credits in coop games.
-	if (gametype == GT_COOP)
-	{
-		if (nextmap == 1102-1) // end game with credits
-		{
-			F_StartCredits();
-			return;
-		}
-		if (nextmap == 1101-1) // end game with evaluation
-		{
-			F_StartGameEvaluation();
-			return;
-		}
-	}
-
-	// 1100 or competitive multiplayer, so go back to title screen.
-	D_StartTitle();
-}
-
-//
 // Y_FollowIntermission
 //
 static void Y_FollowIntermission(void)
 {
-	if (modeattacking)
-	{
-		M_EndModeAttackRun();
-		return;
-	}
-
-	if (nextmap < 1100-1)
-	{
-		// normal level
-		G_AfterIntermission();
-		return;
-	}
-
-	// Start a custom cutscene if there is one.
-	if (mapheaderinfo[gamemap-1]->cutscenenum && !modeattacking)
-	{
-		F_StartCustomCutscene(mapheaderinfo[gamemap-1]->cutscenenum-1, false, false);
-		return;
-	}
-
-	Y_EndGame();
+	// This handles whether to play a post-level cutscene, end the game,
+	// or simply go to the next level.
+	// No need to duplicate the code here!
+	G_AfterIntermission();
 }
 
 #define UNLOAD(x) Z_ChangeTag(x, PU_CACHE); x = NULL
@@ -1029,19 +1056,19 @@ void Y_VoteDrawer(void)
 					{
 						case 1:
 							thiscurs = cursor2;
-							p = secondarydisplayplayer;
+							p = displayplayers[1];
 							break;
 						case 2:
 							thiscurs = cursor3;
-							p = thirddisplayplayer;
+							p = displayplayers[2];
 							break;
 						case 3:
 							thiscurs = cursor4;
-							p = fourthdisplayplayer;
+							p = displayplayers[3];
 							break;
 						default:
 							thiscurs = cursor1;
-							p = displayplayer;
+							p = displayplayers[0];
 							break;
 					}
 
@@ -1071,7 +1098,7 @@ void Y_VoteDrawer(void)
 				V_DrawFixedPatch((BASEVIDWIDTH-60)<<FRACBITS, ((y+25)<<FRACBITS) - (rubyheight<<1), FRACUNIT, V_SNAPTORIGHT, rubyicon, NULL);
 			}
 
-			V_DrawRightAlignedThinString(BASEVIDWIDTH-22, 40+y, V_SNAPTORIGHT|V_6WIDTHSPACE, str);
+			V_DrawRightAlignedThinString(BASEVIDWIDTH-21, 40+y, V_SNAPTORIGHT|V_6WIDTHSPACE, str);
 
 			if (levelinfo[i].gts)
 			{
@@ -1146,12 +1173,16 @@ void Y_VoteDrawer(void)
 				V_DrawDiag(x, y, 6, V_SNAPTOLEFT|levelinfo[votes[i]].gtc);
 			}
 
-			if (players[i].skincolor == 0)
-				V_DrawSmallScaledPatch(x+24, y+9, V_SNAPTOLEFT, faceprefix[players[i].skin]);
-			else
+			if (players[i].skincolor)
 			{
 				UINT8 *colormap = R_GetTranslationColormap(players[i].skin, players[i].skincolor, GTC_CACHE);
-				V_DrawSmallMappedPatch(x+24, y+9, V_SNAPTOLEFT, faceprefix[players[i].skin], colormap);
+				V_DrawMappedPatch(x+24, y+9, V_SNAPTOLEFT, facerankprefix[players[i].skin], colormap);
+			}
+
+			if (!splitscreen && i == consoleplayer)
+			{
+				UINT8 cursorframe = (votetic / 4) % 8;
+				V_DrawScaledPatch(x+24, y+9, V_SNAPTOLEFT, W_CachePatchName(va("K_CHILI%d", cursorframe+1), PU_CACHE));
 			}
 		}
 
@@ -1192,7 +1223,7 @@ static void Y_VoteStops(SINT8 pick, SINT8 level)
 		S_StartSound(NULL, sfx_noooo2); // gasp
 	else if (mapheaderinfo[nextmap] && (mapheaderinfo[nextmap]->menuflags & LF2_HIDEINMENU))
 		S_StartSound(NULL, sfx_noooo1); // this is bad
-	else if (!splitscreen && pick == consoleplayer)
+	else if (netgame && P_IsLocalPlayer(&players[pick]))
 		S_StartSound(NULL, sfx_yeeeah); // yeeeah!
 	else
 		S_StartSound(NULL, sfx_kc48); // just a cool sound
@@ -1219,6 +1250,10 @@ void Y_VoteTicker(void)
 
 	if (paused || P_AutoPause() || !voteclient.loaded)
 		return;
+
+#ifdef HAVE_BLUA
+	LUAh_VoteThinker();
+#endif
 
 	votetic++;
 
@@ -1325,13 +1360,13 @@ void Y_VoteTicker(void)
 			switch (i)
 			{
 				case 1:
-					p = secondarydisplayplayer;
+					p = displayplayers[1];
 					break;
 				case 2:
-					p = thirddisplayplayer;
+					p = displayplayers[2];
 					break;
 				case 3:
-					p = fourthdisplayplayer;
+					p = displayplayers[3];
 					break;
 				default:
 					p = consoleplayer;
@@ -1522,10 +1557,10 @@ void Y_EndVote(void)
 //
 static void Y_UnloadVoteData(void)
 {
+	voteclient.loaded = false;
+
 	if (rendermode != render_soft)
 		return;
-
-	voteclient.loaded = false;
 
 	UNLOAD(widebgpatch);
 	UNLOAD(bgpatch);

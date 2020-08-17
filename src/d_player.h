@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -32,41 +32,8 @@
 // Extra abilities/settings for skins (combinable stuff)
 typedef enum
 {
-	SF_SUPER            = 1, // Can turn super in singleplayer/co-op mode.
-	SF_SUPERANIMS       = 1<<1, // If super, use the super sonic animations
-	SF_SUPERSPIN        = 1<<2, // Should spin frames be played while super?
-	SF_HIRES            = 1<<3, // Draw the sprite 2x as small?
-	SF_NOSKID           = 1<<4, // No skid particles etc
-	SF_NOSPEEDADJUST    = 1<<5, // Skin-specific version of disablespeedadjust
-	SF_RUNONWATER       = 1<<6, // Run on top of water FOFs?
+	SF_HIRES = 1, // Draw the sprite 2x as small?
 } skinflags_t;
-
-//Primary and secondary skin abilities
-typedef enum
-{
-	CA_NONE=0,
-	CA_THOK,
-	CA_FLY,
-	CA_GLIDEANDCLIMB,
-	CA_HOMINGTHOK,
-	CA_SWIM,
-	CA_DOUBLEJUMP,
-	CA_FLOAT,
-	CA_SLOWFALL,
-	CA_TELEKINESIS,
-	CA_FALLSWITCH,
-	CA_JUMPBOOST,
-	CA_AIRDRILL,
-	CA_JUMPTHOK
-} charability_t;
-
-//Secondary skin abilities
-typedef enum
-{
-	CA2_NONE=0,
-	CA2_SPINDASH,
-	CA2_MULTIABILITY
-} charability2_t;
 
 //
 // Player states.
@@ -275,11 +242,13 @@ typedef enum
 	k_nextcheck,		// Next checkpoint distance; for p_user.c (was "pw_ncd")
 	k_waypoint,			// Waypoints.
 	k_starpostwp,		// Temporarily stores player waypoint for... some reason. Used when respawning and finishing.
+	k_starpostflip,		// the last starpost we hit requires flipping?
 	k_respawn,			// Timer for the DEZ laser respawn effect
 	k_dropdash,			// Charge up for respawn Drop Dash
 
 	k_throwdir, 		// Held dir of controls; 1 = forward, 0 = none, -1 = backward (was "player->heldDir")
 	k_lapanimation,		// Used to show the lap start wing logo animation
+	k_laphand,			// Lap hand gfx to use; 0 = none, 1 = :ok_hand:, 2 = :thumbs_up:, 3 = :thumps_down:
 	k_cardanimation,	// Used to determine the position of some full-screen Battle Mode graphics
 	k_voices,			// Used to stop the player saying more voices than it should
 	k_tauntvoices,		// Used to specifically stop taunt voice spam
@@ -304,9 +273,12 @@ typedef enum
 	k_boostpower,		// Base boost value, for offroad
 	k_speedboost,		// Boost value smoothing for max speed
 	k_accelboost,		// Boost value smoothing for acceleration
+	k_boostangle,		// angle set when not spun out OR boosted to determine what direction you should keep going at if you're spun out and boosted.
 	k_boostcam,			// Camera push forward on boost
 	k_destboostcam,		// Ditto
+	k_timeovercam,		// Camera timer for leaving behind or not
 	k_aizdriftstrat,	// Let go of your drift while boosting? Helper for the SICK STRATZ you have just unlocked
+	k_brakedrift,		// Helper for brake-drift spark spawning
 
 	k_itemroulette,		// Used for the roulette when deciding what item to give you (was "pw_kartitem")
 	k_roulettetype,		// Used for the roulette, for deciding type (currently only used for Battle, to give you better items from Karma items)
@@ -327,7 +299,6 @@ typedef enum
 	k_squishedtimer,		// Squished frame timer
 	k_rocketsneakertimer,	// Rocket Sneaker duration timer
 	k_invincibilitytimer,	// Invincibility timer
-	k_deathsentence,		// 30 seconds to live... (SPB murder timer (not actually 30 sec, I just couldn't help the FF reference :p))
 	k_eggmanheld,			// Eggman monitor held, separate from k_itemheld so it doesn't stop you from getting items
 	k_eggmanexplode,		// Fake item recieved, explode in a few seconds
 	k_eggmanblame,			// Fake item recieved, who set this fake
@@ -344,6 +315,15 @@ typedef enum
 	k_comebackpoints,	// Number of times you've bombed or gave an item to someone; once it's 3 it gets set back to 0 and you're given a bumper
 	k_comebackmode, 	// 0 = bomb, 1 = item
 	k_wanted, 			// Timer for determining WANTED status, lowers when hitting people, prevents the game turning into Camp Lazlo
+	k_yougotem, 		// "You Got Em" gfx when hitting someone as a karma player via a method that gets you back in the game instantly
+
+	// v1.0.2+ vars
+	k_itemblink,		// Item flashing after roulette, prevents Hyudoro stealing AND serves as a mashing indicator
+	k_itemblinkmode,	// Type of flashing: 0 = white (normal), 1 = red (mashing), 2 = rainbow (enhanced items)
+	k_getsparks,		// Disable drift sparks at low speed, JUST enough to give acceleration the actual headstart above speed
+	k_jawztargetdelay,	// Delay for Jawz target switching, to make it less twitchy
+	k_spectatewait,		// How long have you been waiting as a spectator
+	k_growcancel,		// Hold the item button down to cancel Grow
 
 	NUMKARTSTUFF
 } kartstufftype_t;
@@ -408,6 +388,8 @@ typedef struct player_s
 	// SRB2kart stuff
 	INT32 kartstuff[NUMKARTSTUFF];
 	angle_t frameangle; // for the player add the ability to have the sprite only face other angles
+	INT16 lturn_max[MAXPREDICTTICS]; // What's the expected turn value for full-left for a number of frames back (to account for netgame latency)?
+	INT16 rturn_max[MAXPREDICTTICS]; // Ditto but for full-right
 
 	// Bit flags.
 	// See pflags_t, above.
@@ -434,29 +416,8 @@ typedef struct player_s
 	UINT8 kartweight; // Kart weight stat between 1 and 9
 	//
 
-	fixed_t normalspeed; // Normal ground
-	fixed_t runspeed; // Speed you break into the run animation
-	UINT8 thrustfactor; // Thrust = thrustfactor * acceleration
-	UINT8 accelstart; // Starting acceleration if speed = 0.
-	UINT8 acceleration; // Acceleration
-
-	// See charability_t and charability2_t for more information.
-	UINT8 charability; // Ability definition
-	UINT8 charability2; // Secondary ability definition
-
 	UINT32 charflags; // Extra abilities/settings for skins (combinable stuff)
 	                 // See SF_ flags
-
-	mobjtype_t thokitem; // Object # to spawn for the thok
-	mobjtype_t spinitem; // Object # to spawn for spindash/spinning
-	mobjtype_t revitem; // Object # to spawn for spindash/spinning
-
-	fixed_t actionspd; // Speed of thok/glide/fly
-	fixed_t mindash; // Minimum spindash speed
-	fixed_t maxdash; // Maximum spindash speed
-
-	fixed_t jumpfactor; // How high can the player jump?
-
 	SINT8 lives;
 	SINT8 continues; // continues that player has acquired
 
@@ -508,7 +469,6 @@ typedef struct player_s
 	INT16 starposty;
 	INT16 starpostz;
 	INT32 starpostnum; // The number of the last starpost you hit
-	INT32 starpostcount; // SRB2kart: how many did you hit?
 	tic_t starposttime; // Your time when you hit the starpost
 	angle_t starpostangle; // Angle that the starpost is facing - you respawn facing this way
 
@@ -560,6 +520,8 @@ typedef struct player_s
 	UINT8 bot;
 
 	tic_t jointime; // Timer when player joins game to change skin/color
+
+	UINT8 splitscreenindex;
 #ifdef HWRENDER
 	fixed_t fovadd; // adjust FOV for hw rendering
 #endif

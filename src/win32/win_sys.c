@@ -261,7 +261,7 @@ tic_t I_GetTime(void)
 
 void I_Sleep(void)
 {
-	if (cv_sleep.value != -1)
+	if (cv_sleep.value > 0)
 		Sleep(cv_sleep.value);
 }
 
@@ -639,15 +639,12 @@ void I_Error(const char *error, ...)
 	if (!errorcount)
 	{
 		M_SaveConfig(NULL); // save game config, cvars..
-#ifndef NONET
-		D_SaveBan(); // save the ban list
-#endif
 		G_SaveGameData();
 	}
 
 	// save demo, could be useful for debug
 	// NOTE: demos are normally not saved here.
-	if (demorecording)
+	if (demo.recording)
 		G_CheckDemoStatus();
 	if (metalrecording)
 		G_StopMetalRecording();
@@ -733,7 +730,7 @@ void I_Quit(void)
 	DWORD mode;
 	// when recording a demo, should exit using 'q',
 	// but sometimes we forget and use Alt+F4, so save here too.
-	if (demorecording)
+	if (demo.recording)
 		G_CheckDemoStatus();
 	if (metalrecording)
 		G_StopMetalRecording();
@@ -771,6 +768,8 @@ void I_Quit(void)
 		ShowEndTxt(co);
 	}
 	fflush(stderr);
+	if (myargmalloc)
+		free(myargv); // Deallocate allocated memory
 	W_Shutdown();
 	exit(0);
 }
@@ -3396,7 +3395,7 @@ BOOL LoadDirectInput(VOID)
 	DInputDLL = LoadLibraryA("DINPUT.DLL");
 	if (DInputDLL == NULL)
 		return false;
-	pfnDirectInputCreateA = (DICreateA)GetProcAddress(DInputDLL, "DirectInputCreateA");
+	pfnDirectInputCreateA = (DICreateA)(LPVOID)GetProcAddress(DInputDLL, "DirectInputCreateA");
 	if (pfnDirectInputCreateA == NULL)
 		return false;
 	return true;
@@ -3530,7 +3529,7 @@ void I_GetDiskFreeSpace(INT64* freespace)
 
 	if (!testwin95)
 	{
-		pfnGetDiskFreeSpaceEx = (p_GetDiskFreeSpaceExA)GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetDiskFreeSpaceExA");
+		pfnGetDiskFreeSpaceEx = (p_GetDiskFreeSpaceExA)(LPVOID)GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetDiskFreeSpaceExA");
 		testwin95 = true;
 	}
 	if (pfnGetDiskFreeSpaceEx)
@@ -3616,7 +3615,7 @@ const CPUInfoFlags *I_CPUInfo(void)
 {
 	static CPUInfoFlags WIN_CPUInfo;
 	SYSTEM_INFO SI;
-	p_IsProcessorFeaturePresent pfnCPUID = (p_IsProcessorFeaturePresent)GetProcAddress(GetModuleHandleA("kernel32.dll"), "IsProcessorFeaturePresent");
+	p_IsProcessorFeaturePresent pfnCPUID = (p_IsProcessorFeaturePresent)(LPVOID)GetProcAddress(GetModuleHandleA("kernel32.dll"), "IsProcessorFeaturePresent");
 
 	ZeroMemory(&WIN_CPUInfo,sizeof (WIN_CPUInfo));
 	if (pfnCPUID)
@@ -3659,9 +3658,9 @@ static p_SetProcessAffinityMask pfnSetProcessAffinityMask = NULL;
 static inline VOID GetAffinityFuncs(VOID)
 {
 	HMODULE h = GetModuleHandleA("kernel32.dll");
-	pfnGetCurrentProcess = (p_GetCurrentProcess)GetProcAddress(h, "GetCurrentProcess");
-	pfnGetProcessAffinityMask = (p_GetProcessAffinityMask)GetProcAddress(h, "GetProcessAffinityMask");
-	pfnSetProcessAffinityMask = (p_SetProcessAffinityMask)GetProcAddress(h, "SetProcessAffinityMask");
+	pfnGetCurrentProcess = (p_GetCurrentProcess)(LPVOID)GetProcAddress(h, "GetCurrentProcess");
+	pfnGetProcessAffinityMask = (p_GetProcessAffinityMask)(LPVOID)GetProcAddress(h, "GetProcessAffinityMask");
+	pfnSetProcessAffinityMask = (p_SetProcessAffinityMask)(LPVOID)GetProcAddress(h, "SetProcessAffinityMask");
 }
 
 static void CPUAffinity_OnChange(void)

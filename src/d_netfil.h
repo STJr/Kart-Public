@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -30,7 +30,8 @@ typedef enum
 	FS_REQUESTED,
 	FS_DOWNLOADING,
 	FS_OPEN, // Is opened and used in w_wad
-	FS_MD5SUMBAD
+	FS_MD5SUMBAD,
+	FS_FALLBACK, // HTTP failed
 } filestatus_t;
 
 typedef struct
@@ -47,14 +48,20 @@ typedef struct
 
 extern INT32 fileneedednum;
 extern fileneeded_t fileneeded[MAX_WADFILES];
-extern char downloaddir[256];
+extern char downloaddir[512];
 
 #ifdef CLIENT_LOADINGSCREEN
 extern INT32 lastfilenum;
 #endif
 
-UINT8 *PutFileNeeded(void);
-void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr);
+#ifdef HAVE_CURL
+extern boolean curl_failedwebdownload;
+extern boolean curl_running;
+extern INT32 curl_transfers;
+#endif
+
+UINT8 *PutFileNeeded(UINT16 firstfile);
+void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr, UINT16 firstfile);
 void CL_PrepareDownloadSaveGame(const char *tmpsave);
 
 INT32 CL_CheckFiles(void);
@@ -82,5 +89,10 @@ filestatus_t checkfilemd5(char *filename, const UINT8 *wantedmd5sum);
 
 void nameonly(char *s);
 size_t nameonlylength(const char *s);
+
+#ifdef HAVE_CURL
+void CURLPrepareFile(const char* url, int dfilenum);
+void CURLGetFile(void);
+#endif
 
 #endif // __D_NETFIL__

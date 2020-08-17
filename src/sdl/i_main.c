@@ -45,6 +45,7 @@ extern int SDL_main(int argc, char *argv[]);
 
 #ifdef LOGMESSAGES
 FILE *logstream = NULL;
+char  logfilename[1024];
 #endif
 
 #ifndef DOXYGEN
@@ -130,10 +131,12 @@ int main(int argc, char **argv)
 #ifdef LOGMESSAGES
 #ifdef DEFAULTDIR
 	if (logdir)
-		logstream = fopen(va("%s/"DEFAULTDIR"/log.txt",logdir), "wt");
+		strcpy(logfilename, va("%s/"DEFAULTDIR"/log.txt",logdir));
 	else
 #endif
-		logstream = fopen("./log.txt", "wt");
+		strcpy(logfilename, "./log.txt");
+
+	logstream = fopen(logfilename, "wt");
 #endif
 
 	//I_OutputMsg("I_StartupSystem() ...\n");
@@ -157,6 +160,7 @@ int main(int argc, char **argv)
 #endif
 	MakeCodeWritable();
 #endif
+
 	// startup SRB2
 	CONS_Printf("Setting up SRB2Kart...\n");
 	D_SRB2Main();

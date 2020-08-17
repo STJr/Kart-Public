@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -526,31 +526,6 @@ typedef struct mprecipsecnode_s
 	boolean visited; // used in search algorithms
 } mprecipsecnode_t;
 
-// for now, only used in hardware mode
-// maybe later for software as well?
-// that's why it's moved here
-typedef struct light_s
-{
-	UINT16 type;          // light,... (cfr #define in hwr_light.c)
-
-	float light_xoffset;
-	float light_yoffset;  // y offset to adjust corona's height
-
-	UINT32 corona_color;   // color of the light for static lighting
-	float corona_radius;  // radius of the coronas
-
-	UINT32 dynamic_color;  // color of the light for dynamic lighting
-	float dynamic_radius; // radius of the light ball
-	float dynamic_sqrradius; // radius^2 of the light ball
-} light_t;
-
-typedef struct lightmap_s
-{
-	float s[2], t[2];
-	light_t *light;
-	struct lightmap_s *next;
-} lightmap_t;
-
 //
 // The lineseg.
 //
@@ -573,10 +548,12 @@ typedef struct seg_s
 	sector_t *frontsector;
 	sector_t *backsector;
 
+	fixed_t length;	// precalculated seg length
 #ifdef HWRENDER
+	// new pointers so that AdjustSegs doesn't mess with v1/v2
+	void *pv1; // polyvertex_t
+	void *pv2; // polyvertex_t
 	float flength; // length of the seg, used by hardware renderer
-
-	lightmap_t *lightmaps; // for static lightmap
 #endif
 
 	// Why slow things down by calculating lightlists for every thick side?

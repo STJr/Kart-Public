@@ -1,0 +1,202 @@
+KartKrew: Chapter 1.0 - Who Would Actually Read All This???? [LIVE DOC]
+
+
+-beep-
+
+
+[Chromatian dual-wields onto the interview set, stage left, and takes a seat next to VelocitOni. Oni stands up to look at the confused camera-men before opening a binder to stoically show both of his redone Tails sprites for Kart 1.0 and Vanilla 2.2. He closes it and sits back down, the three sofa cushions being Sryder, toaster, and Lat’s limp timezone’d bodies respectively; throwing arm over the side of the Fooruman pillow]
+
+Chrome:	Uh…......anyway Chaos Zero 64, a Vanilla SRB2 Developer at the time, during the “heyday” of Sonic Riders started working on his own side project of recreating that game in SRB2 v1.09.4. After programming a functional recreation, he went a step further and threw together  a new race mode for all of the characters in the playable exe. After THAT, he took it another step further and made a Mario Kart game type as well. A bunch of young mappers (Including current KartKrew™ dev members Blade & I) tossed him a few maps and he called it a complete exe.
+
+	While fully functional, it was as barebones as you could get. Character stats were altered Vanilla stats (lowered jump, speed, no spindash, and no drifting!) weapon rings reskinned into mario items, and a bunch of checkpoints that you had to hit to count as a lap around the course. It was pretty jank, but seeing all of those dents in the core gameplay is what gave way to the inspiration to push it further than  what it initially was.
+
+Oni:	There’s only one way to describe how I found it in 1.09.4, and the phrasing kinda caught on (to my pleasure), “ghetto footrace”. It was definitely an absolute MIRACLE at the time to even have SRB2 do anything different from it’s main gameplay scheme, bare ass open maps with collapsing FOFs; and the entire community as a whole was younger… so we all ate it up anyways. Standards were lower, times were simpler, we still really appreciate CZ for trying something ‘new’. When you pulled the wool off though, it was just ghetto footrace with reskinned buttons and totally unique…but also totally random weapon panels.
+
+
+
+[FlareBlade pops out of loose pipe in the room for some reason and hits his head on a kitchen sink.]
+
+
+
+Blade:	While most of the maps back then harkened back to the simpler style of the 1.09.4 era; and were scrapped as SRB2 as a whole improved, Pipe Speedway has survived all the way to the present, although with a heavy style change, including a new name! (Now Daytona Speedway)
+
+Oni: [laughs] You really like that map, don’t you?
+
+Random Audience Member:[shouting] PICK, PICK STARDUST!!
+
+[The audience member is immediately shot through the heart with striking accuracy... the vote-screen SFX of a map being picked and Palmtree Panic Zone kids screaming "Yeah!" sounds. Cut to SeventhSentinel who just logged into the middle of the room with a shocked expression, smoking quality-controlling Desert Eagle in hand. The audience member's mask falls off, turning out to be  Stardust Speedway Battle himself, now dead from the rotation.]
+
+Sev: Why would Blade do this…?
+
+
+Chrome: Pipe Speedway opened the PIPES for Kart’s 2.0 development, you could say. [laughs]
+
+Blade: Well, it WAS the first one to be slope-ified! Mostly as a proof-of-concept to show what could be done. (the rest of you lot were too busy with that “TD” thing…) And then you all went and upstaged it anyway with some of the other maps. [chuckles] //shade
+
+Oni: Yeah, while we finished ANOTHER full fledged mod, you actually got about 54% done with Pipe Speedway after 4 years! I was impressed. ////clapback
+
+Chrome: Still, Blade kept the campfire lit while we went in search of food, that takes some dedication.
+
+Oni: No. That was Blitz-T who continued making entire maps the whole time--
+
+Blade	--Thank you. Overall though, the original kart was more-or-less a side feature of Riders. Never really the main focus of the mod, but without a doubt the most popular part of it. The other two modes never really caught on. (Though we did have that ill-fated “Rivals” mod…) =P
+
+
+
+Oni: [Holding a knife up to the two] The “what” mod?? Anywho, I was a frequent player of 1.09.4 but never really in the community much until 2.0. It wasn’t until CZ ported his mod to be up to date, that I jumped in with the idea that I actually had enough of a brain to contribute to things… the problem was that my standards from the get-go were way way too high, and my skill as a spriter and general design experience were a lot lower. Nevertheless, when SRB2Riders hype died down, I approached him in DMs with all my expectations and ideas for his mod...and… surprisingly he didn’t laugh me out! I guess he’d never had anyone directly tell him they’d help outright before (besides Ground The Fox), but he was a bit noticeably bummed that I only cared for what he’d considered the minor Mario mod within the mod.
+
+	This is what kickstarted the chain of events. All my plans that I bugged CZ for every other day in PMs never came to fruition, he actually lost interest and began to slowly fade out of the SRB2 community as a whole. Instead out of LITERALLY nowhere, D00D64 decided to revive the SRB2Riders mod himself by releasing a pretty expansive mod...of a mod within a mod OF a mod himself. Naturally, everyone jumped onto this, it exploded in popularity pretty much right away, because there were finally more than just a few mediocre maps to play “kart mode” on. There were PORTS, glorious glorious ports. Of course, I flocked to D00D to help out.
+
+
+
+Blade:	Flat, boring, ports. Though the crazy item spam helped. Also we FINALLY got DRIFTING! Separating the characters from the bloat of the other 2 modes also made making custom racers easier to make.
+
+
+
+Oni: ...yeah, the truth is, once the “D00DKart” era started, it didn’t help that there were so many more por-- er, maps to play kart-mode on that people realized the formula for a kart racer was just inherently more exciting than what CZ’d pulled off with the Riders half of it. I remember a LOT of content for kart, and then like 2 maps for the more fleshed out and polished main focus of the thing. Everyone just sorta... forgot about Riders mode, sadly. It didn’t help that someone else also exploded onto the scene in a siamese feedback loop once D00D churned out enough maps a day to actually make a full game out of; ZarroTsu, who also saw opportunity too.
+
+	D00DKart and “Super SRB2Kart Z”, a continuation of ChaosZero’s mod, combined into one super project. A ‘team’ just kinda assembled naturally out of this, and more original content started to, slowly but surely, get made by a wider variety of people. The train continued to accelerate, lots of familiar faces coming into play. All the basics you’d expect out of a Mario Kart clone were coded by Zarro, basically updates every single day, stuff just kept getting done by this specific group of people.
+
+
+
+Chrome: That’s about when things for kart started to die down. D00DKart kept the entire game afloat, but Kart was always a sideline to Vanilla. Once D00DKart finally got comfortable, people moved back to Vanilla to see what else they could do with that. Servers stopped popping up as quickly as they used to, and eventually Super SRB2 Kart Z fell into obscurity. It was at this point that the small group still excited for the game tried to push for an even better project.
+
+
+
+Oni:	Yep. When steam on this makeshift game finally died, Zarro lost interest too, and outright just vanished for a year or two(?) and when then, when he returned, he had very little momentum to continue. So in the meanwhile we kinda came closer together under the team “Kart Krew”, and in his place Sryder took the helm. Zarro’s vision was always to be a Mario clone, so when he was absent I wanted to push my idea of getting rid of most if not all references to Mario pronto, going for a Sonic aesthetic instead. The idea was that we’ll never be as good as a Nintendo game, and comparisons will always be drawn, so why not do something more unique?
+
+	Progress boomed again, but in private this time. 2013 ended up being the “2.0 indev” period. Standards kept increasing and increasing internally, because no one was satisfied with “ghetto footrace” anymore, we grew out of it and wanted an actual game this time… not play-pretend with all the instathrust hacks and poor game design decisions we were left with. Like shields.
+
+NOBODY liked those shields. We just couldn’t force Zarro to do what he didn’t want with his mod of a mod in a mod of a mod.
+
+
+
+Chrome: [laughs] Whirlwind was just a bit too broken for everyone.
+
+
+
+Oni: 	Using a Whirlwind Shield felt like playing a game of fucking Twister with my fingers just to reach the convoluted buttons, and you’re rewarded with the equivalent of bomb-jumping into the sky, except your kart is a runaway shower tub on pig grease. Awful. But good going, you ruined the entire race! Your slap on the wrist is now an unavoidable Armageddon Shield to the entire server by that Brazilian player who accidentally somehow made it to Lap 2 by RNG.
+
+	Mechanics were being edited, handling changed a bit, sprites were getting updated (notably the karts themselves), videos were being released from each of our channels, maps were bloating, notorious bug fixes at light speed. Unfortunately, literally at the same time, the new “Kart Krew” decided to sink their teeth into the Top Down experiment (we were on a high of too much confidence from all the progress) WHILE the release of Vanilla 2.1 invalidated all thre-- BOTH of our projects in one fell swoop. These were the dark ages, and it only got worse when I decided to disappear TOO before TD even got done. The story behind that development cycle (Top Down took all our Kart focus away when it was in progress) is known by now, but the real unexpected meat happened when we finally pushed that abortion out the door.
+
+
+
+Chrome: You probably should have listened to Blade and stuck with our guns on Kart, and not take a “break” for a new experiment. [laughs]
+
+
+
+[A silhouette outside the window in the rain can be seen with glowing cones, waving. Before anyone can process it, American Airlines smashes through the studio. For some reason Charybdizs walks out of the left-frontmost hatch]
+
+
+Charyb: For the record, Top Down wasn't bad by any means! People are just jumping on it because its dev cycle was complicated and a big learning experience for everyone. There were numerous members who poured their hearts into it! I’m proud of them! But yeah… the dev cycle…
+
+[wolfs can be seen frantically searching for a point in this interview to be relevant, unscheduled anime forcing him to miss most of it]
+
+
+wolfs: Oh man, TD’s dev cycle. What a shitshow. You’d either get a response in 3 seconds or 3 days depending on who was around. Motivation was at an all-time low back then. I felt like I was talking into a vacuum sometime--
+
+Oni: Why the fuck would you interrupt THIS moment, talking about 3 day responses when you’ll be “online” and won’t say anything until Kony’s live fucking body is found. Get outta here.
+
+wolfs: says the guy who disappeared for two years
+
+Oni: 'ey fuk you mane
+
+[Oni can be seen across the room from the plane, his TD_PTSD.td filled breathing into a brown paper bag]
+
+Oni: No, if Top Down were bad it wouldn’t have made half the hype of what Kart is doing now by ITSELF and manage to make it on Retro’s front page. But the dev cycle was purgatory, a big explosion at the start that dwindled to a candlefire, put out by the rain of inactivity...and then reignited by the power of Discord Chat. The actual product itself was pretty decent, and another fresh multiplayer experience not ever done in SRB2. It had hype.
+
+
+Blade: ...When you say the karts were updated, you mean “Oni nit-picked them to death and redid them like 10 times”.
+
+Oni: I wish he were joking about that number.
+
+
+
+Chrome: It all worked out for the better though. That (rather lengthy!) experiment taught us a lot about time management and what not to do for the far more important modification. Discord got popular around this time, and Top Down hopped into that plane, and quickly parachuted out into the community. This gathered a few new, very important members into KartKrew™. TehRealSalt, host of the Sugoi series, Seventh Sentinel, a new mapper with a fresh take on level design, and toaster, a Vanilla dev programmer with a fire for Kart so hot keeping up with her pace is a job in itself. Seriously, without these three members, Kart wouldn’t have the polish it does now.
+
+	It’s around this time that the pioneer in Kart level design returned, Blitz-T. Every map he made for 2.0 indev kart was a jawdropper to everyone on the team, and his attention to the small details were more than impressive. On top of all of this, SRB2 version 2.1 supported sloped planes, something that was as unbelievable for this game as cell phones were back in the 50s.
+	This is where 2.1 Kart really started to shine, Zarro ported the entire game in the span of a few weeks, Blitz-T took his old maps and revamped them with slopes to nearly unrecognizable new iterations, TehRealSalt made the entire Battle mode in the span of a *single* night, and Seventh Sentinel finally gave us looped music and consistent sound quality.
+
+
+
+Blade: Yeah, they really picked up the slack of some of the older members that lost steam, such as myself.
+
+
+
+Oni: 	Sev, Sal, and toast were the most unexpected things to ever happen to this thing. This shit was literally overnight. It’s really crazy how new blood can help bring a new perspective and vision to the game, along with skills you didn’t know the team was lacking. SO much pressure was taken off of Sryder as Sal and toaster literally slapped the exe until it cried, like frame-perfect Ice Climber handoffs into a 300% wobble. EVERYONE was overwhelmed. I saw the chance and took it, so we decided to go with my vision while Zarro took a backseat. Most, if not all the remaining broken code was just thrown out the window at this point, the game was rapidly feeling cleaner in just nights.
+
+	If you took your eyes off of it for a few hours, something changed massively. The physics went from instathrust to momentum based, Zarro coded new acceleration code, toaster put in 2.2 friction physics as a test that turned out overwhelmingly positive...and also divisive with the previous vision of the mod. These changes were all happening so fast, despite being in kinda stored with me idea-wise for years, that it caused a bit of a rift in what this game was supposed to be. Zarro decided to take a step back and dip because it’d changed so much in just the span of 4 months, he took one good look at 4-Player Splitscreen… a never seen before feat, and just breathed. It didn’t feel like his mod anymore, his personal connection with it felt lost…
+
+[Oni wiping sweat off his brow] Things only got more drastically revamped… very very rapidly.
+
+	The Mario aesthetic was entirely tossed out, as Sal was willing to work with me night and day on redoing most of everything about items… and then sounds. My power level for sprites massively jumped during TD development, so I decided to take it upon myself to do almost everything. They’re such friendly and cooperative coders that I can’t help but push a little harder than I used to (I was WAY lazier before they got here) to keep up.
+
+
+
+
+Chrome: Those kart sprites took a good 6 months longer than they needed to for sure! [laughs]
+
+
+
+
+Oni: 	[laughs in Latin] It’s not as easy as sloping a single sector in Misty Maze, that’s for sure!
+
+	The mappers went bonkers, especially Blitz-T and TyrannoChao aka “Ezo” (previously ChaoticChao) who’s content probably makes up half the game combined. The creative freedom and supportive style/mentality of how the team is led pretty much went to an unstoppable feedback loop of content AND polish, surprisingly. We got to a point where we could not only lay any remaining ChaosZero64 code that might’ve seeped to rest, but also throw out almost every direct Mario port or reference right down to the sounds. It became a Sonic game, in one year.
+
+
+Blade:	Stuff was added so rapidly, even right up to release it always felt like there was something new being added. Bonuschars alone got 2 extra characters added in the week before release!
+
+Oni:	Really, if you asked me, I’d say that most of kart just happened since TD released til now, and the rest was just a confused fever dream of passing torches until it all just got thrown out and re-done anyway. That’s why a changelog is pretty pointless, it’s like going to a shop...sitting down…and getting a recommendation for your vehicle; but the paper’s blank and just reads “get new car”. Honestly, playing this and playing the old 2.0 public builds that people like Super Chris still host for some reason is like aging backwards, except you’re really just amputating your skeleton to appear small and young again, it’s HORRIBLE. So if they all liked that… hopefully they’ll like an actually good game...even more??
+
+[Sounds of an angry midnight release crowd erupting outside, muffled. D00D64 can be seen at the forefront...slapping yet another unnaturally high quality gif meme onto the glass window. The camera pans out, there’s hundreds of gif memes all over the outer walls]
+
+Oni:	Is it midnight?? I told them to fuck off, there’s no midnight release! @Chromatian FIND SOMETHING TO SAY AFTER ME TO CLOSE THIS UP ALREADY
+
+Chrome: [this shitty Iwata Asks atmosphere cracking at the seams of its own immersion, reality warping his professional and calm demeanor, but he laughs regardless...shakily] You just don’t know when to stop!!
+
+[TehRealSalt struggles trying to get into the room through the tiny doggy door for 5 awkward minutes, before giving up and just opening the door] … [she doesn’t know what to say.]
+
+Oni: EZO
+
+[The towering dinosaur just nonchalantly sits in his chair on-stage, legs crossed, resting his head on his hand]
+
+Ezo: Sticky Kart was a shitshow. [referring to the old controls/physics]
+
+Oni: holy shit YOU CAN’T SAY THAT ZARRO MIGHT BE READING
+
+Ezo: I have no regretties. Except for maybe Arid S--wait, that’s a secret, isn’t it? Hm. Anyway, yeah, working on this was fun. Usually. Learning to sprite was annoying but it paid off since I got to cram Wonder Boy in everyone’s faces like the scaly fucko I am. Though Gamma’s pretty cool too. I hope you all enjoy my Sonic Adventure references and that you all suffer an appropriately huge amount in Egg Quarters and Spotlight Syndicate.
+
+Oni: THIS IS A NON FURRY DOCUMENT :boi:
+
+Ezo: Speciesism UwU
+
+
+
+Boinciel: [screaming from a speaker contained offstage] HI MY NAME IS BOINCIEL I DESIGNED KART MAPS TO DESTROY YOUR EYES AND/OR YOUR SOUL OKAY BYE I HAVE TO DO  MY JOB NOW
+
+
+Oni: With a map like Kodachrome…..clearly...
+
+[Off in the corner, a lone wooden coat rack stands, although upon further inspection... It turns out to be, well, CoatRack in a disguise!]
+
+[The entire server pauses for Coat to come up with something]
+
+Coat: You know, these guys all did an awesome job. The controls, the graphics, music too! I just, uh… Had an engine stall on my map, sad how many times I ran out of fuel at a petroleum refinery when making it. Huh. But as one of the more outside members of the krew, just ask anyone, I could be placed under the decorative ornament members with how rarely I dropped in. But each time I did I was blown away by the leaps and bounds, filling me with joy to see this racer come to life. Even if I am a living example of why inanimate objects shouldn’t drive!
+
+[The entire Krew stares at the literal coat rack, smiling wholesomely until Blade opens his mouth]
+
+Blade: Whatever. Enough talking, LET’S GO AWAY!!!!!!!! DAYTONNNAAAAAAAAAAAAAAAA
+
+
+[...the .txt file itself cringes to a halt.]
+
+
+
+
+
+
+
+
+
+
+doot

@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 2012-2016 by John "JTE" Muniz.
-// Copyright (C) 2012-2016 by Sonic Team Junior.
+// Copyright (C) 2012-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -17,10 +17,12 @@
 #include "d_player.h"
 #include "g_game.h"
 #include "p_local.h"
+#include "d_clisrv.h"
 
 #include "lua_script.h"
 #include "lua_libs.h"
 #include "lua_hud.h" // hud_running errors
+#include "lua_hook.h"	// hook_cmd_running
 
 static int lib_iteratePlayers(lua_State *L)
 {
@@ -77,6 +79,90 @@ static int lib_getPlayer(lua_State *L)
 static int lib_lenPlayer(lua_State *L)
 {
 	lua_pushinteger(L, MAXPLAYERS);
+	return 1;
+}
+
+// Same deal as the three functions above but for displayplayers
+
+static int lib_iterateDisplayplayers(lua_State *L)
+{
+	INT32 i = -1;
+	INT32 temp = -1;
+	INT32 iter = 0;
+
+	if (lua_gettop(L) < 2)
+	{
+		//return luaL_error(L, "Don't call displayplayers.iterate() directly, use it as 'for player in displayplayers.iterate do <block> end'.");
+		lua_pushcfunction(L, lib_iterateDisplayplayers);
+		return 1;
+	}
+	lua_settop(L, 2);
+	lua_remove(L, 1); // state is unused.
+	if (!lua_isnil(L, 1))
+	{
+		temp = (INT32)(*((player_t **)luaL_checkudata(L, 1, META_PLAYER)) - players);	// get the player # of the last iterated player.
+
+		// @FIXME:
+		// I didn't quite find a better way for this; Here, we go back to which player in displayplayers we last iterated to resume the for loop below for this new function call
+		// I don't understand enough about how the Lua stacks work to get this to work in possibly a single line.
+		// So anyone feel free to correct this!
+
+		for (; iter < MAXSPLITSCREENPLAYERS; iter++)
+		{
+			if (displayplayers[iter] == temp)
+			{
+				i = iter;
+				break;
+			}
+		}
+	}
+
+	for (i++; i < MAXSPLITSCREENPLAYERS; i++)
+	{
+		if (i > splitscreen || !playeringame[displayplayers[i]])
+			return 0;	// Stop! There are no more players for us to go through. There will never be a player gap in displayplayers.
+
+		if (!players[displayplayers[i]].mo)
+			continue;
+		LUA_PushUserdata(L, &players[displayplayers[i]], META_PLAYER);
+		lua_pushinteger(L, i);	// push this to recall what number we were on for the next function call. I suppose this also means you can retrieve the splitscreen player number with 'for p, n in displayplayers.iterate'!
+		return 2;
+	}
+	return 0;
+}
+
+static int lib_getDisplayplayers(lua_State *L)
+{
+	const char *field;
+	// i -> players[i]
+	if (lua_type(L, 2) == LUA_TNUMBER)
+	{
+		lua_Integer i = luaL_checkinteger(L, 2);
+		if (i < 0 || i >= MAXSPLITSCREENPLAYERS)
+			return luaL_error(L, "displayplayers[] index %d out of range (0 - %d)", i, MAXSPLITSCREENPLAYERS-1);
+		if (i > splitscreen)
+			return 0;
+		if (!playeringame[displayplayers[i]])
+			return 0;
+		if (!players[displayplayers[i]].mo)
+			return 0;
+		LUA_PushUserdata(L, &players[displayplayers[i]], META_PLAYER);
+		return 1;
+	}
+
+	field = luaL_checkstring(L, 2);
+	if (fastcmp(field,"iterate"))
+	{
+		lua_pushcfunction(L, lib_iterateDisplayplayers);
+		return 1;
+	}
+	return 0;
+}
+
+// #displayplayers -> MAXSPLITSCREENPLAYERS
+static int lib_lenDisplayplayers(lua_State *L)
+{
+	lua_pushinteger(L, MAXSPLITSCREENPLAYERS);
 	return 1;
 }
 
@@ -154,36 +240,8 @@ static int player_get(lua_State *L)
 	else if (fastcmp(field,"kartweight"))
 		lua_pushinteger(L, plr->kartweight);
 	//
-	else if (fastcmp(field,"normalspeed"))
-		lua_pushfixed(L, plr->normalspeed);
-	else if (fastcmp(field,"runspeed"))
-		lua_pushfixed(L, plr->runspeed);
-	else if (fastcmp(field,"thrustfactor"))
-		lua_pushinteger(L, plr->thrustfactor);
-	else if (fastcmp(field,"accelstart"))
-		lua_pushinteger(L, plr->accelstart);
-	else if (fastcmp(field,"acceleration"))
-		lua_pushinteger(L, plr->acceleration);
-	else if (fastcmp(field,"charability"))
-		lua_pushinteger(L, plr->charability);
-	else if (fastcmp(field,"charability2"))
-		lua_pushinteger(L, plr->charability2);
 	else if (fastcmp(field,"charflags"))
 		lua_pushinteger(L, plr->charflags);
-	else if (fastcmp(field,"thokitem"))
-		lua_pushinteger(L, plr->thokitem);
-	else if (fastcmp(field,"spinitem"))
-		lua_pushinteger(L, plr->spinitem);
-	else if (fastcmp(field,"revitem"))
-		lua_pushinteger(L, plr->revitem);
-	else if (fastcmp(field,"actionspd"))
-		lua_pushfixed(L, plr->actionspd);
-	else if (fastcmp(field,"mindash"))
-		lua_pushfixed(L, plr->mindash);
-	else if (fastcmp(field,"maxdash"))
-		lua_pushfixed(L, plr->maxdash);
-	else if (fastcmp(field,"jumpfactor"))
-		lua_pushfixed(L, plr->jumpfactor);
 	else if (fastcmp(field,"lives"))
 		lua_pushinteger(L, plr->lives);
 	else if (fastcmp(field,"continues"))
@@ -246,8 +304,6 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->starpostz);
 	else if (fastcmp(field,"starpostnum"))
 		lua_pushinteger(L, plr->starpostnum);
-	else if (fastcmp(field,"starpostcount"))
-		lua_pushinteger(L, plr->starpostcount);
 	else if (fastcmp(field,"starposttime"))
 		lua_pushinteger(L, plr->starposttime);
 	else if (fastcmp(field,"starpostangle"))
@@ -326,10 +382,14 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->bot);
 	else if (fastcmp(field,"jointime"))
 		lua_pushinteger(L, plr->jointime);
+	else if (fastcmp(field,"splitscreenindex"))
+		lua_pushinteger(L, plr->splitscreenindex);
 #ifdef HWRENDER
 	else if (fastcmp(field,"fovadd"))
 		lua_pushfixed(L, plr->fovadd);
 #endif
+	else if (fastcmp(field,"ping"))
+		lua_pushinteger(L, playerpingtable[( plr - players )]);
 	else {
 		lua_getfield(L, LUA_REGISTRYINDEX, LREG_EXTVARS);
 		I_Assert(lua_istable(L, -1));
@@ -358,6 +418,9 @@ static int player_set(lua_State *L)
 	if (hud_running)
 		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
 
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter player_t in BuildCMD code!");
+
 	if (fastcmp(field,"mo")) {
 		mobj_t *newmo = *((mobj_t **)luaL_checkudata(L, 3, META_MOBJ));
 		plr->mo->player = NULL; // remove player pointer from old mobj
@@ -378,13 +441,13 @@ static int player_set(lua_State *L)
 	else if (fastcmp(field,"aiming")) {
 		plr->aiming = luaL_checkangle(L, 3);
 		if (plr == &players[consoleplayer])
-			localaiming = plr->aiming;
-		else if (plr == &players[secondarydisplayplayer])
-			localaiming2 = plr->aiming;
-		else if (plr == &players[thirddisplayplayer])
-			localaiming3 = plr->aiming;
-		else if (plr == &players[fourthdisplayplayer])
-			localaiming4 = plr->aiming;
+			localaiming[0] = plr->aiming;
+		else if (plr == &players[displayplayers[1]])
+			localaiming[1] = plr->aiming;
+		else if (plr == &players[displayplayers[2]])
+			localaiming[2] = plr->aiming;
+		else if (plr == &players[displayplayers[3]])
+			localaiming[3] = plr->aiming;
 	}
 	else if (fastcmp(field,"health"))
 		plr->health = (INT32)luaL_checkinteger(L, 3);
@@ -427,36 +490,8 @@ static int player_set(lua_State *L)
 	else if (fastcmp(field,"kartweight"))
 		plr->kartweight = (UINT8)luaL_checkinteger(L, 3);
 	//
-	else if (fastcmp(field,"normalspeed"))
-		plr->normalspeed = luaL_checkfixed(L, 3);
-	else if (fastcmp(field,"runspeed"))
-		plr->runspeed = luaL_checkfixed(L, 3);
-	else if (fastcmp(field,"thrustfactor"))
-		plr->thrustfactor = (UINT8)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"accelstart"))
-		plr->accelstart = (UINT8)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"acceleration"))
-		plr->acceleration = (UINT8)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"charability"))
-		plr->charability = (UINT8)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"charability2"))
-		plr->charability2 = (UINT8)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"charflags"))
 		plr->charflags = (UINT32)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"thokitem"))
-		plr->thokitem = luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"spinitem"))
-		plr->spinitem = luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"revitem"))
-		plr->revitem = luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"actionspd"))
-		plr->actionspd = (INT32)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"mindash"))
-		plr->mindash = (INT32)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"maxdash"))
-		plr->maxdash = (INT32)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"jumpfactor"))
-		plr->jumpfactor = (INT32)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"lives"))
 		plr->lives = (SINT8)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"continues"))
@@ -519,8 +554,6 @@ static int player_set(lua_State *L)
 		plr->starpostz = (INT16)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"starpostnum"))
 		plr->starpostnum = (INT32)luaL_checkinteger(L, 3);
-	else if (fastcmp(field,"starpostcount"))
-		plr->starpostcount = (INT32)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"starposttime"))
 		plr->starposttime = (tic_t)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"starpostangle"))
@@ -613,6 +646,8 @@ static int player_set(lua_State *L)
 		return NOSET;
 	else if (fastcmp(field,"jointime"))
 		plr->jointime = (tic_t)luaL_checkinteger(L, 3);
+	else if (fastcmp(field,"splitscreenindex"))
+		return NOSET;
 #ifdef HWRENDER
 	else if (fastcmp(field,"fovadd"))
 		plr->fovadd = luaL_checkfixed(L, 3);
@@ -671,6 +706,8 @@ static int power_set(lua_State *L)
 		return luaL_error(L, LUA_QL("powertype_t") " cannot be %u", p);
 	if (hud_running)
 		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter player_t in BuildCMD code!");
 	powers[p] = i;
 	return 0;
 }
@@ -703,6 +740,8 @@ static int kartstuff_set(lua_State *L)
 		return luaL_error(L, LUA_QL("kartstufftype_t") " cannot be %u", ks);
 	if (hud_running)
 		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
+	if (hook_cmd_running)
+		return luaL_error(L, "Do not alter player_t in BuildCMD code!");
 	kartstuff[ks] = i;
 	return 0;
 }
@@ -735,6 +774,8 @@ static int ticcmd_get(lua_State *L)
 		lua_pushinteger(L, cmd->buttons);
 	else if (fastcmp(field,"driftturn"))
 		lua_pushinteger(L, cmd->driftturn);
+	else if (fastcmp(field,"latency"))
+		lua_pushinteger(L, cmd->latency);
 	else
 		return NOFIELD;
 
@@ -823,6 +864,18 @@ int LUA_PlayerLib(lua_State *L)
 			lua_setfield(L, -2, "__len");
 		lua_setmetatable(L, -2);
 	lua_setglobal(L, "players");
+
+	// push displayplayers in the same fashion
+	lua_newuserdata(L, 0);
+		lua_createtable(L, 0, 2);
+			lua_pushcfunction(L, lib_getDisplayplayers);
+			lua_setfield(L, -2, "__index");
+
+			lua_pushcfunction(L, lib_lenDisplayplayers);
+			lua_setfield(L, -2, "__len");
+		lua_setmetatable(L, -2);
+	lua_setglobal(L, "displayplayers");
+
 	return 0;
 }
 

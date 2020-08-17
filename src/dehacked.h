@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -37,6 +37,8 @@ void DEH_UnloadDehackedWad(UINT16 wad);
 void DEH_LoadDehackedLump(lumpnum_t lumpnum);
 void DEH_LoadDehackedLumpPwad(UINT16 wad, UINT16 lump);
 
+void DEH_UpdateMaxFreeslots(void);
+
 void DEH_Check(void);
 
 fixed_t get_number(const char *word);
@@ -54,7 +56,7 @@ extern const char *superactions[MAXRECURSION];
 extern UINT8 superstack;
 
 // If the dehacked patch does not match this version, we throw a warning
-#define PATCHVERSION 210
+#define PATCHVERSION 1
 
 #define MAXLINELEN 1024
 

@@ -2,7 +2,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -13,6 +13,7 @@
 
 #include "doomstat.h"
 #include "g_game.h"
+#include "g_input.h"
 #include "p_local.h"
 #include "z_zone.h"
 #include "s_sound.h"
@@ -582,7 +583,7 @@ void P_Ticker(boolean run)
 		{
 			P_MapStart();
 			OP_ObjectplaceMovement(&players[0]);
-			P_MoveChaseCamera(&players[0], &camera, false);
+			P_MoveChaseCamera(&players[0], &camera[0], false);
 			P_MapEnd();
 			return;
 		}
@@ -590,18 +591,62 @@ void P_Ticker(boolean run)
 
 	// Check for pause or menu up in single player
 	if (paused || P_AutoPause())
-		return;
+	{
+		if (demo.rewinding && leveltime > 0)
+		{
+			leveltime = (leveltime-1) & ~3;
+			G_PreviewRewind(leveltime);
+		}
+		else if (demo.freecam && democam.cam)	// special case: allow freecam to MOVE during pause!
+			P_DemoCameraMovement(democam.cam);
 
-	postimgtype = postimgtype2 = postimgtype3 = postimgtype4 = postimg_none;
+		return;
+	}
+
+	for (i = 0; i <= splitscreen; i++)
+		postimgtype[i] = postimg_none;
 
 	P_MapStart();
 
 	if (run)
 	{
-		if (demorecording)
-			G_WriteDemoTiccmd(&players[consoleplayer].cmd, 0);
-		if (demoplayback)
-			G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
+		if (demo.recording)
+		{
+			G_WriteDemoExtraData();
+			for (i = 0; i < MAXPLAYERS; i++)
+				if (playeringame[i])
+					G_WriteDemoTiccmd(&players[i].cmd, i);
+		}
+		if (demo.playback)
+		{
+
+#ifdef DEMO_COMPAT_100
+			if (demo.version == 0x0001)
+			{
+				G_ReadDemoTiccmd(&players[consoleplayer].cmd, 0);
+			}
+			else
+			{
+#endif
+				G_ReadDemoExtraData();
+				for (i = 0; i < MAXPLAYERS; i++)
+					if (playeringame[i])
+					{
+						//@TODO all this throwdir stuff shouldn't be here! But it's added to maintain 1.0.4 compat for now...
+						// Remove for 1.1!
+						if (players[i].cmd.buttons & BT_FORWARD)
+							players[i].kartstuff[k_throwdir] = 1;
+						else if (players[i].cmd.buttons & BT_BACKWARD)
+							players[i].kartstuff[k_throwdir] = -1;
+						else
+							players[i].kartstuff[k_throwdir] = 0;
+
+						G_ReadDemoTiccmd(&players[i].cmd, i);
+					}
+#ifdef DEMO_COMPAT_100
+			}
+#endif
+		}
 
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
@@ -609,7 +654,7 @@ void P_Ticker(boolean run)
 	}
 
 	// Keep track of how long they've been playing!
-	if (!demoplayback) // Don't increment if a demo is playing.
+	if (!demo.playback) // Don't increment if a demo is playing.
 		totalplaytime++;
 
 	/*if (!useNightsSS && G_IsSpecialStage(gamemap))
@@ -646,7 +691,10 @@ void P_Ticker(boolean run)
 
 	if (run)
 		leveltime++;
-	timeinmap++;
+
+	// as this is mostly used for HUD stuff, add the record attack specific hack to it as well!
+	if (!(modeattacking && !demo.playback) || leveltime >= starttime - TICRATE*4)
+		timeinmap++;
 
 	/*if (G_TagGametype())
 		P_DoTagStuff();
@@ -672,46 +720,16 @@ void P_Ticker(boolean run)
 			}
 		}
 
-		if (countdown > 1)
-			countdown--;
+		if (racecountdown > 1)
+			racecountdown--;
 
-		if (countdown2)
-			countdown2--;
+		if (exitcountdown > 1)
+			exitcountdown--;
 
-		if (spbincoming && --spbincoming <= 0)
-		{
-			UINT8 best = 0;
-			SINT8 hurtthisguy = -1;
-
-			spbincoming = 0;
-
-			for (i = 0; i < MAXPLAYERS; i++)
-			{
-				if (!playeringame[i] || players[i].spectator)
-					continue;
-
-				if (!players[i].mo)
-					continue;
-
-				if (players[i].exiting)
-					continue;
-
-				if (best <= 0 || players[i].kartstuff[k_position] < best)
-				{
-					best = players[i].kartstuff[k_position];
-					hurtthisguy = i;
-				}
-			}
-
-			if (hurtthisguy != -1)
-			{
-				players[hurtthisguy].kartstuff[k_deathsentence] = (2*TICRATE)+1;
-				S_StartSound(players[hurtthisguy].mo, sfx_kc57);
-			}
-		}
-
-		if (indirectitemcooldown)
+		if (indirectitemcooldown > 0)
 			indirectitemcooldown--;
+		if (hyubgone > 0)
+			hyubgone--;
 
 		if (G_BattleGametype())
 		{
@@ -735,10 +753,25 @@ void P_Ticker(boolean run)
 			G_ReadMetalTic(metalplayback);
 		if (metalrecording)
 			G_WriteMetalTic(players[consoleplayer].mo);
-		if (demorecording)
-			G_WriteGhostTic(players[consoleplayer].mo);
-		if (demoplayback) // Use Ghost data for consistency checks.
-			G_ConsGhostTic();
+
+		if (demo.recording)
+		{
+			G_WriteAllGhostTics();
+
+			if (cv_recordmultiplayerdemos.value && (demo.savemode == DSM_NOTSAVING || demo.savemode == DSM_WILLAUTOSAVE))
+				if (demo.savebutton && demo.savebutton + 3*TICRATE < leveltime && InputDown(gc_lookback, 1))
+					demo.savemode = DSM_TITLEENTRY;
+		}
+		else if (demo.playback) // Use Ghost data for consistency checks.
+		{
+#ifdef DEMO_COMPAT_100
+			if (demo.version == 0x0001)
+				G_ConsGhostTic(0);
+			else
+#endif
+			G_ConsAllGhostTics();
+		}
+
 		if (modeattacking)
 			G_GhostTicker();
 
@@ -749,16 +782,16 @@ void P_Ticker(boolean run)
 	}
 
 	// Always move the camera.
-	if (camera.chase)
-		P_MoveChaseCamera(&players[displayplayer], &camera, false);
-	if (splitscreen && camera2.chase)
-		P_MoveChaseCamera(&players[secondarydisplayplayer], &camera2, false);
-	if (splitscreen > 1 && camera3.chase)
-		P_MoveChaseCamera(&players[thirddisplayplayer], &camera3, false);
-	if (splitscreen > 2 && camera4.chase)
-		P_MoveChaseCamera(&players[fourthdisplayplayer], &camera4, false);
+	for (i = 0; i <= splitscreen; i++)
+	{
+		if (camera[i].chase)
+			P_MoveChaseCamera(&players[displayplayers[i]], &camera[i], false);
+	}
 
 	P_MapEnd();
+
+	if (demo.playback)
+		G_StoreRewindInfo();
 
 //	Z_CheckMemCleanup();
 }
@@ -769,7 +802,8 @@ void P_PreTicker(INT32 frames)
 	INT32 i,framecnt;
 	ticcmd_t temptic;
 
-	postimgtype = postimgtype2 = postimgtype3 = postimgtype4 = postimg_none;
+	for (i = 0; i <= splitscreen; i++)
+		postimgtype[i] = postimg_none;
 
 	for (framecnt = 0; framecnt < frames; ++framecnt)
 	{

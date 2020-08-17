@@ -1,7 +1,7 @@
 // SONIC ROBO BLAST 2
 //-----------------------------------------------------------------------------
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2016 by Sonic Team Junior.
+// Copyright (C) 1999-2018 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -210,7 +210,7 @@ static void ServerName_OnChange(void);
 
 #define DEF_PORT "28900"
 consvar_t cv_masterserver = {"masterserver", "ms.srb2.org:"DEF_PORT, CV_SAVE, NULL, MasterServer_OnChange, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_servername = {"servername", "SRB2Kart server", CV_SAVE, NULL, ServerName_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_servername = {"servername", "SRB2Kart server", CV_SAVE|CV_CALL|CV_NOINIT, NULL, ServerName_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 INT16 ms_RoomId = -1;
 
@@ -561,9 +561,21 @@ const char *GetMODVersion(void)
 	msg.room = MODID; // Might as well use it for something.
 	sprintf(msg.buffer,"%d",MODVERSION);
 	if (MS_Write(&msg) < 0)
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("Could not send to the Master Server\n"));
+		M_StartMessage(M_GetText("Could not send to the Master Server\n"), NULL, MM_NOTHING);
+		CloseConnection();
 		return NULL;
+	}
 
-	MS_Read(&msg);
+	if (MS_Read(&msg) < 0)
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("No reply from the Master Server\n"));
+		M_StartMessage(M_GetText("No reply from the Master Server\n"), NULL, MM_NOTHING);
+		CloseConnection();
+		return NULL;
+	}
+
 	CloseConnection();
 
 	if(strcmp(msg.buffer,"NULL") != 0)
@@ -591,9 +603,19 @@ void GetMODVersion_Console(void)
 	msg.room = MODID; // Might as well use it for something.
 	sprintf(msg.buffer,"%d",MODVERSION);
 	if (MS_Write(&msg) < 0)
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("Could not send to the Master Server\n"));
+		CloseConnection();
 		return;
+	}
 
-	MS_Read(&msg);
+	if (MS_Read(&msg) < 0)
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("No reply from the Master Server\n"));
+		CloseConnection();
+		return;
+	}
+
 	CloseConnection();
 
 	if(strcmp(msg.buffer,"NULL") != 0)
@@ -682,7 +704,13 @@ static INT32 AddToMasterServer(boolean firstadd)
 		return MS_CONNECT_ERROR;
 	}
 	retry = 0;
-	if (res == ERRSOCKET)
+	/*
+	Somehow we can still select our old socket despite it being closed(?).
+	Atleast, that's what I THINK is happening. Anyway, we have to check that we
+	haven't open a socket, and actually open it!
+	*/
+	/*if (res == ERRSOCKET)*//* wtf? no! */
+	if (socket_fd == (SOCKET_TYPE)ERRSOCKET)
 	{
 		if (MS_Connect(GetMasterServerIP(), GetMasterServerPort(), 0))
 		{
@@ -696,6 +724,13 @@ static INT32 AddToMasterServer(boolean firstadd)
 	// ok, or bad... let see that!
 	j = (socklen_t)sizeof (i);
 	getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, (char *)&i, &j);
+	/*
+	This is also wrong. If getsockopt fails, i doesn't have to be set. Plus, if
+	it is set (which it appearantly is on linux), we check errno anyway. And in
+	the case that i is returned as normal, we don't even report the correct
+	value! So we accomplish NOTHING, except returning due to dumb luck.
+	If you care, fix this--I don't. -James (R.)
+	*/
 	if (i) // it was bad
 	{
 		CONS_Alert(CONS_ERROR, M_GetText("Master Server socket error #%u: %s\n"), errno, strerror(errno));
@@ -720,7 +755,7 @@ static INT32 AddToMasterServer(boolean firstadd)
 	strcpy(info->name, cv_servername.string);
 	M_Memcpy(&info->room, & room, sizeof (INT32));
 #if VERSION > 0 || SUBVERSION > 0
-	sprintf(info->version, "%d.%d.%d", VERSION/100, VERSION%100, SUBVERSION);
+	sprintf(info->version, "%d.%d", VERSION, SUBVERSION);
 #else // Trunk build, send revision info
 	strcpy(info->version, GetRevisionString());
 #endif
@@ -758,7 +793,7 @@ static INT32 RemoveFromMasterSever(void)
 	strcpy(info->ip, "");
 	strcpy(info->port, int2str(current_port));
 	strcpy(info->name, registered_server.name);
-	sprintf(info->version, "%d.%d.%d", VERSION/100, VERSION%100, SUBVERSION);
+	sprintf(info->version, "%d.%d", VERSION, SUBVERSION);
 
 	msg.type = REMOVE_SERVER_MSG;
 	msg.length = (UINT32)sizeof (msg_server_t);
@@ -967,8 +1002,8 @@ void MasterClient_Ticker(void)
 
 static void ServerName_OnChange(void)
 {
-	UnregisterServer();
-	RegisterServer();
+	if (con_state == MSCS_REGISTERED)
+		AddToMasterServer(false);
 }
 
 static void MasterServer_OnChange(void)
