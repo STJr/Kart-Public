@@ -176,10 +176,11 @@ static const char *DRPC_GetServerIP(void)
 //
 void DRPC_UpdatePresence(void)
 {
-	char mapimg[8];
-	char mapname[48];
-	char charimg[21];
-	char charname[28];
+	char mapimg[8+1];
+	char mapname[5+21+21+2+1];
+
+	char charimg[4+SKINNAMESIZE+1];
+	char charname[11+SKINNAMESIZE+1];
 
 	DiscordRichPresence discordPresence;
 	memset(&discordPresence, 0, sizeof(discordPresence));
@@ -244,11 +245,22 @@ void DRPC_UpdatePresence(void)
 			strlwr(mapimg);
 			discordPresence.largeImageKey = mapimg; // Map image
 		}
-		else // Fallback, since no image looks crappy!
-			discordPresence.largeImageKey = "miscdice";
+		else if (mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU)
+		{
+			// Hell map, use the method that got you here :P
+			discordPresence.largeImageKey = "maphell";
+		}
+		else
+		{
+			// This is probably a custom map!
+			discordPresence.largeImageKey = "mapcustom";
+		}
 
-		if (mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU) // hell map, hide the name
+		if (mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU)
+		{
+			// Hell map, hide the name
 			discordPresence.largeImageText = "Map: ???";
+		}
 		else
 		{
 			snprintf(mapname, 48, "Map: %s%s%s",
