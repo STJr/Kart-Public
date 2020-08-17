@@ -401,7 +401,7 @@ INT32 CL_CheckFiles(void)
 	if (modifiedgame)
 	{
 		CONS_Debug(DBG_NETPLAY, "game is modified; only doing basic checks\n");
-		for (i = 0, j = mainwads; i < fileneedednum || j < numwadfiles;)
+		for (i = 0, j = mainwads+1; i < fileneedednum || j < numwadfiles;)
 		{
 			if (j < numwadfiles && !wadfiles[j]->important)
 			{
@@ -442,7 +442,7 @@ INT32 CL_CheckFiles(void)
 		CONS_Debug(DBG_NETPLAY, "searching for '%s' ", fileneeded[i].filename);
 
 		// Check in already loaded files
-		for (j = mainwads; wadfiles[j]; j++)
+		for (j = mainwads+1; wadfiles[j]; j++)
 		{
 			nameonly(strcpy(wadfilename, wadfiles[j]->filename));
 			if (!stricmp(wadfilename, fileneeded[i].filename) &&
