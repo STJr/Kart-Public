@@ -24,6 +24,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "i_system.h"
+#include "i_threads.h"
 #include "m_menu.h"
 #include "dehacked.h"
 #include "g_input.h"
@@ -317,7 +318,13 @@ void F_IntroDrawer(void)
 				{
 					I_OsPolling();
 					I_UpdateNoBlit();
+#ifdef HAVE_THREADS
+					I_lock_mutex(&m_menu_mutex);
+#endif
 					M_Drawer(); // menu is drawn even on top of wipes
+#ifdef HAVE_THREADS
+					I_unlock_mutex(m_menu_mutex);
+#endif
 					I_FinishUpdate(); // Update the screen with the image Tails 06-19-2001
 				}
 			}
