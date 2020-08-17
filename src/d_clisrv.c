@@ -1241,15 +1241,16 @@ static inline void CL_DrawConnectionStatus(void)
 		if (cl_mode == CL_LOADFILES)
 		{
 			INT32 totalfileslength;
+			INT32 loadcompletednum = 0;
+			INT32 i;
+
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
 
 			//ima just count files here
-			INT32 loadcompletednum = 0;
-			INT32 i;
 			for (i = 0; i < fileneedednum; i++)
 				if (fileneeded[i].status == FS_OPEN)
 					loadcompletednum++;
-			
+
 			// Loading progress
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP, "Loading server addons...");
 			totalfileslength = (INT32)((loadcompletednum/(double)(fileneedednum)) * 256);
@@ -1278,8 +1279,6 @@ static inline void CL_DrawConnectionStatus(void)
 				dldlength = 256;
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, 256, 8, 175);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, dldlength, 8, 160);
-
-
 
 			memset(tempname, 0, sizeof(tempname));
 			// offset filename to just the name only part
@@ -1323,7 +1322,7 @@ static inline void CL_DrawConnectionStatus(void)
 			else
 				V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
 					va(" %4uK/%4uK",totaldldsize>>10,totalfilesrequestedsize>>10));
-			
+
 			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
 					va("%2u/%2u Files ",downloadcompletednum,totalfilesrequestednum));
 		}
