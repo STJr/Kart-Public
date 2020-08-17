@@ -12,6 +12,10 @@
 
 #ifdef HAVE_DISCORDRPC
 
+#ifdef HAVE_CURL
+#include <curl/curl.h>
+#endif
+
 #include "i_system.h"
 #include "d_clisrv.h"
 #include "d_netcmd.h"
@@ -69,6 +73,101 @@ void DRPC_Init(void)
 	DRPC_UpdatePresence();
 }
 
+#ifdef HAVE_CURL
+#define IP_SIZE 16
+static char self_ip[IP_SIZE];
+
+struct SelfIPbuffer
+{
+	CURL *curl;
+	char *pointer;
+	size_t length;
+};
+
+static size_t DRPC_WriteServerIP(char *s, size_t size, size_t n, void *userdata )
+{
+	struct SelfIPbuffer *buffer;
+	size_t newlength;
+
+	buffer = userdata;
+
+	newlength = buffer->length + size*n;
+	buffer->pointer = realloc(buffer->pointer, newlength+1);
+
+	memcpy(buffer->pointer + buffer->length, s, size*n);
+
+	buffer->pointer[newlength] = '\0';
+	buffer->length = newlength;
+
+	return size*n;
+}
+#endif
+
+//
+// DRPC_GetServerIP: Gets the server's IP address, used to 
+//
+static const char *DRPC_GetServerIP(void)
+{
+	const char *address; 
+
+	// If you're connected
+	if (I_GetNodeAddress && (address = I_GetNodeAddress(servernode)) != NULL)
+	{
+		if (strcmp(address, "self"))
+			return address; // We're not the server, so we could successfully get the IP! No problem here :)
+	}
+
+#ifdef HAVE_CURL
+	// This is a little bit goofy, but
+	// there's practically no good way to get your own public IP address,
+	// so we've gotta break out curl for this :V
+	if (!self_ip[0])
+	{
+		CURL *curl;
+
+		curl_global_init(CURL_GLOBAL_ALL);
+		curl = curl_easy_init();
+
+		if (curl)
+		{
+			const char *api = "http://ip4only.me/api/"; // API to get your public IP address from
+			struct SelfIPbuffer buffer;
+			CURLcode success;
+
+			buffer.length = 0;
+			buffer.pointer = malloc(buffer.length+1);
+			buffer.pointer[0] = '\0';
+
+			curl_easy_setopt(curl, CURLOPT_URL, api);
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, DRPC_WriteServerIP);
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+
+			success = curl_easy_perform(curl);
+
+			if (success == CURLE_OK)
+			{
+				char *tmp;
+				tmp = strtok(buffer.pointer, ",");
+
+				if (!strcmp(tmp, "IPv4")) // ensure correct type of IP
+				{
+					tmp = strtok(NULL, ",");
+					strncpy(self_ip, tmp, IP_SIZE); // Yay, we have the IP :)
+				}
+			}
+
+			free(buffer.pointer);
+			curl_easy_cleanup(curl);
+		}
+	}
+
+	if (self_ip[0])
+		return self_ip;
+	else
+#endif
+		return NULL; // Could not get your IP for whatever reason, so we cannot do Discord invites
+}
+
 //
 // DRPC_UpdatePresence: Called whenever anything changes about server info
 //
@@ -78,36 +177,33 @@ void DRPC_UpdatePresence(void)
 	char mapname[48];
 	char charimg[21];
 	char charname[28];
+
 	DiscordRichPresence discordPresence;
 	memset(&discordPresence, 0, sizeof(discordPresence));
 
 	// Server info
 	if (netgame)
 	{
-		const char *address;
+		const char *join;
 
 		switch (ms_RoomId)
 		{
 			case -1: discordPresence.state = "Private"; break; // Private server
 			case 33: discordPresence.state = "Standard"; break;
 			case 28: discordPresence.state = "Casual"; break;
-			default: discordPresence.state = "???"; break; // HOW
+			case 38: discordPresence.state = "Custom Gametypes"; break;
+			//case ??: discordPresence.state = "OLDC"; break; // If I remembered this one's room ID, I would add it :V
+			default: discordPresence.state = "Unknown Room"; break; // HOW
 		}
 
-		if (ms_RoomId != -1)
-		{
-			discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
+		discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
 
-			// Grab the host's IP for joining.
-			if (I_GetNodeAddress && (address = I_GetNodeAddress(servernode)) != NULL)
-			{
-				discordPresence.joinSecret = address;
-				CONS_Printf("%s\n", address);
-			}
+		// Grab the host's IP for joining.
+		if ((join = DRPC_GetServerIP()) != NULL)
+			discordPresence.joinSecret = join;
 
-			discordPresence.partySize = D_NumPlayers(); // Players in server
-			discordPresence.partyMax = cv_maxplayers.value; // Max players (turned into a netvar for this, FOR NOW!)
-		}
+		discordPresence.partySize = D_NumPlayers(); // Players in server
+		discordPresence.partyMax = cv_maxplayers.value; // Max players (TODO: use another variable to hold this, so maxplayers doesn't have to be a netvar!)
 	}
 	else if (Playing())
 		discordPresence.state = "Offline";
@@ -127,10 +223,8 @@ void DRPC_UpdatePresence(void)
 
 	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) // Map info
 	{
-		if ((gamemap >= 1 && gamemap <= 55) // supported race maps
-			|| (gamemap >= 136 && gamemap <= 164) // supported battle maps
-			//|| (gamemap >= 352 && gamemap <= 367) // supported hell maps (none of them)
-			)
+		if ((gamemap >= 1 && gamemap <= 60) // supported race maps
+			|| (gamemap >= 136 && gamemap <= 164)) // supported battle maps
 		{
 			snprintf(mapimg, 8, "%s", G_BuildMapName(gamemap));
 			strlwr(mapimg);
