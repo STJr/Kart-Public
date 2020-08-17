@@ -289,7 +289,7 @@ void DRPC_UpdatePresence(void)
 		discordPresence.partyMax = cv_maxplayers.value; // Max players (TODO: another variable should hold this, so that maxplayers doesn't have to be a netvar)
 
 		// Grab the host's IP for joining.
-		if ((join = DRPC_GetServerIP()) != NULL)
+		if (cv_allownewplayer.value && ((join = DRPC_GetServerIP()) != NULL))
 			discordPresence.joinSecret = join;
 	}
 	else
