@@ -192,25 +192,28 @@ void DRPC_UpdatePresence(void)
 			case 33: discordPresence.state = "Standard"; break;
 			case 28: discordPresence.state = "Casual"; break;
 			case 38: discordPresence.state = "Custom Gametypes"; break;
-			//case ??: discordPresence.state = "OLDC"; break; // If I remembered this one's room ID, I would add it :V
+			case 31: discordPresence.state = "OLDC"; break;
 			default: discordPresence.state = "Unknown Room"; break; // HOW
 		}
 
 		discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
+		discordPresence.partySize = D_NumPlayers(); // Players in server
+		discordPresence.partyMax = cv_maxplayers.value; // Max players (TODO: use another variable to hold this, so maxplayers doesn't have to be a netvar!)
 
 		// Grab the host's IP for joining.
 		if ((join = DRPC_GetServerIP()) != NULL)
 			discordPresence.joinSecret = join;
-
-		discordPresence.partySize = D_NumPlayers(); // Players in server
-		discordPresence.partyMax = cv_maxplayers.value; // Max players (TODO: use another variable to hold this, so maxplayers doesn't have to be a netvar!)
 	}
-	else if (Playing())
-		discordPresence.state = "Offline";
-	else if (demo.playback)
-		discordPresence.state = "Watching Replay";
 	else
-		discordPresence.state = "Menu";
+	{
+		// Offline info
+		if (Playing())
+			discordPresence.state = "Offline";
+		else if (demo.playback && !demo.title)
+			discordPresence.state = "Watching Replay";
+		else
+			discordPresence.state = "Menu";
+	}
 
 	// Gametype info
 	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING)
@@ -245,8 +248,19 @@ void DRPC_UpdatePresence(void)
 			discordPresence.largeImageText = mapname; // Map name
 		}
 
-		// discordPresence.startTimestamp & endTimestamp could be used to show leveltime & timelimit respectively,
-		// but would need converted to epoch seconds somehow
+		if (gamestate == GS_LEVEL)
+		{
+			const time_t currentTime = time(NULL);
+			const time_t mapTimeStart = currentTime - (leveltime / TICRATE);
+
+			discordPresence.startTimestamp = mapTimeStart;
+
+			if (timelimitintics > 0)
+			{
+				const time_t mapTimeEnd = mapTimeStart + ((timelimitintics + starttime + 1) / TICRATE);
+				discordPresence.endTimestamp = mapTimeEnd;
+			}
+		}
 	}
 	else if (gamestate == GS_VOTING)
 	{

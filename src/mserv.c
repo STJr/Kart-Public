@@ -261,6 +261,10 @@ Finish_update (void)
 
 	if (! done)
 		Finish_update();
+#ifdef HAVE_DISCORDRPC
+	else
+		DRPC_UpdatePresence();
+#endif
 }
 
 static void
@@ -298,6 +302,10 @@ Finish_unlist (void)
 			MSId++;
 	}
 	Unlock_state();
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 #ifdef HAVE_THREADS
@@ -434,10 +442,6 @@ void UnregisterServer(void)
 #else
 	Finish_unlist();
 #endif
-
-#ifdef HAVE_DISCORDRPC
-	DRPC_UpdatePresence();
-#endif
 }
 
 static boolean
@@ -495,10 +499,6 @@ Update_parameters (void)
 		if (! delayed && registered)
 			UpdateServer();
 	}
-
-#ifdef HAVE_DISCORDRPC
-	DRPC_UpdatePresence();
-#endif
 }
 
 void MasterClient_Ticker(void)
