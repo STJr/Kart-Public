@@ -10,11 +10,18 @@
 /// \file  discord.h
 /// \brief Discord Rich Presence handling
 
+#ifndef __DISCORD__
+#define __DISCORD__
+
 #ifdef HAVE_DISCORDRPC
 
 #include "discord_rpc.h"
 
+extern consvar_t cv_discordrp;
+
 void DRPC_Init(void);
 void DRPC_UpdatePresence(void);
 
-#endif
+#endif // HAVE_DISCORDRPC
+
+#endif // __DISCORD__

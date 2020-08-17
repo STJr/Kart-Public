@@ -29,7 +29,10 @@
 #include "discord.h"
 #include "doomdef.h"
 
-#define DISCORD_APPID "503531144395096085" // Feel free to use your own, if you care.
+// Feel free to provide your own, if you care enough to create another Discord app for this :P
+#define DISCORD_APPID "503531144395096085"
+
+consvar_t cv_discordrp = {"discordrp", "On", CV_SAVE|CV_CALL, CV_OnOff, DRPC_UpdatePresence, 0, NULL, NULL, 0, 0, NULL};
 
 //
 // DRPC_Handle's
@@ -181,6 +184,14 @@ void DRPC_UpdatePresence(void)
 	DiscordRichPresence discordPresence;
 	memset(&discordPresence, 0, sizeof(discordPresence));
 
+	if (!cv_discordrp.value)
+	{
+		// User doesn't want to show their game information, so update with empty presence.
+		// This just shows that they're playing SRB2Kart. (If that's too much, then they should disable game activity :V)
+		Discord_UpdatePresence(&discordPresence);
+		return;
+	}
+
 	// Server info
 	if (netgame)
 	{
@@ -198,7 +209,7 @@ void DRPC_UpdatePresence(void)
 
 		discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
 		discordPresence.partySize = D_NumPlayers(); // Players in server
-		discordPresence.partyMax = cv_maxplayers.value; // Max players (TODO: use another variable to hold this, so maxplayers doesn't have to be a netvar!)
+		discordPresence.partyMax = cv_maxplayers.value; // Max players (TODO: another variable should hold this, so that maxplayers doesn't have to be a netvar)
 
 		// Grab the host's IP for joining.
 		if ((join = DRPC_GetServerIP()) != NULL)
@@ -219,7 +230,7 @@ void DRPC_UpdatePresence(void)
 	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING)
 	{
 		if (modeattacking)
-			discordPresence.details = "Record Attack";
+			discordPresence.details = "Time Attack";
 		else
 			discordPresence.details = gametype_cons_t[gametype].strvalue;
 	}

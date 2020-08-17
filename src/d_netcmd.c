@@ -1004,6 +1004,10 @@ void D_RegisterClientCommands(void)
 #if defined(HAVE_BLUA) && defined(LUA_ALLOW_BYTECODE)
 	COM_AddCommand("dumplua", Command_Dumplua_f);
 #endif
+
+#ifdef HAVE_DISCORDRPC
+	CV_RegisterVar(&cv_discordrp);
+#endif
 }
 
 /** Checks if a name (as received from another player) is okay.
