@@ -741,7 +741,7 @@ static void COM_Exec_Thread (struct COM_Exec_Ctx *ctx)
 #endif
 	}
 
-	if (! ctx->buf)
+	if (ctx->buf)
 	{
 		if (! ctx->silent)
 			CONS_Printf(M_GetText("executing %s\n"), ctx->filename);
