@@ -334,8 +334,6 @@ boolean CL_SendRequestFile(void)
 			// put it in download dir
 			strcatbf(fileneeded[i].filename, downloaddir, "/");
 			fileneeded[i].status = FS_REQUESTED;
-			totalfilesrequestednum++;
-			totalfilesrequestedsize += fileneeded[i].totalsize;
 		}
 	WRITEUINT8(p, 0xFF);
 	I_GetDiskFreeSpace(&availablefreespace);
@@ -432,7 +430,7 @@ INT32 CL_CheckFiles(void)
 
 	for (i = 0; i < fileneedednum; i++)
 	{
-		if (fileneeded[i].status == FS_NOTFOUND)
+		if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_FALLBACK)
 			downloadrequired = true;
 		
 		if (fileneeded[i].status == FS_FOUND || fileneeded[i].status == FS_NOTFOUND)

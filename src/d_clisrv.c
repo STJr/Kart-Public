@@ -141,6 +141,9 @@ char connectedservername[MAXSERVERNAME];
 /// \todo WORK!
 boolean acceptnewnode = true;
 
+boolean serverisfull = false; //lets us be aware if the server was full after we check files, but before downloading, so we can ask if the user still wants to download or not
+tic_t firstconnectattempttime = 0;
+
 // engine
 
 // Must be a power of two
@@ -1104,6 +1107,7 @@ typedef enum
 	CL_CONNECTED,
 	CL_ABORTED,
 	CL_ASKFULLFILELIST,
+	CL_CONFIRMCONNECT,
 #ifdef HAVE_CURL
 	CL_PREPAREHTTPFILES,
 	CL_DOWNLOADHTTPFILES,
@@ -1204,14 +1208,22 @@ static inline void CL_DrawConnectionStatus(void)
 				break;
 #endif
 			case CL_ASKFULLFILELIST:
+			case CL_CHECKFILES:
 				cltext = M_GetText("Checking server addon list ...");
+				break;
+			case CL_CONFIRMCONNECT:
+				cltext = "";
 				break;
 			case CL_LOADFILES:
 				cltext = M_GetText("Loading server addons...");
 				break;
 			case CL_ASKJOIN:
 			case CL_WAITJOINRESPONSE:
-				cltext = M_GetText("Requesting to join...");
+				if (serverisfull)
+					cltext = M_GetText("Server full, waiting for a slot...");
+				else
+					cltext = M_GetText("Requesting to join...");
+					
 				break;
 #ifdef HAVE_CURL
 			case CL_PREPAREHTTPFILES:
@@ -1969,9 +1981,42 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 #endif // ifndef NONET
 
+static void M_ConfirmConnect(INT32 ch)
+{
+	if (ch == ' ' || ch == 'y' || ch == KEY_ENTER)
+	{
+		if (totalfilesrequestednum > 0)
+		{
+#ifdef HAVE_CURL
+			if (http_source[0] == '\0' || curl_failedwebdownload)
+#endif
+			{
+				if (CL_SendRequestFile())
+				{
+					cl_mode = CL_DOWNLOADFILES;
+				}
+			}
+#ifdef HAVE_CURL
+			else
+				cl_mode = CL_PREPAREHTTPFILES;
+#endif
+		}
+		else
+			cl_mode = CL_LOADFILES;
+		
+		M_ClearMenus(true);
+	}
+	else if (ch == 'n' || ch == KEY_ESCAPE)
+	{
+		cl_mode = CL_ABORTED;
+		M_ClearMenus(true);
+	}
+}
+
 static boolean CL_FinishedFileList(void)
 {
 	INT32 i;
+	char *downloadsize;
 	//CONS_Printf(M_GetText("Checking files...\n"));
 	i = CL_CheckFiles();
 	if (i == 4) // still checking ...
@@ -2007,7 +2052,21 @@ static boolean CL_FinishedFileList(void)
 		return false;
 	}
 	else if (i == 1)
-		cl_mode = CL_LOADFILES;
+	{
+		if (serverisfull)
+		{
+			M_StartMessage(M_GetText(
+				"This server is full!\n"
+				"\n"
+				"You may load server addons (if any), and wait for a slot.\n"
+				"\n"
+				"Press ACCEL to continue or BRAKE to cancel.\n\n"
+			), M_ConfirmConnect, MM_YESNO);
+			cl_mode = CL_CONFIRMCONNECT;
+		}
+		else
+			cl_mode = CL_LOADFILES;
+	}
 	else
 	{
 		// must download something
@@ -2031,20 +2090,55 @@ static boolean CL_FinishedFileList(void)
 				), NULL, MM_NOTHING);
 				return false;
 			}
+		}
 
+#ifdef HAVE_CURL
+		if (!curl_failedwebdownload)
+#endif
+		{
 			downloadcompletednum = 0;
 			downloadcompletedsize = 0;
 			totalfilesrequestednum = 0;
 			totalfilesrequestedsize = 0;
-			if (CL_SendRequestFile())
-			{
-				cl_mode = CL_DOWNLOADFILES;
-			}
+
+			for (i = 0; i < fileneedednum; i++)
+				if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
+				{
+					totalfilesrequestednum++;
+					totalfilesrequestedsize += fileneeded[i].totalsize;
+				}
+
+			if (totalfilesrequestedsize>>20 >= 100)
+				downloadsize = Z_StrDup(va("%uM",totalfilesrequestedsize>>20));
+			else
+				downloadsize = Z_StrDup(va("%uK",totalfilesrequestedsize>>10));
+
+			if (serverisfull)
+				M_StartMessage(va(M_GetText(
+					"This server is full!\n"
+					"Download of %s additional content is required to join.\n"
+					"\n"
+					"You may download, load server addons, and wait for a slot.\n"
+					"\n"
+					"Press ACCEL to continue or BRAKE to cancel.\n\n"
+				), downloadsize), M_ConfirmConnect, MM_YESNO);
+			else
+				M_StartMessage(va(M_GetText(
+					"Download of %s additional content is required to join.\n"
+					"\n"
+					"Press ACCEL to continue or BRAKE to cancel.\n\n"
+				), downloadsize), M_ConfirmConnect, MM_YESNO);
+
+			Z_Free(downloadsize);
+			cl_mode = CL_CONFIRMCONNECT;
 		}
 #ifdef HAVE_CURL
 		else
 		{
-			cl_mode = CL_PREPAREHTTPFILES;
+			if (CL_SendRequestFile())
+			{
+				cl_mode = CL_DOWNLOADFILES;
+			}
 		}
 #endif
 	}
@@ -2085,11 +2179,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 		// Quit here rather than downloading files and being refused later.
 		if (serverlist[i].info.numberofplayer >= serverlist[i].info.maxplayer)
 		{
-			D_QuitNetGame();
-			CL_Reset();
-			D_StartTitle();
-			M_StartMessage(va(M_GetText("Maximum players reached: %d\n\nPress ESC\n"), serverlist[i].info.maxplayer), NULL, MM_NOTHING);
-			return false;
+			serverisfull = true;
 		}
 
 		if (client)
@@ -2150,7 +2240,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 {
 	boolean waitmore;
 	INT32 i;
-
+	
 #ifdef NONET
 	(void)tmpsave;
 #endif
@@ -2178,21 +2268,14 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			if (!CL_FinishedFileList())
 				return false;
 			break;
-
 #ifdef HAVE_CURL
 		case CL_PREPAREHTTPFILES:
-			downloadcompletednum = 0;
-			downloadcompletedsize = 0;
-			totalfilesrequestednum = 0;
-			totalfilesrequestedsize = 0;
 			if (http_source[0])
 			{
 				for (i = 0; i < fileneedednum; i++)
 					if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
 					{
 						curl_transfers++;
-						totalfilesrequestednum++;
-						totalfilesrequestedsize += fileneeded[i].totalsize;
 					}
 				
 				cl_mode = CL_DOWNLOADHTTPFILES;
@@ -2218,19 +2301,13 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 			if (curl_failedwebdownload && !curl_transfers)
 			{
-				if (!CL_FinishedFileList()) 
-					break;
-
 				CONS_Printf("One or more files failed to download, falling back to internal downloader\n");
-				if (CL_SendRequestFile())
-				{
-					cl_mode = CL_DOWNLOADFILES;
-					break;
-				}
+				cl_mode = CL_CHECKFILES;
+				break;
 			}
 
 			if (!curl_transfers)
-				cl_mode = CL_LOADFILES; // don't break case continue to cljoin request now
+				cl_mode = CL_LOADFILES;
 
 			break;
 #endif
@@ -2246,22 +2323,49 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			if (waitmore)
 				break; // exit the case
 
-			cl_mode = CL_LOADFILES; // don't break case continue to cljoin request now
+			cl_mode = CL_LOADFILES;
 			break;
 		case CL_LOADFILES:
-			if (!CL_LoadServerFiles())
-				break;
+			if (CL_LoadServerFiles())
+			{
+				*asksent = I_GetTime() - (NEWTICRATE*5); //This ensure the first join ask is right away
+				firstconnectattempttime = I_GetTime();
+				cl_mode = CL_ASKJOIN;
+			}
+			break;
 		case CL_ASKJOIN:
+			if (firstconnectattempttime + NEWTICRATE*300 < I_GetTime())
+			{
+				CONS_Printf(M_GetText("5 minute wait time exceeded.\n"));
+				CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
+				D_QuitNetGame();
+				CL_Reset();
+				D_StartTitle();
+				M_StartMessage(M_GetText(
+					"5 minute wait time exceeded.\n"
+					"You may retry connection.\n"
+					"\n"
+					"Press ESC\n"
+				), NULL, MM_NOTHING);
+			}
 #ifdef JOININGAME
 			// prepare structures to save the file
 			// WARNING: this can be useless in case of server not in GS_LEVEL
 			// but since the network layer doesn't provide ordered packets...
 			CL_PrepareDownloadSaveGame(tmpsave);
 #endif
-			if (CL_SendJoin())
+			if ((*asksent + NEWTICRATE*3) < I_GetTime() && CL_SendJoin())
+			{
+				*asksent = I_GetTime();
 				cl_mode = CL_WAITJOINRESPONSE;
+			}
 			break;
-
+		case CL_WAITJOINRESPONSE:
+			if ((*asksent + NEWTICRATE*3) < I_GetTime())
+			{
+				cl_mode = CL_ASKJOIN;
+			}
+			break;
 #ifdef JOININGAME
 		case CL_DOWNLOADSAVEGAME:
 			// At this state, the first (and only) needed file is the gamestate
@@ -2270,13 +2374,13 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 				// Gamestate is now handled within CL_LoadReceivedSavegame()
 				CL_LoadReceivedSavegame();
 				cl_mode = CL_CONNECTED;
+				break;
 			} // don't break case continue to CL_CONNECTED
 			else
 				break;
 #endif
-
-		case CL_WAITJOINRESPONSE:
 		case CL_CONNECTED:
+		case CL_CONFIRMCONNECT: //logic is handled by M_ConfirmConnect
 		default:
 			break;
 
@@ -2297,9 +2401,13 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 		INT32 key;
 
 		I_OsPolling();
+
+		if (cl_mode == CL_CONFIRMCONNECT)
+			D_ProcessEvents(); //needed for menu system to receive inputs
+
 		key = I_GetKey();
 		// Only ESC and non-keyboard keys abort connection
-		if (key == KEY_ESCAPE || key >= KEY_MOUSE1)
+		if (key == KEY_ESCAPE || key >= KEY_MOUSE1 || cl_mode == CL_ABORTED)
 		{
 			CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
 			D_QuitNetGame();
@@ -2316,6 +2424,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 			F_TitleScreenTicker(true);
 			F_TitleScreenDrawer();
 			CL_DrawConnectionStatus();
+			M_Drawer(); //Needed for drawing messageboxes on the connection screen
 			I_UpdateNoVsync(); // page flip or blit buffer
 			if (moviemode)
 				M_SaveFrame();
@@ -2823,6 +2932,12 @@ void CL_Reset(void)
 	// make sure we don't leave any fileneeded gunk over from a failed join
 	fileneedednum = 0;
 	memset(fileneeded, 0, sizeof(fileneeded));
+
+	totalfilesrequestednum = 0;
+	totalfilesrequestedsize = 0;
+	firstconnectattempttime = 0;
+	serverisfull = false;
+	connectiontimeout = (tic_t)cv_nettimeout.value; //reset this temporary hack
 
 #ifdef HAVE_CURL
 	curl_failedwebdownload = false;
@@ -3746,7 +3861,7 @@ void SV_StopServer(void)
 		D_Clearticcmd(i);
 
 	consoleplayer = 0;
-	cl_mode = CL_SEARCHING;
+	cl_mode = CL_ABORTED;
 	maketic = gametic+1;
 	neededtic = maketic;
 	serverrunning = false;
@@ -3772,7 +3887,7 @@ static void SV_SendRefuse(INT32 node, const char *reason)
 	strcpy(netbuffer->u.serverrefuse.reason, reason);
 
 	netbuffer->packettype = PT_SERVERREFUSE;
-	HSendPacket(node, true, 0, strlen(netbuffer->u.serverrefuse.reason) + 1);
+	HSendPacket(node, false, 0, strlen(netbuffer->u.serverrefuse.reason) + 1);
 	Net_CloseConnection(node);
 }
 
@@ -4044,12 +4159,23 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				if (!reason)
 					I_Error("Out of memory!\n");
 
-				D_QuitNetGame();
-				CL_Reset();
-				D_StartTitle();
+				if (strstr(reason, "Maximum players reached"))
+				{
+					serverisfull = true;
+					//Special timeout for when refusing due to player cap. The client will wait 3 seconds between join requests when waiting for a slot, so we need this to be much longer
+					//We set it back to the value of cv_nettimeout.value in CL_Reset
+					connectiontimeout = NEWTICRATE*7;
+					cl_mode = CL_ASKJOIN;
+					free(reason);
+					break;
+				}
 
 				M_StartMessage(va(M_GetText("Server refuses connection\n\nReason:\n%s"),
 					reason), NULL, MM_NOTHING);
+
+				D_QuitNetGame();
+				CL_Reset();
+				D_StartTitle();
 
 				free(reason);
 
@@ -4070,7 +4196,7 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			}
 			SERVERONLY
 			/// \note how would this happen? and is it doing the right thing if it does?
-			if (cl_mode != CL_WAITJOINRESPONSE)
+			if (!(cl_mode == CL_WAITJOINRESPONSE || cl_mode == CL_ASKJOIN))
 				break;
 
 			if (client)
