@@ -6389,7 +6389,7 @@ void G_BeginRecording(void)
 
 	// Full replay title
 	demo_p += 64;
-	snprintf(demo.titlename, 64, "%s - %s", G_BuildMapTitle(gamemap), modeattacking ? "Record Attack" : connectedservername);
+	snprintf(demo.titlename, 64, "%s - %s", G_BuildMapTitle(gamemap), modeattacking ? "Time Attack" : connectedservername);
 
 	// demo checksum
 	demo_p += 16;

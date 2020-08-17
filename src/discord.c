@@ -14,7 +14,7 @@
 
 #ifdef HAVE_CURL
 #include <curl/curl.h>
-#endif
+#endif // HAVE_CURL
 
 #include "i_system.h"
 #include "d_clisrv.h"
@@ -44,7 +44,7 @@ struct SelfIPbuffer
 
 #define IP_SIZE 16
 static char self_ip[IP_SIZE];
-#endif
+#endif // HAVE_CURL
 
 /*--------------------------------------------------
 	static void DRPC_HandleReady(const DiscordUser *user)
@@ -167,7 +167,7 @@ static size_t DRPC_WriteServerIP(char *s, size_t size, size_t n, void *userdata)
 
 	return size*n;
 }
-#endif
+#endif // HAVE_CURL
 
 /*--------------------------------------------------
 	static const char *DRPC_GetServerIP(void)
@@ -241,7 +241,7 @@ static const char *DRPC_GetServerIP(void)
 	if (self_ip[0])
 		return self_ip;
 	else
-#endif
+#endif // HAVE_CURL
 		return NULL; // Could not get your IP for whatever reason, so we cannot do Discord invites
 }
 
@@ -252,6 +252,8 @@ static const char *DRPC_GetServerIP(void)
 --------------------------------------------------*/
 void DRPC_UpdatePresence(void)
 {
+	char detailstr[48+1];
+
 	char mapimg[8+1];
 	char mapname[5+21+21+2+1];
 
@@ -268,6 +270,18 @@ void DRPC_UpdatePresence(void)
 		Discord_UpdatePresence(&discordPresence);
 		return;
 	}
+
+/*
+#ifdef DEVELOP
+	// This way, we can use the invite feature in-dev, but not have snoopers seeing any potential secrets! :P
+	discordPresence.largeImageKey = "miscdevelop";
+	discordPresence.largeImageText = "Nope.";
+	discordPresence.state = "Shh! We're testing!";
+
+	Discord_UpdatePresence(&discordPresence);
+	return;
+#endif // DEVELOP
+*/
 
 	// Server info
 	if (netgame)
@@ -309,7 +323,14 @@ void DRPC_UpdatePresence(void)
 		if (modeattacking)
 			discordPresence.details = "Time Attack";
 		else
-			discordPresence.details = gametype_cons_t[gametype].strvalue;
+		{
+			snprintf(detailstr, 48, "%s%s%s",
+				gametype_cons_t[gametype].strvalue,
+				(gametype == GT_RACE) ? va(" | %s", kartspeed_cons_t[gamespeed].strvalue) : "",
+				(encoremode == true) ? " | Encore" : ""
+			);
+			discordPresence.details = detailstr;
+		}
 	}
 
 	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) // Map info
@@ -324,7 +345,7 @@ void DRPC_UpdatePresence(void)
 		else if (mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU)
 		{
 			// Hell map, use the method that got you here :P
-			discordPresence.largeImageKey = "maphell";
+			discordPresence.largeImageKey = "miscdice";
 		}
 		else
 		{
@@ -339,12 +360,9 @@ void DRPC_UpdatePresence(void)
 		}
 		else
 		{
-			snprintf(mapname, 48, "Map: %s%s%s",
-				mapheaderinfo[gamemap-1]->lvlttl,
-				(strlen(mapheaderinfo[gamemap-1]->zonttl) > 0) ? va(" %s",mapheaderinfo[gamemap-1]->zonttl) : // SRB2kart
-				((mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " Zone"),
-				(strlen(mapheaderinfo[gamemap-1]->actnum) > 0) ? va(" %s",mapheaderinfo[gamemap-1]->actnum) : "");
-			discordPresence.largeImageText = mapname; // Map name
+			// Map name on tool tip
+			snprintf(mapname, 48, "Map: %s", G_BuildMapTitle(gamemap));
+			discordPresence.largeImageText = mapname;
 		}
 
 		if (Playing())
@@ -447,4 +465,4 @@ void DRPC_UpdatePresence(void)
 	Discord_UpdatePresence(&discordPresence);
 }
 
-#endif
+#endif // HAVE_DISCORDRPC
