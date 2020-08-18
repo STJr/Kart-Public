@@ -318,7 +318,8 @@ void DRPC_UpdatePresence(void)
 	}
 
 	// Gametype info
-	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING)
+	if ((gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING)
+		&& !demo.playback)
 	{
 		if (modeattacking)
 			discordPresence.details = "Time Attack";
