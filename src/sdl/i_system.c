@@ -3802,16 +3802,15 @@ boolean I_UseSavedWadDirectory(void)
 {
 	boolean ok = false;
 #ifdef _WIN32
-	char   path[MAX_PATH];
 	FILE * file = openAppDataFile("lastwaddir", "r");
 	if (file != NULL)
 	{
-		if (fgets(path, sizeof path, file) != NULL)
+		if (fgets(srb2path, sizeof srb2path, file) != NULL)
 		{
 			I_OutputMsg(
 					"Going to the last known directory with srb2.srb: %s\n",
-					path);
-			ok = SetCurrentDirectoryA(path);
+					srb2path);
+			ok = SetCurrentDirectoryA(srb2path);
 		}
 		fclose(file);
 	}
