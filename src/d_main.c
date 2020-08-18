@@ -845,6 +845,24 @@ static inline void D_CleanFile(char **filearray)
 // Identify the SRB2 version, and IWAD file to use.
 // ==========================================================================
 
+static boolean AddIWAD(char *srb2wad1, char *srb2wad2)
+{
+	if (srb2wad2 != NULL && FIL_ReadFileOK(srb2wad2))
+	{
+		D_AddFile(srb2wad2, startupwadfiles);
+		return true;
+	}
+	else if (srb2wad1 != NULL && FIL_ReadFileOK(srb2wad1))
+	{
+		D_AddFile(srb2wad1, startupwadfiles);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 static void IdentifyVersion(void)
 {
 	char *srb2wad1, *srb2wad2;
@@ -896,12 +914,17 @@ static void IdentifyVersion(void)
 	configfile[sizeof configfile - 1] = '\0';
 
 	// Load the IWAD
-	if (srb2wad2 != NULL && FIL_ReadFileOK(srb2wad2))
-		D_AddFile(srb2wad2, startupwadfiles);
-	else if (srb2wad1 != NULL && FIL_ReadFileOK(srb2wad1))
-		D_AddFile(srb2wad1, startupwadfiles);
+	if (AddIWAD(srb2wad1, srb2wad2))
+	{
+		I_SaveCurrentWadDirectory();
+	}
 	else
-		I_Error("SRB2.SRB/SRB2.WAD not found! Expected in %s, ss files: %s or %s\n", srb2waddir, srb2wad1, srb2wad2);
+	{
+		if (!( I_UseSavedWadDirectory() && AddIWAD(srb2wad1, srb2wad2) ))
+		{
+			I_Error("SRB2.SRB/SRB2.WAD not found! Expected in %s, ss files: %s or %s\n", srb2waddir, srb2wad1, srb2wad2);
+		}
+	}
 
 	if (srb2wad1)
 		free(srb2wad1);

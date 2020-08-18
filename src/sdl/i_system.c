@@ -34,6 +34,7 @@
 #ifdef _WIN32
 #define RPC_NO_WINDOWS_H
 #include <windows.h>
+#include <shlobj.h>
 #include "../doomtype.h"
 typedef BOOL (WINAPI *p_GetDiskFreeSpaceExA)(LPCSTR, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER);
 typedef BOOL (WINAPI *p_IsProcessorFeaturePresent) (DWORD);
@@ -3756,6 +3757,66 @@ static const char *locateWad(void)
 #endif
 	// if nothing was found
 	return NULL;
+}
+
+#ifdef _WIN32
+static FILE * openAppDataFile(const char *filename, const char *mode)
+{
+	FILE * file = NULL;
+	char   kdir[MAX_PATH];
+
+	if (SHGetFolderPathAndSubDirA(NULL, CSIDL_LOCAL_APPDATA|CSIDL_FLAG_CREATE,
+				NULL, 0, "SRB2Kart", kdir) == S_OK)
+	{
+		strcat(kdir, "\\");
+		strcat(kdir, filename);
+		file = fopen(kdir, mode);
+	}
+
+	return file;
+}
+#endif
+
+void I_SaveCurrentWadDirectory(void)
+{
+#ifdef _WIN32
+	char   path[MAX_PATH];
+	FILE * file = openAppDataFile("lastwaddir", "w");
+	if (file != NULL)
+	{
+		if (strcmp(srb2path, ".") == 0)
+		{
+			GetCurrentDirectoryA(sizeof path, path);
+			fputs(path, file);
+		}
+		else
+		{
+			fputs(srb2path, file);
+		}
+		fclose(file);
+	}
+#endif
+}
+
+boolean I_UseSavedWadDirectory(void)
+{
+	boolean ok = false;
+#ifdef _WIN32
+	char   path[MAX_PATH];
+	FILE * file = openAppDataFile("lastwaddir", "r");
+	if (file != NULL)
+	{
+		if (fgets(path, sizeof path, file) != NULL)
+		{
+			I_OutputMsg(
+					"Going to the last known directory with srb2.srb: %s\n",
+					path);
+			ok = SetCurrentDirectoryA(path);
+		}
+		fclose(file);
+	}
+#endif
+	return ok;
 }
 
 const char *I_LocateWad(void)
