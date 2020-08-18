@@ -845,16 +845,13 @@ static inline void D_CleanFile(char **filearray)
 // Identify the SRB2 version, and IWAD file to use.
 // ==========================================================================
 
-static boolean AddIWAD(char *srb2wad1, char *srb2wad2)
+static boolean AddIWAD(void)
 {
-	if (srb2wad2 != NULL && FIL_ReadFileOK(srb2wad2))
+	char * path = va(pandf,srb2path,"srb2.srb");
+
+	if (FIL_ReadFileOK(path))
 	{
-		D_AddFile(srb2wad2, startupwadfiles);
-		return true;
-	}
-	else if (srb2wad1 != NULL && FIL_ReadFileOK(srb2wad1))
-	{
-		D_AddFile(srb2wad1, startupwadfiles);
+		D_AddFile(path, startupwadfiles);
 		return true;
 	}
 	else
@@ -865,7 +862,6 @@ static boolean AddIWAD(char *srb2wad1, char *srb2wad2)
 
 static void IdentifyVersion(void)
 {
-	char *srb2wad1, *srb2wad2;
 	const char *srb2waddir = NULL;
 
 #if (defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON) || defined (HAVE_SDL)
@@ -889,47 +885,27 @@ static void IdentifyVersion(void)
 #ifdef _arch_dreamcast
 			srb2waddir = "/cd";
 #else
-			srb2waddir = ".";
+			srb2waddir = srb2path;
 #endif
 		}
 	}
 
-#if defined (macintosh) && !defined (HAVE_SDL)
-	// cwd is always "/" when app is dbl-clicked
-	if (!stricmp(srb2waddir, "/"))
-		srb2waddir = I_GetWadDir();
-#endif
-	// Commercial.
-	srb2wad1 = malloc(strlen(srb2waddir)+1+8+1);
-	srb2wad2 = malloc(strlen(srb2waddir)+1+8+1);
-	if (srb2wad1 == NULL && srb2wad2 == NULL)
-		I_Error("No more free memory to look in %s", srb2waddir);
-	if (srb2wad1 != NULL)
-		sprintf(srb2wad1, pandf, srb2waddir, "srb2.srb");
-	if (srb2wad2 != NULL)
-		sprintf(srb2wad2, pandf, srb2waddir, "srb2.wad");
-
-	// will be overwritten in case of -cdrom or unix/win home
-	snprintf(configfile, sizeof configfile, "%s" PATHSEP CONFIGFILENAME, srb2waddir);
-	configfile[sizeof configfile - 1] = '\0';
-
 	// Load the IWAD
-	if (AddIWAD(srb2wad1, srb2wad2))
+	if (AddIWAD())
 	{
 		I_SaveCurrentWadDirectory();
 	}
 	else
 	{
-		if (!( I_UseSavedWadDirectory() && AddIWAD(srb2wad1, srb2wad2) ))
+		if (!( I_UseSavedWadDirectory() && AddIWAD() ))
 		{
-			I_Error("SRB2.SRB/SRB2.WAD not found! Expected in %s, ss files: %s or %s\n", srb2waddir, srb2wad1, srb2wad2);
+			I_Error("SRB2.SRB not found! Expected in %s\n", srb2waddir);
 		}
 	}
 
-	if (srb2wad1)
-		free(srb2wad1);
-	if (srb2wad2)
-		free(srb2wad2);
+	// will be overwritten in case of -cdrom or unix/win home
+	snprintf(configfile, sizeof configfile, "%s" PATHSEP CONFIGFILENAME, srb2waddir);
+	configfile[sizeof configfile - 1] = '\0';
 
 	// if you change the ordering of this or add/remove a file, be sure to update the md5
 	// checking in D_SRB2Main
