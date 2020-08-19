@@ -76,7 +76,7 @@
 boolean server = true; // true or false but !server == client
 #define client (!server)
 boolean nodownload = false;
-static boolean serverrunning = false;
+boolean serverrunning = false;
 INT32 serverplayer = 0;
 char motd[254], server_context[8]; // Message of the Day, Unique Context (even without Mumble support)
 
@@ -1351,7 +1351,7 @@ static boolean CL_AskFileList(INT32 firstfile)
 	netbuffer->packettype = PT_TELLFILESNEEDED;
 	netbuffer->u.filesneedednum = firstfile;
 
-	return HSendPacket(servernode, true, 0, sizeof (INT32));
+	return HSendPacket(servernode, false, 0, sizeof (INT32));
 }
 
 /** Sends a special packet to declare how many players in local
@@ -1829,7 +1829,7 @@ static void CL_LoadReceivedSavegame(void)
 #endif
 
 #ifndef NONET
-static void SendAskInfo(INT32 node, boolean viams)
+static void SendAskInfo(INT32 node)
 {
 	const tic_t asktime = I_GetTime();
 	netbuffer->packettype = PT_ASKINFO;
@@ -1840,10 +1840,6 @@ static void SendAskInfo(INT32 node, boolean viams)
 	// now allowed traffic from the host to us in, so once the MS relays
 	// our address to the host, it'll be able to speak to us.
 	HSendPacket(node, false, 0, sizeof (askinfo_pak));
-
-	// Also speak to the MS.
-	if (viams && node != 0 && node != BROADCASTADDR)
-		SendAskInfoViaMS(node, asktime);
 }
 
 serverelem_t serverlist[MAXSERVERLIST];
@@ -1909,13 +1905,96 @@ static void SL_InsertServer(serverinfo_pak* info, SINT8 node)
 	M_SortServerList();
 }
 
+#ifdef HAVE_THREADS
+struct Fetch_servers_ctx
+{
+	int room;
+	int id;
+};
+
+static void
+Fetch_servers_thread (struct Fetch_servers_ctx *ctx)
+{
+	msg_server_t *server_list;
+
+	server_list = GetShortServersList(ctx->room, ctx->id);
+
+	if (server_list)
+	{
+		I_lock_mutex(&ms_QueryId_mutex);
+		{
+			if (ctx->id != ms_QueryId)
+			{
+				free(server_list);
+				server_list = NULL;
+			}
+		}
+		I_unlock_mutex(ms_QueryId_mutex);
+
+		if (server_list)
+		{
+			I_lock_mutex(&m_menu_mutex);
+			{
+				if (m_waiting_mode == M_WAITING_SERVERS)
+					m_waiting_mode = M_NOT_WAITING;
+			}
+			I_unlock_mutex(m_menu_mutex);
+
+			I_lock_mutex(&ms_ServerList_mutex);
+			{
+				ms_ServerList = server_list;
+			}
+			I_unlock_mutex(ms_ServerList_mutex);
+		}
+	}
+
+	free(ctx);
+}
+#endif/*HAVE_THREADS*/
+
+void CL_QueryServerList (msg_server_t *server_list)
+{
+	INT32 i;
+
+	for (i = 0; server_list[i].header.buffer[0]; i++)
+	{
+		// Make sure MS version matches our own, to
+		// thwart nefarious servers who lie to the MS.
+
+		/* lol bruh, that version COMES from the servers */
+		//if (strcmp(version, server_list[i].version) == 0)
+		{
+			INT32 node = I_NetMakeNodewPort(server_list[i].ip, server_list[i].port);
+			if (node == -1)
+				break; // no more node free
+			SendAskInfo(node);
+			// Force close the connection so that servers can't eat
+			// up nodes forever if we never get a reply back from them
+			// (usually when they've not forwarded their ports).
+			//
+			// Don't worry, we'll get in contact with the working
+			// servers again when they send SERVERINFO to us later!
+			//
+			// (Note: as a side effect this probably means every
+			// server in the list will probably be using the same node (e.g. node 1),
+			// not that it matters which nodes they use when
+			// the connections are closed afterwards anyway)
+			// -- Monster Iestyn 12/11/18
+			Net_CloseConnection(node|FORCECLOSE);
+		}
+	}
+}
+
 void CL_UpdateServerList(boolean internetsearch, INT32 room)
 {
+#ifdef HAVE_THREADS
+	struct Fetch_servers_ctx *ctx;
+#endif
+
 	SL_ClearServerList(0);
 
 	if (!netgame && I_NetOpenSocket)
 	{
-		MSCloseUDPSocket();		// Tidy up before wiping the slate.
 		if (I_NetOpenSocket())
 		{
 			netgame = true;
@@ -1925,56 +2004,36 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 	// search for local servers
 	if (netgame)
-		SendAskInfo(BROADCASTADDR, false);
+		SendAskInfo(BROADCASTADDR);
 
 	if (internetsearch)
 	{
-		const msg_server_t *server_list;
-		INT32 i = -1;
-		server_list = GetShortServersList(room);
+#ifdef HAVE_THREADS
+		ctx = malloc(sizeof *ctx);
+
+		/* This called from M_Refresh so I don't use a mutex */
+		m_waiting_mode = M_WAITING_SERVERS;
+
+		I_lock_mutex(&ms_QueryId_mutex);
+		{
+			ctx->id = ms_QueryId;
+		}
+		I_unlock_mutex(ms_QueryId_mutex);
+
+		ctx->room = room;
+
+		I_spawn_thread("fetch-servers", (I_thread_fn)Fetch_servers_thread, ctx);
+#else
+		msg_server_t *server_list;
+
+		server_list = GetShortServersList(room, 0);
+
 		if (server_list)
 		{
-			char version[8] = "";
-#if VERSION > 0 || SUBVERSION > 0
-			snprintf(version, sizeof (version), "%d.%d", VERSION, SUBVERSION);
-#else
-			strcpy(version, GetRevisionString());
+			CL_QueryServerList(server_list);
+			free(server_list);
+		}
 #endif
-			version[sizeof (version) - 1] = '\0';
-
-			for (i = 0; server_list[i].header.buffer[0]; i++)
-			{
-				// Make sure MS version matches our own, to
-				// thwart nefarious servers who lie to the MS.
-
-				if (strcmp(version, server_list[i].version) == 0)
-				{
-					INT32 node = I_NetMakeNodewPort(server_list[i].ip, server_list[i].port);
-					if (node == -1)
-						break; // no more node free
-					SendAskInfo(node, true);
-					// Force close the connection so that servers can't eat
-					// up nodes forever if we never get a reply back from them
-					// (usually when they've not forwarded their ports).
-					//
-					// Don't worry, we'll get in contact with the working
-					// servers again when they send SERVERINFO to us later!
-					//
-					// (Note: as a side effect this probably means every
-					// server in the list will probably be using the same node (e.g. node 1),
-					// not that it matters which nodes they use when
-					// the connections are closed afterwards anyway)
-					// -- Monster Iestyn 12/11/18
-					Net_CloseConnection(node|FORCECLOSE);
-				}
-			}
-		}
-
-		//no server list?(-1) or no servers?(0)
-		if (!i)
-		{
-			; /// TODO: display error or warning?
-		}
 	}
 }
 
@@ -2044,11 +2103,11 @@ static boolean CL_FinishedFileList(void)
 		CL_Reset();
 		D_StartTitle();
 		M_StartMessage(M_GetText(
-			"You have WAD files loaded or have\n"
-			"modified the game in some way, and\n"
-			"your file list does not match\n"
-			"the server's file list.\n"
-			"Please restart SRB2Kart before connecting.\n\n"
+			"You have the wrong addons loaded.\n\n"
+			"To play on this server, restart\n"
+			"the game and don't load any addons.\n"
+			"SRB2Kart will automatically add\n"
+			"everything you need when you join.\n\n"
 			"Press ESC\n"
 		), NULL, MM_NOTHING);
 		return false;
@@ -2083,11 +2142,12 @@ static boolean CL_FinishedFileList(void)
 				CL_Reset();
 				D_StartTitle();
 				M_StartMessage(M_GetText(
-					"You cannot connect to this server\n"
-					"because you cannot download the files\n"
-					"that you are missing from the server.\n\n"
-					"See the console or log file for\n"
-					"more details.\n\n"
+					"An error occured when trying to\n"
+					"download missing addons.\n"
+					"(This is almost always a problem\n"
+					"with the server, not your game.)\n\n"
+					"See the console or log file\n"
+					"for additional details.\n\n"
 					"Press ESC\n"
 				), NULL, MM_NOTHING);
 				return false;
@@ -2149,14 +2209,13 @@ static boolean CL_FinishedFileList(void)
 
 /** Called by CL_ServerConnectionTicker
   *
-  * \param viams ???
   * \param asksent The last time we asked the server to join. We re-ask every second in case our request got lost in transmit.
   * \return False if the connection was aborted
   * \sa CL_ServerConnectionTicker
   * \sa CL_ConnectToServer
   *
   */
-static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
+static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 {
 #ifndef NONET
 	INT32 i;
@@ -2214,7 +2273,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 	// Ask the info to the server (askinfo packet)
 	if (*asksent + NEWTICRATE < I_GetTime())
 	{
-		SendAskInfo(servernode, viams);
+		SendAskInfo(servernode);
 		*asksent = I_GetTime();
 	}
 #else
@@ -2229,7 +2288,6 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
 
 /** Called by CL_ConnectToServer
   *
-  * \param viams ???
   * \param tmpsave The name of the gamestate file???
   * \param oldtic Used for knowing when to poll events and redraw
   * \param asksent The last time we asked the server to join. We re-ask every second in case our request got lost in transmit.
@@ -2238,7 +2296,7 @@ static boolean CL_ServerConnectionSearchTicker(boolean viams, tic_t *asksent)
   * \sa CL_ConnectToServer
   *
   */
-static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic_t *oldtic, tic_t *asksent)
+static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic_t *asksent)
 {
 	boolean waitmore;
 	INT32 i;
@@ -2250,7 +2308,7 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 	switch (cl_mode)
 	{
 		case CL_SEARCHING:
-			if (!CL_ServerConnectionSearchTicker(viams, asksent))
+			if (!CL_ServerConnectionSearchTicker(asksent))
 				return false;
 			break;
 
@@ -2444,11 +2502,10 @@ static boolean CL_ServerConnectionTicker(boolean viams, const char *tmpsave, tic
 
 /** Use adaptive send using net_bandwidth and stat.sendbytes
   *
-  * \param viams ???
   * \todo Better description...
   *
   */
-static void CL_ConnectToServer(boolean viams)
+static void CL_ConnectToServer(void)
 {
 	INT32 pnumnodes, nodewaited = doomcom->numnodes, i;
 	tic_t oldtic;
@@ -2520,9 +2577,9 @@ static void CL_ConnectToServer(boolean viams)
 	{
 		// If the connection was aborted for some reason, leave
 #ifndef NONET
-		if (!CL_ServerConnectionTicker(viams, tmpsave, &oldtic, &asksent))
+		if (!CL_ServerConnectionTicker(tmpsave, &oldtic, &asksent))
 #else
-		if (!CL_ServerConnectionTicker(viams, (char*)NULL, &oldtic, (tic_t *)NULL))
+		if (!CL_ServerConnectionTicker((char*)NULL, &oldtic, (tic_t *)NULL))
 #endif
 			return;
 
@@ -2648,6 +2705,7 @@ static void Command_ClearBans(void)
 		return;
 
 	I_ClearBans();
+	D_SaveBan();
 	reasontail = NULL;
 	while (reasonhead)
 	{
@@ -2702,9 +2760,6 @@ static void Command_ReloadBan(void)  //recheck ban.txt
 
 static void Command_connect(void)
 {
-	// Assume we connect directly.
-	boolean viams = false;
-
 	if (COM_Argc() < 2 || *COM_Argv(1) == 0)
 	{
 		CONS_Printf(M_GetText(
@@ -2738,9 +2793,6 @@ static void Command_connect(void)
 		if (netgame && !stricmp(COM_Argv(1), "node"))
 		{
 			servernode = (SINT8)atoi(COM_Argv(2));
-
-			// Use MS to traverse NAT firewalls.
-			viams = true;
 		}
 		else if (netgame)
 		{
@@ -2749,7 +2801,6 @@ static void Command_connect(void)
 		}
 		else if (I_NetOpenSocket)
 		{
-			MSCloseUDPSocket(); // Tidy up before wiping the slate.
 			I_NetOpenSocket();
 			netgame = true;
 			multiplayer = true;
@@ -2778,7 +2829,7 @@ static void Command_connect(void)
 	}
 	botingame = false;
 	botskin = 0;
-	CL_ConnectToServer(viams);
+	CL_ConnectToServer();
 }
 #endif
 
@@ -3829,7 +3880,6 @@ boolean SV_SpawnServer(void)
 		SV_GenContext();
 		if (netgame && I_NetOpenSocket)
 		{
-			MSCloseUDPSocket();		// Tidy up before wiping the slate.
 			I_NetOpenSocket();
 			if (ms_RoomId > 0)
 				RegisterServer();
@@ -3837,7 +3887,7 @@ boolean SV_SpawnServer(void)
 
 		// non dedicated server just connect to itself
 		if (!dedicated)
-			CL_ConnectToServer(false);
+			CL_ConnectToServer();
 		else doomcom->numslots = 1;
 	}
 
@@ -5674,7 +5724,13 @@ FILESTAMP
 	if (nowtime > resptime)
 	{
 		resptime = nowtime;
+#ifdef HAVE_THREADS
+		I_lock_mutex(&m_menu_mutex);
+#endif
 		M_Ticker();
+#ifdef HAVE_THREADS
+		I_unlock_mutex(m_menu_mutex);
+#endif
 		CON_Ticker();
 	}
 	SV_FileSendTicker();

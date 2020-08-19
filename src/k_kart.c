@@ -898,6 +898,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 				newodds = 0;
 			else
 				POWERITEMODDS(newodds);
+			break;
 		case KITEM_HYUDORO:
 			if ((hyubgone > 0) || COOLDOWNONSTART)
 				newodds = 0;
@@ -1060,6 +1061,10 @@ static void K_KartItemRoulette(player_t *player, ticcmd_t *cmd)
 		if (players[i].kartstuff[k_bumper] > bestbumper)
 			bestbumper = players[i].kartstuff[k_bumper];
 	}
+
+	// No forced SPB in 1v1s, it has to be randomly rolled
+	if (pingame <= 2)
+		dontforcespb = true;
 
 	// This makes the roulette produce the random noises.
 	if ((player->kartstuff[k_itemroulette] % 3) == 1 && P_IsDisplayPlayer(player) && !demo.freecam)
@@ -3312,7 +3317,8 @@ void K_PuntMine(mobj_t *thismine, mobj_t *punter)
 	if (!thismine || P_MobjWasRemoved(thismine))
 		return;
 
-	if (thismine->type == MT_SSMINE_SHIELD) // Create a new mine
+	//This guarantees you hit a mine being dragged
+	if (thismine->type == MT_SSMINE_SHIELD) // Create a new mine, and clean up the old one
 	{
 		mine = P_SpawnMobj(thismine->x, thismine->y, thismine->z, MT_SSMINE);
 		P_SetTarget(&mine->target, thismine->target);
@@ -3320,7 +3326,19 @@ void K_PuntMine(mobj_t *thismine, mobj_t *punter)
 		mine->flags2 = thismine->flags2;
 		mine->floorz = thismine->floorz;
 		mine->ceilingz = thismine->ceilingz;
+		
+		//Since we aren't using P_KillMobj, we need to clean up the hnext reference
+		{
+			P_SetTarget(&thismine->target->hnext, NULL); //target is the player who owns the mine
+			thismine->target->player->kartstuff[k_bananadrag] = 0;
+			thismine->target->player->kartstuff[k_itemheld] = 0;
+			
+			if (--thismine->target->player->kartstuff[k_itemamount] <= 0)
+				thismine->target->player->kartstuff[k_itemtype] = KITEM_NONE;
+		}
+
 		P_RemoveMobj(thismine);
+
 	}
 	else
 		mine = thismine;
@@ -3868,6 +3886,62 @@ void K_DropItems(player_t *player)
 	}
 
 	K_StripItems(player);
+}
+
+void K_DropRocketSneaker(player_t *player)
+{
+	mobj_t *shoe = player->mo;
+	fixed_t flingangle;
+	boolean leftshoe = true; //left shoe is first
+
+	if (!(player->mo && !P_MobjWasRemoved(player->mo) && player->mo->hnext && !P_MobjWasRemoved(player->mo->hnext)))
+		return;
+
+	while ((shoe = shoe->hnext) && !P_MobjWasRemoved(shoe))
+	{
+		if (shoe->type != MT_ROCKETSNEAKER)
+			return; //woah, not a rocketsneaker, bail! safeguard in case this gets used when you're holding non-rocketsneakers
+
+		shoe->flags2 &= ~MF2_DONTDRAW;
+		shoe->flags &= ~MF_NOGRAVITY;
+		shoe->angle += ANGLE_45;
+
+		if (shoe->eflags & MFE_VERTICALFLIP)
+			shoe->z -= shoe->height;
+		else
+			shoe->z += shoe->height;
+
+		//left shoe goes off tot eh left, right shoe off to the right
+		if (leftshoe)
+			flingangle = -(ANG60);
+		else
+			flingangle = ANG60;
+		
+		S_StartSound(shoe, shoe->info->deathsound);
+		P_SetObjectMomZ(shoe, 8*FRACUNIT, false);
+		P_InstaThrust(shoe, R_PointToAngle2(shoe->target->x, shoe->target->y, shoe->x, shoe->y)+flingangle, 16*FRACUNIT);
+		shoe->momx += shoe->target->momx;
+		shoe->momy += shoe->target->momy;
+		shoe->momz += shoe->target->momz;
+		shoe->extravalue2 = 1;
+
+		leftshoe = false;
+	}
+	P_SetTarget(&player->mo->hnext, NULL);
+	player->kartstuff[k_rocketsneakertimer] = 0;
+}
+
+void K_DropKitchenSink(player_t *player)
+{
+	if (!(player->mo && !P_MobjWasRemoved(player->mo) && player->mo->hnext && !P_MobjWasRemoved(player->mo->hnext)))
+		return;
+
+	if (player->mo->hnext->type != MT_SINK_SHIELD)
+		return; //so we can just call this function regardless of what is being held
+
+	P_KillMobj(player->mo->hnext, NULL, NULL);
+
+	P_SetTarget(&player->mo->hnext, NULL);
 }
 
 // When an item in the hnext chain dies.
@@ -4490,6 +4564,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		fast->momx = 3*player->mo->momx/4;
 		fast->momy = 3*player->mo->momy/4;
 		fast->momz = 3*player->mo->momz/4;
+		P_SetTarget(&fast->target, player->mo); // easier lua access
 		K_MatchGenericExtraFlags(fast, player->mo);
 	}
 
@@ -5195,11 +5270,11 @@ void K_KartUpdatePosition(player_t *player)
 //
 void K_StripItems(player_t *player)
 {
+	K_DropRocketSneaker(player);
+	K_DropKitchenSink(player);
 	player->kartstuff[k_itemtype] = KITEM_NONE;
 	player->kartstuff[k_itemamount] = 0;
 	player->kartstuff[k_itemheld] = 0;
-
-	player->kartstuff[k_rocketsneakertimer] = 0;
 
 	if (!player->kartstuff[k_itemroulette] || player->kartstuff[k_roulettetype] != 2)
 	{
@@ -8634,7 +8709,7 @@ void K_drawKartFreePlay(UINT32 flashtime)
 		return;
 
 	V_DrawKartString((BASEVIDWIDTH - (LAPS_X+1)) - (12*9), // mirror the laps thingy
-		LAPS_Y+3, V_SNAPTOBOTTOM|V_SNAPTORIGHT, "FREE PLAY");
+		LAPS_Y+3, V_SNAPTOBOTTOM|V_SNAPTORIGHT|V_HUDTRANS, "FREE PLAY");
 }
 
 static void K_drawDistributionDebugger(void)

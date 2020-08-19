@@ -35,6 +35,7 @@ set(SRB2_CORE_SOURCES
 	m_random.c
 	md5.c
 	mserv.c
+	http-mserv.c
 	s_sound.c
 	screen.c
 	sounds.c

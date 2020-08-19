@@ -726,9 +726,9 @@ void P_Ticker(boolean run)
 		if (exitcountdown > 1)
 			exitcountdown--;
 
-		if (indirectitemcooldown > 1)
+		if (indirectitemcooldown > 0)
 			indirectitemcooldown--;
-		if (hyubgone > 1)
+		if (hyubgone > 0)
 			hyubgone--;
 
 		if (G_BattleGametype())

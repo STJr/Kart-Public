@@ -17,6 +17,7 @@
 #include "d_player.h"
 #include "g_game.h"
 #include "p_local.h"
+#include "d_clisrv.h"
 
 #include "lua_script.h"
 #include "lua_libs.h"
@@ -118,7 +119,7 @@ static int lib_iterateDisplayplayers(lua_State *L)
 
 	for (i++; i < MAXSPLITSCREENPLAYERS; i++)
 	{
-		if (!playeringame[displayplayers[i]] || i > splitscreen)
+		if (i > splitscreen || !playeringame[displayplayers[i]])
 			return 0;	// Stop! There are no more players for us to go through. There will never be a player gap in displayplayers.
 
 		if (!players[displayplayers[i]].mo)
@@ -139,6 +140,8 @@ static int lib_getDisplayplayers(lua_State *L)
 		lua_Integer i = luaL_checkinteger(L, 2);
 		if (i < 0 || i >= MAXSPLITSCREENPLAYERS)
 			return luaL_error(L, "displayplayers[] index %d out of range (0 - %d)", i, MAXSPLITSCREENPLAYERS-1);
+		if (i > splitscreen)
+			return 0;
 		if (!playeringame[displayplayers[i]])
 			return 0;
 		if (!players[displayplayers[i]].mo)
@@ -385,6 +388,8 @@ static int player_get(lua_State *L)
 	else if (fastcmp(field,"fovadd"))
 		lua_pushfixed(L, plr->fovadd);
 #endif
+	else if (fastcmp(field,"ping"))
+		lua_pushinteger(L, playerpingtable[( plr - players )]);
 	else {
 		lua_getfield(L, LUA_REGISTRYINDEX, LREG_EXTVARS);
 		I_Assert(lua_istable(L, -1));
