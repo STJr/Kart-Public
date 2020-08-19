@@ -1980,35 +1980,38 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 #endif // ifndef NONET
 
-static void M_ConfirmConnect(INT32 ch)
+static void M_ConfirmConnect(event_t *ev)
 {
-	if (ch == ' ' || ch == 'y' || ch == KEY_ENTER)
+	if (ev->type == ev_keydown)
 	{
-		if (totalfilesrequestednum > 0)
+		if (ev->data1 == ' ' || ev->data1 == 'y' || ev->data1 == KEY_ENTER || ev->data1 == gamecontrol[gc_accelerate][0] || ev->data1 == gamecontrol[gc_accelerate][1])
 		{
-#ifdef HAVE_CURL
-			if (http_source[0] == '\0' || curl_failedwebdownload)
-#endif
+			if (totalfilesrequestednum > 0)
 			{
-				if (CL_SendRequestFile())
-				{
-					cl_mode = CL_DOWNLOADFILES;
-				}
-			}
 #ifdef HAVE_CURL
-			else
-				cl_mode = CL_PREPAREHTTPFILES;
+				if (http_source[0] == '\0' || curl_failedwebdownload)
 #endif
+				{
+					if (CL_SendRequestFile())
+					{
+						cl_mode = CL_DOWNLOADFILES;
+					}
+				}
+#ifdef HAVE_CURL
+				else
+					cl_mode = CL_PREPAREHTTPFILES;
+#endif
+			}
+			else
+				cl_mode = CL_LOADFILES;
+			
+			M_ClearMenus(true);
 		}
-		else
-			cl_mode = CL_LOADFILES;
-		
-		M_ClearMenus(true);
-	}
-	else if (ch == 'n' || ch == KEY_ESCAPE)
-	{
-		cl_mode = CL_ABORTED;
-		M_ClearMenus(true);
+		else if (ev->data1 == 'n' || ev->data1 == KEY_ESCAPE|| ev->data1 == gamecontrol[gc_brake][0] || ev->data1 == gamecontrol[gc_brake][1])
+		{
+			cl_mode = CL_ABORTED;
+			M_ClearMenus(true);
+		}
 	}
 }
 
@@ -2060,7 +2063,7 @@ static boolean CL_FinishedFileList(void)
 				"You may load server addons (if any), and wait for a slot.\n"
 				"\n"
 				"Press ACCEL to continue or BRAKE to cancel.\n\n"
-			), M_ConfirmConnect, MM_YESNO);
+			), M_ConfirmConnect, MM_EVENTHANDLER);
 			cl_mode = CL_CONFIRMCONNECT;
 		}
 		else
@@ -2120,13 +2123,13 @@ static boolean CL_FinishedFileList(void)
 					"You may download, load server addons, and wait for a slot.\n"
 					"\n"
 					"Press ACCEL to continue or BRAKE to cancel.\n\n"
-				), downloadsize), M_ConfirmConnect, MM_YESNO);
+				), downloadsize), M_ConfirmConnect, MM_EVENTHANDLER);
 			else
 				M_StartMessage(va(M_GetText(
 					"Download of %s additional content is required to join.\n"
 					"\n"
 					"Press ACCEL to continue or BRAKE to cancel.\n\n"
-				), downloadsize), M_ConfirmConnect, MM_YESNO);
+				), downloadsize), M_ConfirmConnect, MM_EVENTHANDLER);
 
 			Z_Free(downloadsize);
 			cl_mode = CL_CONFIRMCONNECT;
