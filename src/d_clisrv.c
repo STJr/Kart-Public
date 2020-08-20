@@ -2414,14 +2414,14 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 			// but since the network layer doesn't provide ordered packets...
 			CL_PrepareDownloadSaveGame(tmpsave);
 #endif
-			if ((*asksent + NEWTICRATE*3) < I_GetTime() && CL_SendJoin())
+			if (( I_GetTime() - NEWTICRATE*3 ) >= *asksent && CL_SendJoin())
 			{
 				*asksent = I_GetTime();
 				cl_mode = CL_WAITJOINRESPONSE;
 			}
 			break;
 		case CL_WAITJOINRESPONSE:
-			if ((*asksent + NEWTICRATE*3) < I_GetTime())
+			if (( I_GetTime() - NEWTICRATE*3 ) >= *asksent && CL_SendJoin())
 			{
 				cl_mode = CL_ASKJOIN;
 			}
