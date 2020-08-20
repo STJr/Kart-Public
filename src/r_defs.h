@@ -155,11 +155,9 @@ typedef struct ffloor_s
 	fixed_t *bottomyoffs;
 	angle_t *bottomangle;
 
-#ifdef ESLOPE
 	// Pointers to pointers. Yup.
 	struct pslope_s **t_slope;
 	struct pslope_s **b_slope;
-#endif
 
 	size_t secnum;
 	ffloortype_e flags;
@@ -190,9 +188,7 @@ typedef struct lightlist_s
 	extracolormap_t *extra_colormap;
 	INT32 flags;
 	ffloor_t *caster;
-#ifdef ESLOPE
 	struct pslope_s *slope; // FF_DOUBLESHADOW makes me have to store this pointer here. Bluh bluh.
-#endif
 } lightlist_t;
 
 
@@ -226,7 +222,6 @@ typedef struct linechain_s
 
 
 // Slopes
-#ifdef ESLOPE
 typedef enum {
 	SL_NOPHYSICS = 1, // Don't do momentum adjustment with this slope
 	SL_NODYNAMIC = 1<<1, // Slope will never need to move during the level, so don't fuss with recalculating it
@@ -269,7 +264,6 @@ typedef struct pslope_s
 
 	struct pslope_s *next; // Make a linked list of dynamic slopes, for easy reference later
 } pslope_t;
-#endif
 
 typedef enum
 {
@@ -376,12 +370,10 @@ typedef struct sector_s
 	precipmobj_t *preciplist;
 	struct mprecipsecnode_s *touching_preciplist;
 
-#ifdef ESLOPE
 	// Eternity engine slope
 	pslope_t *f_slope; // floor slope
 	pslope_t *c_slope; // ceiling slope
 	boolean hasslope; // The sector, or one of its visible FOFs, contains a slope
-#endif
 
 	// these are saved for netgames, so do not let Lua touch these!
 	INT32 spawn_nexttag, spawn_firsttag; // the actual nexttag/firsttag values may differ if the sector's tag was changed
@@ -639,11 +631,9 @@ typedef struct drawseg_s
 
 	UINT8 portalpass; // if > 0 and <= portalrender, do not affect sprite clipping
 
-#ifdef ESLOPE
 	fixed_t maskedtextureheight[MAXVIDWIDTH]; // For handling sloped midtextures
 
 	vertex_t leftpos, rightpos; // Used for rendering FOF walls with slopes
-#endif
 } drawseg_t;
 
 typedef enum

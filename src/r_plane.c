@@ -322,11 +322,9 @@ void R_MapPlane(INT32 y, INT32 x1, INT32 x2)
 	if (pindex >= MAXLIGHTZ)
 		pindex = MAXLIGHTZ - 1;
 
-#ifdef ESLOPE
 	if (currentplane->slope)
 		ds_colormap = colormaps;
 	else
-#endif
 	ds_colormap = planezlight[pindex];
 	if (encoremap && !currentplane->noencore)
 		ds_colormap += (256*32);
@@ -427,17 +425,13 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 #ifdef POLYOBJECTS_PLANES
 			, polyobj_t *polyobj
 #endif
-#ifdef ESLOPE
 			, pslope_t *slope
-#endif
 			, boolean noencore)
 {
 	visplane_t *check;
 	unsigned hash;
 
-#ifdef ESLOPE
 	if (slope); else // Don't mess with this right now if a slope is involved
-#endif
 	{
 		xoff += viewx;
 		yoff -= viewy;
@@ -495,9 +489,7 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 			&& check->viewx == viewx && check->viewy == viewy && check->viewz == viewz
 			&& check->viewangle == viewangle
 			&& check->plangle == plangle
-#ifdef ESLOPE
 			&& check->slope == slope
-#endif
 			&& check->noencore == noencore)
 		{
 			return check;
@@ -523,9 +515,7 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 #ifdef POLYOBJECTS_PLANES
 	check->polyobj = polyobj;
 #endif
-#ifdef ESLOPE
 	check->slope = slope;
-#endif
 	check->noencore = noencore;
 
 	memset(check->top, 0xff, sizeof (check->top));
@@ -596,9 +586,7 @@ visplane_t *R_CheckPlane(visplane_t *pl, INT32 start, INT32 stop)
 #ifdef POLYOBJECTS_PLANES
 		new_pl->polyobj = pl->polyobj;
 #endif
-#ifdef ESLOPE
 		new_pl->slope = pl->slope;
-#endif
 		new_pl->noencore = pl->noencore;
 		pl = new_pl;
 		pl->minx = start;
@@ -861,9 +849,7 @@ void R_DrawSinglePlane(visplane_t *pl)
 
 #ifndef NOWATER
 		if (pl->ffloor->flags & FF_RIPPLE
-#ifdef ESLOPE
 				&& !pl->slope
-#endif
 			)
 		{
 			INT32 top, bottom;
@@ -902,9 +888,7 @@ void R_DrawSinglePlane(visplane_t *pl)
 	}
 	else light = (pl->lightlevel >> LIGHTSEGSHIFT);
 
-#ifdef ESLOPE
 	if (!pl->slope) // Don't mess with angle on slopes! We'll handle this ourselves later
-#endif
 	if (viewangle != pl->viewangle+pl->plangle)
 	{
 		memset(cachedheight, 0, sizeof (cachedheight));
@@ -978,7 +962,6 @@ void R_DrawSinglePlane(visplane_t *pl)
 	if (light < 0)
 		light = 0;
 
-#ifdef ESLOPE
 	if (pl->slope) {
 		// Potentially override other stuff for now cus we're mean. :< But draw a slope plane!
 		// I copied ZDoom's code and adapted it to SRB2... -fickle
@@ -1118,7 +1101,6 @@ void R_DrawSinglePlane(visplane_t *pl)
 
 		planezlight = scalelight[light];
 	} else
-#endif // ESLOPE
 
 	planezlight = zlight[light];
 

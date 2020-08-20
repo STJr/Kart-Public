@@ -78,9 +78,7 @@
 #include "hardware/hw_light.h"
 #endif
 
-#ifdef ESLOPE
 #include "p_slopes.h"
-#endif
 
 // SRB2Kart
 #include "k_kart.h"
@@ -1004,9 +1002,7 @@ static void P_LoadThings(void)
 
 		// Z for objects
 		mt->z = (INT16)(
-#ifdef ESLOPE
 				mtsector->f_slope ? P_GetZAt(mtsector->f_slope, mt->x << FRACBITS, mt->y << FRACBITS) :
-#endif
 				mtsector->floorheight)>>FRACBITS;
 
 		if (mt->type == 1700 // MT_AXIS
@@ -3116,9 +3112,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		P_PrepareThings(lastloadedmaplumpnum + ML_THINGS);
 	}
 
-#ifdef ESLOPE
 	P_ResetDynamicSlopes();
-#endif
 
 	P_LoadThings();
 

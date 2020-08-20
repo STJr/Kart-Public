@@ -30,9 +30,7 @@
 #include "r_sky.h"
 #include "p_polyobj.h"
 #include "lua_script.h"
-#ifdef ESLOPE
 #include "p_slopes.h"
-#endif
 
 savedata_t savedata;
 UINT8 *save_p;
@@ -949,9 +947,7 @@ typedef enum
 	MD2_HPREV       = 1<<8,
 	MD2_COLORIZED	= 1<<9,
 	MD2_WAYPOINTCAP	= 1<<10
-#ifdef ESLOPE
 	, MD2_SLOPE       = 1<<11
-#endif
 } mobj_diff2_t;
 
 typedef enum
@@ -1142,10 +1138,8 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 		diff2 |= MD2_HNEXT;
 	if (mobj->hprev)
 		diff2 |= MD2_HPREV;
-#ifdef ESLOPE
 	if (mobj->standingslope)
 		diff2 |= MD2_SLOPE;
-#endif
 	if (mobj->colorized)
 		diff2 |= MD2_COLORIZED;
 	if (mobj == waypointcap)
@@ -1265,10 +1259,8 @@ static void SaveMobjThinker(const thinker_t *th, const UINT8 type)
 		WRITEUINT32(save_p, mobj->hnext->mobjnum);
 	if (diff2 & MD2_HPREV)
 		WRITEUINT32(save_p, mobj->hprev->mobjnum);
-#ifdef ESLOPE
 	if (diff2 & MD2_SLOPE)
 		WRITEUINT16(save_p, mobj->standingslope->id);
-#endif
 	if (diff2 & MD2_COLORIZED)
 		WRITEUINT8(save_p, mobj->colorized);
 
@@ -2142,10 +2134,8 @@ static void LoadMobjThinker(actionf_p1 thinker)
 		mobj->hnext = (mobj_t *)(size_t)READUINT32(save_p);
 	if (diff2 & MD2_HPREV)
 		mobj->hprev = (mobj_t *)(size_t)READUINT32(save_p);
-#ifdef ESLOPE
 	if (diff2 & MD2_SLOPE)
 		mobj->standingslope = P_SlopeById(READUINT16(save_p));
-#endif
 	if (diff2 & MD2_COLORIZED)
 		mobj->colorized = READUINT8(save_p);
 
