@@ -1309,10 +1309,8 @@ static boolean CL_SendJoin(void)
 static void SV_SendServerInfo(INT32 node, tic_t servertime)
 {
 	UINT8 *p;
-#ifdef HAVE_CURL
 	size_t mirror_length;
 	const char *httpurl = cv_httpsource.string;
-#endif
 
 	netbuffer->packettype = PT_SERVERINFO;
 	netbuffer->u.serverinfo._255 = 255;
@@ -1401,7 +1399,6 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 
 	netbuffer->u.serverinfo.actnum = 0; //mapheaderinfo[gamemap-1]->actnum
 
-#ifdef HAVE_CURL
 	mirror_length = strlen(httpurl);
 	if (mirror_length > MAX_MIRROR_LENGTH)
 		mirror_length = MAX_MIRROR_LENGTH;
@@ -1411,7 +1408,6 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 		strncpy(netbuffer->u.serverinfo.httpsource, "", mirror_length);
 
 	netbuffer->u.serverinfo.httpsource[MAX_MIRROR_LENGTH-1] = '\0';
-#endif
 
 	p = PutFileNeeded(0);
 
