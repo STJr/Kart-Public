@@ -1820,7 +1820,7 @@ static void SL_InsertServer(serverinfo_pak* info, SINT8 node)
 	M_SortServerList();
 }
 
-#ifdef HAVE_THREADS
+#if defined (MASTERSERVER) && defined (HAVE_THREADS)
 struct Fetch_servers_ctx
 {
 	int room;
@@ -1865,7 +1865,7 @@ Fetch_servers_thread (struct Fetch_servers_ctx *ctx)
 
 	free(ctx);
 }
-#endif/*HAVE_THREADS*/
+#endif/*defined (MASTERSERVER) && defined (HAVE_THREADS)*/
 
 void CL_QueryServerList (msg_server_t *server_list)
 {
@@ -1902,9 +1902,8 @@ void CL_QueryServerList (msg_server_t *server_list)
 
 void CL_UpdateServerList(boolean internetsearch, INT32 room)
 {
-#ifdef HAVE_THREADS
-	struct Fetch_servers_ctx *ctx;
-#endif
+	(void)internetsearch;
+	(void)room;
 
 	SL_ClearServerList(0);
 
@@ -1921,9 +1920,12 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 	if (netgame)
 		SendAskInfo(BROADCASTADDR);
 
+#ifdef MASTERSERVER
 	if (internetsearch)
 	{
 #ifdef HAVE_THREADS
+		struct Fetch_servers_ctx *ctx;
+
 		ctx = malloc(sizeof *ctx);
 
 		/* This called from M_Refresh so I don't use a mutex */
@@ -1950,6 +1952,7 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 		}
 #endif
 	}
+#endif/*MASTERSERVER*/
 }
 
 #endif // ifndef NONET
@@ -3423,8 +3426,10 @@ void D_QuitNetGame(void)
 		for (i = 0; i < MAXNETNODES; i++)
 			if (nodeingame[i])
 				HSendPacket(i, true, 0, 0);
+#ifdef MASTERSERVER
 		if (serverrunning && ms_RoomId > 0)
 			UnregisterServer();
+#endif
 	}
 	else if (servernode > 0 && servernode < MAXNETNODES && nodeingame[(UINT8)servernode])
 	{
@@ -3672,8 +3677,10 @@ boolean SV_SpawnServer(void)
 		if (netgame && I_NetOpenSocket)
 		{
 			I_NetOpenSocket();
+#ifdef MASTERSERVER
 			if (ms_RoomId > 0)
 				RegisterServer();
+#endif
 		}
 
 		// non dedicated server just connect to itself
@@ -5391,7 +5398,9 @@ FILESTAMP
 	GetPackets();
 FILESTAMP
 
+#ifdef MASTERSERVER
 	MasterClient_Ticker();
+#endif
 
 	if (client)
 	{
@@ -5448,7 +5457,9 @@ FILESTAMP
 	// client send the command after a receive of the server
 	// the server send before because in single player is beter
 
+#ifdef MASTERSERVER
 	MasterClient_Ticker(); // Acking the Master Server
+#endif
 
 	if (client)
 	{
