@@ -2139,7 +2139,6 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
 
 	BMBOUNDFIX(xl, xh, yl, yh);
 
-#ifdef POLYOBJECTS
 	// Check polyobjects and see if tmfloorz/tmceilingz need to be altered
 	{
 		validcount++;
@@ -2209,7 +2208,6 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
 				}
 			}
 	}
-#endif
 
 	// tmfloorthing is set when tmfloorz comes from a thing's top
 	tmfloorthing = NULL;
@@ -2367,7 +2365,6 @@ boolean P_CheckCameraPosition(fixed_t x, fixed_t y, camera_t *thiscam)
 
 	BMBOUNDFIX(xl, xh, yl, yh);
 
-#ifdef POLYOBJECTS
 	// Check polyobjects and see if tmfloorz/tmceilingz need to be altered
 	{
 		validcount++;
@@ -2438,7 +2435,6 @@ boolean P_CheckCameraPosition(fixed_t x, fixed_t y, camera_t *thiscam)
 				}
 			}
 	}
-#endif
 
 	// check lines
 	for (bx = xl; bx <= xh; bx++)

@@ -1297,7 +1297,6 @@ static void R_RenderSegLoop (void)
 
 			for (i = 0; i < numffloors; i++)
 			{
-#ifdef POLYOBJECTS_PLANES
 				if (ffloor[i].polyobj && (!curline->polyseg || ffloor[i].polyobj != curline->polyseg))
 					continue;
 
@@ -1308,7 +1307,6 @@ static void R_RenderSegLoop (void)
 					else if (ffloor[i].plane->maxx < rw_x)
 						ffloor[i].plane->maxx = rw_x;
 				}
-#endif
 
 				if (ffloor[i].height < viewz)
 				{
@@ -1321,12 +1319,10 @@ static void R_RenderSegLoop (void)
 					if (bottom_w > bottom)
 						bottom_w = bottom;
 
-#ifdef POLYOBJECTS_PLANES
 					// Polyobject-specific hack to fix plane leaking -Red
 					if (curline->polyseg && ffloor[i].polyobj && ffloor[i].polyobj == curline->polyseg && top_w >= bottom_w) {
 						ffloor[i].plane->top[rw_x] = ffloor[i].plane->bottom[rw_x] = 0xFFFF;
 					} else
-#endif
 
 					if (top_w <= bottom_w)
 					{
@@ -1345,12 +1341,10 @@ static void R_RenderSegLoop (void)
 					if (bottom_w > bottom)
 						bottom_w = bottom;
 
-#ifdef POLYOBJECTS_PLANES
 					// Polyobject-specific hack to fix plane leaking -Red
 					if (curline->polyseg && ffloor[i].polyobj && ffloor[i].polyobj == curline->polyseg && top_w >= bottom_w) {
 						ffloor[i].plane->top[rw_x] = ffloor[i].plane->bottom[rw_x] = 0xFFFF;
 					} else
-#endif
 
 					if (top_w <= bottom_w)
 					{
@@ -1810,10 +1804,8 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 	{
 		for (i = 0; i < numffloors; i++)
 		{
-#ifdef POLYOBJECTS_PLANES
 			if (ffloor[i].polyobj && (!ds_p->curline->polyseg || ffloor[i].polyobj != ds_p->curline->polyseg))
 				continue;
-#endif
 
 			if (ffloor[i].slope) {
 				ffloor[i].f_pos = P_GetZAt(ffloor[i].slope, segleft.x, segleft.y) - viewz;
@@ -2334,7 +2326,6 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 
 			maskedtextureheight = ds_p->maskedtextureheight; // note to red, this == &(ds_p->maskedtextureheight[0])
 
-#ifdef POLYOBJECTS
 			if (curline->polyseg) { // use REAL front and back floors please, so midtexture rendering isn't mucked up
 				rw_midtextureslide = rw_midtexturebackslide = 0;
 				if (!!(linedef->flags & ML_DONTPEGBOTTOM) ^ !!(linedef->flags & ML_EFFECT3))
@@ -2363,7 +2354,6 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 			}
 			rw_midtexturemid += sidedef->rowoffset;
 			rw_midtextureback += sidedef->rowoffset;
-#endif
 
 			maskedtexture = true;
 		}
@@ -2710,7 +2700,6 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 					}
 				}
 			}
-#ifdef POLYOBJECTS_PLANES
 			if (curline->polyseg && frontsector && (curline->polyseg->flags & POF_RENDERPLANES))
 			{
 				while (i < numffloors && ffloor[i].polyobj != curline->polyseg) i++;
@@ -2749,7 +2738,6 @@ void R_StoreWallRange(INT32 start, INT32 stop)
 					i++;
 				}
 			}
-#endif
 
 			numbackffloors = i;
 		}

@@ -91,9 +91,7 @@ typedef struct
 	fixed_t z;         ///< Z coordinate.
 } degenmobj_t;
 
-#ifdef POLYOBJECTS
 #include "p_polyobj.h"
-#endif
 
 // Store fake planes in a resizable array insted of just by
 // heightsec. Allows for multiple fake planes.
@@ -429,9 +427,7 @@ typedef struct line_s
 	void *splats; // wallsplat_t list
 #endif
 	INT32 firsttag, nexttag; // improves searches for tags.
-#ifdef POLYOBJECTS
 	polyobj_t *polyobj; // Belongs to a polyobject?
-#endif
 
 	char *text; // a concatination of all front and back texture names, for linedef specials that require a string.
 	INT16 callcount; // no. of calls left before triggering, for the "X calls" linedef specials, defaults to 0
@@ -473,9 +469,7 @@ typedef struct subsector_s
 	sector_t *sector;
 	INT16 numlines;
 	UINT16 firstline;
-#ifdef POLYOBJECTS
 	struct polyobj_s *polyList; // haleyjd 02/19/06: list of polyobjects
-#endif
 #if 1//#ifdef FLOORSPLATS
 	void *splats; // floorsplat_t list
 #endif
@@ -551,10 +545,8 @@ typedef struct seg_s
 	// Why slow things down by calculating lightlists for every thick side?
 	size_t numlights;
 	r_lightlist_t *rlights;
-#ifdef POLYOBJECTS
 	polyobj_t *polyseg;
 	boolean dontrenderme;
-#endif
 } seg_t;
 
 //

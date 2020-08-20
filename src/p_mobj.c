@@ -2652,7 +2652,6 @@ static void P_PlayerZMovement(mobj_t *mo)
 
 				if (mo->eflags & MFE_JUSTHITFLOOR)
 				{
-#ifdef POLYOBJECTS
 					// Check if we're on a polyobject
 					// that triggers a linedef executor.
 					msecnode_t *node;
@@ -2712,7 +2711,6 @@ static void P_PlayerZMovement(mobj_t *mo)
 					}
 
 					if (!stopmovecut)
-#endif
 
 					// Cut momentum in half when you hit the ground and
 					// aren't pressing any controls.

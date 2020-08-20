@@ -371,9 +371,7 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec, INT32 *floorlightlevel,
 boolean R_IsEmptyLine(seg_t *line, sector_t *front, sector_t *back)
 {
 	return (
-#ifdef POLYOBJECTS
 		!line->polyseg &&
-#endif
 		back->ceilingpic == front->ceilingpic
 		&& back->floorpic == front->floorpic
 		&& back->f_slope == front->f_slope
@@ -650,7 +648,6 @@ static boolean R_CheckBBox(const fixed_t *bspcoord)
 	return true;
 }
 
-#ifdef POLYOBJECTS
 
 size_t numpolys;        // number of polyobjects in current subsector
 size_t num_po_ptrs;     // number of polyobject pointers allocated
@@ -815,7 +812,6 @@ static void R_AddPolyObjects(subsector_t *sub)
 			R_AddLine(po_ptrs[i]->segs[j]);
 	}
 }
-#endif
 
 //
 // R_Subsector
@@ -894,9 +890,7 @@ static void R_Subsector(size_t num)
 	{
 		floorplane = R_FindPlane(frontsector->floorheight, frontsector->floorpic, floorlightlevel,
 			frontsector->floor_xoffs, frontsector->floor_yoffs, frontsector->floorpic_angle, floorcolormap, NULL
-#ifdef POLYOBJECTS_PLANES
 			, NULL
-#endif
 			, frontsector->f_slope
 			, R_NoEncore(frontsector, false));
 	}
@@ -912,9 +906,7 @@ static void R_Subsector(size_t num)
 		ceilingplane = R_FindPlane(frontsector->ceilingheight, frontsector->ceilingpic,
 			ceilinglightlevel, frontsector->ceiling_xoffs, frontsector->ceiling_yoffs, frontsector->ceilingpic_angle,
 			ceilingcolormap, NULL
-#ifdef POLYOBJECTS_PLANES
 			, NULL
-#endif
 			, frontsector->c_slope
 			, R_NoEncore(frontsector, true));
 	}
@@ -965,9 +957,7 @@ static void R_Subsector(size_t num)
 				ffloor[numffloors].plane = R_FindPlane(*rover->bottomheight, *rover->bottompic,
 					*frontsector->lightlist[light].lightlevel, *rover->bottomxoffs,
 					*rover->bottomyoffs, *rover->bottomangle, frontsector->lightlist[light].extra_colormap, rover
-#ifdef POLYOBJECTS_PLANES
 					, NULL
-#endif
 					, *rover->b_slope
 					, R_NoEncore(rover->master->frontsector, true));
 
@@ -1003,9 +993,7 @@ static void R_Subsector(size_t num)
 				ffloor[numffloors].plane = R_FindPlane(*rover->topheight, *rover->toppic,
 					*frontsector->lightlist[light].lightlevel, *rover->topxoffs, *rover->topyoffs, *rover->topangle,
 					frontsector->lightlist[light].extra_colormap, rover
-#ifdef POLYOBJECTS_PLANES
 					, NULL
-#endif
 					, *rover->t_slope
 					, R_NoEncore(rover->master->frontsector, false));
 
@@ -1022,7 +1010,6 @@ static void R_Subsector(size_t num)
 		}
 	}
 
-#ifdef POLYOBJECTS_PLANES
 	// Polyobjects have planes, too!
 	if (sub->polyList)
 	{
@@ -1091,7 +1078,6 @@ static void R_Subsector(size_t num)
 			po = (polyobj_t *)(po->link.next);
 		}
 	}
-#endif
 
 #ifdef FLOORSPLATS
 	if (sub->splats)
@@ -1114,18 +1100,14 @@ static void R_Subsector(size_t num)
 
 	firstseg = NULL;
 
-#ifdef POLYOBJECTS
 	// haleyjd 02/19/06: draw polyobjects before static lines
 	if (sub->polyList)
 		R_AddPolyObjects(sub);
-#endif
 
 	while (count--)
 	{
 //		CONS_Debug(DBG_GAMELOGIC, "Adding normal line %d...(%d)\n", line->linedef-lines, leveltime);
-#ifdef POLYOBJECTS
 		if (!line->polyseg) // ignore segs that belong to polyobjects
-#endif
 		R_AddLine(line);
 		line++;
 		curline = NULL; /* cph 2001/11/18 - must clear curline now we're done with it, so stuff doesn't try using it for other things */

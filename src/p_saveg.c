@@ -981,7 +981,6 @@ typedef enum
 	tc_noenemies,
 	tc_eachtime,
 	tc_disappear,
-#ifdef POLYOBJECTS
 	tc_polyrotate, // haleyjd 03/26/06: polyobjects
 	tc_polymove,
 	tc_polywaypoint,
@@ -989,7 +988,6 @@ typedef enum
 	tc_polyswingdoor,
 	tc_polyflag,
 	tc_polydisplace,
-#endif
 	tc_end
 } specials_e;
 
@@ -1544,7 +1542,6 @@ static void SaveDisappearThinker(const thinker_t *th, const UINT8 type)
 	WRITEINT32(save_p, ht->exists);
 }
 
-#ifdef POLYOBJECTS
 
 //
 // SavePolyrotateThinker
@@ -1654,7 +1651,6 @@ static void SavePolydisplaceThinker(const thinker_t *th, const UINT8 type)
 	WRITEFIXED(save_p, ht->oldHeights);
 }
 
-#endif
 /*
 //
 // SaveWhatThinker
@@ -1834,7 +1830,6 @@ static void P_NetArchiveThinkers(void)
 			SaveDisappearThinker(th, tc_disappear);
 			continue;
 		}
-#ifdef POLYOBJECTS
 		else if (th->function.acp1 == (actionf_p1)T_PolyObjRotate)
 		{
 			SavePolyrotatetThinker(th, tc_polyrotate);
@@ -1870,7 +1865,6 @@ static void P_NetArchiveThinkers(void)
 			SavePolydisplaceThinker(th, tc_polydisplace);
 			continue;
 		}
-#endif
 #ifdef PARANOIA
 		else if (th->function.acv != P_RemoveThinkerDelayed) // wait garbage collection
 			I_Error("unknown thinker type %p", th->function.acp1);
@@ -2507,7 +2501,6 @@ static inline void LoadDisappearThinker(actionf_p1 thinker)
 	P_AddThinker(&ht->thinker);
 }
 
-#ifdef POLYOBJECTS
 
 //
 // LoadPolyrotateThinker
@@ -2627,7 +2620,6 @@ static inline void LoadPolydisplaceThinker(actionf_p1 thinker)
 	ht->oldHeights = READFIXED(save_p);
 	P_AddThinker(&ht->thinker);
 }
-#endif
 
 /*
 //
@@ -2796,7 +2788,6 @@ static void P_NetUnArchiveThinkers(void)
 			case tc_disappear:
 				LoadDisappearThinker((actionf_p1)T_Disappear);
 				break;
-#ifdef POLYOBJECTS
 			case tc_polyrotate:
 				LoadPolyrotatetThinker((actionf_p1)T_PolyObjRotate);
 				break;
@@ -2824,7 +2815,6 @@ static void P_NetUnArchiveThinkers(void)
 			case tc_polydisplace:
 				LoadPolydisplaceThinker((actionf_p1)T_PolyObjDisplace);
 				break;
-#endif
 			case tc_scroll:
 				LoadScrollThinker((actionf_p1)T_Scroll);
 				break;
@@ -2865,7 +2855,6 @@ static void P_NetUnArchiveThinkers(void)
 //
 // haleyjd 03/26/06: PolyObject saving code
 //
-#ifdef POLYOBJECTS
 #define PD_FLAGS  0x01
 #define PD_TRANS   0x02
 
@@ -2954,7 +2943,6 @@ static inline void P_UnArchivePolyObjects(void)
 	for (i = 0; i < numSavedPolys; ++i)
 		P_UnArchivePolyObj(&PolyObjects[i]);
 }
-#endif
 //
 // P_FinishMobjs
 //
@@ -3435,9 +3423,7 @@ void P_SaveNetGame(void)
 	if (gamestate == GS_LEVEL)
 	{
 		P_NetArchiveWorld();
-#ifdef POLYOBJECTS
 		P_ArchivePolyObjects();
-#endif
 		P_NetArchiveThinkers();
 		P_NetArchiveSpecials();
 	}
@@ -3479,9 +3465,7 @@ boolean P_LoadNetGame(void)
 	if (gamestate == GS_LEVEL)
 	{
 		P_NetUnArchiveWorld();
-#ifdef POLYOBJECTS
 		P_UnArchivePolyObjects();
-#endif
 		P_NetUnArchiveThinkers();
 		P_NetUnArchiveSpecials();
 		P_RelinkPointers();

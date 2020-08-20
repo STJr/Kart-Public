@@ -3138,7 +3138,6 @@ static void P_DoTeeter(player_t *player) // SRB2kart - unused.
 		BMBOUNDFIX(xl, xh, yl, yh);
 
 	// Polyobjects
-#ifdef POLYOBJECTS
 		validcount++;
 
 		for (by = yl; by <= yh; by++)
@@ -3232,7 +3231,6 @@ static void P_DoTeeter(player_t *player) // SRB2kart - unused.
 					plink = (polymaplink_t *)(plink->link.next);
 				}
 			}
-#endif
 		if (teeter) // only bother with objects as a last resort if you were already teetering
 		{
 			mobj_t *oldtmthing = tmthing;
@@ -3809,9 +3807,7 @@ static void P_2dMovement(player_t *player)
 	else if (player->onconveyor == 4 && !P_IsObjectOnGround(player->mo)) // Actual conveyor belt
 		player->cmomx = player->cmomy = 0;
 	else if (player->onconveyor != 2 && player->onconveyor != 4
-#ifdef POLYOBJECTS
 				&& player->onconveyor != 1
-#endif
 	)
 		player->cmomx = player->cmomy = 0;
 
@@ -4006,9 +4002,7 @@ static void P_3dMovement(player_t *player)
 	else if (player->onconveyor == 4 && !P_IsObjectOnGround(player->mo)) // Actual conveyor belt
 		player->cmomx = player->cmomy = 0;
 	else if (player->onconveyor != 2 && player->onconveyor != 4
-#ifdef POLYOBJECTS
 				&& player->onconveyor != 1
-#endif
 	)
 		player->cmomx = player->cmomy = 0;
 
@@ -7767,7 +7761,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			}
 		}
 
-#ifdef POLYOBJECTS
 	// Check polyobjects and see if floorz/ceilingz need to be altered
 	{
 		INT32 xl, xh, yl, yh, bx, by;
@@ -7846,7 +7839,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 				}
 			}
 	}
-#endif
 
 		// crushed camera
 		if (myceilingz <= myfloorz + thiscam->height && !resetcalled && !cameranoclip)
@@ -8425,9 +8417,7 @@ void P_PlayerThink(player_t *player)
 	P_MobjCheckWater(player->mo);
 
 #ifndef SECTORSPECIALSAFTERTHINK
-#ifdef POLYOBJECTS
 	if (player->onconveyor != 1 || !P_IsObjectOnGround(player->mo))
-#endif
 	player->onconveyor = 0;
 	// check special sectors : damage & secrets
 
@@ -8585,10 +8575,8 @@ void P_PlayerThink(player_t *player)
 	// it lasts for one tic.
 	player->pflags &= ~PF_FULLSTASIS;
 
-#ifdef POLYOBJECTS
 	if (player->onconveyor == 1)
 			player->cmomy = player->cmomx = 0;
-#endif
 
 	//P_DoSuperStuff(player);
 	//P_CheckSneakerAndLivesTimer(player);
@@ -8836,9 +8824,7 @@ void P_PlayerAfterThink(player_t *player)
 	cmd = &player->cmd;
 
 #ifdef SECTORSPECIALSAFTERTHINK
-#ifdef POLYOBJECTS
 	if (player->onconveyor != 1 || !P_IsObjectOnGround(player->mo))
-#endif
 	player->onconveyor = 0;
 	// check special sectors : damage & secrets
 

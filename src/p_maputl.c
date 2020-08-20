@@ -491,14 +491,12 @@ void P_LineOpening(line_t *linedef, mobj_t *mobj)
 	}
 
 	// Treat polyobjects kind of like 3D Floors
-#ifdef POLYOBJECTS
 	if (linedef->polyobj && (linedef->polyobj->flags & POF_TESTHEIGHT))
 	{
 		front = linedef->frontsector;
 		back = linedef->frontsector;
 	}
 	else
-#endif
 	{
 		front = linedef->frontsector;
 		back = linedef->backsector;
@@ -607,9 +605,7 @@ void P_LineOpening(line_t *linedef, mobj_t *mobj)
 
 		// Check for fake floors in the sector.
 		if (front->ffloors || back->ffloors
-#ifdef POLYOBJECTS
 		    || linedef->polyobj
-#endif
 		   )
 		{
 			ffloor_t *rover;
@@ -702,7 +698,6 @@ void P_LineOpening(line_t *linedef, mobj_t *mobj)
 				}
 			}
 
-#ifdef POLYOBJECTS
 			// Treat polyobj's backsector like a 3D Floor
 			if (linedef->polyobj && (linedef->polyobj->flags & POF_TESTHEIGHT))
 			{
@@ -724,7 +719,6 @@ void P_LineOpening(line_t *linedef, mobj_t *mobj)
 				else if (polysec->ceilingheight > lowestfloor && delta1 < delta2)
 					lowestfloor = polysec->ceilingheight;
 			}
-#endif
 			if (highestceiling < highceiling)
 				highceiling = highestceiling;
 
@@ -987,9 +981,7 @@ boolean P_BlockLinesIterator(INT32 x, INT32 y, boolean (*func)(line_t *))
 {
 	INT32 offset;
 	const INT32 *list; // Big blockmap
-#ifdef POLYOBJECTS
 	polymaplink_t *plink; // haleyjd 02/22/06
-#endif
 	line_t *ld;
 
 	if (x < 0 || y < 0 || x >= bmapwidth || y >= bmapheight)
@@ -997,7 +989,6 @@ boolean P_BlockLinesIterator(INT32 x, INT32 y, boolean (*func)(line_t *))
 
 	offset = y*bmapwidth + x;
 
-#ifdef POLYOBJECTS
 	// haleyjd 02/22/06: consider polyobject lines
 	plink = polyblocklinks[offset];
 
@@ -1021,7 +1012,6 @@ boolean P_BlockLinesIterator(INT32 x, INT32 y, boolean (*func)(line_t *))
 		}
 		plink = (polymaplink_t *)(plink->link.next);
 	}
-#endif
 
 	offset = *(blockmap + offset); // offset = blockmap[y*bmapwidth+x];
 
