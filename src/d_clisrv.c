@@ -2271,7 +2271,7 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 	}
 
 	// Ask the info to the server (askinfo packet)
-	if (*asksent + NEWTICRATE < I_GetTime())
+	if ((I_GetTime() - NEWTICRATE) >= *asksent)
 	{
 		SendAskInfo(servernode);
 		*asksent = I_GetTime();
@@ -2315,7 +2315,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 		case CL_ASKFULLFILELIST:
 			if (cl_lastcheckedfilecount == UINT16_MAX) // All files retrieved
 				cl_mode = CL_CHECKFILES;
-			else if (fileneedednum != cl_lastcheckedfilecount || *asksent + NEWTICRATE < I_GetTime())
+			else if (fileneedednum != cl_lastcheckedfilecount || (I_GetTime() - NEWTICRATE) >= *asksent)
 			{
 				if (CL_AskFileList(fileneedednum))
 				{
@@ -2388,7 +2388,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 		case CL_LOADFILES:
 			if (CL_LoadServerFiles())
 			{
-				*asksent = I_GetTime() - (NEWTICRATE*5); //This ensure the first join ask is right away
+				*asksent = I_GetTime() - (NEWTICRATE*3); //This ensure the first join ask is right away
 				firstconnectattempttime = I_GetTime();
 				cl_mode = CL_ASKJOIN;
 			}
@@ -2557,7 +2557,7 @@ static void CL_ConnectToServer(void)
 	pnumnodes = 1;
 	oldtic = I_GetTime() - 1;
 #ifndef NONET
-	asksent = (tic_t) - TICRATE;
+	asksent = I_GetTime() - NEWTICRATE*3;
 
 	i = SL_SearchServer(servernode);
 
