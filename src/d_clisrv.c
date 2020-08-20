@@ -2421,7 +2421,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 			}
 			break;
 		case CL_WAITJOINRESPONSE:
-			if (( I_GetTime() - NEWTICRATE*3 ) >= *asksent && CL_SendJoin())
+			if (( I_GetTime() - NEWTICRATE*3 ) >= *asksent)
 			{
 				cl_mode = CL_ASKJOIN;
 			}
