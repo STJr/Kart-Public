@@ -348,6 +348,8 @@ static const char *DRPC_GetServerIP(void)
 			free(buffer.pointer);
 			curl_easy_cleanup(curl);
 		}
+
+		curl_global_cleanup();
 	}
 
 	if (self_ip[0])
