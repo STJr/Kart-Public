@@ -34,6 +34,8 @@
 
 consvar_t cv_discordrp = {"discordrp", "On", CV_SAVE|CV_CALL, CV_OnOff, DRPC_UpdatePresence, 0, NULL, NULL, 0, 0, NULL};
 
+#define IP_SIZE 16 // length of IP strings
+
 #ifdef HAVE_CURL
 struct SelfIPbuffer
 {
@@ -42,14 +44,34 @@ struct SelfIPbuffer
 	size_t length;
 };
 
-#define IP_SIZE 16
 static char self_ip[IP_SIZE];
 #endif // HAVE_CURL
 
 /*--------------------------------------------------
+	static char *DRPC_XORIPString(const char *input)
+
+		Simple XOR encryption/decryption. Not complex or
+		very secretive because we aren't sending anything
+		that isn't easily accessible via the Master Server anyway.
+--------------------------------------------------*/
+static char *DRPC_XORIPString(const char *input)
+{
+	const UINT8 xor[IP_SIZE] = {222, 106, 64, 251, 207, 16, 28, 78, 4, 118, 46, 76, 153, 45, 91, 100};
+	char *output = malloc(sizeof(char) * IP_SIZE);
+	UINT8 i;
+
+	for (i = 0; i < IP_SIZE; i++)
+	{
+		output[i] = input[i] ^ xor[i];
+	}
+
+	return output;
+}
+
+/*--------------------------------------------------
 	static void DRPC_HandleReady(const DiscordUser *user)
 
-		Handler function, ran when the game connects to Discord.
+		Callback function, ran when the game connects to Discord.
 
 	Input Arguments:-
 		user - Struct containing Discord user info.
@@ -65,7 +87,7 @@ static void DRPC_HandleReady(const DiscordUser *user)
 /*--------------------------------------------------
 	static void DRPC_HandleDisconnect(int err, const char *msg)
 
-		Handler function, ran when disconnecting from Discord.
+		Callback function, ran when disconnecting from Discord.
 
 	Input Arguments:-
 		err - Error type
@@ -82,7 +104,7 @@ static void DRPC_HandleDisconnect(int err, const char *msg)
 /*--------------------------------------------------
 	static void DRPC_HandleError(int err, const char *msg)
 
-		Handler function, ran when Discord outputs an error.
+		Callback function, ran when Discord outputs an error.
 
 	Input Arguments:-
 		err - Error type
@@ -99,7 +121,7 @@ static void DRPC_HandleError(int err, const char *msg)
 /*--------------------------------------------------
 	static void DRPC_HandleJoin(const char *secret)
 
-		Handler function, ran when Discord wants to
+		Callback function, ran when Discord wants to
 		connect a player to the game via a channel invite
 		or a join request.
 
@@ -111,8 +133,10 @@ static void DRPC_HandleError(int err, const char *msg)
 --------------------------------------------------*/
 static void DRPC_HandleJoin(const char *secret)
 {
-	CONS_Printf("Connecting to %s via Discord\n", secret);
-	COM_BufAddText(va("connect \"%s\"\n", secret));
+	char *ip = DRPC_XORIPString(secret);
+	CONS_Printf("Connecting to %s via Discord\n", ip);
+	COM_BufAddText(va("connect \"%s\"\n", ip));
+	free(ip);
 }
 
 /*--------------------------------------------------
@@ -129,6 +153,7 @@ void DRPC_Init(void)
 	handlers.disconnected = DRPC_HandleDisconnect;
 	handlers.errored = DRPC_HandleError;
 	handlers.joinGame = DRPC_HandleJoin;
+	//handlers.joinRequest = DRPC_HandleJoinRequest;
 
 	Discord_Initialize(DISCORD_APPID, &handlers, 1, NULL);
 	I_AddExitFunc(Discord_Shutdown);
@@ -275,8 +300,8 @@ void DRPC_UpdatePresence(void)
 #ifdef DEVELOP
 	// This way, we can use the invite feature in-dev, but not have snoopers seeing any potential secrets! :P
 	discordPresence.largeImageKey = "miscdevelop";
-	discordPresence.largeImageText = "Nope.";
-	discordPresence.state = "Shh! We're testing!";
+	discordPresence.largeImageText = "No peeking!";
+	discordPresence.state = "Testing the game";
 
 	Discord_UpdatePresence(&discordPresence);
 	return;
@@ -304,7 +329,11 @@ void DRPC_UpdatePresence(void)
 
 		// Grab the host's IP for joining.
 		if (cv_allownewplayer.value && ((join = DRPC_GetServerIP()) != NULL))
-			discordPresence.joinSecret = join;
+		{
+			char *xorjoin = DRPC_XORIPString(join);
+			discordPresence.joinSecret = xorjoin;
+			free(xorjoin);
+		}
 	}
 	else
 	{

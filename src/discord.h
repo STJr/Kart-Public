@@ -23,7 +23,7 @@ extern consvar_t cv_discordrp;
 	void DRPC_Init(void);
 
 		Initalizes Discord Rich Presence by linking the Application ID
-		and setting the handler functions.
+		and setting the callback functions.
 --------------------------------------------------*/
 
 void DRPC_Init(void);
