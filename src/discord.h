@@ -19,6 +19,32 @@
 
 extern consvar_t cv_discordrp;
 
+typedef struct discordRequest_s {
+	tic_t timer; // Tics left on the request before it expires.
+	char *username; // Discord user name + their discriminator.
+	char *userID; // The ID of the Discord user, gets used with Discord_Respond()
+
+	// HAHAHA, no.
+	// *Maybe* if it was only PNG I would boot up curl just to get AND convert this to Doom GFX,
+	// but it can be a JEPG, WebP, or GIF too :)
+	//patch_t *avatar;
+
+	struct discordRequest_s *next; // Next request in the list.
+	struct discordRequest_s *prev; // Previous request in the list. Not used normally, but just in case something funky happens, this should repair the list.
+} discordRequest_t;
+
+extern discordRequest_t *discordRequestList;
+
+
+/*--------------------------------------------------
+	void DRPC_RemoveRequest(void);
+
+		Removes an invite from the list.
+--------------------------------------------------*/
+
+void DRPC_RemoveRequest(discordRequest_t *removeRequest);
+
+
 /*--------------------------------------------------
 	void DRPC_Init(void);
 

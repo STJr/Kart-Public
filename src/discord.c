@@ -25,6 +25,7 @@
 #include "m_menu.h" // gametype_cons_t
 #include "r_things.h" // skins
 #include "mserv.h" // ms_RoomId
+#include "z_zone.h"
 
 #include "discord.h"
 #include "doomdef.h"
@@ -32,9 +33,12 @@
 // Feel free to provide your own, if you care enough to create another Discord app for this :P
 #define DISCORD_APPID "503531144395096085"
 
+// length of IP strings
+#define IP_SIZE 16
+
 consvar_t cv_discordrp = {"discordrp", "On", CV_SAVE|CV_CALL, CV_OnOff, DRPC_UpdatePresence, 0, NULL, NULL, 0, 0, NULL};
 
-#define IP_SIZE 16 // length of IP strings
+discordRequest_t *discordRequestList = NULL;
 
 #ifdef HAVE_CURL
 struct SelfIPbuffer
@@ -81,7 +85,7 @@ static char *DRPC_XORIPString(const char *input)
 --------------------------------------------------*/
 static void DRPC_HandleReady(const DiscordUser *user)
 {
-	CONS_Printf("Discord: connected to %s#%s - %s\n", user->username, user->discriminator, user->userId);
+	CONS_Printf("Discord: connected to %s#%s (%s)\n", user->username, user->discriminator, user->userId);
 }
 
 /*--------------------------------------------------
@@ -140,6 +144,89 @@ static void DRPC_HandleJoin(const char *secret)
 }
 
 /*--------------------------------------------------
+	static void DRPC_HandleJoinRequest(const DiscordUser *requestUser)
+
+		Callback function, ran when Discord wants to
+		ask the player if another Discord user can join
+		or not.
+
+	Input Arguments:-
+		requestUser - DiscordUser struct for the user trying to connect.
+
+	Return:-
+		None
+--------------------------------------------------*/
+static void DRPC_HandleJoinRequest(const DiscordUser *requestUser)
+{
+	discordRequest_t *append = discordRequestList;
+	discordRequest_t *newRequest = Z_Calloc(sizeof (discordRequest_t), PU_STATIC, NULL);
+
+	// Discord requests exprie after 30 seconds, give 1 second of lee-way for connection discrepancies
+	newRequest->timer = 29*TICRATE;
+
+	newRequest->username = Z_Calloc(344+1+8, PU_STATIC, NULL);
+	snprintf(newRequest->username, 344+1+8, "%s#%s",
+		requestUser->username,
+		requestUser->discriminator
+	);
+
+	newRequest->userID = Z_Calloc(32, PU_STATIC, NULL);
+	snprintf(newRequest->userID, 32, "%s", requestUser->userId);
+
+	if (append != NULL)
+	{
+		discordRequest_t *prev = NULL;
+
+		while (append != NULL)
+		{
+			prev = append;
+			append = append->next;
+		}
+
+		newRequest->prev = prev;
+		prev->next = newRequest;
+	}
+	else
+	{
+		discordRequestList = newRequest;
+	}
+}
+
+/*--------------------------------------------------
+	void DRPC_RemoveRequest(discordRequest_t *removeRequest)
+
+		See header file for description.
+--------------------------------------------------*/
+void DRPC_RemoveRequest(discordRequest_t *removeRequest)
+{
+	if (removeRequest->prev != NULL)
+	{
+		removeRequest->prev->next = removeRequest->next;
+	}
+
+	if (removeRequest->next != NULL)
+	{
+		removeRequest->next->prev = removeRequest->prev;
+
+		if (removeRequest == discordRequestList)
+		{
+			discordRequestList = removeRequest->next;
+		}
+	}
+	else
+	{
+		if (removeRequest == discordRequestList)
+		{
+			discordRequestList = NULL;
+		}
+	}
+
+	Z_Free(removeRequest->username);
+	Z_Free(removeRequest->userID);
+	Z_Free(removeRequest);
+}
+
+/*--------------------------------------------------
 	void DRPC_Init(void)
 
 		See header file for description.
@@ -153,7 +240,7 @@ void DRPC_Init(void)
 	handlers.disconnected = DRPC_HandleDisconnect;
 	handlers.errored = DRPC_HandleError;
 	handlers.joinGame = DRPC_HandleJoin;
-	//handlers.joinRequest = DRPC_HandleJoinRequest;
+	handlers.joinRequest = DRPC_HandleJoinRequest;
 
 	Discord_Initialize(DISCORD_APPID, &handlers, 1, NULL);
 	I_AddExitFunc(Discord_Shutdown);
@@ -347,8 +434,7 @@ void DRPC_UpdatePresence(void)
 	}
 
 	// Gametype info
-	if ((gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING)
-		&& !demo.playback)
+	if ((gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING) && Playing())
 	{
 		if (modeattacking)
 			discordPresence.details = "Time Attack";
@@ -396,7 +482,7 @@ void DRPC_UpdatePresence(void)
 			discordPresence.largeImageText = mapname;
 		}
 
-		if (Playing())
+		if (gamestate == GS_LEVEL && Playing())
 		{
 			const time_t currentTime = time(NULL);
 			const time_t mapTimeStart = currentTime - ((leveltime + (modeattacking ? starttime : 0)) / TICRATE);
