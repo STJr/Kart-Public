@@ -150,7 +150,10 @@ FILE *W_OpenWadFile(const char **filename, boolean useerrors)
 {
 	FILE *handle;
 
-	strncpy(filenamebuf, *filename, MAX_WADPATH);
+	if (filenamebuf != *filename) {
+		// avoid overlap
+		strncpy(filenamebuf, *filename, MAX_WADPATH);
+	}
 	filenamebuf[MAX_WADPATH - 1] = '\0';
 	*filename = filenamebuf;
 
