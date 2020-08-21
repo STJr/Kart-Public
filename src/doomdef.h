@@ -681,4 +681,10 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 /// Hardware renderer: OpenGL
 #define GL_SHADERS
 
+#ifdef HAVE_CURL
+#define MASTERSERVER
+#else
+#undef UPDATE_ALERT
+#endif
+
 #endif // __DOOMDEF__

@@ -55,6 +55,8 @@ INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue);
 INT32 K_GetKartDriftSparkValue(player_t *player);
 void K_KartUpdatePosition(player_t *player);
 void K_DropItems(player_t *player);
+void K_DropRocketSneaker(player_t *player);
+void K_DropKitchenSink(player_t *player);
 void K_StripItems(player_t *player);
 void K_StripOther(player_t *player);
 void K_MomentumToFacing(player_t *player);

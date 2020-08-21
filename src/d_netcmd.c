@@ -4088,7 +4088,7 @@ static void Command_RunSOC(void)
 static void Got_RunSOCcmd(UINT8 **cp, INT32 playernum)
 {
 	char filename[256];
-	filestatus_t ncs = FS_NOTFOUND;
+	filestatus_t ncs = FS_NOTCHECKED;
 
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
@@ -4260,7 +4260,7 @@ static void Command_Delfile(void)
 static void Got_RequestAddfilecmd(UINT8 **cp, INT32 playernum)
 {
 	char filename[241];
-	filestatus_t ncs = FS_NOTFOUND;
+	filestatus_t ncs = FS_NOTCHECKED;
 	UINT8 md5sum[16];
 	boolean kick = false;
 	boolean toomany = false;
@@ -4355,7 +4355,7 @@ static void Got_Delfilecmd(UINT8 **cp, INT32 playernum)
 static void Got_Addfilecmd(UINT8 **cp, INT32 playernum)
 {
 	char filename[241];
-	filestatus_t ncs = FS_NOTFOUND;
+	filestatus_t ncs = FS_NOTCHECKED;
 	UINT8 md5sum[16];
 
 	READSTRINGN(*cp, filename, 240);
