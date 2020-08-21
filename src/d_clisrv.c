@@ -2394,7 +2394,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 			}
 			break;
 		case CL_ASKJOIN:
-			if (firstconnectattempttime + NEWTICRATE*300 < I_GetTime())
+			if (firstconnectattempttime + NEWTICRATE*300 < I_GetTime() && !server)
 			{
 				CONS_Printf(M_GetText("5 minute wait time exceeded.\n"));
 				CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
@@ -2559,6 +2559,7 @@ static void CL_ConnectToServer(void)
 	oldtic = I_GetTime() - 1;
 #ifndef NONET
 	asksent = I_GetTime() - NEWTICRATE*3;
+	firstconnectattempttime = I_GetTime();
 
 	i = SL_SearchServer(servernode);
 
