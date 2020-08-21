@@ -363,7 +363,8 @@ void DRPC_UpdatePresence(void)
 		}
 	}
 
-	if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) // Map info
+	if ((gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) // Map info
+		&& !(demo.playback && demo.title))
 	{
 		if ((gamemap >= 1 && gamemap <= 60) // supported race maps
 			|| (gamemap >= 136 && gamemap <= 164)) // supported battle maps
