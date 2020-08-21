@@ -2407,6 +2407,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 					"\n"
 					"Press ESC\n"
 				), NULL, MM_NOTHING);
+				return false;
 			}
 #ifdef JOININGAME
 			// prepare structures to save the file
