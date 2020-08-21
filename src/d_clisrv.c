@@ -141,6 +141,9 @@ char connectedservername[MAXSERVERNAME];
 /// \todo WORK!
 boolean acceptnewnode = true;
 
+boolean serverisfull = false; //lets us be aware if the server was full after we check files, but before downloading, so we can ask if the user still wants to download or not
+tic_t firstconnectattempttime = 0;
+
 // engine
 
 // Must be a power of two
@@ -1093,8 +1096,10 @@ static INT16 Consistancy(void);
 typedef enum
 {
 	CL_SEARCHING,
+	CL_CHECKFILES,
 	CL_DOWNLOADFILES,
 	CL_ASKJOIN,
+	CL_LOADFILES,
 	CL_WAITJOINRESPONSE,
 #ifdef JOININGAME
 	CL_DOWNLOADSAVEGAME,
@@ -1102,6 +1107,7 @@ typedef enum
 	CL_CONNECTED,
 	CL_ABORTED,
 	CL_ASKFULLFILELIST,
+	CL_CONFIRMCONNECT,
 #ifdef HAVE_CURL
 	CL_PREPAREHTTPFILES,
 	CL_DOWNLOADHTTPFILES,
@@ -1166,11 +1172,7 @@ static inline void CL_DrawConnectionStatus(void)
 	// Draw background fade
 	V_DrawFadeScreen(0xFF00, 16);
 
-	// Draw the bottom box.
-	M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
-	V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
-
-	if (cl_mode != CL_DOWNLOADFILES
+	if (cl_mode != CL_DOWNLOADFILES && cl_mode != CL_LOADFILES
 #ifdef HAVE_CURL
 	&& cl_mode != CL_DOWNLOADHTTPFILES
 #endif
@@ -1180,6 +1182,10 @@ static inline void CL_DrawConnectionStatus(void)
 		UINT8 palstart = (cl_mode == CL_SEARCHING) ? 128 : 160;
 		// 15 pal entries total.
 		const char *cltext;
+
+		//Draw bottom box
+		M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
 
 		for (i = 0; i < 16; ++i)
 			V_DrawFill((BASEVIDWIDTH/2-128) + (i * 16), BASEVIDHEIGHT-24, 16, 8, palstart + ((animtime - i) & 15));
@@ -1202,11 +1208,22 @@ static inline void CL_DrawConnectionStatus(void)
 				break;
 #endif
 			case CL_ASKFULLFILELIST:
-				cltext = M_GetText("This server has a LOT of files!");
+			case CL_CHECKFILES:
+				cltext = M_GetText("Checking server addon list ...");
+				break;
+			case CL_CONFIRMCONNECT:
+				cltext = "";
+				break;
+			case CL_LOADFILES:
+				cltext = M_GetText("Loading server addons...");
 				break;
 			case CL_ASKJOIN:
 			case CL_WAITJOINRESPONSE:
-				cltext = M_GetText("Requesting to join...");
+				if (serverisfull)
+					cltext = M_GetText("Server full, waiting for a slot...");
+				else
+					cltext = M_GetText("Requesting to join...");
+					
 				break;
 #ifdef HAVE_CURL
 			case CL_PREPAREHTTPFILES:
@@ -1221,19 +1238,47 @@ static inline void CL_DrawConnectionStatus(void)
 	}
 	else
 	{
-		if (lastfilenum != -1)
+		if (cl_mode == CL_LOADFILES)
+		{
+			INT32 totalfileslength;
+			INT32 loadcompletednum = 0;
+			INT32 i;
+
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
+
+			//ima just count files here
+			for (i = 0; i < fileneedednum; i++)
+				if (fileneeded[i].status == FS_OPEN)
+					loadcompletednum++;
+
+			// Loading progress
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP, "Loading server addons...");
+			totalfileslength = (INT32)((loadcompletednum/(double)(fileneedednum)) * 256);
+			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, totalfileslength, 8, 160);
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+				va(" %2u/%2u Files",loadcompletednum,fileneedednum));
+		}
+		else if (lastfilenum != -1)
 		{
 			INT32 dldlength;
+			INT32 totalfileslength;
+			UINT32 totaldldsize;
 			static char tempname[28];
 			fileneeded_t *file = &fileneeded[lastfilenum];
 			char *filename = file->filename;
+
+			// Draw the bottom box.
+			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-58-8, 32, 1);
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-14, V_YELLOWMAP, "Press ESC to abort");
 
 			Net_GetNetStat();
 			dldlength = (INT32)((file->currentsize/(double)file->totalsize) * 256);
 			if (dldlength > 256)
 				dldlength = 256;
-			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
-			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, dldlength, 8, 160);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, 256, 8, 175);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, dldlength, 8, 160);
 
 			memset(tempname, 0, sizeof(tempname));
 			// offset filename to just the name only part
@@ -1251,16 +1296,52 @@ static inline void CL_DrawConnectionStatus(void)
 				strncpy(tempname, filename, sizeof(tempname)-1);
 			}
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-22, V_YELLOWMAP,
 				va(M_GetText("Downloading \"%s\""), tempname));
-			V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+			V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE,
 				va(" %4uK/%4uK",fileneeded[lastfilenum].currentsize>>10,file->totalsize>>10));
-			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE,
 				va("%3.1fK/s ", ((double)getbps)/1024));
+
+			// Download progress
+
+			if (fileneeded[lastfilenum].currentsize != fileneeded[lastfilenum].totalsize)
+				totaldldsize = downloadcompletedsize+fileneeded[lastfilenum].currentsize; //Add in single file progress download if applicable
+			else
+				totaldldsize = downloadcompletedsize;
+
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-14, V_YELLOWMAP, "Overall Download Progress");
+			totalfileslength = (INT32)((totaldldsize/(double)totalfilesrequestedsize) * 256);
+			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, totalfileslength, 8, 160);
+
+			if (totalfilesrequestedsize>>20 >= 100) //display in MB if over 100MB
+				V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+					va(" %4uM/%4uM",totaldldsize>>20,totalfilesrequestedsize>>20));
+			else
+				V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+					va(" %4uK/%4uK",totaldldsize>>10,totalfilesrequestedsize>>10));
+
+			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+					va("%2u/%2u Files ",downloadcompletednum,totalfilesrequestednum));
 		}
 		else
+		{
+			INT32 i, animtime = ((ccstime / 4) & 15) + 16;
+			UINT8 palstart = (cl_mode == CL_SEARCHING) ? 128 : 160;
+			// 15 pal entries total.
+
+			//Draw bottom box
+			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
+
+			for (i = 0; i < 16; ++i)
+				V_DrawFill((BASEVIDWIDTH/2-128) + (i * 16), BASEVIDHEIGHT-24, 16, 8, palstart + ((animtime - i) & 15));
+
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP,
 				M_GetText("Waiting to download files..."));
+		}
 	}
 }
 #endif
@@ -1957,12 +2038,52 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 #endif // ifndef NONET
 
+static void M_ConfirmConnect(event_t *ev)
+{
+	if (ev->type == ev_keydown)
+	{
+		if (ev->data1 == ' ' || ev->data1 == 'y' || ev->data1 == KEY_ENTER || ev->data1 == gamecontrol[gc_accelerate][0] || ev->data1 == gamecontrol[gc_accelerate][1])
+		{
+			if (totalfilesrequestednum > 0)
+			{
+#ifdef HAVE_CURL
+				if (http_source[0] == '\0' || curl_failedwebdownload)
+#endif
+				{
+					if (CL_SendRequestFile())
+					{
+						cl_mode = CL_DOWNLOADFILES;
+					}
+				}
+#ifdef HAVE_CURL
+				else
+					cl_mode = CL_PREPAREHTTPFILES;
+#endif
+			}
+			else
+				cl_mode = CL_LOADFILES;
+			
+			M_ClearMenus(true);
+		}
+		else if (ev->data1 == 'n' || ev->data1 == KEY_ESCAPE|| ev->data1 == gamecontrol[gc_brake][0] || ev->data1 == gamecontrol[gc_brake][1])
+		{
+			cl_mode = CL_ABORTED;
+			M_ClearMenus(true);
+		}
+	}
+}
+
 static boolean CL_FinishedFileList(void)
 {
 	INT32 i;
-	CONS_Printf(M_GetText("Checking files...\n"));
+	char *downloadsize;
+	//CONS_Printf(M_GetText("Checking files...\n"));
 	i = CL_CheckFiles();
-	if (i == 3) // too many files
+	if (i == 4) // still checking ...
+	{
+		return true;
+	}
+	else if (i == 3) // too many files
 	{
 		D_QuitNetGame();
 		CL_Reset();
@@ -1991,7 +2112,21 @@ static boolean CL_FinishedFileList(void)
 		return false;
 	}
 	else if (i == 1)
-		cl_mode = CL_ASKJOIN;
+	{
+		if (serverisfull)
+		{
+			M_StartMessage(M_GetText(
+				"This server is full!\n"
+				"\n"
+				"You may load server addons (if any), and wait for a slot.\n"
+				"\n"
+				"Press ACCEL to continue or BRAKE to cancel.\n\n"
+			), M_ConfirmConnect, MM_EVENTHANDLER);
+			cl_mode = CL_CONFIRMCONNECT;
+		}
+		else
+			cl_mode = CL_LOADFILES;
+	}
 	else
 	{
 		// must download something
@@ -2016,14 +2151,55 @@ static boolean CL_FinishedFileList(void)
 				), NULL, MM_NOTHING);
 				return false;
 			}
+		}
 
-			if (CL_SendRequestFile())
-				cl_mode = CL_DOWNLOADFILES;
+#ifdef HAVE_CURL
+		if (!curl_failedwebdownload)
+#endif
+		{
+			downloadcompletednum = 0;
+			downloadcompletedsize = 0;
+			totalfilesrequestednum = 0;
+			totalfilesrequestedsize = 0;
+
+			for (i = 0; i < fileneedednum; i++)
+				if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
+				{
+					totalfilesrequestednum++;
+					totalfilesrequestedsize += fileneeded[i].totalsize;
+				}
+
+			if (totalfilesrequestedsize>>20 >= 100)
+				downloadsize = Z_StrDup(va("%uM",totalfilesrequestedsize>>20));
+			else
+				downloadsize = Z_StrDup(va("%uK",totalfilesrequestedsize>>10));
+
+			if (serverisfull)
+				M_StartMessage(va(M_GetText(
+					"This server is full!\n"
+					"Download of %s additional content is required to join.\n"
+					"\n"
+					"You may download, load server addons, and wait for a slot.\n"
+					"\n"
+					"Press ACCEL to continue or BRAKE to cancel.\n\n"
+				), downloadsize), M_ConfirmConnect, MM_EVENTHANDLER);
+			else
+				M_StartMessage(va(M_GetText(
+					"Download of %s additional content is required to join.\n"
+					"\n"
+					"Press ACCEL to continue or BRAKE to cancel.\n\n"
+				), downloadsize), M_ConfirmConnect, MM_EVENTHANDLER);
+
+			Z_Free(downloadsize);
+			cl_mode = CL_CONFIRMCONNECT;
 		}
 #ifdef HAVE_CURL
 		else
 		{
-			cl_mode = CL_PREPAREHTTPFILES;
+			if (CL_SendRequestFile())
+			{
+				cl_mode = CL_DOWNLOADFILES;
+			}
 		}
 #endif
 	}
@@ -2063,11 +2239,7 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 		// Quit here rather than downloading files and being refused later.
 		if (serverlist[i].info.numberofplayer >= serverlist[i].info.maxplayer)
 		{
-			D_QuitNetGame();
-			CL_Reset();
-			D_StartTitle();
-			M_StartMessage(va(M_GetText("Maximum players reached: %d\n\nPress ESC\n"), serverlist[i].info.maxplayer), NULL, MM_NOTHING);
-			return false;
+			serverisfull = true;
 		}
 
 		if (client)
@@ -2081,7 +2253,6 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 			if (serverlist[i].info.httpsource[0])
 				CONS_Printf("We received a http url from the server, however it will not be used as this build lacks curl support (%s)\n", serverlist[i].info.httpsource);
 #endif
-
 			D_ParseFileneeded(serverlist[i].info.fileneedednum, serverlist[i].info.fileneeded, 0);
 			if (serverlist[i].info.kartvars & SV_LOTSOFADDONS)
 			{
@@ -2090,8 +2261,7 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 				return true;
 			}
 
-			if (!CL_FinishedFileList())
-				return false;
+			cl_mode = CL_CHECKFILES;
 		}
 		else
 			cl_mode = CL_ASKJOIN; // files need not be checked for the server.
@@ -2100,7 +2270,7 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 	}
 
 	// Ask the info to the server (askinfo packet)
-	if (*asksent + NEWTICRATE < I_GetTime())
+	if ((I_GetTime() - NEWTICRATE) >= *asksent)
 	{
 		SendAskInfo(servernode);
 		*asksent = I_GetTime();
@@ -2129,7 +2299,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 {
 	boolean waitmore;
 	INT32 i;
-
+	
 #ifdef NONET
 	(void)tmpsave;
 #endif
@@ -2143,11 +2313,8 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 
 		case CL_ASKFULLFILELIST:
 			if (cl_lastcheckedfilecount == UINT16_MAX) // All files retrieved
-			{
-				if (!CL_FinishedFileList())
-					return false;
-			}
-			else if (fileneedednum != cl_lastcheckedfilecount || *asksent + NEWTICRATE < I_GetTime())
+				cl_mode = CL_CHECKFILES;
+			else if (fileneedednum != cl_lastcheckedfilecount || (I_GetTime() - NEWTICRATE) >= *asksent)
 			{
 				if (CL_AskFileList(fileneedednum))
 				{
@@ -2156,15 +2323,20 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 				}
 			}
 			break;
-
+		case CL_CHECKFILES:
+			if (!CL_FinishedFileList())
+				return false;
+			break;
 #ifdef HAVE_CURL
 		case CL_PREPAREHTTPFILES:
 			if (http_source[0])
 			{
 				for (i = 0; i < fileneedednum; i++)
 					if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
+					{
 						curl_transfers++;
-
+					}
+				
 				cl_mode = CL_DOWNLOADHTTPFILES;
 			}
 			break;
@@ -2188,19 +2360,13 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 
 			if (curl_failedwebdownload && !curl_transfers)
 			{
-				if (!CL_FinishedFileList()) 
-					break;
-
 				CONS_Printf("One or more files failed to download, falling back to internal downloader\n");
-				if (CL_SendRequestFile())
-				{
-					cl_mode = CL_DOWNLOADFILES;
-					break;
-				}
+				cl_mode = CL_CHECKFILES;
+				break;
 			}
 
 			if (!curl_transfers)
-				cl_mode = CL_ASKJOIN; // don't break case continue to cljoin request now
+				cl_mode = CL_LOADFILES;
 
 			break;
 #endif
@@ -2216,21 +2382,50 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 			if (waitmore)
 				break; // exit the case
 
-			cl_mode = CL_ASKJOIN; // don't break case continue to cljoin request now
-			/* FALLTHRU */
-
+			cl_mode = CL_LOADFILES;
+			break;
+		case CL_LOADFILES:
+			if (CL_LoadServerFiles())
+			{
+				*asksent = I_GetTime() - (NEWTICRATE*3); //This ensure the first join ask is right away
+				firstconnectattempttime = I_GetTime();
+				cl_mode = CL_ASKJOIN;
+			}
+			break;
 		case CL_ASKJOIN:
-			CL_LoadServerFiles();
+			if (firstconnectattempttime + NEWTICRATE*300 < I_GetTime() && !server)
+			{
+				CONS_Printf(M_GetText("5 minute wait time exceeded.\n"));
+				CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
+				D_QuitNetGame();
+				CL_Reset();
+				D_StartTitle();
+				M_StartMessage(M_GetText(
+					"5 minute wait time exceeded.\n"
+					"You may retry connection.\n"
+					"\n"
+					"Press ESC\n"
+				), NULL, MM_NOTHING);
+				return false;
+			}
 #ifdef JOININGAME
 			// prepare structures to save the file
 			// WARNING: this can be useless in case of server not in GS_LEVEL
 			// but since the network layer doesn't provide ordered packets...
 			CL_PrepareDownloadSaveGame(tmpsave);
 #endif
-			if (CL_SendJoin())
+			if (( I_GetTime() - NEWTICRATE*3 ) >= *asksent && CL_SendJoin())
+			{
+				*asksent = I_GetTime();
 				cl_mode = CL_WAITJOINRESPONSE;
+			}
 			break;
-
+		case CL_WAITJOINRESPONSE:
+			if (( I_GetTime() - NEWTICRATE*3 ) >= *asksent)
+			{
+				cl_mode = CL_ASKJOIN;
+			}
+			break;
 #ifdef JOININGAME
 		case CL_DOWNLOADSAVEGAME:
 			// At this state, the first (and only) needed file is the gamestate
@@ -2239,13 +2434,13 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 				// Gamestate is now handled within CL_LoadReceivedSavegame()
 				CL_LoadReceivedSavegame();
 				cl_mode = CL_CONNECTED;
+				break;
 			} // don't break case continue to CL_CONNECTED
 			else
 				break;
 #endif
-
-		case CL_WAITJOINRESPONSE:
 		case CL_CONNECTED:
+		case CL_CONFIRMCONNECT: //logic is handled by M_ConfirmConnect
 		default:
 			break;
 
@@ -2266,9 +2461,13 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 		INT32 key;
 
 		I_OsPolling();
+
+		if (cl_mode == CL_CONFIRMCONNECT)
+			D_ProcessEvents(); //needed for menu system to receive inputs
+
 		key = I_GetKey();
 		// Only ESC and non-keyboard keys abort connection
-		if (key == KEY_ESCAPE || key >= KEY_MOUSE1)
+		if (key == KEY_ESCAPE || key >= KEY_MOUSE1 || cl_mode == CL_ABORTED)
 		{
 			CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
 			D_QuitNetGame();
@@ -2285,6 +2484,13 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 			F_TitleScreenTicker(true);
 			F_TitleScreenDrawer();
 			CL_DrawConnectionStatus();
+#ifdef HAVE_THREADS
+			I_lock_mutex(&m_menu_mutex);
+#endif
+			M_Drawer(); //Needed for drawing messageboxes on the connection screen
+#ifdef HAVE_THREADS
+			I_unlock_mutex(m_menu_mutex);
+#endif
 			I_UpdateNoVsync(); // page flip or blit buffer
 			if (moviemode)
 				M_SaveFrame();
@@ -2351,7 +2557,8 @@ static void CL_ConnectToServer(void)
 	pnumnodes = 1;
 	oldtic = I_GetTime() - 1;
 #ifndef NONET
-	asksent = (tic_t) - TICRATE;
+	asksent = I_GetTime() - NEWTICRATE*3;
+	firstconnectattempttime = I_GetTime();
 
 	i = SL_SearchServer(servernode);
 
@@ -2785,6 +2992,12 @@ void CL_Reset(void)
 	// make sure we don't leave any fileneeded gunk over from a failed join
 	fileneedednum = 0;
 	memset(fileneeded, 0, sizeof(fileneeded));
+
+	totalfilesrequestednum = 0;
+	totalfilesrequestedsize = 0;
+	firstconnectattempttime = 0;
+	serverisfull = false;
+	connectiontimeout = (tic_t)cv_nettimeout.value; //reset this temporary hack
 
 #ifdef HAVE_CURL
 	curl_failedwebdownload = false;
@@ -3711,7 +3924,7 @@ void SV_StopServer(void)
 		D_Clearticcmd(i);
 
 	consoleplayer = 0;
-	cl_mode = CL_SEARCHING;
+	cl_mode = CL_ABORTED;
 	maketic = gametic+1;
 	neededtic = maketic;
 	serverrunning = false;
@@ -3737,7 +3950,7 @@ static void SV_SendRefuse(INT32 node, const char *reason)
 	strcpy(netbuffer->u.serverrefuse.reason, reason);
 
 	netbuffer->packettype = PT_SERVERREFUSE;
-	HSendPacket(node, true, 0, strlen(netbuffer->u.serverrefuse.reason) + 1);
+	HSendPacket(node, false, 0, strlen(netbuffer->u.serverrefuse.reason) + 1);
 	Net_CloseConnection(node);
 }
 
@@ -4009,12 +4222,23 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				if (!reason)
 					I_Error("Out of memory!\n");
 
-				D_QuitNetGame();
-				CL_Reset();
-				D_StartTitle();
+				if (strstr(reason, "Maximum players reached"))
+				{
+					serverisfull = true;
+					//Special timeout for when refusing due to player cap. The client will wait 3 seconds between join requests when waiting for a slot, so we need this to be much longer
+					//We set it back to the value of cv_nettimeout.value in CL_Reset
+					connectiontimeout = NEWTICRATE*7;
+					cl_mode = CL_ASKJOIN;
+					free(reason);
+					break;
+				}
 
 				M_StartMessage(va(M_GetText("Server refuses connection\n\nReason:\n%s"),
 					reason), NULL, MM_NOTHING);
+
+				D_QuitNetGame();
+				CL_Reset();
+				D_StartTitle();
 
 				free(reason);
 
@@ -4035,7 +4259,7 @@ static void HandlePacketFromAwayNode(SINT8 node)
 			}
 			SERVERONLY
 			/// \note how would this happen? and is it doing the right thing if it does?
-			if (cl_mode != CL_WAITJOINRESPONSE)
+			if (!(cl_mode == CL_WAITJOINRESPONSE || cl_mode == CL_ASKJOIN))
 				break;
 
 			if (client)

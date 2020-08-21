@@ -25,6 +25,7 @@ typedef enum
 
 typedef enum
 {
+	FS_NOTCHECKED,
 	FS_NOTFOUND,
 	FS_FOUND,
 	FS_REQUESTED,
@@ -52,6 +53,10 @@ extern char downloaddir[512];
 
 #ifdef CLIENT_LOADINGSCREEN
 extern INT32 lastfilenum;
+extern INT32 downloadcompletednum;
+extern UINT32 downloadcompletedsize;
+extern INT32 totalfilesrequestednum;
+extern UINT32 totalfilesrequestedsize;
 #endif
 
 #ifdef HAVE_CURL
@@ -65,7 +70,7 @@ void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr, UINT16 fi
 void CL_PrepareDownloadSaveGame(const char *tmpsave);
 
 INT32 CL_CheckFiles(void);
-void CL_LoadServerFiles(void);
+boolean CL_LoadServerFiles(void);
 void SV_SendRam(INT32 node, void *data, size_t size, freemethod_t freemethod,
 	UINT8 fileid);
 
