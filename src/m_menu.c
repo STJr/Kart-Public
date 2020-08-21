@@ -11357,10 +11357,6 @@ static void M_DrawDiscordRequests(void)
 	if (curRequest == NULL)
 	{
 		// Uh oh! Shouldn't happen!
-		if (currentMenu->prevMenu)
-			M_SetupNextMenu(currentMenu->prevMenu);
-		else
-			M_ClearMenus(true);
 		return;
 	}
 
