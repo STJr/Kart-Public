@@ -26,7 +26,6 @@
 #include "r_things.h" // skins
 #include "mserv.h" // ms_RoomId
 #include "z_zone.h"
-#include "m_random.h" // P_GetInitSeed
 #include "byteptr.h"
 
 #include "discord.h"
@@ -69,15 +68,28 @@ static char self_ip[IP_SIZE];
 --------------------------------------------------*/
 static char *DRPC_XORIPString(const char *input)
 {
-	const UINT32 is = (P_GetInitSeed() % UINT8_MAX);
-	const UINT8 xor[IP_SIZE] = {is, is+106, is-64, is+251, is-207, is+16, is-28, is+78, is-4, is+118, is-46, is+76, is-153, is+45, is-91, is+100};
-	char *output = malloc(sizeof(char) * IP_SIZE);
+	const UINT8 xor[IP_SIZE] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+	char *output = malloc(sizeof(char) * (IP_SIZE+1));
 	UINT8 i;
 
 	for (i = 0; i < IP_SIZE; i++)
 	{
-		output[i] = input[i] ^ xor[i];
+		char xorinput;
+
+		if (!input[i])
+			break;
+
+		xorinput = input[i] ^ xor[i];
+
+		if (xorinput < 32 || xorinput > 126)
+		{
+			xorinput = input[i];
+		}
+
+		output[i] = xorinput;
 	}
+
+	output[i] = '\0';
 
 	return output;
 }
