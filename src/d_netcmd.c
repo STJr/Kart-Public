@@ -5720,5 +5720,7 @@ void Got_DiscordInfo(UINT8 **p, INT32 playernum)
 	discordInfo.everyoneCanInvite = (boolean)READUINT8(*p);
 
 	DRPC_UpdatePresence();
+#else
+	(*p) += 3;
 #endif
 }
