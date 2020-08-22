@@ -26,6 +26,7 @@
 #include "r_things.h" // skins
 #include "mserv.h" // ms_RoomId
 #include "z_zone.h"
+#include "m_random.h" // P_GetInitSeed
 
 #include "discord.h"
 #include "doomdef.h"
@@ -56,11 +57,12 @@ static char self_ip[IP_SIZE];
 
 		Simple XOR encryption/decryption. Not complex or
 		very secretive because we aren't sending anything
-		that isn't easily accessible via the Master Server anyway.
+		that isn't easily accessible via our Master Server anyway.
 --------------------------------------------------*/
 static char *DRPC_XORIPString(const char *input)
 {
-	const UINT8 xor[IP_SIZE] = {222, 106, 64, 251, 207, 16, 28, 78, 4, 118, 46, 76, 153, 45, 91, 100};
+	const UINT32 is = (P_GetInitSeed() % UINT8_MAX);
+	const UINT8 xor[IP_SIZE] = {is, is+106, is-64, is+251, is-207, is+16, is-28, is+78, is-4, is+118, is-46, is+76, is-153, is+45, is-91, is+100};
 	char *output = malloc(sizeof(char) * IP_SIZE);
 	UINT8 i;
 
