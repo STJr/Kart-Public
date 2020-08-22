@@ -182,6 +182,9 @@ typedef enum
 	XD_LUACMD,      // 26
 	XD_LUAVAR,      // 27
 #endif
+#ifdef HAVE_DISCORDRPC
+	XD_DISCORD,     // 28
+#endif
 	MAXNETXCMD
 } netxcmd_t;
 

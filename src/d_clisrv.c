@@ -3257,14 +3257,16 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 static CV_PossibleValue_t netticbuffer_cons_t[] = {{0, "MIN"}, {3, "MAX"}, {0, NULL}};
 consvar_t cv_netticbuffer = {"netticbuffer", "1", CV_SAVE, netticbuffer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_allownewplayer = {"allowjoin", "On", CV_SAVE|CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
+static void Joinable_OnChange(void);
+
+consvar_t cv_allownewplayer = {"allowjoin", "On", CV_SAVE|CV_CALL, CV_OnOff, Joinable_OnChange, 0, NULL, NULL, 0, 0, NULL};
+
 #ifdef VANILLAJOINNEXTROUND
 consvar_t cv_joinnextround = {"joinnextround", "Off", CV_SAVE|CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL}; /// \todo not done
 #endif
 
-static void MaxPlayers_OnChange(void);
 static CV_PossibleValue_t maxplayers_cons_t[] = {{2, "MIN"}, {MAXPLAYERS, "MAX"}, {0, NULL}};
-consvar_t cv_maxplayers = {"maxplayers", "8", CV_SAVE|CV_NETVAR|CV_CALL, maxplayers_cons_t, MaxPlayers_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_maxplayers = {"maxplayers", "8", CV_SAVE|CV_CALL, maxplayers_cons_t, Joinable_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t resynchattempts_cons_t[] = {{0, "MIN"}, {20, "MAX"}, {0, NULL}};
 consvar_t cv_resynchattempts = {"resynchattempts", "5", CV_SAVE, resynchattempts_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL	};
@@ -3282,10 +3284,10 @@ consvar_t cv_downloadspeed = {"downloadspeed", "16", CV_SAVE, downloadspeed_cons
 static void Got_AddPlayer(UINT8 **p, INT32 playernum);
 static void Got_RemovePlayer(UINT8 **p, INT32 playernum);
 
-static void MaxPlayers_OnChange(void)
+static void Joinable_OnChange(void)
 {
 #ifdef HAVE_DISCORDRPC
-	DRPC_UpdatePresence();
+	DRPC_SendDiscordInfo();
 #else
 	return;
 #endif

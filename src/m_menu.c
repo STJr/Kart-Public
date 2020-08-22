@@ -304,6 +304,9 @@ menu_t OP_SoundOptionsDef;
 
 //Misc
 menu_t OP_DataOptionsDef, OP_ScreenshotOptionsDef, OP_EraseDataDef;
+#ifdef HAVE_DISCORDRPC
+menu_t OP_DiscordOptionsDef;
+#endif
 menu_t OP_HUDOptionsDef, OP_ChatOptionsDef;
 menu_t OP_GameOptionsDef, OP_ServerOptionsDef;
 #ifndef NONET
@@ -1361,19 +1364,15 @@ static menuitem_t OP_SoundOptionsMenu[] =
 
 static menuitem_t OP_DataOptionsMenu[] =
 {
-#ifdef HAVE_DISCORDRPC
-	{IT_STRING | IT_CVAR,		NULL, "Discord Rich Presence",	&cv_discordrp,			 10},
 
-	{IT_STRING | IT_CALL,		NULL, "Screenshot Options...",	M_ScreenshotOptions,	 30},
-	{IT_STRING | IT_CALL,		NULL, "Addon Options...",		M_AddonsOptions,		 40},
-	{IT_STRING | IT_SUBMENU,	NULL, "Replay Options...",		&MISC_ReplayOptionsDef,	 50},
-
-	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 70},
-#else
 	{IT_STRING | IT_CALL,		NULL, "Screenshot Options...",	M_ScreenshotOptions,	 10},
 	{IT_STRING | IT_CALL,		NULL, "Addon Options...",		M_AddonsOptions,		 20},
 	{IT_STRING | IT_SUBMENU,	NULL, "Replay Options...",		&MISC_ReplayOptionsDef,	 30},
+#ifdef HAVE_DISCORDRPC
+	{IT_STRING | IT_SUBMENU,	NULL, "Discord Options...",		&OP_DiscordOptionsDef,	 40},
 
+	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 60},
+#else
 	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 50},
 #endif
 };
@@ -1424,7 +1423,7 @@ static menuitem_t OP_AddonsOptionsMenu[] =
 	{IT_HEADER,                      NULL, "Menu",                        NULL,                    0},
 	{IT_STRING|IT_CVAR,              NULL, "Location",                    &cv_addons_option,      10},
 	{IT_STRING|IT_CVAR|IT_CV_STRING, NULL, "Custom Folder",               &cv_addons_folder,      20},
-	{IT_STRING|IT_CVAR,              NULL, "Identify addons via",        &cv_addons_md5,         48},
+	{IT_STRING|IT_CVAR,              NULL, "Identify addons via",         &cv_addons_md5,         48},
 	{IT_STRING|IT_CVAR,              NULL, "Show unsupported file types", &cv_addons_showall,     58},
 
 	{IT_HEADER,                      NULL, "Search",                      NULL,                   76},
@@ -1436,6 +1435,19 @@ enum
 {
 	op_addons_folder = 2,
 };
+
+#ifdef HAVE_DISCORDRPC
+static menuitem_t OP_DiscordOptionsMenu[] =
+{
+	{IT_STRING | IT_CVAR,		NULL, "Rich Presence",			&cv_discordrp,			 10},
+
+	{IT_HEADER,					NULL, "Rich Presence Settings",	NULL,					 30},
+	{IT_STRING | IT_CVAR,		NULL, "Streamer Mode",			&cv_discordstreamer,	 40},
+
+	{IT_STRING | IT_CVAR,		NULL, "Allow Ask To Join",		&cv_discordasks,		 60},
+	{IT_STRING | IT_CVAR,		NULL, "Allow Invites",			&cv_discordinvites,		 70},
+};
+#endif
 
 static menuitem_t OP_HUDOptionsMenu[] =
 {
@@ -2118,6 +2130,7 @@ menu_t OP_OpenGLColorDef =
 menu_t OP_DataOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_DataOptionsMenu, &OP_MainDef, 60, 30);
 menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_SCSHOT", OP_ScreenshotOptionsMenu, &OP_DataOptionsDef, 30, 30);
 menu_t OP_AddonsOptionsDef = DEFAULTMENUSTYLE("M_ADDONS", OP_AddonsOptionsMenu, &OP_DataOptionsDef, 30, 30);
+menu_t OP_DiscordOptionsDef = DEFAULTMENUSTYLE(NULL, OP_DiscordOptionsMenu, &OP_DataOptionsDef, 30, 30);
 menu_t OP_EraseDataDef = DEFAULTMENUSTYLE("M_DATA", OP_EraseDataMenu, &OP_DataOptionsDef, 30, 30);
 
 // ==========================================================================
@@ -6275,7 +6288,12 @@ static void M_Options(INT32 choice)
 	OP_MainMenu[4].status = OP_MainMenu[5].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
 	OP_MainMenu[8].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL); // Play credits
+
+#ifdef HAVE_DISCORDRPC
+	OP_DataOptionsMenu[4].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU); // Erase data
+#else
 	OP_DataOptionsMenu[3].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU); // Erase data
+#endif
 
 	OP_GameOptionsMenu[3].status =
 		(M_SecretUnlocked(SECRET_ENCORE)) ? (IT_CVAR|IT_STRING) : IT_SECRET; // cv_kartencore
@@ -11360,14 +11378,20 @@ static void M_DrawDiscordRequests(void)
 		return;
 	}
 
-	V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE, curRequest->username);
+	V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
+		cv_discordstreamer.value ? curRequest->username :
+		va("%s#%s", curRequest->username, curRequest->discriminator)
+	);
 	V_DrawThinString(x, y + 24, V_ALLOWLOWERCASE|V_6WIDTHSPACE, "A - Accept   B - Decline");
 	y -= 16;
 
 	while (curRequest->next != NULL)
 	{
 		curRequest = curRequest->next;
-		V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE, curRequest->username);
+		V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
+			cv_discordstreamer.value ? curRequest->username :
+			va("%s#%s", curRequest->username, curRequest->discriminator)
+		);
 		y -= 8;
 	}
 }

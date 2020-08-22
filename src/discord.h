@@ -18,15 +18,26 @@
 #include "discord_rpc.h"
 
 extern consvar_t cv_discordrp;
+extern consvar_t cv_discordstreamer;
+extern consvar_t cv_discordasks;
+extern consvar_t cv_discordinvites;
+
+extern struct discordInfo_s {
+	UINT8 maxPlayers;
+	boolean joinsAllowed;
+	boolean everyoneCanInvite;
+} discordInfo;
 
 typedef struct discordRequest_s {
 	tic_t timer; // Tics left on the request before it expires.
-	char *username; // Discord user name + their discriminator.
+	char *username; // Discord user name.
+	char *discriminator; // Discord discriminator (The little hashtag thing after the username). Separated for a "hide discriminators" cvar.
 	char *userID; // The ID of the Discord user, gets used with Discord_Respond()
 
 	// HAHAHA, no.
 	// *Maybe* if it was only PNG I would boot up curl just to get AND convert this to Doom GFX,
-	// but it can be a JEPG, WebP, or GIF too :)
+	// but it can *also* be a JEPG, WebP, or GIF :)
+	// Hey, wanna add ImageMagick as a dependency? :dying:
 	//patch_t *avatar;
 
 	struct discordRequest_s *next; // Next request in the list.
@@ -53,6 +64,26 @@ void DRPC_RemoveRequest(discordRequest_t *removeRequest);
 --------------------------------------------------*/
 
 void DRPC_Init(void);
+
+
+/*--------------------------------------------------
+	void DRPC_SendDiscordInfo(void);
+
+		Sends the server's information needed for
+		the rich presence state.
+--------------------------------------------------*/
+
+void DRPC_SendDiscordInfo(void);
+
+
+/*--------------------------------------------------
+	void DRPC_RecieveDiscordInfo(UINT8 **p, INT32 playernum);
+
+		Recieves the server's information needed for
+		the rich presence state.
+--------------------------------------------------*/
+
+void DRPC_RecieveDiscordInfo(UINT8 **p, INT32 playernum);
 
 
 /*--------------------------------------------------

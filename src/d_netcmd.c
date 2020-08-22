@@ -708,10 +708,14 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_showping);
 
 #ifdef SEENAMES
-	 CV_RegisterVar(&cv_allowseenames);
+	CV_RegisterVar(&cv_allowseenames);
 #endif
 
 	CV_RegisterVar(&cv_dummyconsvar);
+
+#ifdef HAVE_DISCORDRPC
+	RegisterNetXCmd(XD_DISCORD, DRPC_RecieveDiscordInfo);
+#endif
 }
 
 // =========================================================================
@@ -1007,6 +1011,9 @@ void D_RegisterClientCommands(void)
 
 #ifdef HAVE_DISCORDRPC
 	CV_RegisterVar(&cv_discordrp);
+	CV_RegisterVar(&cv_discordstreamer);
+	CV_RegisterVar(&cv_discordasks);
+	CV_RegisterVar(&cv_discordinvites);
 #endif
 }
 
