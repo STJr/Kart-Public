@@ -159,10 +159,10 @@ static void DRPC_HandleJoin(const char *secret)
 static void DRPC_HandleJoinRequest(const DiscordUser *requestUser)
 {
 	discordRequest_t *append = discordRequestList;
-	discordRequest_t *newRequest = Z_Calloc(sizeof (discordRequest_t), PU_STATIC, NULL);
+	discordRequest_t *newRequest = Z_Calloc(sizeof(discordRequest_t), PU_STATIC, NULL);
 
-	// Discord requests exprie after 30 seconds, give 1 second of lee-way for connection discrepancies
-	newRequest->timer = 29*TICRATE;
+	// Discord requests exprie after 30 seconds
+	newRequest->timer = (30*TICRATE)-1;
 
 	newRequest->username = Z_Calloc(344+1+8, PU_STATIC, NULL);
 	snprintf(newRequest->username, 344+1+8, "%s#%s",
@@ -179,6 +179,14 @@ static void DRPC_HandleJoinRequest(const DiscordUser *requestUser)
 
 		while (append != NULL)
 		{
+			// CHECK FOR DUPES!! Ignore any that already exist from the same user.
+			if (!strcmp(newRequest->userID, append->userID))
+			{
+				Discord_Respond(newRequest->userID, DISCORD_REPLY_IGNORE);
+				DRPC_RemoveRequest(newRequest);
+				return;
+			}
+
 			prev = append;
 			append = append->next;
 		}
