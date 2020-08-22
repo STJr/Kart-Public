@@ -11328,71 +11328,149 @@ static void M_OGL_DrawColorMenu(void)
 #endif
 
 #ifdef HAVE_DISCORDRPC
+static const tic_t confirmLength = 3*TICRATE/4;
+static tic_t confirmDelay = 0;
+static boolean confirmAccept = false;
+
 static void M_HandleDiscordRequests(INT32 choice)
 {
-	discordRequest_t *curRequest = discordRequestList;
-
-	if (curRequest == NULL)
-	{
-		if (currentMenu->prevMenu)
-			M_SetupNextMenu(currentMenu->prevMenu);
-		else
-			M_ClearMenus(true);
-
-		return;
-	}
-
 	switch (choice)
 	{
 		case KEY_ESCAPE:
-			Discord_Respond(curRequest->userID, DISCORD_REPLY_NO);
-			DRPC_RemoveRequest(curRequest);
+			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_NO);
+			confirmAccept = false;
+			confirmDelay = confirmLength;
 			break;
 
 		case KEY_ENTER:
-			Discord_Respond(curRequest->userID, DISCORD_REPLY_YES);
-			DRPC_RemoveRequest(curRequest);
+			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_YES);
+			confirmAccept = true;
+			confirmDelay = confirmLength;
 			break;
 	}
+}
 
-	if (curRequest == NULL)
+static const char *M_GetDiscordName(discordRequest_t *r)
+{
+	if (r == NULL)
+		return "";
+
+	if (cv_discordstreamer.value)
+		return r->username;
+
+	return va("%s#%s", r->username, r->discriminator);
+}
+
+// (this goes in k_hud.c when merged into v2)
+static void M_DrawSticker(INT32 x, INT32 y, INT32 width, INT32 flags, boolean small)
+{
+	patch_t *stickerEnd;
+	INT32 height;
+	
+	if (small == true)
 	{
-		// was removed, we can exit menu
-		if (currentMenu->prevMenu)
-			M_SetupNextMenu(currentMenu->prevMenu);
-		else
-			M_ClearMenus(true);
+		stickerEnd = W_CachePatchName("K_STIKE2", PU_CACHE);
+		height = 6;
 	}
+	else
+	{
+		stickerEnd = W_CachePatchName("K_STIKEN", PU_CACHE);
+		height = 11;
+	}
+
+	V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, FRACUNIT, flags, stickerEnd, NULL);
+	V_DrawFill(x, y, width, height, 24|flags);
+	V_DrawFixedPatch((x + width)*FRACUNIT, y*FRACUNIT, FRACUNIT, flags|V_FLIP, stickerEnd, NULL);
 }
 
 static void M_DrawDiscordRequests(void)
 {
 	discordRequest_t *curRequest = discordRequestList;
+	UINT8 *colormap;
+	patch_t *hand = NULL;
+	boolean removeRequest = false;
 
-	INT32 x = 64;
-	INT32 y = 135;
+	const char *wantText = "...would like to join!";
+	const char *controlText = "\x82" "A" "\x80" " - Accept    " "\x82" "B" "\x80" " - Decline";
 
-	if (curRequest == NULL)
+	INT32 x = 100;
+	INT32 y = 133;
+
+	INT32 slide = 0;
+	INT32 maxYSlide = 18;
+
+	if (confirmDelay > 0)
 	{
-		// Uh oh! Shouldn't happen!
-		return;
+		if (confirmAccept == true)
+		{
+			colormap = R_GetTranslationColormap(TC_DEFAULT, SKINCOLOR_GREEN, GTC_MENUCACHE);
+			hand = W_CachePatchName("K_LAPH02", PU_CACHE);
+		}
+		else
+		{
+			colormap = R_GetTranslationColormap(TC_DEFAULT, SKINCOLOR_RED, GTC_MENUCACHE);
+			hand = W_CachePatchName("K_LAPH03", PU_CACHE);
+		}
+
+		slide = confirmLength - confirmDelay;
+
+		confirmDelay--;
+
+		if (confirmDelay == 0)
+			removeRequest = true;
+	}
+	else
+	{
+		colormap = R_GetTranslationColormap(TC_DEFAULT, SKINCOLOR_GREY, GTC_MENUCACHE);
 	}
 
-	V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
-		cv_discordstreamer.value ? curRequest->username :
-		va("%s#%s", curRequest->username, curRequest->discriminator)
-	);
-	V_DrawThinString(x, y + 24, V_ALLOWLOWERCASE|V_6WIDTHSPACE, "A - Accept   B - Decline");
-	y -= 16;
+	V_DrawFixedPatch(56*FRACUNIT, 150*FRACUNIT, FRACUNIT, 0, W_CachePatchName("K_LAPE01", PU_CACHE), colormap);
+
+	if (hand != NULL)
+	{
+		fixed_t handoffset = (4 - abs((signed)(skullAnimCounter - 4))) * FRACUNIT;
+		V_DrawFixedPatch(56*FRACUNIT, 150*FRACUNIT + handoffset, FRACUNIT, 0, hand, NULL);
+	}
+
+	M_DrawSticker(x + (slide * 32), y - 1, V_ThinStringWidth(M_GetDiscordName(curRequest), V_ALLOWLOWERCASE|V_6WIDTHSPACE), 0, false);
+	V_DrawThinString(x + (slide * 32), y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_YELLOWMAP, M_GetDiscordName(curRequest));
+
+	M_DrawSticker(x, y + 12, V_ThinStringWidth(wantText, V_ALLOWLOWERCASE|V_6WIDTHSPACE), 0, true);
+	V_DrawThinString(x, y + 10, V_ALLOWLOWERCASE|V_6WIDTHSPACE, wantText);
+
+	M_DrawSticker(x, y + 26, V_ThinStringWidth(controlText, V_ALLOWLOWERCASE|V_6WIDTHSPACE), 0, true);
+	V_DrawThinString(x, y + 24, V_ALLOWLOWERCASE|V_6WIDTHSPACE, controlText);
+
+	y -= 18;
 
 	while (curRequest->next != NULL)
 	{
+		INT32 ySlide = min(slide * 4, maxYSlide);
+
 		curRequest = curRequest->next;
-		V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
-			cv_discordstreamer.value ? curRequest->username :
-			va("%s#%s", curRequest->username, curRequest->discriminator)
-		);
-		y -= 8;
+
+		M_DrawSticker(x, y - 1 + ySlide, V_ThinStringWidth(M_GetDiscordName(curRequest), V_ALLOWLOWERCASE|V_6WIDTHSPACE), 0, false);
+		V_DrawThinString(x, y + ySlide, V_ALLOWLOWERCASE|V_6WIDTHSPACE, M_GetDiscordName(curRequest));
+
+		y -= 12;
+		maxYSlide = 12;
+	}
+
+	if (removeRequest == true)
+	{
+		DRPC_RemoveRequest(discordRequestList);
+
+		if (discordRequestList == NULL)
+		{
+			// No other requests
+
+			if (currentMenu->prevMenu)
+				M_SetupNextMenu(currentMenu->prevMenu);
+			else
+				M_ClearMenus(true);
+
+			return;
+		}
 	}
 }
 #endif

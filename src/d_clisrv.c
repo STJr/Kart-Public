@@ -3659,6 +3659,10 @@ static boolean SV_AddWaitingPlayers(void)
 		}
 	}
 
+#ifdef HAVE_DISCORDRPC
+	DRPC_SendDiscordInfo();
+#endif
+
 	return newplayer;
 }
 
