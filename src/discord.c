@@ -231,9 +231,6 @@ static void DRPC_HandleJoinRequest(const DiscordUser *requestUser)
 
 	newRequest = Z_Calloc(sizeof(discordRequest_t), PU_STATIC, NULL);
 
-	// Discord requests expire after 30 seconds
-	newRequest->timer = (30*TICRATE)-1;
-
 	newRequest->username = Z_Calloc(344, PU_STATIC, NULL);
 	snprintf(newRequest->username, 344, "%s", requestUser->username);
 

@@ -29,7 +29,6 @@ extern struct discordInfo_s {
 } discordInfo;
 
 typedef struct discordRequest_s {
-	tic_t timer; // Tics left on the request before it expires.
 	char *username; // Discord user name.
 	char *discriminator; // Discord discriminator (The little hashtag thing after the username). Separated for a "hide discriminators" cvar.
 	char *userID; // The ID of the Discord user, gets used with Discord_Respond()
