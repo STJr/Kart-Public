@@ -100,7 +100,6 @@ set(SRB2_CORE_HEADERS
 	m_swap.h
 	md5.h
 	mserv.h
-	http-mserv.h
 	p5prof.h
 	s_sound.h
 	screen.h
@@ -281,6 +280,7 @@ if(${SRB2_CONFIG_HAVE_BLUA})
 		blua/lfunc.c
 		blua/lgc.c
 		blua/linit.c
+		blua/liolib.c
 		blua/llex.c
 		blua/lmem.c
 		blua/lobject.c

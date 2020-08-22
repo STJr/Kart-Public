@@ -27,6 +27,8 @@
 #include "discord.h"
 #endif
 
+#ifdef MASTERSERVER
+
 static int     MSId;
 static int     MSRegisteredId = -1;
 
@@ -47,11 +49,14 @@ static I_cond  MSCond;
 #  define Unlock_state()
 #endif/*HAVE_THREADS*/
 
-static void Update_parameters (void);
-
 #ifndef NONET
 static void Command_Listserv_f(void);
 #endif
+
+#endif/*MASTERSERVER*/
+
+static void Update_parameters (void);
+
 static void MasterServer_OnChange(void);
 
 static CV_PossibleValue_t masterserver_update_rate_cons_t[] = {
@@ -67,7 +72,7 @@ consvar_t cv_masterserver_update_rate = {"masterserver_update_rate", "15", CV_SA
 
 INT16 ms_RoomId = -1;
 
-#ifdef HAVE_THREADS
+#if defined (MASTERSERVER) && defined (HAVE_THREADS)
 int           ms_QueryId;
 I_mutex       ms_QueryId_mutex;
 
@@ -95,9 +100,13 @@ void AddMServCommands(void)
 	CV_RegisterVar(&cv_masterserver_debug);
 	CV_RegisterVar(&cv_masterserver_token);
 	CV_RegisterVar(&cv_servername);
+#ifdef MASTERSERVER
 	COM_AddCommand("listserv", Command_Listserv_f);
 #endif
+#endif
 }
+
+#ifdef MASTERSERVER
 
 static void WarnGUI (void)
 {
@@ -407,6 +416,7 @@ Change_masterserver_thread (char *api)
 
 void RegisterServer(void)
 {
+#ifdef MASTERSERVER
 #ifdef HAVE_THREADS
 	I_spawn_thread(
 			"register-server",
@@ -416,6 +426,7 @@ void RegisterServer(void)
 #else
 	Finish_registration();
 #endif
+#endif/*MASTERSERVER*/
 }
 
 static void UpdateServer(void)
@@ -433,6 +444,7 @@ static void UpdateServer(void)
 
 void UnregisterServer(void)
 {
+#ifdef MASTERSERVER
 #ifdef HAVE_THREADS
 	I_spawn_thread(
 			"unlist-server",
@@ -442,6 +454,7 @@ void UnregisterServer(void)
 #else
 	Finish_unlist();
 #endif
+#endif/*MASTERSERVER*/
 }
 
 static boolean
@@ -477,9 +490,33 @@ static inline void SendPingToMasterServer(void)
 	}
 }
 
+void MasterClient_Ticker(void)
+{
+#ifdef MASTERSERVER
+	SendPingToMasterServer();
+#endif
+}
+
+static void
+Set_api (const char *api)
+{
+#ifdef HAVE_THREADS
+	I_spawn_thread(
+			"change-masterserver",
+			(I_thread_fn)Change_masterserver_thread,
+			strdup(api)
+	);
+#else
+	HMS_set_api(strdup(api));
+#endif
+}
+
+#endif/*MASTERSERVER*/
+
 static void
 Update_parameters (void)
 {
+#ifdef MASTERSERVER
 	int registered;
 	int delayed;
 
@@ -499,29 +536,12 @@ Update_parameters (void)
 		if (! delayed && registered)
 			UpdateServer();
 	}
-}
-
-void MasterClient_Ticker(void)
-{
-	SendPingToMasterServer();
-}
-
-static void
-Set_api (const char *api)
-{
-#ifdef HAVE_THREADS
-	I_spawn_thread(
-			"change-masterserver",
-			(I_thread_fn)Change_masterserver_thread,
-			strdup(api)
-	);
-#else
-	HMS_set_api(strdup(api));
-#endif
+#endif/*MASTERSERVER*/
 }
 
 static void MasterServer_OnChange(void)
 {
+#ifdef MASTERSERVER
 	UnregisterServer();
 
 	/*
@@ -539,4 +559,5 @@ static void MasterServer_OnChange(void)
 
 	if (Online())
 		RegisterServer();
+#endif/*MASTERSERVER*/
 }

@@ -108,6 +108,10 @@ char downloaddir[512] = "DOWNLOAD";
 #ifdef CLIENT_LOADINGSCREEN
 // for cl loading screen
 INT32 lastfilenum = -1;
+INT32 downloadcompletednum = 0;
+UINT32 downloadcompletedsize = 0;
+INT32 totalfilesrequestednum = 0;
+UINT32 totalfilesrequestedsize = 0;
 #endif
 
 #ifdef HAVE_CURL
@@ -141,7 +145,7 @@ UINT8 *PutFileNeeded(UINT16 firstfile)
 	char wadfilename[MAX_WADPATH] = "";
 	UINT8 filestatus;
 
-	for (i = mainwads; i < numwadfiles; i++)
+	for (i = mainwads+1; i < numwadfiles; i++) //mainwads+1, otherwise we start on the first mainwad
 	{
 		// If it has only music/sound lumps, don't put it in the list
 		if (!wadfiles[i]->important)
@@ -207,7 +211,7 @@ void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr, UINT16 fi
 	p = (UINT8 *)fileneededstr;
 	for (i = firstfile; i < fileneedednum; i++)
 	{
-		fileneeded[i].status = FS_NOTFOUND; // We haven't even started looking for the file yet
+		fileneeded[i].status = FS_NOTCHECKED; // We haven't even started looking for the file yet
 		filestatus = READUINT8(p); // The first byte is the file status
 		fileneeded[i].willsend = (UINT8)(filestatus >> 4);
 		fileneeded[i].totalsize = READUINT32(p); // The four next bytes are the file size
@@ -370,15 +374,17 @@ boolean Got_RequestFilePak(INT32 node)
   * \return 0 if some files are missing
   *         1 if all files exist
   *         2 if some already loaded files are not requested or are in a different order
+  * 		3 too many files, over WADLIMIT
+  * 		4 still checking, continuing next tic
   *
   */
 INT32 CL_CheckFiles(void)
 {
 	INT32 i, j;
 	char wadfilename[MAX_WADPATH];
-	INT32 ret = 1;
 	size_t packetsize = 0;
-	size_t filestoget = 0;
+	size_t filestoload = 0;
+	boolean downloadrequired = false;
 
 //	if (M_CheckParm("-nofiles"))
 //		return 1;
@@ -395,7 +401,7 @@ INT32 CL_CheckFiles(void)
 	if (modifiedgame)
 	{
 		CONS_Debug(DBG_NETPLAY, "game is modified; only doing basic checks\n");
-		for (i = 0, j = mainwads; i < fileneedednum || j < numwadfiles;)
+		for (i = 0, j = mainwads+1; i < fileneedednum || j < numwadfiles;)
 		{
 			if (j < numwadfiles && !wadfiles[j]->important)
 			{
@@ -424,10 +430,19 @@ INT32 CL_CheckFiles(void)
 
 	for (i = 0; i < fileneedednum; i++)
 	{
+		if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_FALLBACK)
+			downloadrequired = true;
+		
+		if (fileneeded[i].status == FS_FOUND || fileneeded[i].status == FS_NOTFOUND)
+			filestoload++;
+
+		if (fileneeded[i].status != FS_NOTCHECKED) //since we're running this over multiple tics now, its possible for us to come across files checked in previous tics
+			continue;
+		
 		CONS_Debug(DBG_NETPLAY, "searching for '%s' ", fileneeded[i].filename);
 
 		// Check in already loaded files
-		for (j = mainwads; wadfiles[j]; j++)
+		for (j = mainwads+1; wadfiles[j]; j++)
 		{
 			nameonly(strcpy(wadfilename, wadfiles[j]->filename));
 			if (!stricmp(wadfilename, fileneeded[i].filename) &&
@@ -435,36 +450,35 @@ INT32 CL_CheckFiles(void)
 			{
 				CONS_Debug(DBG_NETPLAY, "already loaded\n");
 				fileneeded[i].status = FS_OPEN;
-				break;
+				return 4;
 			}
 		}
-		if (fileneeded[i].status != FS_NOTFOUND)
-			continue;
 
 		packetsize += nameonlylength(fileneeded[i].filename) + 22;
 
-		if (mainwads+filestoget >= MAX_WADFILES)
-			return 3;
-
-		filestoget++;
-
 		fileneeded[i].status = findfile(fileneeded[i].filename, fileneeded[i].md5sum, true);
 		CONS_Debug(DBG_NETPLAY, "found %d\n", fileneeded[i].status);
-		if (fileneeded[i].status != FS_FOUND)
-			ret = 0;
+		return 4;
 	}
-	return ret;
+
+	//now making it here means we've checked the entire list and no FS_NOTCHECKED files remain
+	if (numwadfiles+filestoload > MAX_WADFILES)
+		return 3;
+	else if (downloadrequired)
+		return 0; //some stuff is FS_NOTFOUND, needs download
+	else
+		return 1; //everything is FS_OPEN or FS_FOUND, proceed to loading
 }
 
 // Load it now
-void CL_LoadServerFiles(void)
+boolean CL_LoadServerFiles(void)
 {
 	INT32 i;
 
 //	if (M_CheckParm("-nofiles"))
 //		return;
 
-	for (i = 1; i < fileneedednum; i++)
+	for (i = 0; i < fileneedednum; i++)
 	{
 		if (fileneeded[i].status == FS_OPEN)
 			continue; // Already loaded
@@ -473,6 +487,7 @@ void CL_LoadServerFiles(void)
 			P_AddWadFile(fileneeded[i].filename);
 			G_SetGameModified(true, false);
 			fileneeded[i].status = FS_OPEN;
+			return false;
 		}
 		else if (fileneeded[i].status == FS_MD5SUMBAD)
 			I_Error("Wrong version of file %s", fileneeded[i].filename);
@@ -498,6 +513,7 @@ void CL_LoadServerFiles(void)
 				fileneeded[i].status, s);
 		}
 	}
+	return true;
 }
 
 // Number of files to send
@@ -858,6 +874,8 @@ void Got_Filetxpak(void)
 			file->status = FS_FOUND;
 			CONS_Printf(M_GetText("Downloading %s...(done)\n"),
 				filename);
+			downloadcompletednum++;
+			downloadcompletedsize += file->totalsize;
 		}
 	}
 	else
@@ -1169,6 +1187,8 @@ void CURLGetFile(void)
 			{
 				nameonly(curl_realname);
 				CONS_Printf(M_GetText("Finished downloading %s\n"), curl_realname);
+				downloadcompletednum++;
+				downloadcompletedsize += curl_curfile->totalsize;
 				curl_curfile->status = FS_FOUND;
 				fclose(curl_curfile->file);
 			}
