@@ -351,35 +351,6 @@ void DRPC_SendDiscordInfo(void)
 	SendNetXCmd(XD_DISCORD, &buf, 3);
 }
 
-/*--------------------------------------------------
-	void DRPC_RecieveDiscordInfo(UINT8 **p, INT32 playernum)
-
-		See header file for description.
---------------------------------------------------*/
-void DRPC_RecieveDiscordInfo(UINT8 **p, INT32 playernum)
-{
-	if (playernum != serverplayer /*&& !IsPlayerAdmin(playernum)*/)
-	{
-		// protect against hacked/buggy client
-		CONS_Alert(CONS_WARNING, M_GetText("Illegal Discord info command received from %s\n"), player_names[playernum]);
-		if (server)
-		{
-			XBOXSTATIC UINT8 buf[2];
-
-			buf[0] = (UINT8)playernum;
-			buf[1] = KICK_MSG_CON_FAIL;
-			SendNetXCmd(XD_KICK, &buf, 2);
-		}
-		return;
-	}
-
-	discordInfo.maxPlayers = READUINT8(*p);
-	discordInfo.joinsAllowed = (boolean)READUINT8(*p);
-	discordInfo.everyoneCanInvite = (boolean)READUINT8(*p);
-
-	DRPC_UpdatePresence();
-}
-
 #ifdef HAVE_CURL
 /*--------------------------------------------------
 	static size_t DRPC_WriteServerIP(char *s, size_t size, size_t n, void *userdata)
@@ -547,7 +518,7 @@ void DRPC_UpdatePresence(void)
 
 		discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
 		discordPresence.partySize = D_NumPlayers(); // Players in server
-		discordPresence.partyMax = cv_maxplayers.value; // Max players (TODO: another variable should hold this, so that maxplayers doesn't have to be a netvar)
+		discordPresence.partyMax = discordInfo.maxPlayers; // Max players
 
 		if (DRPC_InvitesAreAllowed() == true)
 		{
@@ -566,6 +537,11 @@ void DRPC_UpdatePresence(void)
 	}
 	else
 	{
+		// Reset discord info if you're not in a place that uses it!
+		// Important for if you join a server that compiled without HAVE_DISCORDRPC,
+		// so that you don't ever end up using bad information from another server.
+		memset(&discordInfo, 0, sizeof(discordInfo));
+
 		// Offline info
 		if (Playing())
 			discordPresence.state = "Offline";

@@ -77,16 +77,6 @@ void DRPC_SendDiscordInfo(void);
 
 
 /*--------------------------------------------------
-	void DRPC_RecieveDiscordInfo(UINT8 **p, INT32 playernum);
-
-		Recieves the server's information needed for
-		the rich presence state.
---------------------------------------------------*/
-
-void DRPC_RecieveDiscordInfo(UINT8 **p, INT32 playernum);
-
-
-/*--------------------------------------------------
 	void DRPC_UpdatePresence(void);
 
 		Updates what is displayed by Rich Presence on the user's profile.

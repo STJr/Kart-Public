@@ -178,12 +178,10 @@ typedef enum
 	XD_MODIFYVOTE,  // 23
 	XD_PICKVOTE,    // 24
 	XD_REMOVEPLAYER,// 25
+	XD_DISCORD,     // 26
 #ifdef HAVE_BLUA
-	XD_LUACMD,      // 26
-	XD_LUAVAR,      // 27
-#endif
-#ifdef HAVE_DISCORDRPC
-	XD_DISCORD,     // 28
+	XD_LUACMD,      // 27
+	XD_LUAVAR,      // 28
 #endif
 	MAXNETXCMD
 } netxcmd_t;
