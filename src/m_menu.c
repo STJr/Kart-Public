@@ -11334,18 +11334,23 @@ static boolean confirmAccept = false;
 
 static void M_HandleDiscordRequests(INT32 choice)
 {
+	if (confirmDelay > 0)
+		return;
+
 	switch (choice)
 	{
-		case KEY_ESCAPE:
-			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_NO);
-			confirmAccept = false;
-			confirmDelay = confirmLength;
-			break;
-
 		case KEY_ENTER:
 			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_YES);
 			confirmAccept = true;
 			confirmDelay = confirmLength;
+			S_StartSound(NULL, sfx_s3k63);
+			break;
+
+		case KEY_ESCAPE:
+			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_NO);
+			confirmAccept = false;
+			confirmDelay = confirmLength;
+			S_StartSound(NULL, sfx_s3kb2);
 			break;
 	}
 }

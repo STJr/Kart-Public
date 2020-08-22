@@ -268,6 +268,9 @@ static void DRPC_HandleJoinRequest(const DiscordUser *requestUser)
 	{
 		discordRequestList = newRequest;
 	}
+
+	// Made it to the end, request was valid, so play the request sound :)
+	S_StartSound(NULL, sfx_requst);
 }
 
 /*--------------------------------------------------
@@ -375,16 +378,6 @@ void DRPC_RecieveDiscordInfo(UINT8 **p, INT32 playernum)
 	discordInfo.everyoneCanInvite = (boolean)READUINT8(*p);
 
 	DRPC_UpdatePresence();
-
-	if (DRPC_InvitesAreAllowed() == false)
-	{
-		// Flush the request list, if it still exists
-		while (discordRequestList != NULL)
-		{
-			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_IGNORE);
-			DRPC_RemoveRequest(discordRequestList);
-		}
-	}
 }
 
 #ifdef HAVE_CURL
@@ -514,6 +507,8 @@ void DRPC_UpdatePresence(void)
 	char charimg[4+SKINNAMESIZE+1];
 	char charname[11+SKINNAMESIZE+1];
 
+	boolean joinSecretSet = false;
+
 	DiscordRichPresence discordPresence;
 	memset(&discordPresence, 0, sizeof(discordPresence));
 
@@ -564,6 +559,8 @@ void DRPC_UpdatePresence(void)
 				char *xorjoin = DRPC_XORIPString(join);
 				discordPresence.joinSecret = xorjoin;
 				free(xorjoin);
+
+				joinSecretSet = true;
 			}
 		}
 	}
@@ -722,6 +719,16 @@ void DRPC_UpdatePresence(void)
 
 		snprintf(charname, 28, "Character: %s", skins[players[consoleplayer].skin].realname);
 		discordPresence.smallImageText = charname; // Character name
+	}
+
+	if (joinSecretSet == false)
+	{
+		// Not able to join? Flush the request list, if it exists.
+		while (discordRequestList != NULL)
+		{
+			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_IGNORE);
+			DRPC_RemoveRequest(discordRequestList);
+		}
 	}
 
 	Discord_UpdatePresence(&discordPresence);

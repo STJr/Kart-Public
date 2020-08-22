@@ -46,6 +46,7 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 #include "k_kart.h"
+#include "s_sound.h" // sfx_syfail
 
 #ifdef CLIENT_LOADINGSCREEN
 // cl loading screen
@@ -3129,6 +3130,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 			Ban_Add(reason);
 #endif
 	}
+
+	if (msg != KICK_MSG_PLAYER_QUIT)
+		S_StartSound(NULL, sfx_syfail); // he he he
 
 	switch (msg)
 	{

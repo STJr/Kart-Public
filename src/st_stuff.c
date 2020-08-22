@@ -129,6 +129,11 @@ static patch_t *gotbflag;
 static patch_t *hud_tv1;
 static patch_t *hud_tv2;
 
+#ifdef HAVE_DISCORDRPC
+// Discord Rich Presence
+static patch_t *envelope;
+#endif
+
 // SRB2kart
 
 hudinfo_t hudinfo[NUMHUDITEMS] =
@@ -349,6 +354,11 @@ void ST_LoadGraphics(void)
 	// Midnight Channel:
 	hud_tv1 = W_CachePatchName("HUD_TV1", PU_HUDGFX);
 	hud_tv2 = W_CachePatchName("HUD_TV2", PU_HUDGFX);
+
+#ifdef HAVE_DISCORDRPC
+	// Discord Rich Presence
+	envelope = W_CachePatchName("K_REQUES", PU_HUDGFX);
+#endif
 }
 
 // made separate so that skins code can reload custom face graphics
@@ -2079,6 +2089,18 @@ static void ST_MayonakaStatic(void)
 	V_DrawFixedPatch(0, 142<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTOLEFT|flag, hud_tv2, NULL);
 	V_DrawFixedPatch(320<<FRACBITS, 142<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTORIGHT|V_FLIP|flag, hud_tv2, NULL);
 }
+
+#ifdef HAVE_DISCORDRPC
+void ST_AskToJoinEnvelope(void)
+{
+	const tic_t freq = TICRATE/2;
+
+	if ((leveltime % freq) < freq/2)
+		return;
+
+	V_DrawFixedPatch(296*FRACUNIT, 2*FRACUNIT, FRACUNIT, V_SNAPTOTOP|V_SNAPTORIGHT, envelope, NULL);
+}
+#endif
 
 void ST_Drawer(void)
 {
