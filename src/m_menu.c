@@ -194,7 +194,7 @@ static void M_RoomMenu(INT32 choice);
 menu_t MessageDef;
 
 #ifdef HAVE_DISCORDRPC
-menu_t DiscordRequestsDef;
+menu_t MISC_DiscordRequestsDef;
 static void M_HandleDiscordRequests(INT32 choice);
 static void M_DrawDiscordRequests(void);
 #endif
@@ -599,6 +599,10 @@ static menuitem_t MPauseMenu[] =
 	{IT_STRING | IT_SUBMENU,  NULL, "Scramble Teams...", &MISC_ScrambleTeamDef,  16},
 	{IT_STRING | IT_CALL,     NULL, "Switch Map..."    , M_MapChange,            24},
 
+#ifdef HAVE_DISCORDRPC
+	{IT_STRING | IT_SUBMENU,  NULL, "Ask To Join Requests...", &MISC_DiscordRequestsDef, 24},
+#endif
+
 	{IT_CALL | IT_STRING,    NULL, "Continue",           M_SelectableClearMenus, 40},
 	{IT_CALL | IT_STRING,    NULL, "P1 Setup...",        M_SetupMultiPlayer,     48}, // splitscreen
 	{IT_CALL | IT_STRING,    NULL, "P2 Setup...",        M_SetupMultiPlayer2,    56}, // splitscreen
@@ -622,6 +626,9 @@ typedef enum
 	mpause_addons = 0,
 	mpause_scramble,
 	mpause_switchmap,
+#ifdef HAVE_DISCORDRPC
+	mpause_discordrequests,
+#endif
 
 	mpause_continue,
 	mpause_psetupsplit,
@@ -673,7 +680,7 @@ typedef enum
 } spause_e;
 
 #ifdef HAVE_DISCORDRPC
-static menuitem_t DiscordRequestsMenu[] =
+static menuitem_t MISC_DiscordRequestsMenu[] =
 {
 	{IT_KEYHANDLER|IT_NOTHING, NULL, "", M_HandleDiscordRequests, 0},
 };
@@ -1690,13 +1697,11 @@ menu_t SPauseDef = PAUSEMENUSTYLE(SPauseMenu, 40, 72);
 menu_t MPauseDef = PAUSEMENUSTYLE(MPauseMenu, 40, 72);
 
 #ifdef HAVE_DISCORDRPC
-static void M_HandleDiscordRequests(INT32 choice);
-static void M_DrawDiscordRequests(void);
-menu_t DiscordRequestsDef = {
+menu_t MISC_DiscordRequestsDef = {
 	NULL,
-	sizeof (DiscordRequestsMenu)/sizeof (menuitem_t),
-	NULL,
-	DiscordRequestsMenu,
+	sizeof (MISC_DiscordRequestsMenu)/sizeof (menuitem_t),
+	&MPauseDef,
+	MISC_DiscordRequestsMenu,
 	M_DrawDiscordRequests,
 	0, 0,
 	0,
@@ -3252,12 +3257,18 @@ void M_StartControlPanel(void)
 		MPauseMenu[mpause_psetup].status = IT_DISABLED;
 		MISC_ChangeTeamMenu[0].status = IT_DISABLED;
 		MISC_ChangeSpectateMenu[0].status = IT_DISABLED;
+
 		// Reset these in case splitscreen messes things up
+		MPauseMenu[mpause_addons].alphaKey = 8;
+		MPauseMenu[mpause_scramble].alphaKey = 8;
+		MPauseMenu[mpause_switchmap].alphaKey = 24;
+
 		MPauseMenu[mpause_switchteam].alphaKey = 48;
 		MPauseMenu[mpause_switchspectate].alphaKey = 48;
 		MPauseMenu[mpause_options].alphaKey = 64;
 		MPauseMenu[mpause_title].alphaKey = 80;
 		MPauseMenu[mpause_quit].alphaKey = 88;
+
 		Dummymenuplayer_OnChange();
 
 		if ((server || IsPlayerAdmin(consoleplayer)))
@@ -3329,20 +3340,24 @@ void M_StartControlPanel(void)
 				MPauseMenu[mpause_spectate].status = IT_GRAYEDOUT;
 		}
 
+#ifdef HAVE_DISCORDRPC
+		{
+			UINT8 i;
+
+			for (i = 0; i < mpause_discordrequests; i++)
+				MPauseMenu[i].alphaKey -= 8;
+
+			MPauseMenu[mpause_discordrequests].alphaKey = MPauseMenu[i].alphaKey;
+			MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
+
+			if (discordRequestList != NULL)
+				MPauseMenu[mpause_discordrequests].status = IT_STRING | IT_SUBMENU;
+		}
+#endif
+
 		currentMenu = &MPauseDef;
 		itemOn = mpause_continue;
 	}
-
-#ifdef HAVE_DISCORDRPC
-	// Kind of hi-jacking this...
-	if (discordRequestList != NULL)
-	{
-		// Gotta take care of these requests first
-		DiscordRequestsDef.prevMenu = currentMenu;
-		currentMenu = &DiscordRequestsDef;
-		itemOn = 0;
-	}
-#endif
 
 	CON_ToggleOff(); // move away console
 }
@@ -4163,6 +4178,25 @@ static void M_DrawPauseMenu(void)
 					break;*/
 			}
 			V_DrawRightAlignedString(284, 44 + (i*8), V_MONOSPACE, emblem_text[i]);
+		}
+	}
+#endif
+
+#ifdef HAVE_DISCORDRPC
+	// kind of hackily baked in here
+	if (currentMenu == &MPauseDef && discordRequestList != NULL)
+	{
+		const tic_t freq = TICRATE/2;
+
+		if ((leveltime % freq) >= freq/2)
+		{
+			V_DrawFixedPatch(204 * FRACUNIT,
+				(currentMenu->y + MPauseMenu[mpause_discordrequests].alphaKey - 1) * FRACUNIT,
+				FRACUNIT,
+				0,
+				W_CachePatchName("K_REQUE2", PU_CACHE),
+				NULL
+			);
 		}
 	}
 #endif
@@ -11470,9 +11504,14 @@ static void M_DrawDiscordRequests(void)
 		if (discordRequestList == NULL)
 		{
 			// No other requests
+			MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
 
 			if (currentMenu->prevMenu)
+			{
 				M_SetupNextMenu(currentMenu->prevMenu);
+				if (currentMenu == &MPauseDef)
+					itemOn = mpause_continue;
+			}
 			else
 				M_ClearMenus(true);
 
