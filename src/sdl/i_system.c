@@ -3617,10 +3617,14 @@ static void pathonly(char *s)
 static const char *searchWad(const char *searchDir)
 {
 	static char tempsw[256] = "";
+	filequery_t fsquery;
 	filestatus_t fstemp;
 
+	fsquery.filename = tempsw;
+
 	strcpy(tempsw, WADKEYWORD1);
-	fstemp = filesearch(tempsw,searchDir,NULL,true,20);
+	fsquery.status = FS_NOTFOUND;
+	fstemp = filesearch(1,&fsquery,searchDir,false,true,20);
 	if (fstemp == FS_FOUND)
 	{
 		pathonly(tempsw);
@@ -3628,7 +3632,7 @@ static const char *searchWad(const char *searchDir)
 	}
 
 	strcpy(tempsw, WADKEYWORD2);
-	fstemp = filesearch(tempsw, searchDir, NULL, true, 20);
+	fstemp = filesearch(1, &fsquery, searchDir, false, true, 20);
 	if (fstemp == FS_FOUND)
 	{
 		pathonly(tempsw);

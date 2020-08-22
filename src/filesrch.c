@@ -445,17 +445,31 @@ boolean preparefilemenu(boolean samedepth, boolean replayhut)
 
 #else
 
-filestatus_t filesearch(char *filename, const char *startpath, const UINT8 *wantedmd5sum, boolean completepath, int maxsearchdepth)
+filestatus_t filesearch(int nfiles, filequery_t *files, const char *startpath, boolean checkmd5, boolean completepath, int maxsearchdepth)
 {
 	filestatus_t retval = FS_NOTFOUND;
+	const UINT8 *wantedmd5sum = NULL;
 	DIR **dirhandle;
 	struct dirent *dent;
 	struct stat fsstat;
-	int found = 0;
-	char *searchname = strdup(filename);
 	int depthleft = maxsearchdepth;
 	char searchpath[1024];
 	size_t *searchpathindex;
+	int files_left = 0;
+	int i;
+
+	for (i = 0; i < nfiles; ++i)
+	{
+		if (files[i].status != FS_FOUND)
+		{
+			files_left++;
+		}
+	}
+
+	if (! files_left)
+	{
+		return FS_FOUND;
+	}
 
 	dirhandle = (DIR**) malloc(maxsearchdepth * sizeof (DIR*));
 	searchpathindex = (size_t *) malloc(maxsearchdepth * sizeof (size_t));
@@ -467,7 +481,6 @@ filestatus_t filesearch(char *filename, const char *startpath, const UINT8 *want
 
 	if (dirhandle[depthleft] == NULL)
 	{
-		free(searchname);
 		free(dirhandle);
 		free(searchpathindex);
 		return FS_NOTFOUND;
@@ -481,7 +494,7 @@ filestatus_t filesearch(char *filename, const char *startpath, const UINT8 *want
 	else
 		searchpathindex[depthleft]--;
 
-	while ((!found) && (depthleft < maxsearchdepth))
+	while ((files_left) && (depthleft < maxsearchdepth))
 	{
 		searchpath[searchpathindex[depthleft]]=0;
 		dent = readdir(dirhandle[depthleft]);
@@ -520,34 +533,46 @@ filestatus_t filesearch(char *filename, const char *startpath, const UINT8 *want
 			searchpath[searchpathindex[depthleft]-1]='/';
 			searchpath[searchpathindex[depthleft]]=0;
 		}
-		else if (!strcasecmp(searchname, dent->d_name))
+		else
 		{
-			switch (checkfilemd5(searchpath, wantedmd5sum))
+			for (i = 0; i < nfiles; ++i)
 			{
-				case FS_FOUND:
-					if (completepath)
-						strcpy(filename,searchpath);
-					else
-						strcpy(filename,dent->d_name);
-					retval = FS_FOUND;
-					found = 1;
-					break;
-				case FS_MD5SUMBAD:
-					retval = FS_MD5SUMBAD;
-					break;
-				default: // prevent some compiler warnings
-					break;
+				if (checkmd5)
+				{
+					wantedmd5sum = files[i].wantedmd5sum;
+				}
+
+				if (
+						files[i].status != FS_FOUND &&
+						!strcasecmp(files[i].filename, dent->d_name)
+				){
+					switch (checkfilemd5(searchpath, wantedmd5sum))
+					{
+						case FS_FOUND:
+							if (completepath)
+								strcpy(files[i].filename,searchpath);
+							else
+								strcpy(files[i].filename,dent->d_name);
+							files[i].status = FS_FOUND;
+							files_left--;
+							break;
+						case FS_MD5SUMBAD:
+							retval = files[i].status = FS_MD5SUMBAD;
+							break;
+						default: // prevent some compiler warnings
+							break;
+					}
+				}
 			}
 		}
 	}
 
 	for (; depthleft < maxsearchdepth; closedir(dirhandle[depthleft++]));
 
-	free(searchname);
 	free(searchpathindex);
 	free(dirhandle);
 
-	return retval;
+	return ( (files_left) ? retval : FS_FOUND );
 }
 
 char exttable[NUM_EXT_TABLE][7] = { // maximum extension length (currently 4) plus 3 (null terminator, stop, and length including previous two)

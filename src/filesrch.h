@@ -8,25 +8,38 @@
 #include "d_netfil.h"
 #include "m_menu.h" // MAXSTRINGLENGTH
 
+typedef struct
+{
+	filestatus_t   status;
+	const UINT8  * wantedmd5sum;
+	char         * filename;
+}
+filequery_t;
+
 extern consvar_t cv_addons_option, cv_addons_folder, cv_addons_md5, cv_addons_showall, cv_addons_search_case, cv_addons_search_type;
 
 /**	\brief	The filesearch function
 
 	This function search files, manly WADs and return back the status of the file
 
-	\param	filename	the file to look for
+	\param	nfiles		number of files
+	\param	queries		the files to look for
 	\param	startpath	where to start look from
-	\param	wantedmd5sum	want to check with MD5
 	\param	completepath	want to return the complete path of the file?
 	\param	maxsearchdepth	the max depth to search for the file
 
-	\return	filestatus_t
+	\return	FS_FOUND if all files were found, FS_NOTFOUND or FS_MD5SUMBAD
+		if some files were not found
 
 
 */
 
-filestatus_t filesearch(char *filename, const char *startpath, const UINT8 *wantedmd5sum,
-	boolean completepath, int maxsearchdepth);
+filestatus_t filesearch(int nfiles, filequery_t *queries, const char *startpath,
+	boolean checkmd5, boolean completepath, int maxsearchdepth);
+
+/* this is a better place for it tbh (im still too lazy to move the other) */
+filestatus_t findmultiplefiles(int nfiles, filequery_t *files,
+		boolean checkmd5, boolean completepath);
 
 #define menudepth 20
 
