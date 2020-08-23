@@ -474,6 +474,21 @@ static const char *DRPC_GetServerIP(void)
 }
 
 /*--------------------------------------------------
+	void DRPC_EmptyRequests(void)
+
+		Empties the request list. Any existing requests
+		will get an ignore reply.
+--------------------------------------------------*/
+static void DRPC_EmptyRequests(void)
+{
+	while (discordRequestList != NULL)
+	{
+		Discord_Respond(discordRequestList->userID, DISCORD_REPLY_IGNORE);
+		DRPC_RemoveRequest(discordRequestList);
+	}
+}
+
+/*--------------------------------------------------
 	void DRPC_UpdatePresence(void)
 
 		See header file for description.
@@ -497,21 +512,21 @@ void DRPC_UpdatePresence(void)
 	{
 		// User doesn't want to show their game information, so update with empty presence.
 		// This just shows that they're playing SRB2Kart. (If that's too much, then they should disable game activity :V)
+		DRPC_EmptyRequests();
 		Discord_UpdatePresence(&discordPresence);
 		return;
 	}
 
-/*
 #ifdef DEVELOP
 	// This way, we can use the invite feature in-dev, but not have snoopers seeing any potential secrets! :P
 	discordPresence.largeImageKey = "miscdevelop";
 	discordPresence.largeImageText = "No peeking!";
 	discordPresence.state = "Testing the game";
 
+	DRPC_EmptyRequests();
 	Discord_UpdatePresence(&discordPresence);
 	return;
 #endif // DEVELOP
-*/
 
 	// Server info
 	if (netgame)
@@ -710,11 +725,7 @@ void DRPC_UpdatePresence(void)
 	if (joinSecretSet == false)
 	{
 		// Not able to join? Flush the request list, if it exists.
-		while (discordRequestList != NULL)
-		{
-			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_IGNORE);
-			DRPC_RemoveRequest(discordRequestList);
-		}
+		DRPC_EmptyRequests();
 	}
 
 	Discord_UpdatePresence(&discordPresence);
