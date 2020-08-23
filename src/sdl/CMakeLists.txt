@@ -336,7 +336,7 @@ if(${SDL2_FOUND})
 		endif()
 
 		if(${SRB2_CONFIG_HAVE_DISCORDRPC})
-			getwinlib(libgme "discord-rpc.dll")
+			getwinlib(discord-rpc "discord-rpc.dll")
 		endif()
 
 		install(PROGRAMS
