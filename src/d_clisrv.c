@@ -2270,10 +2270,10 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 	}
 
 	// Ask the info to the server (askinfo packet)
-	if ((I_GetTime() - NEWTICRATE) >= *asksent)
+	if (I_GetTime() >= *asksent)
 	{
 		SendAskInfo(servernode);
-		*asksent = I_GetTime();
+		*asksent = I_GetTime() + NEWTICRATE;
 	}
 #else
 	(void)viams;
@@ -2314,12 +2314,12 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 		case CL_ASKFULLFILELIST:
 			if (cl_lastcheckedfilecount == UINT16_MAX) // All files retrieved
 				cl_mode = CL_CHECKFILES;
-			else if (fileneedednum != cl_lastcheckedfilecount || (I_GetTime() - NEWTICRATE) >= *asksent)
+			else if (fileneedednum != cl_lastcheckedfilecount || I_GetTime() >= *asksent)
 			{
 				if (CL_AskFileList(fileneedednum))
 				{
 					cl_lastcheckedfilecount = fileneedednum;
-					*asksent = I_GetTime();
+					*asksent = I_GetTime() + NEWTICRATE;
 				}
 			}
 			break;
@@ -2387,7 +2387,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 		case CL_LOADFILES:
 			if (CL_LoadServerFiles())
 			{
-				*asksent = I_GetTime() - (NEWTICRATE*3); //This ensure the first join ask is right away
+				*asksent = 0; //This ensure the first join ask is right away
 				firstconnectattempttime = I_GetTime();
 				cl_mode = CL_ASKJOIN;
 			}
@@ -2414,14 +2414,14 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 			// but since the network layer doesn't provide ordered packets...
 			CL_PrepareDownloadSaveGame(tmpsave);
 #endif
-			if (( I_GetTime() - NEWTICRATE*3 ) >= *asksent && CL_SendJoin())
+			if (I_GetTime() >= *asksent && CL_SendJoin())
 			{
-				*asksent = I_GetTime();
+				*asksent = I_GetTime() + NEWTICRATE*3;
 				cl_mode = CL_WAITJOINRESPONSE;
 			}
 			break;
 		case CL_WAITJOINRESPONSE:
-			if (( I_GetTime() - NEWTICRATE*3 ) >= *asksent)
+			if (I_GetTime() >= *asksent)
 			{
 				cl_mode = CL_ASKJOIN;
 			}
@@ -2555,9 +2555,9 @@ static void CL_ConnectToServer(void)
 
 	ClearAdminPlayers();
 	pnumnodes = 1;
-	oldtic = I_GetTime() - 1;
+	oldtic = 0;
 #ifndef NONET
-	asksent = I_GetTime() - NEWTICRATE*3;
+	asksent = 0;
 	firstconnectattempttime = I_GetTime();
 
 	i = SL_SearchServer(servernode);
