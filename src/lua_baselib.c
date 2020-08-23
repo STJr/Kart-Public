@@ -14,9 +14,7 @@
 #ifdef HAVE_BLUA
 #include "p_local.h"
 #include "p_setup.h" // So we can have P_SetupLevelSky
-#ifdef ESLOPE
 #include "p_slopes.h" // P_GetZAt
-#endif
 #include "z_zone.h"
 #include "r_main.h"
 #include "r_things.h"
@@ -1575,7 +1573,6 @@ static int lib_evCrumbleChain(lua_State *L)
 	return 0;
 }
 
-#ifdef ESLOPE
 // P_SLOPES
 ////////////
 
@@ -1591,7 +1588,6 @@ static int lib_pGetZAt(lua_State *L)
 	lua_pushfixed(L, P_GetZAt(slope, x, y));
 	return 1;
 }
-#endif
 
 // R_DEFS
 ////////////
@@ -3083,10 +3079,8 @@ static luaL_Reg lib[] = {
 	{"P_StartQuake",lib_pStartQuake},
 	{"EV_CrumbleChain",lib_evCrumbleChain},
 
-#ifdef ESLOPE
 	// p_slopes
 	{"P_GetZAt",lib_pGetZAt},
-#endif
 
 	// r_defs
 	{"R_PointToAngle",lib_rPointToAngle},

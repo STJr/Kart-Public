@@ -13,7 +13,6 @@
 #ifndef P_SLOPES_H__
 #define P_SLOPES_H__
 
-#ifdef ESLOPE
 void P_CalculateSlopeNormal(pslope_t *slope);
 void P_ResetDynamicSlopes(void);
 void P_RunDynamicSlopes(void);
@@ -41,7 +40,6 @@ void P_SlopeLaunch(mobj_t *mo);
 void P_HandleSlopeLanding(mobj_t *thing, pslope_t *slope);
 void P_ButteredSlope(mobj_t *mo);
 
-#endif
 
 // EOF
 #endif // #ifdef ESLOPE

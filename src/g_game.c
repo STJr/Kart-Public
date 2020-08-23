@@ -6334,8 +6334,8 @@ void G_RecordDemo(const char *name)
 	maxsize = 1024*1024*2;
 	if (M_CheckParm("-maxdemo") && M_IsNextParm())
 		maxsize = atoi(M_GetNextParm()) * 1024;
-//	if (demobuffer)
-//		free(demobuffer);
+	if (demobuffer)
+		free(demobuffer);
 	demo_p = NULL;
 	demobuffer = malloc(maxsize);
 	demoend = demobuffer + maxsize;
@@ -7164,6 +7164,7 @@ void G_DoPlayDemo(char *defdemoname)
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
 		Z_Free(demobuffer);
+		demobuffer = NULL;
 		demo.playback = false;
 		demo.title = false;
 		return;
@@ -7192,6 +7193,7 @@ void G_DoPlayDemo(char *defdemoname)
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
 		Z_Free(demobuffer);
+		demobuffer = NULL;
 		demo.playback = false;
 		demo.title = false;
 		return;
@@ -7204,6 +7206,7 @@ void G_DoPlayDemo(char *defdemoname)
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
 		Z_Free(demobuffer);
+		demobuffer = NULL;
 		demo.playback = false;
 		demo.title = false;
 		return;
@@ -7223,6 +7226,7 @@ void G_DoPlayDemo(char *defdemoname)
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
+			demobuffer = NULL;
 			demo.playback = false;
 			demo.title = false;
 			return;
@@ -7283,6 +7287,7 @@ void G_DoPlayDemo(char *defdemoname)
 				M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
+			demobuffer = NULL;
 			demo.playback = false;
 			demo.title = false;
 			return;
@@ -7353,6 +7358,7 @@ void G_DoPlayDemo(char *defdemoname)
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
+			demobuffer = NULL;
 			demo.playback = false;
 			demo.title = false;
 			return;
@@ -7366,6 +7372,7 @@ void G_DoPlayDemo(char *defdemoname)
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
+			demobuffer = NULL;
 			demo.playback = false;
 			demo.title = false;
 			return;
@@ -7390,6 +7397,7 @@ void G_DoPlayDemo(char *defdemoname)
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
+			demobuffer = NULL;
 			demo.playback = false;
 			demo.title = false;
 			return;
@@ -7433,6 +7441,7 @@ void G_DoPlayDemo(char *defdemoname)
 		M_StartMessage(msg, NULL, MM_NOTHING);
 		Z_Free(pdemoname);
 		Z_Free(demobuffer);
+		demobuffer = NULL;
 		demo.playback = false;
 		demo.title = false;
 		return;
@@ -7488,6 +7497,7 @@ void G_DoPlayDemo(char *defdemoname)
 				M_StartMessage(msg, NULL, MM_NOTHING);
 				Z_Free(pdemoname);
 				Z_Free(demobuffer);
+				demobuffer = NULL;
 				demo.playback = false;
 				demo.title = false;
 				return;
@@ -7502,6 +7512,7 @@ void G_DoPlayDemo(char *defdemoname)
 			M_StartMessage(msg, NULL, MM_NOTHING);
 			Z_Free(pdemoname);
 			Z_Free(demobuffer);
+			demobuffer = NULL;
 			demo.playback = false;
 			demo.title = false;
 			return;
@@ -8152,6 +8163,7 @@ ATTRNORETURN void FUNCNORETURN G_StopMetalRecording(void)
 		saved = FIL_WriteFile(va("%sMS.LMP", G_BuildMapName(gamemap)), demobuffer, demo_p - demobuffer); // finally output the file.
 	}
 	free(demobuffer);
+	demobuffer = NULL;
 	metalrecording = false;
 	if (saved)
 		I_Error("Saved to %sMS.LMP", G_BuildMapName(gamemap));
@@ -8332,6 +8344,7 @@ void G_SaveDemo(void)
 	if (FIL_WriteFile(va(pandf, srb2home, demoname), demobuffer, demo_p - demobuffer)) // finally output the file.
 		demo.savemode = DSM_SAVED;
 	free(demobuffer);
+	demobuffer = NULL;
 	demo.recording = false;
 
 	if (modeattacking != ATTACKING_RECORD)

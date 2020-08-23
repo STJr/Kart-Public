@@ -1377,30 +1377,72 @@ void K_KartBouncing(mobj_t *mobj1, mobj_t *mobj2, boolean bounce, boolean solid)
 	}
 }
 
-/**	\brief	Checks that the player is on an offroad subsector for realsies
+/**	\brief	Checks that the player is on an offroad subsector for realsies. Also accounts for line riding to prevent cheese.
 
 	\param	mo	player mobj object
 
 	\return	boolean
 */
-static UINT8 K_CheckOffroadCollide(mobj_t *mo, sector_t *sec)
+static UINT8 K_CheckOffroadCollide(mobj_t *mo)
 {
-	UINT8 i;
-	sector_t *sec2;
+	// Check for sectors in touching_sectorlist
+	UINT8 i;			// special type iter
+	msecnode_t *node;	// touching_sectorlist iter
+	sector_t *s;		// main sector shortcut
+	sector_t *s2;		// FOF sector shortcut
+	ffloor_t *rover;	// FOF
+
+	fixed_t flr;
+	fixed_t cel;	// floor & ceiling for height checks to make sure we're touching the offroad sector.
 
 	I_Assert(mo != NULL);
 	I_Assert(!P_MobjWasRemoved(mo));
 
-	sec2 = P_ThingOnSpecial3DFloor(mo);
-
-	for (i = 2; i < 5; i++)
+	for (node = mo->touching_sectorlist; node; node = node->m_sectorlist_next)
 	{
-		if ((sec2 && GETSECSPECIAL(sec2->special, 1) == i)
-			|| (P_IsObjectOnRealGround(mo, sec) && GETSECSPECIAL(sec->special, 1) == i))
-			return i-1;
-	}
+		if (!node->m_sector)
+			break;	// shouldn't happen.
 
-	return 0;
+		s = node->m_sector;
+		// 1: Check for the main sector, make sure we're on the floor of that sector and see if we can apply offroad.
+		// Make arbitrary Z checks because we want to check for 1 sector in particular, we don't want to affect the player if the offroad sector is way below them and they're lineriding a normal sector above.
+
+		flr = P_MobjFloorZ(mo, s, s, mo->x, mo->y, NULL, false, true);
+		cel = P_MobjCeilingZ(mo, s, s, mo->x, mo->y, NULL, true, true);	// get Z coords of both floors and ceilings for this sector (this accounts for slopes properly.)
+		// NOTE: we don't use P_GetZAt with our x/y directly because the mobj won't have the same height because of its hitbox on the slope. Complex garbage but tldr it doesn't work.
+
+		if ( ((s->flags & SF_FLIPSPECIAL_FLOOR) && mo->z == flr)	// floor check
+			|| ((mo->eflags & MFE_VERTICALFLIP && (s->flags & SF_FLIPSPECIAL_CEILING) && (mo->z + mo->height) == cel)) )	// ceiling check.
+
+			for (i = 2; i < 5; i++)	// check for sector special
+
+				if (GETSECSPECIAL(s->special, 1) == i)
+					return i-1;	// return offroad type
+
+		// 2: If we're here, we haven't found anything. So let's try looking for FOFs in the sectors using the same logic.
+		for (rover = s->ffloors; rover; rover = rover->next)
+		{
+			if (!(rover->flags & FF_EXISTS))	// This FOF doesn't exist anymore.
+				continue;
+
+			s2 = &sectors[rover->secnum];	// makes things easier for us
+
+			flr = P_GetFOFBottomZ(mo, s, rover, mo->x, mo->y, NULL);
+			cel = P_GetFOFTopZ(mo, s, rover, mo->x, mo->y, NULL);	// Z coords for fof top/bottom.
+
+			// we will do essentially the same checks as above instead of bothering with top/bottom height of the FOF.
+			// Reminder that an FOF's floor is its bottom, silly!
+			if ( ((s2->flags & SF_FLIPSPECIAL_FLOOR) && mo->z == cel)	// "floor" check
+				|| ((s2->flags & SF_FLIPSPECIAL_CEILING) && (mo->z + mo->height) == flr) )	// "ceiling" check.
+
+				for (i = 2; i < 5; i++)	// check for sector special
+
+					if (GETSECSPECIAL(s2->special, 1) == i)
+						return i-1;	// return offroad type
+
+		}
+	}
+	return 0;	// couldn't find any offroad
 }
 
 /**	\brief	Updates the Player's offroad value once per frame
@@ -1412,14 +1454,12 @@ static UINT8 K_CheckOffroadCollide(mobj_t *mo, sector_t *sec)
 static void K_UpdateOffroad(player_t *player)
 {
 	fixed_t offroad;
-	sector_t *nextsector = R_PointInSubsector(
-		player->mo->x + player->mo->momx*2, player->mo->y + player->mo->momy*2)->sector;
-	UINT8 offroadstrength = K_CheckOffroadCollide(player->mo, nextsector);
+	UINT8 offroadstrength = K_CheckOffroadCollide(player->mo);
 
 	// If you are in offroad, a timer starts.
 	if (offroadstrength)
 	{
-		if (K_CheckOffroadCollide(player->mo, player->mo->subsector->sector) && player->kartstuff[k_offroad] == 0)
+		if (/*K_CheckOffroadCollide(player->mo) &&*/ player->kartstuff[k_offroad] == 0)	// With the way offroad is detected now that first check is no longer necessary. -Lat'
 			player->kartstuff[k_offroad] = (TICRATE/2);
 
 		if (player->kartstuff[k_offroad] > 0)
@@ -2898,14 +2938,12 @@ void K_SpawnBoostTrail(player_t *player)
 	{
 		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(24*FRACUNIT, player->mo->scale));
 		newy = player->mo->y + P_ReturnThrustY(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(24*FRACUNIT, player->mo->scale));
-#ifdef ESLOPE
 		if (player->mo->standingslope)
 		{
 			ground = P_GetZAt(player->mo->standingslope, newx, newy);
 			if (player->mo->eflags & MFE_VERTICALFLIP)
 				ground -= FixedMul(mobjinfo[MT_SNEAKERTRAIL].height, player->mo->scale);
 		}
-#endif
 		flame = P_SpawnMobj(newx, newy, ground, MT_SNEAKERTRAIL);
 
 		P_SetTarget(&flame->target, player->mo);
@@ -3326,13 +3364,13 @@ void K_PuntMine(mobj_t *thismine, mobj_t *punter)
 		mine->flags2 = thismine->flags2;
 		mine->floorz = thismine->floorz;
 		mine->ceilingz = thismine->ceilingz;
-		
+
 		//Since we aren't using P_KillMobj, we need to clean up the hnext reference
 		{
 			P_SetTarget(&thismine->target->hnext, NULL); //target is the player who owns the mine
 			thismine->target->player->kartstuff[k_bananadrag] = 0;
 			thismine->target->player->kartstuff[k_itemheld] = 0;
-			
+
 			if (--thismine->target->player->kartstuff[k_itemamount] <= 0)
 				thismine->target->player->kartstuff[k_itemtype] = KITEM_NONE;
 		}
@@ -3622,9 +3660,7 @@ void K_DoPogoSpring(mobj_t *mo, fixed_t vertispeed, UINT8 sound)
 	if (mo->eflags & MFE_SPRUNG)
 		return;
 
-#ifdef ESLOPE
 	mo->standingslope = NULL;
-#endif
 
 	mo->eflags |= MFE_SPRUNG;
 
@@ -3916,7 +3952,7 @@ void K_DropRocketSneaker(player_t *player)
 			flingangle = -(ANG60);
 		else
 			flingangle = ANG60;
-		
+
 		S_StartSound(shoe, shoe->info->deathsound);
 		P_SetObjectMomZ(shoe, 8*FRACUNIT, false);
 		P_InstaThrust(shoe, R_PointToAngle2(shoe->target->x, shoe->target->y, shoe->x, shoe->y)+flingangle, 16*FRACUNIT);
