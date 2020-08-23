@@ -237,7 +237,7 @@ set(SRB2_CONFIG_STATIC_OPENGL OFF CACHE BOOL
 ### use internal libraries?
 if(${CMAKE_SYSTEM} MATCHES "Windows") ###set on Windows only
 	set(SRB2_CONFIG_USE_INTERNAL_LIBRARIES OFF CACHE BOOL
-	"Use SRB2's internal copies of required dependencies (SDL2, PNG, zlib, GME).")
+	"Use SRB2Kart's internal copies of required dependencies (SDL2, PNG, zlib, GME).")
 endif()
 
 if(${SRB2_CONFIG_HAVE_BLUA})
@@ -359,17 +359,16 @@ if(${SRB2_CONFIG_HAVE_DISCORDRPC})
 			set(DISCORDRPC_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/discord-rpc/win32-dynamic/lib -ldiscord-rpc")
 		endif()
 	else()
-		find_package(DISCORDRPC)
+		find_package(DiscordRPC)
 	endif()
 	if(${DISCORDRPC_FOUND})
 		set(SRB2_HAVE_DISCORDRPC ON)
 		add_definitions(-DHAVE_DISCORDRPC)
-		set(SRB2_DISCORDRPC_SOURCES
-			discord.c
-			discord.h
-		)
+		set(SRB2_DISCORDRPC_SOURCES discord.c)
+		set(SRB2_DISCORDRPC_HEADERS discord.h)
 		prepend_sources(SRB2_DISCORDRPC_SOURCES)
-		source_group("Discord Rich Presence" FILES ${SRB2_DISCORDRPC_SOURCES})
+		prepend_sources(SRB2_DISCORDRPC_HEADERS)
+		source_group("Discord Rich Presence" FILES ${SRB2_DISCORDRPC_SOURCES} ${SRB2_DISCORDRPC_HEADERS})
 	else()
 		message(WARNING "You have specified that Discord Rich Presence is available but it was not found.")
 	endif()

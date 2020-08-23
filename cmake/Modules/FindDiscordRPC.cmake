@@ -3,11 +3,11 @@ include(LibFindMacros)
 libfind_pkg_check_modules(DISCORDRPC_PKGCONF DISCORDRPC)
 
 find_path(DISCORDRPC_INCLUDE_DIR
-	NAMES discord-rpc.h
+	NAMES discord_rpc.h
 	PATHS
 		${DISCORDRPC_PKGCONF_INCLUDE_DIRS}
-		"/usr/include/discord-rpc"
-		"/usr/local/include/discord-rpc"
+		"/usr/include"
+		"/usr/local/include"
 )
 
 find_library(DISCORDRPC_LIBRARY
