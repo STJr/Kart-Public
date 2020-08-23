@@ -3348,10 +3348,8 @@ void M_StartControlPanel(void)
 				MPauseMenu[i].alphaKey -= 8;
 
 			MPauseMenu[mpause_discordrequests].alphaKey = MPauseMenu[i].alphaKey;
-			MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
 
-			if (discordRequestList != NULL)
-				MPauseMenu[mpause_discordrequests].status = IT_STRING | IT_SUBMENU;
+			M_RefreshPauseMenu();
 		}
 #endif
 
@@ -6368,6 +6366,20 @@ static void M_SelectableClearMenus(INT32 choice)
 {
 	(void)choice;
 	M_ClearMenus(true);
+}
+
+void M_RefreshPauseMenu(void)
+{
+#ifdef HAVE_DISCORDRPC
+	if (discordRequestList != NULL)
+	{
+		MPauseMenu[mpause_discordrequests].status = IT_STRING | IT_SUBMENU;
+	}
+	else
+	{
+		MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
+	}
+#endif
 }
 
 // ======

@@ -276,6 +276,7 @@ static void DRPC_HandleJoinRequest(const DiscordUser *requestUser)
 	else
 	{
 		discordRequestList = newRequest;
+		M_RefreshPauseMenu();
 	}
 
 	// Made it to the end, request was valid, so play the request sound :)
