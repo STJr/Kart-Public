@@ -332,7 +332,7 @@ if(${SRB2_CONFIG_HAVE_GME})
 	if(${SRB2_CONFIG_USE_INTERNAL_LIBRARIES})
 		set(GME_FOUND ON)
 		set(GME_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libs/gme/include)
-        if(${SRB2_SYSTEM_BITS} EQUAL 64)
+		if(${SRB2_SYSTEM_BITS} EQUAL 64)
 			set(GME_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/gme/win64 -lgme")
 		else() # 32-bit
 			set(GME_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/gme/win32 -lgme")
@@ -348,17 +348,31 @@ if(${SRB2_CONFIG_HAVE_GME})
 	endif()
 endif()
 
-# TO-DO: make this check for the dependency like the others..
 if(${SRB2_CONFIG_HAVE_DISCORDRPC})
-	add_definitions(-DHAVE_DISCORDRPC)
-	set(SRB2_DISCORDRPC_SOURCES
-		discord.c
-		discord.h
-	)
-
-	prepend_sources(SRB2_DISCORDRPC_SOURCES)
-
-	source_group("Discord RPC" FILES ${SRB2_DISCORDRPC_SOURCES})
+	if(${SRB2_CONFIG_USE_INTERNAL_LIBRARIES})
+		set(DISCORDRPC_FOUND ON)
+		if(${SRB2_SYSTEM_BITS} EQUAL 64)
+			set(DISCORDRPC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libs/discord-rpc/win64-dynamic/include)
+			set(DISCORDRPC_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/discord-rpc/win64-dynamic/lib -ldiscord-rpc")
+		else() # 32-bit
+			set(DISCORDRPC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libs/discord-rpc/win32-dynamic/include)
+			set(DISCORDRPC_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/discord-rpc/win32-dynamic/lib -ldiscord-rpc")
+		endif()
+	else()
+		find_package(DISCORDRPC)
+	endif()
+	if(${DISCORDRPC_FOUND})
+		set(SRB2_HAVE_DISCORDRPC ON)
+		add_definitions(-DHAVE_DISCORDRPC)
+		set(SRB2_DISCORDRPC_SOURCES
+			discord.c
+			discord.h
+		)
+		prepend_sources(SRB2_DISCORDRPC_SOURCES)
+		source_group("Discord Rich Presence" FILES ${SRB2_DISCORDRPC_SOURCES})
+	else()
+		message(WARNING "You have specified that Discord Rich Presence is available but it was not found.")
+	endif()
 endif()
 
 if(${SRB2_CONFIG_HAVE_ZLIB})
