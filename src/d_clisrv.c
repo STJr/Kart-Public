@@ -2072,6 +2072,8 @@ static void M_ConfirmConnect(event_t *ev)
 			M_ClearMenus(true);
 		}
 	}
+#else
+	(void)ev;
 #endif
 }
 
@@ -2175,10 +2177,12 @@ static boolean CL_FinishedFileList(void)
 #endif
 				}
 
+#ifndef NONET
 			if (totalfilesrequestedsize>>20 >= 100)
 				downloadsize = Z_StrDup(va("%uM",totalfilesrequestedsize>>20));
 			else
 				downloadsize = Z_StrDup(va("%uK",totalfilesrequestedsize>>10));
+#endif
 
 			if (serverisfull)
 				M_StartMessage(va(M_GetText(
