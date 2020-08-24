@@ -2080,7 +2080,7 @@ static void M_ConfirmConnect(event_t *ev)
 static boolean CL_FinishedFileList(void)
 {
 	INT32 i;
-	char *downloadsize;
+	char *downloadsize = NULL;
 	//CONS_Printf(M_GetText("Checking files...\n"));
 	i = CL_CheckFiles();
 	if (i == 4) // still checking ...
