@@ -33,6 +33,7 @@
 #include "m_misc.h"
 #include "z_zone.h"
 #include "m_menu.h" // Addons_option_Onchange
+#include "i_threads.h"
 
 #if (defined (_WIN32) && !defined (_WIN32_WCE)) && defined (_MSC_VER) && !defined (_XBOX)
 
@@ -445,7 +446,7 @@ boolean preparefilemenu(boolean samedepth, boolean replayhut)
 
 #else
 
-filestatus_t filesearch(int nfiles, filequery_t *files, const char *startpath, boolean checkmd5, boolean completepath, int maxsearchdepth)
+filestatus_t filesearch(int nfiles, filequery_t *files, const char *startpath, boolean checkmd5, boolean completepath, int maxsearchdepth, void *mutex_ptr)
 {
 	filestatus_t retval = FS_NOTFOUND;
 	const UINT8 *wantedmd5sum = NULL;
@@ -455,8 +456,19 @@ filestatus_t filesearch(int nfiles, filequery_t *files, const char *startpath, b
 	int depthleft = maxsearchdepth;
 	char searchpath[1024];
 	size_t *searchpathindex;
+	int matched;
 	int files_left = 0;
 	int i;
+
+#ifdef HAVE_THREADS
+#define   Lock() I_lock_mutex    ((I_mutex *)mutex_ptr)
+#define Unlock() I_unlock_mutex (*(I_mutex *)mutex_ptr)
+#else
+#define   Lock() ((void)0)
+#define Unlock() ((void)0)
+#endif
+
+	Lock();
 
 	for (i = 0; i < nfiles; ++i)
 	{
@@ -465,6 +477,8 @@ filestatus_t filesearch(int nfiles, filequery_t *files, const char *startpath, b
 			files_left++;
 		}
 	}
+
+	Unlock();
 
 	if (! files_left)
 	{
@@ -537,27 +551,41 @@ filestatus_t filesearch(int nfiles, filequery_t *files, const char *startpath, b
 		{
 			for (i = 0; i < nfiles; ++i)
 			{
+				Lock();
+
 				if (checkmd5)
 				{
 					wantedmd5sum = files[i].wantedmd5sum;
 				}
 
-				if (
+				matched =  (
 						files[i].status != FS_FOUND &&
 						!strcasecmp(files[i].filename, dent->d_name)
-				){
+				);
+
+				Unlock();
+
+				if (matched)
+				{
 					switch (checkfilemd5(searchpath, wantedmd5sum))
 					{
 						case FS_FOUND:
+							Lock();
+
 							if (completepath)
 								strcpy(files[i].filename,searchpath);
 							else
 								strcpy(files[i].filename,dent->d_name);
 							files[i].status = FS_FOUND;
+
+							Unlock();
+
 							files_left--;
 							break;
 						case FS_MD5SUMBAD:
+							Lock();
 							retval = files[i].status = FS_MD5SUMBAD;
+							Unlock();
 							break;
 						default: // prevent some compiler warnings
 							break;
@@ -573,6 +601,9 @@ filestatus_t filesearch(int nfiles, filequery_t *files, const char *startpath, b
 	free(dirhandle);
 
 	return ( (files_left) ? retval : FS_FOUND );
+
+#undef   Lock
+#undef Unlock
 }
 
 char exttable[NUM_EXT_TABLE][7] = { // maximum extension length (currently 4) plus 3 (null terminator, stop, and length including previous two)

@@ -35,11 +35,11 @@ extern consvar_t cv_addons_option, cv_addons_folder, cv_addons_md5, cv_addons_sh
 */
 
 filestatus_t filesearch(int nfiles, filequery_t *queries, const char *startpath,
-	boolean checkmd5, boolean completepath, int maxsearchdepth);
+	boolean checkmd5, boolean completepath, int maxsearchdepth, void *mutex_ptr);
 
 /* this is a better place for it tbh (im still too lazy to move the other) */
 filestatus_t findmultiplefiles(int nfiles, filequery_t *files,
-		boolean checkmd5, boolean completepath);
+		boolean checkmd5, boolean completepath, void *mutex_ptr);
 
 #define menudepth 20
 

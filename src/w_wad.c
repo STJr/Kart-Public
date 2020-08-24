@@ -871,7 +871,7 @@ INT32 W_InitMultipleFiles(char **filenames, boolean addons)
 		n++;
 	}
 
-	findmultiplefiles(n, q, false, true);
+	findmultiplefiles(n, q, false, true, NULL);
 
 	for (i = 0; i < n; ++i)
 	{
