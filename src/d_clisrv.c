@@ -46,6 +46,7 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 #include "k_kart.h"
+#include "d_async.h"
 
 #ifdef CLIENT_LOADINGSCREEN
 // cl loading screen
@@ -5421,6 +5422,8 @@ void TryRunTics(tic_t realtics)
 	if (singletics)
 		realtics = 1;
 
+	Finish_async_addfile();
+
 	if (realtics >= 1)
 	{
 		COM_BufTicker();
@@ -5487,6 +5490,8 @@ void TryRunTics(tic_t realtics)
 	{
 		hu_stopped = true;
 	}
+
+	Detach_async_addfile();
 }
 
 

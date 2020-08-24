@@ -18,6 +18,7 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
+#include "d_main.h"
 #include "command.h"
 #include "console.h"
 #include "z_zone.h"
@@ -34,6 +35,8 @@
 #include "p_setup.h"
 #include "lua_script.h"
 #include "d_netfil.h" // findfile
+#include "d_async.h"
+#include "filesrch.h"
 #include "i_threads.h"
 
 #ifdef HAVE_THREADS
@@ -695,7 +698,6 @@ static void COM_CEchoDuration_f(void)
 
 struct COM_Exec_Ctx
 {
-	char    * filename;
 	boolean   noerror;
 	boolean   silent;
 	UINT8   * buf;
@@ -704,47 +706,25 @@ struct COM_Exec_Ctx
 static void Free_COM_Exec_Ctx (struct COM_Exec_Ctx *ctx)
 {
 	Z_Free(ctx->buf);
-	free(ctx->filename);
-	free(ctx);
+	Z_Free(ctx);
 }
 
-static void COM_Exec_Thread (struct COM_Exec_Ctx *ctx)
+void COM_ExecuteFile (void *p, void *u)
 {
-	char filename[256];
+	filequery_t         * q   = p;
+	struct COM_Exec_Ctx * ctx = u;
 
 	ctx->buf = NULL;
 
-	// load file
-	// Try with Argv passed verbatim first, for back compat
-	FIL_ReadFile(ctx->filename, &ctx->buf);
-
-#ifdef HAVE_THREADS
-	if (I_thread_is_stopped())
+	if (q->status == FS_FOUND)
 	{
-		return Free_COM_Exec_Ctx(ctx);
-	}
-#endif
-
-	if (! ctx->buf)
-	{
-		// Now try by searching the file path
-		// filename is modified with the full found path
-		strcpy(filename, ctx->filename);
-		if (findfile(filename, NULL, true) != FS_NOTFOUND)
-			FIL_ReadFile(filename, &ctx->buf);
-
-#ifdef HAVE_THREADS
-		if (I_thread_is_stopped())
-		{
-			return Free_COM_Exec_Ctx(ctx);
-		}
-#endif
+		FIL_ReadFile(q->filename, &ctx->buf);
 	}
 
 	if (ctx->buf)
 	{
 		if (! ctx->silent)
-			CONS_Printf(M_GetText("executing %s\n"), ctx->filename);
+			CONS_Printf(M_GetText("executing %s\n"), q->filename);
 
 		// insert text file into the command buffer
 		COM_BufAddText((char *)ctx->buf);
@@ -753,7 +733,7 @@ static void COM_Exec_Thread (struct COM_Exec_Ctx *ctx)
 	else
 	{
 		if (! ctx->noerror)
-			CONS_Printf(M_GetText("couldn't execute file %s\n"), ctx->filename);
+			CONS_Printf(M_GetText("couldn't execute file %s\n"), q->filename);
 	}
 
 	Free_COM_Exec_Ctx(ctx);
@@ -763,7 +743,13 @@ static void COM_Exec_Thread (struct COM_Exec_Ctx *ctx)
   */
 static void COM_Exec_f(void)
 {
+	char filenamebuf[MAX_WADPATH];
+
 	struct COM_Exec_Ctx *ctx;
+
+	const char * filename;
+
+	filequery_t q;
 
 	if (COM_Argc() < 2 || COM_Argc() > 3)
 	{
@@ -771,24 +757,34 @@ static void COM_Exec_f(void)
 		return;
 	}
 
-	ctx = malloc(sizeof *ctx);
+	filename = COM_Argv(1);
 
-	ctx->filename = strdup(COM_Argv(1));
+	ctx = ZZ_Alloc(sizeof *ctx);
 
 	ctx->noerror  = COM_CheckParm("-noerror");
 	ctx->silent   = COM_CheckParm("-silent");
 
-	if (COM_CheckParm("-singlethread"))
+	if (COM_CheckParm("-sync"))
 	{
-		COM_Exec_Thread(ctx);
+		q.filename = filenamebuf;
+
+		strcpy(q.filename, filename);
+
+		if (FIL_FileOK(va(pandf,srb2home,filename)))
+		{
+			q.status = FS_FOUND;
+		}
+		else
+		{
+			q.status = findfile(q.filename, NULL, true);
+		}
+
+		COM_ExecuteFile(&q, ctx);
 	}
 	else
 	{
-#ifdef HAVE_THREADS
-		I_spawn_thread("exec-command", (I_thread_fn)COM_Exec_Thread, ctx);
-#else
-		COM_Exec_Thread(ctx);
-#endif
+		q.filename = strcpy(ZZ_Alloc(MAX_WADPATH), filename);
+		Append_async_addfile(ASYNC_EXEC, q.filename, ctx);
 	}
 
 }

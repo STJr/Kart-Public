@@ -45,6 +45,9 @@ void COM_ImmedExecute(const char *ptext);
 // Execute commands in buffer, flush them
 void COM_BufExecute(void);
 
+// Execute a whole file (internal use only :v)
+void COM_ExecuteFile(void *query, void *ctx);
+
 // As above; and progress the wait timer.
 void COM_BufTicker(void);
 

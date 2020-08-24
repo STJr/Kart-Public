@@ -462,7 +462,7 @@ filestatus_t filesearch(int nfiles, filequery_t *files, const char *startpath, b
 
 #ifdef HAVE_THREADS
 #define   Lock() I_lock_mutex    ((I_mutex *)mutex_ptr)
-#define Unlock() I_unlock_mutex (*(I_mutex *)mutex_ptr)
+#define Unlock() I_unlock_mutex (((mutex_ptr) ? *(I_mutex *)mutex_ptr : NULL))
 #else
 #define   Lock() ((void)0)
 #define Unlock() ((void)0)
@@ -599,6 +599,18 @@ filestatus_t filesearch(int nfiles, filequery_t *files, const char *startpath, b
 
 	free(searchpathindex);
 	free(dirhandle);
+
+	Lock();
+	{
+		for (i = 0; i < nfiles; ++i)
+		{
+			if (files[i].status != FS_FOUND && files[i].status != FS_MD5SUMBAD)
+			{
+				files[i].status = FS_NOTFOUND;
+			}
+		}
+	}
+	Unlock();
 
 	return ( (files_left) ? retval : FS_FOUND );
 
