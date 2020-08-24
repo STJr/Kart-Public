@@ -874,8 +874,10 @@ void Got_Filetxpak(void)
 			file->status = FS_FOUND;
 			CONS_Printf(M_GetText("Downloading %s...(done)\n"),
 				filename);
+#ifndef NONET
 			downloadcompletednum++;
 			downloadcompletedsize += file->totalsize;
+#endif
 		}
 	}
 	else

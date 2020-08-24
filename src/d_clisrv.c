@@ -2038,6 +2038,7 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 #endif // ifndef NONET
 
+#ifndef NONET
 static void M_ConfirmConnect(event_t *ev)
 {
 	if (ev->type == ev_keydown)
@@ -2072,6 +2073,7 @@ static void M_ConfirmConnect(event_t *ev)
 		}
 	}
 }
+#endif
 
 static boolean CL_FinishedFileList(void)
 {
@@ -2157,10 +2159,12 @@ static boolean CL_FinishedFileList(void)
 		if (!curl_failedwebdownload)
 #endif
 		{
+#ifndef NONET
 			downloadcompletednum = 0;
 			downloadcompletedsize = 0;
 			totalfilesrequestednum = 0;
 			totalfilesrequestedsize = 0;
+#endif
 
 			for (i = 0; i < fileneedednum; i++)
 				if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
@@ -2276,7 +2280,6 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 		*asksent = I_GetTime();
 	}
 #else
-	(void)viams;
 	(void)asksent;
 	// No netgames, so we skip this state.
 	cl_mode = CL_ASKJOIN;
@@ -2993,8 +2996,10 @@ void CL_Reset(void)
 	fileneedednum = 0;
 	memset(fileneeded, 0, sizeof(fileneeded));
 
+#ifndef NONET
 	totalfilesrequestednum = 0;
 	totalfilesrequestedsize = 0;
+#endif
 	firstconnectattempttime = 0;
 	serverisfull = false;
 	connectiontimeout = (tic_t)cv_nettimeout.value; //reset this temporary hack
