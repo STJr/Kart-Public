@@ -2164,7 +2164,6 @@ static boolean CL_FinishedFileList(void)
 			downloadcompletedsize = 0;
 			totalfilesrequestednum = 0;
 			totalfilesrequestedsize = 0;
-#endif
 
 			for (i = 0; i < fileneedednum; i++)
 				if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
@@ -2194,9 +2193,11 @@ static boolean CL_FinishedFileList(void)
 					"Press ACCEL to continue or BRAKE to cancel.\n\n"
 				), downloadsize), M_ConfirmConnect, MM_EVENTHANDLER);
 
+
 			Z_Free(downloadsize);
 			cl_mode = CL_CONFIRMCONNECT;
 		}
+#endif		
 #ifdef HAVE_CURL
 		else
 		{
