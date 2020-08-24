@@ -297,6 +297,9 @@ I_lock_mutex (
 	if (! i_threads_running.value)
 		return;
 
+	if (anchor == NULL)
+		return;
+
 	mutex = Identity(
 			&i_mutex_pool,
 			i_mutex_pool_mutex,
@@ -315,6 +318,9 @@ I_unlock_mutex (
 	if (! i_threads_running.value)
 		return;
 
+	if (id == NULL)
+		return;
+
 	if (SDL_UnlockMutex(id) == -1)
 		abort();
 }
@@ -327,6 +333,9 @@ I_hold_cond (
 	SDL_cond * cond;
 
 	if (! i_threads_running.value)
+		return;
+
+	if (cond_anchor == NULL || mutex_id == NULL)
 		return;
 
 	cond = Identity(
@@ -349,6 +358,9 @@ I_wake_one_cond (
 	if (! i_threads_running.value)
 		return;
 
+	if (anchor == NULL)
+		return;
+
 	cond = Identity(
 			&i_cond_pool,
 			i_cond_pool_mutex,
@@ -367,6 +379,9 @@ I_wake_all_cond (
 	SDL_cond * cond;
 
 	if (! i_threads_running.value)
+		return;
+
+	if (anchor == NULL)
 		return;
 
 	cond = Identity(
