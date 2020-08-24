@@ -398,7 +398,7 @@ endif()
 if(${SRB2_CONFIG_HAVE_CURL})
 	if(${SRB2_CONFIG_USE_INTERNAL_LIBRARIES})
 		set(CURL_FOUND ON)
-		set(CURL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libs/curl)
+		set(CURL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libs/curl/include)
 		if(${SRB2_SYSTEM_BITS} EQUAL 64)
 			set(CURL_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/curl/lib64 -lcurl")
 		else() # 32-bit
