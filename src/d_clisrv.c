@@ -2038,9 +2038,9 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 #endif // ifndef NONET
 
-#ifndef NONET
 static void M_ConfirmConnect(event_t *ev)
 {
+#ifndef NONET	
 	if (ev->type == ev_keydown)
 	{
 		if (ev->data1 == ' ' || ev->data1 == 'y' || ev->data1 == KEY_ENTER || ev->data1 == gamecontrol[gc_accelerate][0] || ev->data1 == gamecontrol[gc_accelerate][1])
@@ -2072,8 +2072,8 @@ static void M_ConfirmConnect(event_t *ev)
 			M_ClearMenus(true);
 		}
 	}
-}
 #endif
+}
 
 static boolean CL_FinishedFileList(void)
 {
@@ -2164,12 +2164,15 @@ static boolean CL_FinishedFileList(void)
 			downloadcompletedsize = 0;
 			totalfilesrequestednum = 0;
 			totalfilesrequestedsize = 0;
+#endif
 
 			for (i = 0; i < fileneedednum; i++)
 				if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
 				{
+#ifndef NONET
 					totalfilesrequestednum++;
 					totalfilesrequestedsize += fileneeded[i].totalsize;
+#endif
 				}
 
 			if (totalfilesrequestedsize>>20 >= 100)
@@ -2193,11 +2196,9 @@ static boolean CL_FinishedFileList(void)
 					"Press ACCEL to continue or BRAKE to cancel.\n\n"
 				), downloadsize), M_ConfirmConnect, MM_EVENTHANDLER);
 
-
 			Z_Free(downloadsize);
 			cl_mode = CL_CONFIRMCONNECT;
 		}
-#endif		
 #ifdef HAVE_CURL
 		else
 		{
