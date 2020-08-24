@@ -37,17 +37,6 @@
 #include "d_netfil.h" // findfile
 #include "d_async.h"
 #include "filesrch.h"
-#include "i_threads.h"
-
-#ifdef HAVE_THREADS
-static I_mutex com_text_mutex;
-
-#  define Lock_state()    I_lock_mutex(&com_text_mutex)
-#  define Unlock_state() I_unlock_mutex(com_text_mutex)
-#else/*HAVE_THREADS*/
-#  define Lock_state()
-#  define Unlock_state()
-#endif/*HAVE_THREADS*/
 
 //========
 // protos.
@@ -133,14 +122,10 @@ void COM_BufAddText(const char *ptext)
 
 	l = strlen(ptext);
 
-	Lock_state();
-
 	if (com_text.cursize + l >= com_text.maxsize)
 		CONS_Alert(CONS_WARNING, M_GetText("Command buffer full!\n"));
 	else
 		VS_Write(&com_text, ptext, l);
-
-	Unlock_state();
 }
 
 /** Adds command text and executes it immediately.
@@ -152,8 +137,6 @@ void COM_BufInsertText(const char *ptext)
 {
 	char *temp = NULL;
 	size_t templen;
-
-	Lock_state();
 
 	// copy off any commands still remaining in the exec buffer
 	templen = com_text.cursize;
@@ -173,8 +156,6 @@ void COM_BufInsertText(const char *ptext)
 		VS_Write(&com_text, temp, templen);
 		Z_Free(temp);
 	}
-
-	Unlock_state();
 }
 
 /** Progress the wait timer and flush waiting console commands when ready.
@@ -199,8 +180,6 @@ void COM_BufExecute(void)
 	char *ptext;
 	char line[1024] = "";
 	INT32 quotes;
-
-	Lock_state();
 
 	while (com_text.cursize)
 	{
@@ -249,8 +228,6 @@ void COM_BufExecute(void)
 			break;
 		}
 	}
-
-	Unlock_state();
 }
 
 /** Executes a string immediately.  Used for skirting around WAIT commands.
