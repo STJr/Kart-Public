@@ -2040,6 +2040,7 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 static void M_ConfirmConnect(event_t *ev)
 {
+#ifndef NONET	
 	if (ev->type == ev_keydown)
 	{
 		if (ev->data1 == ' ' || ev->data1 == 'y' || ev->data1 == KEY_ENTER || ev->data1 == gamecontrol[gc_accelerate][0] || ev->data1 == gamecontrol[gc_accelerate][1])
@@ -2071,12 +2072,15 @@ static void M_ConfirmConnect(event_t *ev)
 			M_ClearMenus(true);
 		}
 	}
+#else
+	(void)ev;
+#endif
 }
 
 static boolean CL_FinishedFileList(void)
 {
 	INT32 i;
-	char *downloadsize;
+	char *downloadsize = NULL;
 	//CONS_Printf(M_GetText("Checking files...\n"));
 	i = CL_CheckFiles();
 	if (i == 4) // still checking ...
@@ -2157,22 +2161,28 @@ static boolean CL_FinishedFileList(void)
 		if (!curl_failedwebdownload)
 #endif
 		{
+#ifndef NONET
 			downloadcompletednum = 0;
 			downloadcompletedsize = 0;
 			totalfilesrequestednum = 0;
 			totalfilesrequestedsize = 0;
+#endif
 
 			for (i = 0; i < fileneedednum; i++)
 				if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
 				{
+#ifndef NONET
 					totalfilesrequestednum++;
 					totalfilesrequestedsize += fileneeded[i].totalsize;
+#endif
 				}
 
+#ifndef NONET
 			if (totalfilesrequestedsize>>20 >= 100)
 				downloadsize = Z_StrDup(va("%uM",totalfilesrequestedsize>>20));
 			else
 				downloadsize = Z_StrDup(va("%uK",totalfilesrequestedsize>>10));
+#endif
 
 			if (serverisfull)
 				M_StartMessage(va(M_GetText(
@@ -2276,7 +2286,6 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 		*asksent = I_GetTime() + NEWTICRATE;
 	}
 #else
-	(void)viams;
 	(void)asksent;
 	// No netgames, so we skip this state.
 	cl_mode = CL_ASKJOIN;
@@ -2993,8 +3002,10 @@ void CL_Reset(void)
 	fileneedednum = 0;
 	memset(fileneeded, 0, sizeof(fileneeded));
 
+#ifndef NONET
 	totalfilesrequestednum = 0;
 	totalfilesrequestedsize = 0;
+#endif
 	firstconnectattempttime = 0;
 	serverisfull = false;
 	connectiontimeout = (tic_t)cv_nettimeout.value; //reset this temporary hack
