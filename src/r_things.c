@@ -2746,7 +2746,7 @@ void R_AddSkins(UINT16 wadnum)
 
 		if (numskins >= MAXSKINS)
 		{
-			CONS_Debug(DBG_RENDER, "ignored skin (%d skins maximum)\n", MAXSKINS);
+			CONS_Alert(CONS_WARNING, M_GetText("Unable to add skin, too many characters are loaded (%d maximum)\n"), MAXSKINS);
 			continue; // so we know how many skins couldn't be added
 		}
 		buf = W_CacheLumpNumPwad(wadnum, lump, PU_CACHE);
