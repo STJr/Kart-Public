@@ -1401,8 +1401,6 @@ static void P_LoadRawSideDefs2(void *data)
 {
 	UINT16 i;
 	INT32 num;
-	size_t j;
-	RGBA_t color;
 
 	for (i = 0; i < numsides; i++)
 	{
@@ -1469,6 +1467,8 @@ static void P_LoadRawSideDefs2(void *data)
 						|| (msd->bottomtexture[0] == '#' && msd->bottomtexture[1] && msd->bottomtexture[2] && msd->bottomtexture[3] && msd->bottomtexture[4] && msd->bottomtexture[5] && msd->bottomtexture[6]))
 					{
 						char *col;
+						RGBA_t color;
+						size_t j;
 
 						sec->midmap = R_CreateColormap(msd->toptexture, msd->midtexture,
 							msd->bottomtexture);
