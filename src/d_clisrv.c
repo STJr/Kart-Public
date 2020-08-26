@@ -2045,6 +2045,7 @@ void CL_UpdateServerList(boolean internetsearch, INT32 room)
 
 static void M_ConfirmConnect(event_t *ev)
 {
+#ifndef NONET	
 	if (ev->type == ev_keydown)
 	{
 		if (ev->data1 == ' ' || ev->data1 == 'y' || ev->data1 == KEY_ENTER || ev->data1 == gamecontrol[gc_accelerate][0] || ev->data1 == gamecontrol[gc_accelerate][1])
@@ -2076,12 +2077,15 @@ static void M_ConfirmConnect(event_t *ev)
 			M_ClearMenus(true);
 		}
 	}
+#else
+	(void)ev;
+#endif
 }
 
 static boolean CL_FinishedFileList(void)
 {
 	INT32 i;
-	char *downloadsize;
+	char *downloadsize = NULL;
 	//CONS_Printf(M_GetText("Checking files...\n"));
 	i = CL_CheckFiles();
 	if (i == 4) // still checking ...
@@ -2162,22 +2166,28 @@ static boolean CL_FinishedFileList(void)
 		if (!curl_failedwebdownload)
 #endif
 		{
+#ifndef NONET
 			downloadcompletednum = 0;
 			downloadcompletedsize = 0;
 			totalfilesrequestednum = 0;
 			totalfilesrequestedsize = 0;
+#endif
 
 			for (i = 0; i < fileneedednum; i++)
 				if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD)
 				{
+#ifndef NONET
 					totalfilesrequestednum++;
 					totalfilesrequestedsize += fileneeded[i].totalsize;
+#endif
 				}
 
+#ifndef NONET
 			if (totalfilesrequestedsize>>20 >= 100)
 				downloadsize = Z_StrDup(va("%uM",totalfilesrequestedsize>>20));
 			else
 				downloadsize = Z_StrDup(va("%uK",totalfilesrequestedsize>>10));
+#endif
 
 			if (serverisfull)
 				M_StartMessage(va(M_GetText(
@@ -2275,13 +2285,12 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 	}
 
 	// Ask the info to the server (askinfo packet)
-	if ((I_GetTime() - NEWTICRATE) >= *asksent)
+	if (I_GetTime() >= *asksent)
 	{
 		SendAskInfo(servernode);
-		*asksent = I_GetTime();
+		*asksent = I_GetTime() + NEWTICRATE;
 	}
 #else
-	(void)viams;
 	(void)asksent;
 	// No netgames, so we skip this state.
 	cl_mode = CL_ASKJOIN;
@@ -2319,12 +2328,12 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 		case CL_ASKFULLFILELIST:
 			if (cl_lastcheckedfilecount == UINT16_MAX) // All files retrieved
 				cl_mode = CL_CHECKFILES;
-			else if (fileneedednum != cl_lastcheckedfilecount || (I_GetTime() - NEWTICRATE) >= *asksent)
+			else if (fileneedednum != cl_lastcheckedfilecount || I_GetTime() >= *asksent)
 			{
 				if (CL_AskFileList(fileneedednum))
 				{
 					cl_lastcheckedfilecount = fileneedednum;
-					*asksent = I_GetTime();
+					*asksent = I_GetTime() + NEWTICRATE;
 				}
 			}
 			break;
@@ -2392,7 +2401,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 		case CL_LOADFILES:
 			if (CL_LoadServerFiles())
 			{
-				*asksent = I_GetTime() - (NEWTICRATE*3); //This ensure the first join ask is right away
+				*asksent = 0; //This ensure the first join ask is right away
 				firstconnectattempttime = I_GetTime();
 				cl_mode = CL_ASKJOIN;
 			}
@@ -2419,14 +2428,14 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 			// but since the network layer doesn't provide ordered packets...
 			CL_PrepareDownloadSaveGame(tmpsave);
 #endif
-			if (( I_GetTime() - NEWTICRATE*3 ) >= *asksent && CL_SendJoin())
+			if (I_GetTime() >= *asksent && CL_SendJoin())
 			{
-				*asksent = I_GetTime();
+				*asksent = I_GetTime() + NEWTICRATE*3;
 				cl_mode = CL_WAITJOINRESPONSE;
 			}
 			break;
 		case CL_WAITJOINRESPONSE:
-			if (( I_GetTime() - NEWTICRATE*3 ) >= *asksent)
+			if (I_GetTime() >= *asksent)
 			{
 				cl_mode = CL_ASKJOIN;
 			}
@@ -2560,9 +2569,9 @@ static void CL_ConnectToServer(void)
 
 	ClearAdminPlayers();
 	pnumnodes = 1;
-	oldtic = I_GetTime() - 1;
+	oldtic = 0;
 #ifndef NONET
-	asksent = I_GetTime() - NEWTICRATE*3;
+	asksent = 0;
 	firstconnectattempttime = I_GetTime();
 
 	i = SL_SearchServer(servernode);
@@ -2998,8 +3007,10 @@ void CL_Reset(void)
 	fileneedednum = 0;
 	memset(fileneeded, 0, sizeof(fileneeded));
 
+#ifndef NONET
 	totalfilesrequestednum = 0;
 	totalfilesrequestedsize = 0;
+#endif
 	firstconnectattempttime = 0;
 	serverisfull = false;
 	connectiontimeout = (tic_t)cv_nettimeout.value; //reset this temporary hack

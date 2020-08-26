@@ -11,6 +11,24 @@
 /// \file  w_wad.c
 /// \brief Handles WAD file header, directory, lump I/O
 
+#ifdef HAVE_ZLIB
+#ifndef _MSC_VER
+#ifndef _LARGEFILE64_SOURCE
+#define _LARGEFILE64_SOURCE
+#endif
+#endif
+
+#ifndef _LFS64_LARGEFILE
+#define _LFS64_LARGEFILE
+#endif
+
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 0
+#endif
+
+#include "zlib.h"
+#endif
+
 #ifdef __GNUC__
 #include <unistd.h>
 #endif
@@ -64,24 +82,6 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 
 #ifndef O_BINARY
 #define O_BINARY 0
-#endif
-
-#ifdef HAVE_ZLIB
-#ifndef _MSC_VER
-#ifndef _LARGEFILE64_SOURCE
-#define _LARGEFILE64_SOURCE
-#endif
-#endif
-
-#ifndef _LFS64_LARGEFILE
-#define _LFS64_LARGEFILE
-#endif
-
-#ifndef _FILE_OFFSET_BITS
-#define _FILE_OFFSET_BITS 0
-#endif
-
-#include "zlib.h"
 #endif
 
 

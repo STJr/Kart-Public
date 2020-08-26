@@ -63,7 +63,6 @@
 #     Compile with extra warnings, add 'WARNINGMODE=1'
 #     Compile without NASM's tmap.nas, add 'NOASM=1'
 #     Compile without 3D hardware support, add 'NOHW=1'
-#     Compile without 3D sound support, add 'NOHS=1'
 #     Compile with GDBstubs, add 'RDB=1'
 #     Compile without PNG, add 'NOPNG=1'
 #     Compile without zlib, add 'NOZLIB=1'
@@ -136,7 +135,6 @@ NOPNG=1
 NOZLIB=1
 NONET=1
 NOHW=1
-NOHS=1
 NOASM=1
 NOIPX=1
 EXENAME?=srb2dummy
@@ -167,7 +165,6 @@ endif
 ifdef PANDORA
 NONX86=1
 NOHW=1
-NOHS=1
 endif
 
 ifdef WII
@@ -217,7 +214,6 @@ NOPNG=1
 NOZLIB=1
 NONET=1
 #NOHW=1
-NOHS=1
 NOASM=1
 NOIPX=1
 NONX86=1
@@ -285,13 +281,6 @@ endif
 	OBJS+=$(OBJDIR)/hw_bsp.o $(OBJDIR)/hw_draw.o $(OBJDIR)/hw_light.o \
 		 $(OBJDIR)/hw_main.o $(OBJDIR)/hw_clip.o $(OBJDIR)/hw_md2.o $(OBJDIR)/hw_cache.o $(OBJDIR)/hw_trick.o \
 		 $(OBJDIR)/hw_md2load.o $(OBJDIR)/hw_md3load.o $(OBJDIR)/hw_model.o $(OBJDIR)/u_list.o
-endif
-
-ifdef NOHS
-	OPTS+=-DNOHS
-else
-	OPTS+=-DHW3SOUND
-	OBJS+=$(OBJDIR)/hw3sound.o
 endif
 
 OPTS += -DCOMPVERSION
@@ -948,19 +937,6 @@ $(OBJDIR)/r_minigl.o: hardware/r_minigl/r_minigl.c hardware/r_opengl/r_opengl.h 
 	$(CC) $(CFLAGS) $(WFLAGS) -D_WINDOWS -mwindows -c $< -o $@
 endif
 
-ifndef NOHS
-$(OBJDIR)/s_ds3d.o: hardware/s_ds3d/s_ds3d.c hardware/hw3dsdrv.h \
- hardware/hw_dll.h
-	$(CC) $(ARCHOPTS) -Os -o $(OBJDIR)/s_ds3d.o $(WFLAGS) -D_WINDOWS -mwindows -c hardware/s_ds3d/s_ds3d.c
-
-$(OBJDIR)/s_fmod.o: hardware/s_openal/s_openal.c hardware/hw3dsdrv.h \
- hardware/hw_dll.h
-	$(CC) $(ARCHOPTS) -Os -o $(OBJDIR)/s_fmod.o $(WFLAGS) -D_WINDOWS -mwindows -c hardware/s_fmod/s_fmod.c
-
-$(OBJDIR)/s_openal.o: hardware/s_openal/s_openal.c hardware/hw3dsdrv.h \
- hardware/hw_dll.h
-	$(CC) $(ARCHOPTS) -Os -o $(OBJDIR)/s_openal.o $(WFLAGS) -D_WINDOWS -mwindows -c hardware/s_openal/s_openal.c
-endif
 endif
 endif
 
