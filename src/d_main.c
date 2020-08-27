@@ -731,6 +731,10 @@ void D_SRB2Loop(void)
 #ifdef HAVE_BLUA
 		LUA_Step();
 #endif
+
+#ifdef HAVE_DISCORDRPC
+		Discord_RunCallbacks();
+#endif
 	}
 }
 
@@ -1427,10 +1431,6 @@ void D_SRB2Main(void)
 	CONS_Printf("ST_Init(): Init status bar.\n");
 	ST_Init();
 
-#ifdef HAVE_DISCORDRPC
-	DRPC_Init();
-#endif
-
 	if (M_CheckParm("-room"))
 	{
 		if (!M_IsNextParm())
@@ -1617,6 +1617,10 @@ void D_SRB2Main(void)
 		if (!P_SetupLevel(false))
 			I_Quit(); // fail so reset game stuff
 	}
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_Init();
+#endif
 }
 
 const char *D_Home(void)

@@ -2503,10 +2503,6 @@ void G_Ticker(boolean run)
 		if (spectatedelay4)
 			spectatedelay4--;
 	}
-
-#ifdef HAVE_DISCORDRPC
-	Discord_RunCallbacks();
-#endif
 }
 
 //

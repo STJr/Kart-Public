@@ -3251,11 +3251,11 @@ void I_Error(const char *error, ...)
 			I_ShutdownGraphics();
 		if (errorcount == 6)
 			I_ShutdownInput();
-		if (errorcount == 8)
+		if (errorcount == 7)
 			I_ShutdownSystem();
-		if (errorcount == 9)
+		if (errorcount == 8)
 			SDL_Quit();
-		if (errorcount == 10)
+		if (errorcount == 9)
 		{
 			M_SaveConfig(NULL);
 			G_SaveGameData(false);
