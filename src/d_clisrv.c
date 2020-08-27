@@ -4321,13 +4321,13 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				for (j = 0; j < MAXPLAYERS; j++)
 					adminplayers[j] = netbuffer->u.servercfg.adminplayers[j];
 				memcpy(server_context, netbuffer->u.servercfg.server_context, 8);
+			}
 
 #ifdef HAVE_DISCORDRPC
-				discordInfo.maxPlayers = netbuffer->u.servercfg.maxplayer;
-				discordInfo.joinsAllowed = netbuffer->u.servercfg.allownewplayer;
-				discordInfo.everyoneCanInvite = netbuffer->u.servercfg.discordinvites;
+			discordInfo.maxPlayers = netbuffer->u.servercfg.maxplayer;
+			discordInfo.joinsAllowed = netbuffer->u.servercfg.allownewplayer;
+			discordInfo.everyoneCanInvite = netbuffer->u.servercfg.discordinvites;
 #endif
-			}
 
 			nodeingame[(UINT8)servernode] = true;
 			serverplayer = netbuffer->u.servercfg.serverplayer;
