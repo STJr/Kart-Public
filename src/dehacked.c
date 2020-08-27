@@ -9762,6 +9762,9 @@ static inline int lib_getenum(lua_State *L)
 	} else if (fastcmp(word,"exitcountdown")) {
 		lua_pushinteger(L, exitcountdown);	// This name is pretty dumb. Hence why we'll prefer more descriptive names at least in Lua...
 		return 1;
+	} else if (fastcmp(word,"replayplayback")) {
+		lua_pushboolean(L, demo.playback);
+		return 1;
 	}
 	return 0;
 }
