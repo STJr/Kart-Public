@@ -3660,6 +3660,18 @@ static const char *locateWad(void)
 #endif
 
 
+#ifdef DEFAULTDIR
+	I_OutputMsg(",HOME/" DEFAULTDIR);
+	// examine user jart directory
+	if ((envstr = I_GetEnv("HOME")) != NULL)
+	{
+		sprintf(returnWadPath, "%s" PATHSEP DEFAULTDIR, envstr);
+		if (isWadPathOk(returnWadPath))
+			return returnWadPath;
+	}
+#endif
+
+
 #ifdef CMAKECONFIG
 #ifndef NDEBUG
 	I_OutputMsg(","CMAKE_ASSETS_DIR);
