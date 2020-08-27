@@ -1606,6 +1606,15 @@ static boolean SV_SendServerConfig(INT32 node)
 		netbuffer->u.servercfg.playercolor[i] = (UINT8)players[i].skincolor;
 	}
 
+	netbuffer->u.servercfg.maxplayer = (UINT8)(min((dedicated ? MAXPLAYERS-1 : MAXPLAYERS), cv_maxplayers.value));
+	netbuffer->u.servercfg.allownewplayer = cv_allownewplayer.value;
+
+#ifdef HAVE_DISCORDRPC
+	netbuffer->u.servercfg.discordinvites = (boolean)cv_discordinvites.value;
+#else
+	netbuffer->u.servercfg.discordinvites = false;
+#endif
+
 	memcpy(netbuffer->u.servercfg.server_context, server_context, 8);
 	op = p = netbuffer->u.servercfg.varlengthinputs;
 
@@ -3888,10 +3897,6 @@ static boolean SV_AddWaitingPlayers(void)
 		}
 	}
 
-#ifdef HAVE_DISCORDRPC
-	DRPC_SendDiscordInfo();
-#endif
-
 	return newplayer;
 }
 
@@ -4316,6 +4321,12 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				for (j = 0; j < MAXPLAYERS; j++)
 					adminplayers[j] = netbuffer->u.servercfg.adminplayers[j];
 				memcpy(server_context, netbuffer->u.servercfg.server_context, 8);
+
+#ifdef HAVE_DISCORDRPC
+				discordInfo.maxPlayers = netbuffer->u.servercfg.maxplayer;
+				discordInfo.joinsAllowed = netbuffer->u.servercfg.allownewplayer;
+				discordInfo.everyoneCanInvite = netbuffer->u.servercfg.discordinvites;
+#endif
 			}
 
 			nodeingame[(UINT8)servernode] = true;

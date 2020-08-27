@@ -334,6 +334,11 @@ typedef struct
 
 	char server_context[8]; // Unique context id, generated at server startup.
 
+	// Discord info (always defined for net compatibility)
+	UINT8 maxplayer;
+	boolean allownewplayer;
+	boolean discordinvites;
+
 	UINT8 varlengthinputs[0]; // Playernames and netvars
 } ATTRPACK serverconfig_pak;
 
