@@ -3661,7 +3661,7 @@ static const char *locateWad(void)
 
 
 #ifdef DEFAULTDIR
-	I_OutputMsg(",HOME/.srb2kart");
+	I_OutputMsg(",HOME/" DEFAULTDIR);
 	// examine user jart directory
 	if ((envstr = I_GetEnv("HOME")) != NULL)
 	{
