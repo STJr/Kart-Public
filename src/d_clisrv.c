@@ -3363,7 +3363,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 #endif
 	}
 
-	if (msg != KICK_MSG_PLAYER_QUIT)
+	if (msg == KICK_MSG_PLAYER_QUIT)
+		S_StartSound(NULL, sfx_leave); // intended leave
+	else
 		S_StartSound(NULL, sfx_syfail); // he he he
 
 	switch (msg)
@@ -3780,6 +3782,9 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 
 	if (netgame)
 	{
+		if (node != mynode)
+			S_StartSound(NULL, sfx_join);
+
 		if (server && cv_showjoinaddress.value)
 		{
 			const char *address;

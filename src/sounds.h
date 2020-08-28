@@ -891,6 +891,8 @@ typedef enum
 	sfx_mkuma,
 	sfx_toada,
 	sfx_bsnipe,
+	sfx_join,
+	sfx_leave,
 	sfx_requst,
 	sfx_syfail,
 	sfx_itfree,
