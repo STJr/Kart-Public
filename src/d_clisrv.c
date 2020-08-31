@@ -1671,12 +1671,7 @@ static boolean SV_SendServerConfig(INT32 node)
 
 	netbuffer->u.servercfg.maxplayer = (UINT8)(min((dedicated ? MAXPLAYERS-1 : MAXPLAYERS), cv_maxplayers.value));
 	netbuffer->u.servercfg.allownewplayer = cv_allownewplayer.value;
-
-#ifdef HAVE_DISCORDRPC
 	netbuffer->u.servercfg.discordinvites = (boolean)cv_discordinvites.value;
-#else
-	netbuffer->u.servercfg.discordinvites = false;
-#endif
 
 	memcpy(netbuffer->u.servercfg.server_context, server_context, 8);
 	op = p = netbuffer->u.servercfg.varlengthinputs;
@@ -3587,11 +3582,20 @@ static void Got_RemovePlayer(UINT8 **p, INT32 playernum);
 
 static void Joinable_OnChange(void)
 {
-#ifdef HAVE_DISCORDRPC
-	DRPC_SendDiscordInfo();
-#else
-	return;
-#endif
+	UINT8 buf[3];
+	UINT8 *p = buf;
+	UINT8 maxplayer;
+
+	if (!server)
+		return;
+
+	maxplayer = (UINT8)(min((dedicated ? MAXPLAYERS-1 : MAXPLAYERS), cv_maxplayers.value));
+
+	WRITEUINT8(p, maxplayer);
+	WRITEUINT8(p, cv_allownewplayer.value);
+	WRITEUINT8(p, cv_discordinvites.value);
+
+	SendNetXCmd(XD_DISCORD, &buf, 3);
 }
 
 // called one time at init

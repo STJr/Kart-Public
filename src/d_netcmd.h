@@ -151,6 +151,8 @@ extern consvar_t cv_skipmapcheck;
 
 extern consvar_t cv_sleep;
 
+extern consvar_t cv_discordinvites;
+
 typedef enum
 {
 	XD_NAMEANDCOLOR = 1,

@@ -41,9 +41,6 @@ consvar_t cv_discordrp = {"discordrp", "On", CV_SAVE|CV_CALL, CV_OnOff, DRPC_Upd
 consvar_t cv_discordstreamer = {"discordstreamer", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_discordasks = {"discordasks", "Yes", CV_SAVE|CV_CALL, CV_YesNo, DRPC_UpdatePresence, 0, NULL, NULL, 0, 0, NULL};
 
-static CV_PossibleValue_t discordinvites_cons_t[] = {{0, "Admins Only"}, {1, "Everyone"}, {0, NULL}};
-consvar_t cv_discordinvites = {"discordinvites", "Everyone", CV_SAVE|CV_CALL, discordinvites_cons_t, DRPC_SendDiscordInfo, 0, NULL, NULL, 0, 0, NULL};
-
 struct discordInfo_s discordInfo;
 
 discordRequest_t *discordRequestList = NULL;
@@ -336,29 +333,6 @@ void DRPC_Init(void)
 	Discord_Initialize(DISCORD_APPID, &handlers, 1, NULL);
 	I_AddExitFunc(Discord_Shutdown);
 	DRPC_UpdatePresence();
-}
-
-/*--------------------------------------------------
-	void DRPC_SendDiscordInfo(void)
-
-		See header file for description.
---------------------------------------------------*/
-void DRPC_SendDiscordInfo(void)
-{
-	UINT8 buf[3];
-	UINT8 *p = buf;
-	UINT8 maxplayer;
-
-	if (!server)
-		return;
-
-	maxplayer = (UINT8)(min((dedicated ? MAXPLAYERS-1 : MAXPLAYERS), cv_maxplayers.value));
-
-	WRITEUINT8(p, maxplayer);
-	WRITEUINT8(p, cv_allownewplayer.value);
-	WRITEUINT8(p, cv_discordinvites.value);
-
-	SendNetXCmd(XD_DISCORD, &buf, 3);
 }
 
 #ifdef HAVE_CURL

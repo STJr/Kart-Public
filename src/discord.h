@@ -20,7 +20,6 @@
 extern consvar_t cv_discordrp;
 extern consvar_t cv_discordstreamer;
 extern consvar_t cv_discordasks;
-extern consvar_t cv_discordinvites;
 
 extern struct discordInfo_s {
 	UINT8 maxPlayers;
@@ -63,16 +62,6 @@ void DRPC_RemoveRequest(discordRequest_t *removeRequest);
 --------------------------------------------------*/
 
 void DRPC_Init(void);
-
-
-/*--------------------------------------------------
-	void DRPC_SendDiscordInfo(void);
-
-		Sends the server's information needed for
-		the rich presence state.
---------------------------------------------------*/
-
-void DRPC_SendDiscordInfo(void);
 
 
 /*--------------------------------------------------
