@@ -221,6 +221,8 @@ set(SRB2_CONFIG_HAVE_ZLIB ON CACHE BOOL
 	"Enable zlib support.")
 set(SRB2_CONFIG_HAVE_GME ON CACHE BOOL
 	"Enable GME support.")
+set(SRB2_CONFIG_HAVE_DISCORDRPC OFF CACHE BOOL
+	"Enable Discord rich presence support.")
 set(SRB2_CONFIG_HAVE_CURL ON CACHE BOOL
 	"Enable curl support, used for downloading files via HTTP.")
 set(SRB2_CONFIG_HWRENDER ON CACHE BOOL
@@ -235,7 +237,7 @@ set(SRB2_CONFIG_STATIC_OPENGL OFF CACHE BOOL
 ### use internal libraries?
 if(${CMAKE_SYSTEM} MATCHES "Windows") ###set on Windows only
 	set(SRB2_CONFIG_USE_INTERNAL_LIBRARIES OFF CACHE BOOL
-	"Use SRB2's internal copies of required dependencies (SDL2, PNG, zlib, GME).")
+	"Use SRB2Kart's internal copies of required dependencies (SDL2, PNG, zlib, GME).")
 endif()
 
 if(${SRB2_CONFIG_HAVE_BLUA})
@@ -330,7 +332,7 @@ if(${SRB2_CONFIG_HAVE_GME})
 	if(${SRB2_CONFIG_USE_INTERNAL_LIBRARIES})
 		set(GME_FOUND ON)
 		set(GME_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libs/gme/include)
-        if(${SRB2_SYSTEM_BITS} EQUAL 64)
+		if(${SRB2_SYSTEM_BITS} EQUAL 64)
 			set(GME_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/gme/win64 -lgme")
 		else() # 32-bit
 			set(GME_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/gme/win32 -lgme")
@@ -343,6 +345,32 @@ if(${SRB2_CONFIG_HAVE_GME})
 		add_definitions(-DHAVE_LIBGME)
 	else()
 		message(WARNING "You have specified that GME is available but it was not found.")
+	endif()
+endif()
+
+if(${SRB2_CONFIG_HAVE_DISCORDRPC})
+	if(${SRB2_CONFIG_USE_INTERNAL_LIBRARIES})
+		set(DISCORDRPC_FOUND ON)
+		if(${SRB2_SYSTEM_BITS} EQUAL 64)
+			set(DISCORDRPC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libs/discord-rpc/win64-dynamic/include)
+			set(DISCORDRPC_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/discord-rpc/win64-dynamic/lib -ldiscord-rpc")
+		else() # 32-bit
+			set(DISCORDRPC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/libs/discord-rpc/win32-dynamic/include)
+			set(DISCORDRPC_LIBRARIES "-L${CMAKE_SOURCE_DIR}/libs/discord-rpc/win32-dynamic/lib -ldiscord-rpc")
+		endif()
+	else()
+		find_package(DiscordRPC)
+	endif()
+	if(${DISCORDRPC_FOUND})
+		set(SRB2_HAVE_DISCORDRPC ON)
+		add_definitions(-DHAVE_DISCORDRPC)
+		set(SRB2_DISCORDRPC_SOURCES discord.c)
+		set(SRB2_DISCORDRPC_HEADERS discord.h)
+		prepend_sources(SRB2_DISCORDRPC_SOURCES)
+		prepend_sources(SRB2_DISCORDRPC_HEADERS)
+		source_group("Discord Rich Presence" FILES ${SRB2_DISCORDRPC_SOURCES} ${SRB2_DISCORDRPC_HEADERS})
+	else()
+		message(WARNING "You have specified that Discord Rich Presence is available but it was not found.")
 	endif()
 endif()
 

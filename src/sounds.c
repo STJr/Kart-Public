@@ -816,6 +816,10 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"mkuma",  false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Trigger Happy Havoc Monokuma
   {"toada",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Arid Sands Toad scream
   {"bsnipe", false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Banana sniping
+  {"join",   false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Player joined server
+  {"leave",  false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Player left server
+  {"requst", false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Got a Discord join request
+  {"syfail", false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Funny sync failure
   {"itfree", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // :shitsfree:
   {"dbgsal", false, 255,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Debug notification
 

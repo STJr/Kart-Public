@@ -925,6 +925,18 @@ static void readlevelheader(MYFILE *f, INT32 num)
 					sizeof(mapheaderinfo[num-1]->subttl), va("Level header %d: subtitle", num));
 				continue;
 			}
+			else if (fastcmp(word, "LEVELNAME"))
+			{
+				deh_strlcpy(mapheaderinfo[num-1]->lvlttl, word2,
+					sizeof(mapheaderinfo[num-1]->lvlttl), va("Level header %d: levelname", num));
+				continue;
+			}
+			else if (fastcmp(word, "ZONETITLE"))
+			{
+				deh_strlcpy(mapheaderinfo[num-1]->zonttl, word2,
+					sizeof(mapheaderinfo[num-1]->zonttl), va("Level header %d: zonetitle", num));
+				continue;
+			}
 
 			// Lua custom options also go above, contents may be case sensitive.
 			if (fastncmp(word, "LUA.", 4))
@@ -987,16 +999,6 @@ static void readlevelheader(MYFILE *f, INT32 num)
 			}
 
 			// Strings that can be truncated
-			else if (fastcmp(word, "LEVELNAME"))
-			{
-				deh_strlcpy(mapheaderinfo[num-1]->lvlttl, word2,
-					sizeof(mapheaderinfo[num-1]->lvlttl), va("Level header %d: levelname", num));
-			}
-			else if (fastcmp(word, "ZONETITLE"))
-			{
-				deh_strlcpy(mapheaderinfo[num-1]->zonttl, word2,
-					sizeof(mapheaderinfo[num-1]->zonttl), va("Level header %d: zonetitle", num));
-			}
 			else if (fastcmp(word, "SCRIPTNAME"))
 			{
 				deh_strlcpy(mapheaderinfo[num-1]->scriptname, word2,

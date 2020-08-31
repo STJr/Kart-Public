@@ -23,6 +23,10 @@
 #include "m_menu.h"
 #include "z_zone.h"
 
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
+#endif
+
 #ifdef MASTERSERVER
 
 static int     MSId;
@@ -266,6 +270,10 @@ Finish_update (void)
 
 	if (! done)
 		Finish_update();
+#ifdef HAVE_DISCORDRPC
+	else
+		DRPC_UpdatePresence();
+#endif
 }
 
 static void
@@ -303,6 +311,10 @@ Finish_unlist (void)
 			MSId++;
 	}
 	Unlock_state();
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 #ifdef HAVE_THREADS

@@ -46,6 +46,7 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 #include "k_kart.h"
+#include "s_sound.h" // sfx_syfail
 
 #ifdef CLIENT_LOADINGSCREEN
 // cl loading screen
@@ -55,6 +56,10 @@
 
 #ifdef _XBOX
 #include "sdl12/SRB2XBOX/xboxhelp.h"
+#endif
+
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
 #endif
 
 //
@@ -1457,7 +1462,7 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl, mapheaderinfo[gamemap-1]->actnum) < 0)
 				{
 					// If there's an encoding error, send UNKNOWN, we accept that the above may be truncated
-					strncpy(netbuffer->u.serverinfo.maptitle, "UNKNOWN", 33);
+					strncpy(netbuffer->u.serverinfo.maptitle, "Unknown", 33);
 				}
 			}
 			else
@@ -1468,13 +1473,13 @@ static void SV_SendServerInfo(INT32 node, tic_t servertime)
 					mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->zonttl) < 0)
 				{
 					// If there's an encoding error, send UNKNOWN, we accept that the above may be truncated
-					strncpy(netbuffer->u.serverinfo.maptitle, "UNKNOWN", 33);
+					strncpy(netbuffer->u.serverinfo.maptitle, "Unknown", 33);
 				}
 			}
 		}
 	}
 	else
-		strncpy(netbuffer->u.serverinfo.maptitle, "UNKNOWN", 33);
+		strncpy(netbuffer->u.serverinfo.maptitle, "Unknown", 33);
 
 	netbuffer->u.serverinfo.maptitle[32] = '\0';
 
@@ -1600,6 +1605,15 @@ static boolean SV_SendServerConfig(INT32 node)
 		netbuffer->u.servercfg.playerskins[i] = (UINT8)players[i].skin;
 		netbuffer->u.servercfg.playercolor[i] = (UINT8)players[i].skincolor;
 	}
+
+	netbuffer->u.servercfg.maxplayer = (UINT8)(min((dedicated ? MAXPLAYERS-1 : MAXPLAYERS), cv_maxplayers.value));
+	netbuffer->u.servercfg.allownewplayer = cv_allownewplayer.value;
+
+#ifdef HAVE_DISCORDRPC
+	netbuffer->u.servercfg.discordinvites = (boolean)cv_discordinvites.value;
+#else
+	netbuffer->u.servercfg.discordinvites = false;
+#endif
 
 	memcpy(netbuffer->u.servercfg.server_context, server_context, 8);
 	op = p = netbuffer->u.servercfg.varlengthinputs;
@@ -1798,7 +1812,7 @@ static void CL_LoadReceivedSavegame(void)
 			if (strlen(mapheaderinfo[gamemap-1]->zonttl) > 0)
 				CON_LogMessage(va(" %s", mapheaderinfo[gamemap-1]->zonttl));
 			else if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
-				CON_LogMessage(M_GetText(" ZONE"));
+				CON_LogMessage(M_GetText(" Zone"));
 			if (strlen(mapheaderinfo[gamemap-1]->actnum) > 0)
 				CON_LogMessage(va(" %s", mapheaderinfo[gamemap-1]->actnum));
 		}
@@ -3349,6 +3363,11 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 #endif
 	}
 
+	if (msg == KICK_MSG_PLAYER_QUIT)
+		S_StartSound(NULL, sfx_leave); // intended leave
+	else
+		S_StartSound(NULL, sfx_syfail); // he he he
+
 	switch (msg)
 	{
 		case KICK_MSG_GO_AWAY:
@@ -3476,12 +3495,17 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 static CV_PossibleValue_t netticbuffer_cons_t[] = {{0, "MIN"}, {3, "MAX"}, {0, NULL}};
 consvar_t cv_netticbuffer = {"netticbuffer", "1", CV_SAVE, netticbuffer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_allownewplayer = {"allowjoin", "On", CV_SAVE|CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
+static void Joinable_OnChange(void);
+
+consvar_t cv_allownewplayer = {"allowjoin", "On", CV_SAVE|CV_CALL, CV_OnOff, Joinable_OnChange, 0, NULL, NULL, 0, 0, NULL};
+
 #ifdef VANILLAJOINNEXTROUND
 consvar_t cv_joinnextround = {"joinnextround", "Off", CV_SAVE|CV_NETVAR, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL}; /// \todo not done
 #endif
+
 static CV_PossibleValue_t maxplayers_cons_t[] = {{2, "MIN"}, {MAXPLAYERS, "MAX"}, {0, NULL}};
-consvar_t cv_maxplayers = {"maxplayers", "8", CV_SAVE, maxplayers_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_maxplayers = {"maxplayers", "8", CV_SAVE|CV_CALL, maxplayers_cons_t, Joinable_OnChange, 0, NULL, NULL, 0, 0, NULL};
+
 static CV_PossibleValue_t resynchattempts_cons_t[] = {{0, "MIN"}, {20, "MAX"}, {0, NULL}};
 consvar_t cv_resynchattempts = {"resynchattempts", "5", CV_SAVE, resynchattempts_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL	};
 consvar_t cv_blamecfail = {"blamecfail", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
@@ -3497,6 +3521,15 @@ consvar_t cv_downloadspeed = {"downloadspeed", "16", CV_SAVE, downloadspeed_cons
 
 static void Got_AddPlayer(UINT8 **p, INT32 playernum);
 static void Got_RemovePlayer(UINT8 **p, INT32 playernum);
+
+static void Joinable_OnChange(void)
+{
+#ifdef HAVE_DISCORDRPC
+	DRPC_SendDiscordInfo();
+#else
+	return;
+#endif
+}
 
 // called one time at init
 void D_ClientServerInit(void)
@@ -3749,6 +3782,9 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 
 	if (netgame)
 	{
+		if (node != mynode)
+			S_StartSound(NULL, sfx_join);
+
 		if (server && cv_showjoinaddress.value)
 		{
 			const char *address;
@@ -3764,6 +3800,10 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 
 #ifdef HAVE_BLUA
 	LUAh_PlayerJoin(newplayernum);
+#endif
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
 #endif
 }
 
@@ -3791,6 +3831,10 @@ static void Got_RemovePlayer(UINT8 **p, INT32 playernum)
 	reason = READUINT8(*p);
 
 	CL_RemovePlayer(pnum, reason);
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 static boolean SV_AddWaitingPlayers(void)
@@ -4283,6 +4327,12 @@ static void HandlePacketFromAwayNode(SINT8 node)
 					adminplayers[j] = netbuffer->u.servercfg.adminplayers[j];
 				memcpy(server_context, netbuffer->u.servercfg.server_context, 8);
 			}
+
+#ifdef HAVE_DISCORDRPC
+			discordInfo.maxPlayers = netbuffer->u.servercfg.maxplayer;
+			discordInfo.joinsAllowed = netbuffer->u.servercfg.allownewplayer;
+			discordInfo.everyoneCanInvite = netbuffer->u.servercfg.discordinvites;
+#endif
 
 			nodeingame[(UINT8)servernode] = true;
 			serverplayer = netbuffer->u.servercfg.serverplayer;

@@ -2962,7 +2962,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		snprintf(tx, 63, "%s%s%s",
 			mapheaderinfo[gamemap-1]->lvlttl,
 			(strlen(mapheaderinfo[gamemap-1]->zonttl) > 0) ? va(" %s",mapheaderinfo[gamemap-1]->zonttl) : // SRB2kart
-			((mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " ZONE"),
+			((mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " Zone"),
 			(strlen(mapheaderinfo[gamemap-1]->actnum) > 0) ? va(", Act %s",mapheaderinfo[gamemap-1]->actnum) : "");
 		V_DrawSmallString(1, 195, V_ALLOWLOWERCASE, tx);
 		I_UpdateNoVsync();

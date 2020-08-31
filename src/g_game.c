@@ -51,6 +51,10 @@
 #include "md5.h" // demo checksums
 #include "k_kart.h" // SRB2kart
 
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
+#endif
+
 gameaction_t gameaction;
 gamestate_t gamestate = GS_NULL;
 UINT8 ultimatemode = false;
@@ -4717,7 +4721,7 @@ char *G_BuildMapTitle(INT32 mapnum)
 		}
 		else if (!(mapheaderinfo[mapnum-1]->levelflags & LF_NOZONE))
 		{
-			zonetext = M_GetText("ZONE");
+			zonetext = M_GetText("Zone");
 			len += strlen(zonetext) + 1;	// ' ' + zonetext
 		}
 		if (strlen(mapheaderinfo[mapnum-1]->actnum) > 0)
@@ -6381,7 +6385,7 @@ void G_BeginRecording(void)
 
 	// Full replay title
 	demo_p += 64;
-	snprintf(demo.titlename, 64, "%s - %s", G_BuildMapTitle(gamemap), modeattacking ? "Record Attack" : connectedservername);
+	snprintf(demo.titlename, 64, "%s - %s", G_BuildMapTitle(gamemap), modeattacking ? "Time Attack" : connectedservername);
 
 	// demo checksum
 	demo_p += 16;
@@ -8405,6 +8409,9 @@ boolean G_DemoTitleResponder(event_t *ev)
 void G_SetGamestate(gamestate_t newstate)
 {
 	gamestate = newstate;
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 /* These functions handle the exitgame flag. Before, when the user
