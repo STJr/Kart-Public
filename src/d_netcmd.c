@@ -714,6 +714,7 @@ void D_RegisterServerCommands(void)
 
 	CV_RegisterVar(&cv_dummyconsvar);
 
+	CV_RegisterVar(&cv_discordinvites);
 	RegisterNetXCmd(XD_DISCORD, Got_DiscordInfo);
 }
 
@@ -1013,7 +1014,6 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_discordstreamer);
 	CV_RegisterVar(&cv_discordasks);
 #endif
-	CV_RegisterVar(&cv_discordinvites);
 }
 
 /** Checks if a name (as received from another player) is okay.
