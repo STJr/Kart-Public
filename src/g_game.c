@@ -3651,7 +3651,7 @@ tryagain:
 
 void G_AddMapToBuffer(INT16 map)
 {
-	INT16 bufx, refreshnum = (TOLMaps(G_TOLFlag(gametype)) / 2) + 1;
+	INT16 bufx, refreshnum = max(0, TOLMaps(G_TOLFlag(gametype))-3);
 
 	// Add the map to the buffer.
 	for (bufx = NUMMAPS-1; bufx > 0; bufx--)
