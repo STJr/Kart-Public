@@ -65,7 +65,7 @@ static char self_ip[IP_SIZE];
 --------------------------------------------------*/
 static char *DRPC_XORIPString(const char *input)
 {
-	const UINT8 xor[IP_SIZE] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+	const UINT8 xor[IP_SIZE] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21};
 	char *output = malloc(sizeof(char) * (IP_SIZE+1));
 	UINT8 i;
 
