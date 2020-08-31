@@ -35,7 +35,7 @@
 #define DISCORD_APPID "503531144395096085"
 
 // length of IP strings
-#define IP_SIZE 16
+#define IP_SIZE 21
 
 consvar_t cv_discordrp = {"discordrp", "On", CV_SAVE|CV_CALL, CV_OnOff, DRPC_UpdatePresence, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_discordstreamer = {"discordstreamer", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
