@@ -147,11 +147,6 @@ typedef LPVOID (WINAPI *p_MapViewOfFile) (HANDLE, DWORD, DWORD, DWORD, SIZE_T);
 #define DEFAULTSEARCHPATH1 "/usr/local/games"
 #define DEFAULTSEARCHPATH2 "/usr/games"
 #define DEFAULTSEARCHPATH3 "/usr/local"
-#elif defined (_WIN32)
-#define DEFAULTWADLOCATION1 "c:\\games\\srb2kart"
-#define DEFAULTWADLOCATION2 "\\games\\srb2kart"
-#define DEFAULTSEARCHPATH1 "c:\\games"
-#define DEFAULTSEARCHPATH2 "\\games"
 #endif
 
 /**	\brief WAD file to look for
