@@ -559,6 +559,8 @@ extern consvar_t
 #endif
 	cv_netticbuffer, cv_allownewplayer, cv_maxplayers, cv_resynchattempts, cv_blamecfail, cv_maxsend, cv_noticedownload, cv_downloadspeed;
 
+extern consvar_t cv_discordinvites;
+
 // Used in d_net, the only dependence
 tic_t ExpandTics(INT32 low, tic_t basetic);
 void D_ClientServerInit(void);
