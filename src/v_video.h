@@ -177,6 +177,8 @@ void V_DrawChatCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed, UI
 
 UINT8 *V_GetStringColormap(INT32 colorflags);
 
+const char *V_ApproximateSkinColorCode(INT32 skincolor);
+
 void V_DrawLevelTitle(INT32 x, INT32 y, INT32 option, const char *string);
 
 // wordwrap a string using the hu_font
