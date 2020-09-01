@@ -895,7 +895,10 @@ static void IdentifyVersion(void)
 	}
 
 	// Load the IWAD
-	AddIWAD();
+	if (! AddIWAD())
+	{
+		I_Error("SRB2.SRB not found! Expected in %s\n", srb2waddir);
+	}
 
 	// will be overwritten in case of -cdrom or unix/win home
 	snprintf(configfile, sizeof configfile, "%s" PATHSEP CONFIGFILENAME, srb2waddir);
