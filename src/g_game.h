@@ -27,6 +27,7 @@ extern char customversionstring[32];
 extern player_t *seenplayer;
 #endif
 extern char player_names[MAXPLAYERS][MAXPLAYERNAME+1];
+extern int  player_name_changes[MAXPLAYERS];
 
 extern player_t players[MAXPLAYERS];
 extern boolean playeringame[MAXPLAYERS];
