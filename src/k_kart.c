@@ -668,29 +668,29 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][10] =
 
 static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
 {
-				//P-Odds	 0  1  2  3  4  5
-			   /*Sneaker*/ { 3, 2, 2, 2, 0, 2 }, // Sneaker
-		/*Rocket Sneaker*/ { 0, 0, 0, 0, 0, 0 }, // Rocket Sneaker
-		 /*Invincibility*/ { 0, 1, 2, 3, 4, 2 }, // Invincibility
-				/*Banana*/ { 2, 1, 0, 0, 0, 0 }, // Banana
-		/*Eggman Monitor*/ { 1, 1, 0, 0, 0, 0 }, // Eggman Monitor
-			  /*Orbinaut*/ { 6, 2, 1, 0, 0, 0 }, // Orbinaut
-				  /*Jawz*/ { 3, 3, 3, 2, 0, 2 }, // Jawz
-				  /*Mine*/ { 2, 3, 3, 1, 0, 2 }, // Mine
-			   /*Ballhog*/ { 0, 1, 2, 1, 0, 2 }, // Ballhog
-   /*Self-Propelled Bomb*/ { 0, 0, 0, 0, 0, 0 }, // Self-Propelled Bomb
-				  /*Grow*/ { 0, 0, 1, 2, 4, 2 }, // Grow
-				/*Shrink*/ { 0, 0, 0, 0, 0, 0 }, // Shrink
-		/*Thunder Shield*/ { 0, 0, 0, 0, 0, 0 }, // Thunder Shield
-			   /*Hyudoro*/ { 1, 1, 0, 0, 0, 0 }, // Hyudoro
-		   /*Pogo Spring*/ { 1, 1, 0, 0, 0, 0 }, // Pogo Spring
-		  /*Kitchen Sink*/ { 0, 0, 0, 0, 0, 0 }, // Kitchen Sink
-			/*Sneaker x3*/ { 0, 0, 0, 2, 4, 2 }, // Sneaker x3
-			 /*Banana x3*/ { 1, 2, 1, 0, 0, 0 }, // Banana x3
-			/*Banana x10*/ { 0, 0, 1, 1, 0, 2 }, // Banana x10
-		   /*Orbinaut x3*/ { 0, 1, 2, 1, 0, 0 }, // Orbinaut x3
-		   /*Orbinaut x4*/ { 0, 0, 1, 3, 4, 2 }, // Orbinaut x4
-			   /*Jawz x2*/ { 0, 0, 1, 2, 4, 2 }  // Jawz x2
+				//P-Odds	 0  1
+			   /*Sneaker*/ { 2, 1 }, // Sneaker
+		/*Rocket Sneaker*/ { 0, 0 }, // Rocket Sneaker
+		 /*Invincibility*/ { 2, 1 }, // Invincibility
+				/*Banana*/ { 1, 0 }, // Banana
+		/*Eggman Monitor*/ { 1, 0 }, // Eggman Monitor
+			  /*Orbinaut*/ { 8, 0 }, // Orbinaut
+				  /*Jawz*/ { 8, 1 }, // Jawz
+				  /*Mine*/ { 4, 1 }, // Mine
+			   /*Ballhog*/ { 2, 1 }, // Ballhog
+   /*Self-Propelled Bomb*/ { 0, 0 }, // Self-Propelled Bomb
+				  /*Grow*/ { 2, 1 }, // Grow
+				/*Shrink*/ { 0, 0 }, // Shrink
+		/*Thunder Shield*/ { 0, 0 }, // Thunder Shield
+			   /*Hyudoro*/ { 2, 0 }, // Hyudoro
+		   /*Pogo Spring*/ { 2, 0 }, // Pogo Spring
+		  /*Kitchen Sink*/ { 0, 0 }, // Kitchen Sink
+			/*Sneaker x3*/ { 0, 1 }, // Sneaker x3
+			 /*Banana x3*/ { 1, 0 }, // Banana x3
+			/*Banana x10*/ { 0, 1 }, // Banana x10
+		   /*Orbinaut x3*/ { 2, 0 }, // Orbinaut x3
+		   /*Orbinaut x4*/ { 1, 1 }, // Orbinaut x4
+			   /*Jawz x2*/ { 2, 1 }  // Jawz x2
 };
 
 /**	\brief	Item Roulette for Kart
@@ -928,7 +928,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 		INT32 j;
 		boolean available = false;
 
-		if (G_BattleGametype() && i > 5)
+		if (G_BattleGametype() && i > 1)
 		{
 			oddsvalid[i] = false;
 			break;
@@ -962,24 +962,20 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 
 	if (G_BattleGametype()) // Battle Mode
 	{
-		if (oddsvalid[0]) SETUPDISTTABLE(0,1);
-		if (oddsvalid[1]) SETUPDISTTABLE(1,1);
-		if (oddsvalid[2]) SETUPDISTTABLE(2,1);
-		if (oddsvalid[3]) SETUPDISTTABLE(3,1);
-		if (oddsvalid[4]) SETUPDISTTABLE(4,1);
-
-		if (player->kartstuff[k_roulettetype] == 1 && oddsvalid[5]) // 5 is the extreme odds of player-controlled "Karma" items
-			useodds = 5;
+		if (player->kartstuff[k_roulettetype] == 1 && oddsvalid[1] == true)
+		{
+			// 1 is the extreme odds of player-controlled "Karma" items
+			useodds = 1;
+		}
 		else
 		{
-			SINT8 wantedpos = (bestbumper-player->kartstuff[k_bumper]); // 0 is the best player's bumper count, 1 is a bumper below best, 2 is two bumpers below, etc
-			if (K_IsPlayerWanted(player))
-				wantedpos++;
-			if (wantedpos > 4) // Don't run off into karma items
-				wantedpos = 4;
-			if (wantedpos < 0) // Don't go below somehow
-				wantedpos = 0;
-			useodds = disttable[(wantedpos * distlen) / 5];
+			useodds = 0;
+
+			if (oddsvalid[0] == false && oddsvalid[1] == true)
+			{
+				// try to use karma odds as a fallback
+				useodds = 1;
+			}
 		}
 	}
 	else
