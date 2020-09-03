@@ -318,15 +318,6 @@ const CPUInfoFlags *I_CPUInfo(void);
 */
 const char *I_LocateWad(void);
 
-/**	\brief Save current wad directory to appdata
-*/
-void I_SaveCurrentWadDirectory(void);
-
-/**	\brief Change directory to last known directory saved in appdata
-		\return whether the directory could be saved
-*/
-boolean I_UseSavedWadDirectory(void);
-
 /**	\brief First Joystick's events
 */
 void I_GetJoystickEvents(void);

@@ -895,16 +895,9 @@ static void IdentifyVersion(void)
 	}
 
 	// Load the IWAD
-	if (AddIWAD())
+	if (! AddIWAD())
 	{
-		I_SaveCurrentWadDirectory();
-	}
-	else
-	{
-		if (!( I_UseSavedWadDirectory() && AddIWAD() ))
-		{
-			I_Error("SRB2.SRB not found! Expected in %s\n", srb2waddir);
-		}
+		I_Error("SRB2.SRB not found! Expected in %s\n", srb2waddir);
 	}
 
 	// will be overwritten in case of -cdrom or unix/win home
