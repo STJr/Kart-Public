@@ -548,6 +548,8 @@ char player_names[MAXPLAYERS][MAXPLAYERNAME+1] =
 	"Player 16"
 }; // SRB2kart - removed Players 17 through 32
 
+INT32 player_name_changes[MAXPLAYERS];
+
 INT16 rw_maximums[NUM_WEAPONS] =
 {
 	800, // MAX_INFINITY
@@ -2502,6 +2504,11 @@ void G_Ticker(boolean run)
 			spectatedelay3--;
 		if (spectatedelay4)
 			spectatedelay4--;
+
+		if (gametic % NAMECHANGERATE == 0)
+		{
+			memset(player_name_changes, 0, sizeof player_name_changes);
+		}
 	}
 }
 
