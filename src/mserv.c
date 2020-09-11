@@ -59,6 +59,8 @@ static void Update_parameters (void);
 
 static void MasterServer_OnChange(void);
 
+static void Advertise_OnChange(void);
+
 static CV_PossibleValue_t masterserver_update_rate_cons_t[] = {
 	{2,  "MIN"},
 	{60, "MAX"},
@@ -71,7 +73,7 @@ consvar_t cv_server_contact = {"server_contact", "", CV_SAVE|CV_CALL|CV_NOINIT, 
 
 consvar_t cv_masterserver_update_rate = {"masterserver_update_rate", "15", CV_SAVE|CV_CALL|CV_NOINIT, masterserver_update_rate_cons_t, Update_parameters, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_advertise = {"advertise", "Yes", CV_SAVE, CV_YesNo, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_advertise = {"advertise", "Yes", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, Advertise_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 #if defined (MASTERSERVER) && defined (HAVE_THREADS)
 int           ms_QueryId;
@@ -263,6 +265,9 @@ Finish_unlist (void)
 	Lock_state();
 	{
 		registered = MSRegistered;
+
+		if (MSId == MSRegisteredId)
+			MSId++;
 	}
 	Unlock_state();
 
@@ -283,13 +288,6 @@ Finish_unlist (void)
 		I_wake_all_cond(&MSCond);
 #endif
 	}
-
-	Lock_state();
-	{
-		if (MSId == MSRegisteredId)
-			MSId++;
-	}
-	Unlock_state();
 
 #ifdef HAVE_DISCORDRPC
 	DRPC_UpdatePresence();
@@ -539,4 +537,31 @@ static void MasterServer_OnChange(void)
 	if (Online())
 		RegisterServer();
 #endif/*MASTERSERVER*/
+}
+
+static void
+Advertise_OnChange(void)
+{
+	int different;
+
+	if (cv_advertise.value)
+	{
+		if (serverrunning)
+		{
+			Lock_state();
+			{
+				different = ( MSId != MSRegisteredId );
+			}
+			Unlock_state();
+
+			if (different)
+			{
+				RegisterServer();
+			}
+		}
+	}
+	else
+	{
+		UnregisterServer();
+	}
 }
