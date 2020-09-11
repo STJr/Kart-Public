@@ -182,13 +182,15 @@ static void M_StopMessage(INT32 choice);
 
 #ifndef NONET
 static void M_HandleServerPage(INT32 choice);
-static void M_RoomMenu(INT32 choice);
 #endif
 
 // Prototyping is fun, innit?
 // ==========================================================================
 // NEEDED FUNCTION PROTOTYPES GO HERE
 // ==========================================================================
+
+void M_SetWaitingMode(int mode);
+int  M_GetWaitingMode(void);
 
 // the haxor message menu
 menu_t MessageDef;
@@ -263,7 +265,6 @@ static void M_ConnectMenu(INT32 choice);
 static void M_ConnectMenuModChecks(INT32 choice);
 static void M_Refresh(INT32 choice);
 static void M_Connect(INT32 choice);
-static void M_ChooseRoom(INT32 choice);
 #endif
 static void M_StartOfflineServerMenu(INT32 choice);
 static void M_StartServer(INT32 choice);
@@ -372,7 +373,6 @@ static void M_OGL_DrawColorMenu(void);
 static void M_DrawMPMainMenu(void);
 #ifndef NONET
 static void M_DrawConnectMenu(void);
-static void M_DrawRoomMenu(void);
 #endif
 static void M_DrawJoystick(void);
 static void M_DrawSetupMultiPlayerMenu(void);
@@ -1017,7 +1017,7 @@ static menuitem_t MP_MainMenu[] =
 static menuitem_t MP_ServerMenu[] =
 {
 	{IT_STRING|IT_CVAR,                NULL, "Max. Player Count",     &cv_maxplayers,        10},
-	{IT_STRING|IT_CALL,                NULL, "Room...",               M_RoomMenu,            20},
+	{IT_STRING|IT_CVAR,                NULL, "Advertise",             &cv_advertise,         20},
 	{IT_STRING|IT_CVAR|IT_CV_STRING,   NULL, "Server Name",           &cv_servername,        30},
 
 	{IT_STRING|IT_CVAR,                NULL, "Game Type",             &cv_newgametype,       68},
@@ -1047,53 +1047,29 @@ static menuitem_t MP_PlayerSetupMenu[] =
 #ifndef NONET
 static menuitem_t MP_ConnectMenu[] =
 {
-	{IT_STRING | IT_CALL,       NULL, "Room...",  M_RoomMenu,         4},
-	{IT_STRING | IT_CVAR,       NULL, "Sort By",  &cv_serversort,     12},
-	{IT_STRING | IT_KEYHANDLER, NULL, "Page",     M_HandleServerPage, 20},
-	{IT_STRING | IT_CALL,       NULL, "Refresh",  M_Refresh,          28},
+	{IT_STRING | IT_CVAR,       NULL, "Sort By",  &cv_serversort,      4},
+	{IT_STRING | IT_KEYHANDLER, NULL, "Page",     M_HandleServerPage, 12},
+	{IT_STRING | IT_CALL,       NULL, "Refresh",  M_Refresh,          20},
 
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          48-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          60-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          72-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          84-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          96-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         108-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         120-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         132-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         144-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         156-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         168-4},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          36},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          48},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          60},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          72},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          84},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          96},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         108},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         120},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         132},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         144},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         156},
 };
 
 enum
 {
-	mp_connect_room,
 	mp_connect_sort,
 	mp_connect_page,
 	mp_connect_refresh,
 	FIRSTSERVERLINE
-};
-
-menuitem_t MP_RoomMenu[] =
-{
-	{IT_STRING | IT_CALL, NULL, "<Offline Mode>", M_ChooseRoom,   9},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  18},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  27},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  36},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  45},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  54},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  63},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  72},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  81},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  90},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  99},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 108},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 117},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 126},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 135},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 144},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 153},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 162},
 };
 #endif
 
@@ -1991,17 +1967,6 @@ menu_t MP_ConnectDef =
 	27,24,
 	0,
 	M_CancelConnect
-};
-menu_t MP_RoomDef =
-{
-	"M_MULTI",
-	sizeof (MP_RoomMenu)/sizeof (menuitem_t),
-	&MP_ConnectDef,
-	MP_RoomMenu,
-	M_DrawRoomMenu,
-	27, 32,
-	0,
-	NULL
 };
 #endif
 menu_t MP_PlayerSetupDef =
@@ -3391,30 +3356,6 @@ void M_ClearMenus(boolean callexitmenufunc)
 void M_SetupNextMenu(menu_t *menudef)
 {
 	INT16 i;
-
-#if defined (MASTERSERVER) && defined (HAVE_THREADS)
-	if (currentMenu == &MP_RoomDef || currentMenu == &MP_ConnectDef)
-	{
-		I_lock_mutex(&ms_QueryId_mutex);
-		{
-			ms_QueryId++;
-		}
-		I_unlock_mutex(ms_QueryId_mutex);
-	}
-
-	if (currentMenu == &MP_ConnectDef)
-	{
-		I_lock_mutex(&ms_ServerList_mutex);
-		{
-			if (ms_ServerList)
-			{
-				free(ms_ServerList);
-				ms_ServerList = NULL;
-			}
-		}
-		I_unlock_mutex(ms_ServerList_mutex);
-	}
-#endif/*HAVE_THREADS*/
 
 	if (currentMenu->quitroutine)
 	{
@@ -8406,7 +8347,118 @@ static void M_EndGame(INT32 choice)
 // Connect Menu
 //===========================================================================
 
-#define SERVERHEADERHEIGHT 44
+void
+M_SetWaitingMode (int mode)
+{
+#ifdef HAVE_THREADS
+	I_lock_mutex(&m_menu_mutex);
+#endif
+	{
+		m_waiting_mode = mode;
+	}
+#ifdef HAVE_THREADS
+	I_unlock_mutex(m_menu_mutex);
+#endif
+}
+
+int
+M_GetWaitingMode (void)
+{
+	int mode;
+
+#ifdef HAVE_THREADS
+	I_lock_mutex(&m_menu_mutex);
+#endif
+	{
+		mode = m_waiting_mode;
+	}
+#ifdef HAVE_THREADS
+	I_unlock_mutex(m_menu_mutex);
+#endif
+
+	return mode;
+}
+
+#ifdef MASTERSERVER
+#ifdef HAVE_THREADS
+static void
+Spawn_masterserver_thread (const char *name, void (*thread)(int*))
+{
+	int *id = malloc(sizeof *id);
+
+	I_lock_mutex(&ms_QueryId_mutex);
+	{
+		*id = ms_QueryId;
+	}
+	I_unlock_mutex(ms_QueryId_mutex);
+
+	I_spawn_thread(name, (I_thread_fn)thread, id);
+}
+
+static int
+Same_instance (int id)
+{
+	int okay;
+
+	I_lock_mutex(&ms_QueryId_mutex);
+	{
+		okay = ( id == ms_QueryId );
+	}
+	I_unlock_mutex(ms_QueryId_mutex);
+
+	return okay;
+}
+#endif/*HAVE_THREADS*/
+
+static void
+Fetch_servers_thread (int *id)
+{
+	msg_server_t * server_list;
+
+	(void)id;
+
+	M_SetWaitingMode(M_WAITING_SERVERS);
+
+#ifdef HAVE_THREADS
+	server_list = GetShortServersList(*id);
+#else
+	server_list = GetShortServersList(0);
+#endif
+
+	if (server_list)
+	{
+#ifdef HAVE_THREADS
+		if (Same_instance(*id))
+#endif
+		{
+			M_SetWaitingMode(M_NOT_WAITING);
+
+#ifdef HAVE_THREADS
+			I_lock_mutex(&ms_ServerList_mutex);
+			{
+				ms_ServerList = server_list;
+			}
+			I_unlock_mutex(ms_ServerList_mutex);
+#else
+			CL_QueryServerList(server_list);
+			free(server_list);
+#endif
+		}
+#ifdef HAVE_THREADS
+		else
+		{
+			free(server_list);
+		}
+#endif
+	}
+
+#ifdef HAVE_THREADS
+	free(id);
+#endif
+}
+#endif/*MASTERSERVER*/
+
+#define SERVERHEADERHEIGHT 36
 #define SERVERLINEHEIGHT 12
 
 #define S_LINEY(n) currentMenu->y + SERVERHEADERHEIGHT + (n * SERVERLINEHEIGHT)
@@ -8478,77 +8530,18 @@ static void M_Refresh(INT32 choice)
 	if (rendermode == render_soft)
 		I_FinishUpdate(); // page flip or blit buffer
 
-	// note: this is the one case where 0 is a valid room number
-	// because it corresponds to "All"
-	CL_UpdateServerList(!(ms_RoomId < 0), ms_RoomId);
-
 	// first page of servers
 	serverlistpage = 0;
-}
 
-static INT32 menuRoomIndex = 0;
-
-static void M_DrawRoomMenu(void)
-{
-	static int frame = -12;
-	int dot_frame;
-	char text[4];
-
-	const char *rmotd;
-	const char *waiting_message;
-
-	int dots;
-
-	if (m_waiting_mode)
-	{
-		dot_frame = frame / 4;
-		dots = dot_frame + 3;
-
-		strcpy(text, "   ");
-
-		if (dots > 0)
-		{
-			if (dot_frame < 0)
-				dot_frame = 0;
-
-			strncpy(&text[dot_frame], "...", min(dots, 3 - dot_frame));
-		}
-
-		if (++frame == 12)
-			frame = -12;
-
-		currentMenu->menuitems[0].text = text;
-	}
-
-	// use generic drawer for cursor, items and title
-	M_DrawGenericMenu();
-
-	V_DrawString(currentMenu->x - 16, currentMenu->y, highlightflags, M_GetText("Select a room"));
-
-	if (m_waiting_mode == M_NOT_WAITING)
-	{
-		M_DrawTextBox(144, 24, 20, 20);
-
-		if (itemOn == 0)
-			rmotd = M_GetText("Don't connect to the Master Server.");
-		else
-			rmotd = room_list[itemOn-1].motd;
-
-		rmotd = V_WordWrap(0, 20*8, 0, rmotd);
-		V_DrawString(144+8, 32, V_ALLOWLOWERCASE|V_RETURN8, rmotd);
-	}
-
-	if (m_waiting_mode)
-	{
-		// Display a little "please wait" message.
-		M_DrawTextBox(52, BASEVIDHEIGHT/2-10, 25, 3);
-		if (m_waiting_mode == M_WAITING_VERSION)
-			waiting_message = "Checking for updates...";
-		else
-			waiting_message = "Fetching room info...";
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, 0, waiting_message);
-		V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2)+12, 0, "Please wait.");
-	}
+#ifdef MASTERSERVER
+#ifdef HAVE_THREADS
+	Spawn_masterserver_thread("fetch-servers", Fetch_servers_thread);
+#else/*HAVE_THREADS*/
+	Fetch_servers_thread(NULL);
+#endif/*HAVE_THREADS*/
+#else/*MASTERSERVER*/
+	CL_UpdateServerList();
+#endif/*MASTERSERVER*/
 }
 
 static void M_DrawConnectMenu(void)
@@ -8557,6 +8550,7 @@ static void M_DrawConnectMenu(void)
 	const char *gt = "Unknown";
 	const char *spd = "";
 	INT32 numPages = (serverlistcount+(SERVERS_PER_PAGE-1))/SERVERS_PER_PAGE;
+	int waiting;
 
 	for (i = FIRSTSERVERLINE; i < min(localservercount, SERVERS_PER_PAGE)+FIRSTSERVERLINE; i++)
 		MP_ConnectMenu[i].status = IT_STRING | IT_SPACE;
@@ -8564,20 +8558,12 @@ static void M_DrawConnectMenu(void)
 	if (!numPages)
 		numPages = 1;
 
-	// Room name
-	if (ms_RoomId < 0)
-		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ConnectMenu[mp_connect_room].alphaKey,
-		                         highlightflags, (itemOn == mp_connect_room) ? "<Select to change>" : "<Offline Mode>");
-	else
-		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ConnectMenu[mp_connect_room].alphaKey,
-		                         highlightflags, room_list[menuRoomIndex].name);
-
 	// Page num
 	V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ConnectMenu[mp_connect_page].alphaKey,
 	                         highlightflags, va("%u of %d", serverlistpage+1, numPages));
 
 	// Horizontal line!
-	V_DrawFill(1, currentMenu->y+40, 318, 1, 0);
+	V_DrawFill(1, currentMenu->y+32, 318, 1, 0);
 
 	if (serverlistcount <= 0)
 		V_DrawString(currentMenu->x,currentMenu->y+SERVERHEADERHEIGHT, 0, "No servers found");
@@ -8623,11 +8609,20 @@ static void M_DrawConnectMenu(void)
 
 	M_DrawGenericMenu();
 
-	if (m_waiting_mode)
+	waiting = M_GetWaitingMode();
+
+	if (waiting)
 	{
+		const char *message;
+
+		if (waiting == M_WAITING_VERSION)
+			message = "Checking for updates...";
+		else
+			message = "Searching for servers...";
+
 		// Display a little "please wait" message.
 		M_DrawTextBox(52, BASEVIDHEIGHT/2-10, 25, 3);
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, 0, "Searching for servers...");
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, 0, message);
 		V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2)+12, 0, "Please wait.");
 	}
 }
@@ -8711,76 +8706,42 @@ void M_SortServerList(void)
 
 #ifndef NONET
 #ifdef UPDATE_ALERT
-static boolean M_CheckMODVersion(int id)
+static void M_CheckMODVersion(int id)
 {
 	char updatestring[500];
 	const char *updatecheck = GetMODVersion(id);
 	if(updatecheck)
 	{
 		sprintf(updatestring, UPDATE_ALERT_STRING, VERSIONSTRING, updatecheck);
+#ifdef HAVE_THREADS
+		I_lock_mutex(&m_menu_mutex);
+#endif
 		M_StartMessage(updatestring, NULL, MM_NOTHING);
-		return false;
-	} else
-		return true;
+#ifdef HAVE_THREADS
+		I_unlock_mutex(m_menu_mutex);
+#endif
+	}
 }
 #endif/*UPDATE_ALERT*/
 
-#if defined (MASTERSERVER) && defined (HAVE_THREADS)
+#if defined (UPDATE_ALERT) && defined (HAVE_THREADS)
 static void
 Check_new_version_thread (int *id)
 {
-	int hosting;
-	int okay;
+	M_SetWaitingMode(M_WAITING_VERSION);
 
-	okay = 0;
+	M_CheckMODVersion(*id);
 
-#ifdef UPDATE_ALERT
-	if (M_CheckMODVersion(*id))
-#endif
+	if (Same_instance(*id))
 	{
-		I_lock_mutex(&ms_QueryId_mutex);
-		{
-			okay = ( *id == ms_QueryId );
-		}
-		I_unlock_mutex(ms_QueryId_mutex);
-
-		if (okay)
-		{
-			I_lock_mutex(&m_menu_mutex);
-			{
-				m_waiting_mode = M_WAITING_ROOMS;
-				hosting = ( currentMenu->prevMenu == &MP_ServerDef );
-			}
-			I_unlock_mutex(m_menu_mutex);
-
-			GetRoomsList(hosting, *id);
-		}
+		Fetch_servers_thread(id);
 	}
 	else
 	{
-		I_lock_mutex(&ms_QueryId_mutex);
-		{
-			okay = ( *id == ms_QueryId );
-		}
-		I_unlock_mutex(ms_QueryId_mutex);
+		free(id);
 	}
-
-	if (okay)
-	{
-		I_lock_mutex(&m_menu_mutex);
-		{
-			if (m_waiting_mode)
-			{
-				m_waiting_mode = M_NOT_WAITING;
-				MP_RoomMenu[0].text = "<Offline Mode>";
-			}
-		}
-		I_unlock_mutex(m_menu_mutex);
-	}
-
-	free(id);
 }
-#endif/*defined (MASTERSERVER) && defined (HAVE_THREADS)*/
+#endif/*defined (UPDATE_ALERT) && defined (HAVE_THREADS)*/
 
 static void M_ConnectMenu(INT32 choice)
 {
@@ -8790,16 +8751,37 @@ static void M_ConnectMenu(INT32 choice)
 
 	// first page of servers
 	serverlistpage = 0;
-	if (ms_RoomId < 0)
-	{
-		M_RoomMenu(0); // Select a room instead of staring at an empty list
-		// This prevents us from returning to the modified game alert.
-		currentMenu->prevMenu = &MP_MainDef;
-	}
-	else
-		M_SetupNextMenu(&MP_ConnectDef);
+	M_SetupNextMenu(&MP_ConnectDef);
 	itemOn = 0;
+
+#if defined (MASTERSERVER) && defined (HAVE_THREADS)
+	I_lock_mutex(&ms_QueryId_mutex);
+	{
+		ms_QueryId++;
+	}
+	I_unlock_mutex(ms_QueryId_mutex);
+
+	I_lock_mutex(&ms_ServerList_mutex);
+	{
+		if (ms_ServerList)
+		{
+			free(ms_ServerList);
+			ms_ServerList = NULL;
+		}
+	}
+	I_unlock_mutex(ms_ServerList_mutex);
+
+#ifdef UPDATE_ALERT
+	Spawn_masterserver_thread("check-new-version", Check_new_version_thread);
+#else/*UPDATE_ALERT*/
+	Spawn_masterserver_thread("fetch-servers", Fetch_servers_thread);
+#endif/*UPDATE_ALERT*/
+#else/*defined (MASTERSERVER) && defined (HAVE_THREADS)*/
+#ifdef UPDATE_ALERT
+	M_CheckMODVersion(0);
+#endif/*UPDATE_ALERT*/
 	M_Refresh(0);
+#endif/*defined (MASTERSERVER) && defined (HAVE_THREADS)*/
 }
 
 static void M_ConnectMenuModChecks(INT32 choice)
@@ -8814,96 +8796,6 @@ static void M_ConnectMenuModChecks(INT32 choice)
 	}
 
 	M_ConnectMenu(-1);
-}
-
-UINT32 roomIds[NUM_LIST_ROOMS];
-
-static void M_RoomMenu(INT32 choice)
-{
-	INT32 i;
-#if defined (MASTERSERVER) && defined (HAVE_THREADS)
-	int *id;
-#endif
-
-	(void)choice;
-
-	// Display a little "please wait" message.
-	M_DrawTextBox(52, BASEVIDHEIGHT/2-10, 25, 3);
-	V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, 0, "Fetching room info...");
-	V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2)+12, 0, "Please wait.");
-	I_OsPolling();
-	I_UpdateNoBlit();
-	if (rendermode == render_soft)
-		I_FinishUpdate(); // page flip or blit buffer
-
-	for (i = 1; i < NUM_LIST_ROOMS+1; ++i)
-		MP_RoomMenu[i].status = IT_DISABLED;
-	memset(roomIds, 0, sizeof(roomIds));
-
-	MP_RoomDef.prevMenu = currentMenu;
-	M_SetupNextMenu(&MP_RoomDef);
-
-#ifdef MASTERSERVER
-#ifdef HAVE_THREADS
-#ifdef UPDATE_ALERT
-	m_waiting_mode = M_WAITING_VERSION;
-#else/*UPDATE_ALERT*/
-	m_waiting_mode = M_WAITING_ROOMS;
-#endif/*UPDATE_ALERT*/
-
-	MP_RoomMenu[0].text = "";
-
-	id = malloc(sizeof *id);
-
-	I_lock_mutex(&ms_QueryId_mutex);
-	{
-		*id = ms_QueryId;
-	}
-	I_unlock_mutex(ms_QueryId_mutex);
-
-	I_spawn_thread("check-new-version",
-			(I_thread_fn)Check_new_version_thread, id);
-#else/*HAVE_THREADS*/
-#ifdef UPDATE_ALERT
-	if (M_CheckMODVersion(0))
-#endif/*UPDATE_ALERT*/
-	{
-		GetRoomsList(currentMenu->prevMenu == &MP_ServerDef, 0);
-	}
-#endif/*HAVE_THREADS*/
-#endif/*MASTERSERVER*/
-}
-
-static void M_ChooseRoom(INT32 choice)
-{
-#if defined (MASTERSERVER) && defined (HAVE_THREADS)
-	I_lock_mutex(&ms_QueryId_mutex);
-	{
-		ms_QueryId++;
-	}
-	I_unlock_mutex(ms_QueryId_mutex);
-#endif
-
-	if (choice == 0)
-		ms_RoomId = -1;
-	else
-	{
-		ms_RoomId = roomIds[choice-1];
-		menuRoomIndex = choice - 1;
-	}
-
-	serverlistpage = 0;
-	/*
-	We were on the Multiplayer menu? That means that we must have been trying to
-	view the server browser, but we hadn't selected a room yet. So we need to go
-	to the browser next, not back there.
-	*/
-	if (currentMenu->prevMenu == &MP_MainDef)
-		M_SetupNextMenu(&MP_ConnectDef);
-	else
-		M_SetupNextMenu(currentMenu->prevMenu);
-	if (currentMenu == &MP_ConnectDef)
-		M_Refresh(0);
 }
 #endif //NONET
 
@@ -9120,21 +9012,6 @@ static void M_DrawServerMenu(void)
 {
 	M_DrawLevelSelectOnly(false, false);
 	M_DrawGenericMenu();
-
-#ifndef NONET
-	// Room name
-	if (currentMenu == &MP_ServerDef)
-	{
-#define mp_server_room 1
-		if (ms_RoomId < 0)
-			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ServerMenu[mp_server_room].alphaKey,
-			                         highlightflags, (itemOn == mp_server_room) ? "<Select to change>" : "<LAN Mode>");
-		else
-			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ServerMenu[mp_server_room].alphaKey,
-			                         highlightflags, room_list[menuRoomIndex].name);
-#undef mp_server_room
-	}
-#endif
 }
 
 static void M_MapChange(INT32 choice)
@@ -9164,7 +9041,6 @@ static void M_StartServerMenu(INT32 choice)
 	(void)choice;
 	levellistmode = LLM_CREATESERVER;
 	M_PrepareLevelSelect();
-	ms_RoomId = -1;
 	M_SetupNextMenu(&MP_ServerDef);
 
 }

@@ -1973,56 +1973,29 @@ static void SL_InsertServer(serverinfo_pak* info, SINT8 node)
 	M_SortServerList();
 }
 
-#if defined (MASTERSERVER) && defined (HAVE_THREADS)
-struct Fetch_servers_ctx
+void CL_UpdateServerList (void)
 {
-	int room;
-	int id;
-};
+	SL_ClearServerList(0);
 
-static void
-Fetch_servers_thread (struct Fetch_servers_ctx *ctx)
-{
-	msg_server_t *server_list;
-
-	server_list = GetShortServersList(ctx->room, ctx->id);
-
-	if (server_list)
+	if (!netgame && I_NetOpenSocket)
 	{
-		I_lock_mutex(&ms_QueryId_mutex);
+		if (I_NetOpenSocket())
 		{
-			if (ctx->id != ms_QueryId)
-			{
-				free(server_list);
-				server_list = NULL;
-			}
-		}
-		I_unlock_mutex(ms_QueryId_mutex);
-
-		if (server_list)
-		{
-			I_lock_mutex(&m_menu_mutex);
-			{
-				if (m_waiting_mode == M_WAITING_SERVERS)
-					m_waiting_mode = M_NOT_WAITING;
-			}
-			I_unlock_mutex(m_menu_mutex);
-
-			I_lock_mutex(&ms_ServerList_mutex);
-			{
-				ms_ServerList = server_list;
-			}
-			I_unlock_mutex(ms_ServerList_mutex);
+			netgame = true;
+			multiplayer = true;
 		}
 	}
 
-	free(ctx);
+	// search for local servers
+	if (netgame)
+		SendAskInfo(BROADCASTADDR);
 }
-#endif/*defined (MASTERSERVER) && defined (HAVE_THREADS)*/
 
 void CL_QueryServerList (msg_server_t *server_list)
 {
 	INT32 i;
+
+	CL_UpdateServerList();
 
 	for (i = 0; server_list[i].header.buffer[0]; i++)
 	{
@@ -2052,62 +2025,6 @@ void CL_QueryServerList (msg_server_t *server_list)
 		}
 	}
 }
-
-void CL_UpdateServerList(boolean internetsearch, INT32 room)
-{
-	(void)internetsearch;
-	(void)room;
-
-	SL_ClearServerList(0);
-
-	if (!netgame && I_NetOpenSocket)
-	{
-		if (I_NetOpenSocket())
-		{
-			netgame = true;
-			multiplayer = true;
-		}
-	}
-
-	// search for local servers
-	if (netgame)
-		SendAskInfo(BROADCASTADDR);
-
-#ifdef MASTERSERVER
-	if (internetsearch)
-	{
-#ifdef HAVE_THREADS
-		struct Fetch_servers_ctx *ctx;
-
-		ctx = malloc(sizeof *ctx);
-
-		/* This called from M_Refresh so I don't use a mutex */
-		m_waiting_mode = M_WAITING_SERVERS;
-
-		I_lock_mutex(&ms_QueryId_mutex);
-		{
-			ctx->id = ms_QueryId;
-		}
-		I_unlock_mutex(ms_QueryId_mutex);
-
-		ctx->room = room;
-
-		I_spawn_thread("fetch-servers", (I_thread_fn)Fetch_servers_thread, ctx);
-#else
-		msg_server_t *server_list;
-
-		server_list = GetShortServersList(room, 0);
-
-		if (server_list)
-		{
-			CL_QueryServerList(server_list);
-			free(server_list);
-		}
-#endif
-	}
-#endif/*MASTERSERVER*/
-}
-
 #endif // ifndef NONET
 
 static void M_ConfirmConnect(event_t *ev)
@@ -3755,7 +3672,7 @@ void D_QuitNetGame(void)
 			if (nodeingame[i])
 				HSendPacket(i, true, 0, 0);
 #ifdef MASTERSERVER
-		if (serverrunning && ms_RoomId > 0)
+		if (serverrunning && cv_advertise.value)
 			UnregisterServer();
 #endif
 	}
@@ -4017,7 +3934,7 @@ boolean SV_SpawnServer(void)
 		{
 			I_NetOpenSocket();
 #ifdef MASTERSERVER
-			if (ms_RoomId > 0)
+			if (cv_advertise.value)
 				RegisterServer();
 #endif
 		}

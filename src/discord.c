@@ -24,7 +24,7 @@
 #include "p_tick.h"
 #include "m_menu.h" // gametype_cons_t
 #include "r_things.h" // skins
-#include "mserv.h" // ms_RoomId
+#include "mserv.h" // cv_advertise
 #include "z_zone.h"
 #include "byteptr.h"
 
@@ -505,14 +505,13 @@ void DRPC_UpdatePresence(void)
 	// Server info
 	if (netgame)
 	{
-		switch (ms_RoomId)
+		if (cv_advertise.value)
 		{
-			case -1: discordPresence.state = "Private"; break; // Private server
-			case 33: discordPresence.state = "Standard"; break;
-			case 28: discordPresence.state = "Casual"; break;
-			case 38: discordPresence.state = "Custom Gametypes"; break;
-			case 31: discordPresence.state = "OLDC"; break;
-			default: discordPresence.state = "Unknown Room"; break; // HOW
+			discordPresence.state = "Public";
+		}
+		else
+		{
+			discordPresence.state = "Private";
 		}
 
 		discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
