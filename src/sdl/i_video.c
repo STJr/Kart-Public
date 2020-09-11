@@ -20,6 +20,7 @@
 /// \brief SRB2 graphics stuff for SDL
 
 #include <stdlib.h>
+#include <errno.h>
 
 #include <signal.h>
 
@@ -96,7 +97,7 @@ static INT32 numVidModes = -1;
 */
 static char vidModeName[33][32]; // allow 33 different modes
 
-rendermode_t rendermode=render_soft;
+rendermode_t rendermode = render_none;
 
 boolean highcolor = false;
 
@@ -1799,6 +1800,13 @@ static void Impl_VideoSetupBuffer(void)
 	}
 }
 
+static FILE *
+OpenRendererFile (const char * mode)
+{
+	char * path = va(pandf,srb2home,"renderer.txt");
+	return fopen(path, mode);
+}
+
 void I_StartupGraphics(void)
 {
 	if (dedicated)
@@ -1845,6 +1853,62 @@ void I_StartupGraphics(void)
 	else if (M_CheckParm("-opengl"))
 		rendermode = render_opengl;
 #endif
+
+	if (rendermode == render_none)
+	{
+#ifdef HWRENDER
+		char   line[16];
+		char * word;
+		FILE * file = OpenRendererFile("r");
+		if (file != NULL)
+		{
+			if (fgets(line, sizeof line, file) != NULL)
+			{
+				word = strtok(line, "\n");
+
+				if (strcasecmp(word, "software") == 0)
+				{
+					rendermode = render_soft;
+				}
+				else if (strcasecmp(word, "opengl") == 0)
+				{
+					rendermode = render_opengl;
+				}
+
+				if (rendermode != render_none)
+				{
+					CONS_Printf("Using last known renderer: %s\n", line);
+				}
+			}
+			fclose(file);
+		}
+#endif
+		if (rendermode == render_none)
+		{
+			rendermode = render_soft;
+			CONS_Printf("Using default software renderer.\n");
+		}
+	}
+	else
+	{
+		FILE * file = OpenRendererFile("w");
+		if (file != NULL)
+		{
+			if (rendermode == render_soft)
+			{
+				fputs("software\n", file);
+			}
+			else if (rendermode == render_opengl)
+			{
+				fputs("opengl\n", file);
+			}
+			fclose(file);
+		}
+		else
+		{
+			CONS_Printf("Could not save renderer to file: %s\n", strerror(errno));
+		}
+	}
 
 	usesdl2soft = M_CheckParm("-softblit");
 	borderlesswindow = M_CheckParm("-borderless");
