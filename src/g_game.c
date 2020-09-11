@@ -548,7 +548,7 @@ char player_names[MAXPLAYERS][MAXPLAYERNAME+1] =
 	"Player 16"
 }; // SRB2kart - removed Players 17 through 32
 
-int player_name_changes[MAXPLAYERS];
+INT32 player_name_changes[MAXPLAYERS];
 
 INT16 rw_maximums[NUM_WEAPONS] =
 {
