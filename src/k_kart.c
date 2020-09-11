@@ -666,7 +666,7 @@ static INT32 K_KartItemOddsRace[NUMKARTRESULTS][10] =
 			   /*Jawz x2*/ { 0, 0, 0, 1, 2, 0, 0, 0, 0, 0 }  // Jawz x2
 };
 
-static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][6] =
+static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][2] =
 {
 				//P-Odds	 0  1
 			   /*Sneaker*/ { 2, 1 }, // Sneaker
@@ -922,6 +922,9 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 	UINT8 disttable[14];
 	UINT8 distlen = 0;
 	boolean oddsvalid[10];
+
+	// Unused now, oops :V
+	(void)bestbumper;
 
 	for (i = 0; i < 10; i++)
 	{
