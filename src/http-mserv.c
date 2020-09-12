@@ -499,6 +499,19 @@ HMS_compare_mod_version (char *buffer, size_t buffer_size)
 	return ok;
 }
 
+static char *
+Strip_trailing_slashes (char *api)
+{
+	char * p = &api[strlen(api)];
+
+	while (*--p == '/')
+		;
+
+	p[1] = '\0';
+
+	return api;
+}
+
 void
 HMS_set_api (char *api)
 {
@@ -507,7 +520,7 @@ HMS_set_api (char *api)
 #endif
 	{
 		free(hms_api);
-		hms_api = api;
+		hms_api = Strip_trailing_slashes(api);
 	}
 #ifdef HAVE_THREADS
 	I_unlock_mutex(hms_api_mutex);
