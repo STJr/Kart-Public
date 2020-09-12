@@ -175,7 +175,7 @@ HMS_connect (const char *format, ...)
 	seek += sizeof "?v=2" - 1;
 
 	if (quack_token)
-		sprintf(&url[seek], "?token=%s", quack_token);
+		sprintf(&url[seek], "&token=%s", quack_token);
 
 	CONS_Printf("HMS: connecting '%s'...\n", url);
 
