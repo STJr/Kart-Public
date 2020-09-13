@@ -74,7 +74,7 @@ static void
 Contact_error (void)
 {
 	CONS_Alert(CONS_ERROR,
-			"There was a problem contacting the master server...\n"
+			"There was a problem contacting the server browser...\n"
 	);
 }
 
@@ -243,7 +243,7 @@ HMS_do (struct HMS_buffer *buffer)
 
 		Contact_error();
 		Blame(
-				"Master server error %ld: %s%s\n",
+				"Server browser error %ld: %s%s\n",
 				status,
 				buffer->buffer,
 				( (p) ? "" : " (malformed)" )
@@ -535,6 +535,6 @@ MasterServer_Debug_OnChange (void)
 #ifdef MASTERSERVER
 	/* TODO: change to 'latest-log.txt' for log files revision. */
 	if (cv_masterserver_debug.value)
-		CONS_Printf("Master server debug messages will appear in log.txt\n");
+		CONS_Printf("Server browser debug messages will appear in log.txt\n");
 #endif
 }

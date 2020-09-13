@@ -114,7 +114,7 @@ static void WarnGUI (void)
 #ifdef HAVE_THREADS
 	I_lock_mutex(&m_menu_mutex);
 #endif
-	M_StartMessage(M_GetText("There was a problem connecting to\nthe Master Server\n\nCheck the console for details.\n"), NULL, MM_NOTHING);
+	M_StartMessage(M_GetText("There was a problem connecting to\nthe server browser\n\nCheck the console for details.\n"), NULL, MM_NOTHING);
 #ifdef HAVE_THREADS
 	I_unlock_mutex(m_menu_mutex);
 #endif
@@ -191,7 +191,7 @@ Finish_registration (void)
 {
 	int registered;
 
-	CONS_Printf("Registering this server on the master server...\n");
+	CONS_Printf("Registering this server on the server browser...\n");
 
 	registered = HMS_register();
 
@@ -205,7 +205,7 @@ Finish_registration (void)
 	Unlock_state();
 
 	if (registered)
-		CONS_Printf("Master server registration successful.\n");
+		CONS_Printf("Server browser registration successful.\n");
 }
 
 static void
@@ -232,7 +232,7 @@ Finish_update (void)
 			}
 			Unlock_state();
 
-			CONS_Printf("Updated master server listing.\n");
+			CONS_Printf("Updated server browser listing.\n");
 		}
 		else
 			Finish_registration();
@@ -273,7 +273,7 @@ Finish_unlist (void)
 
 	if (registered)
 	{
-		CONS_Printf("Removing this server from the master server...\n");
+		CONS_Printf("Removing this server from the server browser...\n");
 
 		if (HMS_unlist())
 			CONS_Printf("Server deregistration request successfully sent.\n");
