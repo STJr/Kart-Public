@@ -79,7 +79,6 @@ typedef enum
 	M_NOT_WAITING,
 
 	M_WAITING_VERSION,
-	M_WAITING_ROOMS,
 	M_WAITING_SERVERS,
 }
 M_waiting_mode_t;
@@ -174,9 +173,6 @@ typedef struct menuitem_s
 } menuitem_t;
 
 extern menuitem_t PlayerMenu[MAXSKINS];
-
-extern menuitem_t MP_RoomMenu[];
-extern UINT32     roomIds[NUM_LIST_ROOMS];
 
 typedef struct menu_s
 {

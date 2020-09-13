@@ -11,7 +11,7 @@
 /*
 Documentation available here.
 
-                     <http://mb.srb2.org/MS/tools/api/v1/>
+                     <https://ms.kartkrew.org/tools/api/2/>
 */
 
 #ifdef HAVE_CURL
@@ -141,7 +141,7 @@ HMS_connect (const char *format, ...)
 	if (cv_masterserver_token.string[0])
 	{
 		quack_token = curl_easy_escape(curl, cv_masterserver_token.string, 0);
-		token_length = ( sizeof "?token="-1 )+ strlen(quack_token);
+		token_length = ( sizeof "&token="-1 )+ strlen(quack_token);
 	}
 	else
 	{
@@ -156,7 +156,9 @@ HMS_connect (const char *format, ...)
 	seek = strlen(hms_api) + 1;/* + '/' */
 
 	va_start (ap, format);
-	url = malloc(seek + vsnprintf(0, 0, format, ap) + token_length + 1);
+	url = malloc(seek + vsnprintf(0, 0, format, ap) +
+			sizeof "?v=2" - 1 +
+			token_length + 1);
 	va_end (ap);
 
 	sprintf(url, "%s/", hms_api);
@@ -169,8 +171,11 @@ HMS_connect (const char *format, ...)
 	seek += vsprintf(&url[seek], format, ap);
 	va_end (ap);
 
+	strcpy(&url[seek], "?v=2");
+	seek += sizeof "?v=2" - 1;
+
 	if (quack_token)
-		sprintf(&url[seek], "?token=%s", quack_token);
+		sprintf(&url[seek], "&token=%s", quack_token);
 
 	CONS_Printf("HMS: connecting '%s'...\n", url);
 
@@ -259,117 +264,6 @@ HMS_end (struct HMS_buffer *buffer)
 }
 
 int
-HMS_fetch_rooms (int joining, int query_id)
-{
-	struct HMS_buffer *hms;
-	int ok;
-
-	int doing_shit;
-
-	char *id;
-	char *title;
-	char *room_motd;
-
-	int id_no;
-
-	char *p;
-	char *end;
-
-	int i;
-
-	(void)query_id;
-
-	hms = HMS_connect("rooms");
-
-	if (! hms)
-		return 0;
-
-	if (HMS_do(hms))
-	{
-		doing_shit = 1;
-
-		p = hms->buffer;
-
-		for (i = 0; i < NUM_LIST_ROOMS && ( end = strstr(p, "\n\n\n") );)
-		{
-			*end = '\0';
-
-			id    = strtok(p, "\n");
-			title = strtok(0, "\n");
-			room_motd = strtok(0, "");
-
-			if (id && title && room_motd)
-			{
-				id_no = atoi(id);
-
-				/*
-				Don't show the 'All' room if hosting. And it's a hack like this
-				because I'm way too lazy to add another feature to the MS.
-				*/
-				if (joining || id_no != 0)
-				{
-#ifdef HAVE_THREADS
-					I_lock_mutex(&ms_QueryId_mutex);
-					{
-						if (query_id != ms_QueryId)
-							doing_shit = 0;
-					}
-					I_unlock_mutex(ms_QueryId_mutex);
-
-					if (! doing_shit)
-						break;
-#endif
-
-					room_list[i].header.buffer[0] = 1;
-
-					room_list[i].id = id_no;
-					strlcpy(room_list[i].name, title, sizeof room_list[i].name);
-					strlcpy(room_list[i].motd, room_motd, sizeof room_list[i].motd);
-
-					i++;
-				}
-
-				p = ( end + 3 );/* skip the three linefeeds */
-			}
-			else
-				break;
-		}
-
-		if (doing_shit)
-			room_list[i].header.buffer[0] = 0;
-
-		ok = 1;
-
-		if (doing_shit)
-		{
-#ifdef HAVE_THREADS
-			I_lock_mutex(&m_menu_mutex);
-#endif
-			{
-				for (i = 0; room_list[i].header.buffer[0]; i++)
-				{
-					if(*room_list[i].name != '\0')
-					{
-						MP_RoomMenu[i+1].text = room_list[i].name;
-						roomIds[i] = room_list[i].id;
-						MP_RoomMenu[i+1].status = IT_STRING|IT_CALL;
-					}
-				}
-			}
-#ifdef HAVE_THREADS
-			I_unlock_mutex(m_menu_mutex);
-#endif
-		}
-	}
-	else
-		ok = 0;
-
-	HMS_end(hms);
-
-	return ok;
-}
-
-int
 HMS_register (void)
 {
 	struct HMS_buffer *hms;
@@ -377,29 +271,26 @@ HMS_register (void)
 
 	char post[256];
 
-	char *title;
+	char *contact;
 
-	hms = HMS_connect("rooms/%d/register", ms_RoomId);
+	hms = HMS_connect(
+			"games/%s/%d/servers/register", SRB2APPLICATION, MODVERSION);
 
 	if (! hms)
 		return 0;
 
-	title = curl_easy_escape(hms->curl, cv_servername.string, 0);
+	contact = curl_easy_escape(hms->curl, cv_server_contact.string, 0);
 
 	snprintf(post, sizeof post,
 			"port=%d&"
-			"title=%s&"
-			"version=%d.%d",
+			"contact=%s",
 
 			current_port,
 
-			title,
-
-			VERSION,
-			SUBVERSION
+			contact
 	);
 
-	curl_free(title);
+	curl_free(contact);
 
 	curl_easy_setopt(hms->curl, CURLOPT_POSTFIELDS, post);
 
@@ -473,19 +364,13 @@ HMS_list_servers (void)
 {
 	struct HMS_buffer *hms;
 
-	char *p;
-
-	hms = HMS_connect("servers");
+	hms = HMS_connect("games/%s/%d/servers", SRB2APPLICATION, MODVERSION);
 
 	if (! hms)
 		return;
 
 	if (HMS_do(hms))
 	{
-		p = &hms->buffer[strlen(hms->buffer)];
-		while (*--p == '\n')
-			;
-
 		CONS_Printf("%s\n", hms->buffer);
 	}
 
@@ -493,35 +378,24 @@ HMS_list_servers (void)
 }
 
 msg_server_t *
-HMS_fetch_servers (msg_server_t *list, int room_number, int query_id)
+HMS_fetch_servers (msg_server_t *list, int query_id)
 {
 	struct HMS_buffer *hms;
 
 	int doing_shit;
 
-	char local_version[9];
-
-	char *room;
-
 	char *address;
 	char *port;
-	char *title;
-	char *version;
+	char *contact;
 
 	char *end;
-	char *section_end;
 	char *p;
 
 	int i;
 
 	(void)query_id;
 
-	if (room_number > 0)
-	{
-		hms = HMS_connect("rooms/%d/servers", room_number);
-	}
-	else
-		hms = HMS_connect("servers");
+	hms = HMS_connect("games/%s/%d/servers", SRB2APPLICATION, MODVERSION);
 
 	if (! hms)
 		return NULL;
@@ -530,81 +404,51 @@ HMS_fetch_servers (msg_server_t *list, int room_number, int query_id)
 	{
 		doing_shit = 1;
 
-		snprintf(local_version, sizeof local_version,
-				"%d.%d",
-				VERSION,
-				SUBVERSION
-		);
-
 		p = hms->buffer;
 		i = 0;
 
-		do
+		while (i < MAXSERVERLIST && ( end = strchr(p, '\n') ))
 		{
-			section_end = strstr(p, "\n\n");
+			*end = '\0';
 
-			room = strtok(p, "\n");
+			address = strtok(p, " ");
+			port    = strtok(0, " ");
+			contact = strtok(0, "");
 
-			p = strtok(0, "");
-
-			if (! p)
-				break;
-
-			while (i < MAXSERVERLIST && ( end = strchr(p, '\n') ))
+			if (address && port)
 			{
-				*end = '\0';
-
-				address = strtok(p, " ");
-				port    = strtok(0, " ");
-				title   = strtok(0, " ");
-				version = strtok(0, "");
-
-				if (address && port && title && version)
-				{
 #ifdef HAVE_THREADS
-					I_lock_mutex(&ms_QueryId_mutex);
-					{
-						if (query_id != ms_QueryId)
-							doing_shit = 0;
-					}
-					I_unlock_mutex(ms_QueryId_mutex);
+				I_lock_mutex(&ms_QueryId_mutex);
+				{
+					if (query_id != ms_QueryId)
+						doing_shit = 0;
+				}
+				I_unlock_mutex(ms_QueryId_mutex);
 
-					if (! doing_shit)
-						break;
+				if (! doing_shit)
+					break;
 #endif
 
-					if (strcmp(version, local_version) == 0)
-					{
-						strlcpy(list[i].ip,      address, sizeof list[i].ip);
-						strlcpy(list[i].port,    port,    sizeof list[i].port);
-						strlcpy(list[i].name,    title,   sizeof list[i].name);
-						strlcpy(list[i].version, version, sizeof list[i].version);
+				strlcpy(list[i].ip,      address, sizeof list[i].ip);
+				strlcpy(list[i].port,    port,    sizeof list[i].port);
 
-						list[i].room = atoi(room);
-
-						list[i].header.buffer[0] = 1;
-
-						i++;
-					}
-
-					if (end == section_end)/* end of list for this room */
-						break;
-					else
-						p = ( end + 1 );/* skip server delimiter */
-				}
-				else
+				if (contact)
 				{
-					section_end = 0;/* malformed so quit the parsing */
-					break;
+					strlcpy(list[i].contact, contact, sizeof list[i].contact);
 				}
+
+				list[i].header.buffer[0] = 1;
+
+				i++;
+
+				p = ( end + 1 );/* skip server delimiter */
 			}
-
-			if (! doing_shit)
+			else
+			{
+				/* malformed so quit the parsing */
 				break;
-
-			p = ( section_end + 2 );
+			}
 		}
-		while (section_end) ;
 
 		if (doing_shit)
 			list[i].header.buffer[0] = 0;
@@ -626,7 +470,7 @@ HMS_compare_mod_version (char *buffer, size_t buffer_size)
 	char *version;
 	char *version_name;
 
-	hms = HMS_connect("versions/%d", MODID);
+	hms = HMS_connect("games/%s/version", SRB2APPLICATION);
 
 	if (! hms)
 		return 0;
@@ -655,6 +499,19 @@ HMS_compare_mod_version (char *buffer, size_t buffer_size)
 	return ok;
 }
 
+static char *
+Strip_trailing_slashes (char *api)
+{
+	char * p = &api[strlen(api)];
+
+	while (*--p == '/')
+		;
+
+	p[1] = '\0';
+
+	return api;
+}
+
 void
 HMS_set_api (char *api)
 {
@@ -663,7 +520,7 @@ HMS_set_api (char *api)
 #endif
 	{
 		free(hms_api);
-		hms_api = api;
+		hms_api = Strip_trailing_slashes(api);
 	}
 #ifdef HAVE_THREADS
 	I_unlock_mutex(hms_api_mutex);
