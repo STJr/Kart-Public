@@ -73,7 +73,7 @@ consvar_t cv_server_contact = {"server_contact", "", CV_SAVE|CV_CALL|CV_NOINIT, 
 
 consvar_t cv_masterserver_update_rate = {"masterserver_update_rate", "15", CV_SAVE|CV_CALL|CV_NOINIT, masterserver_update_rate_cons_t, MasterClient_Ticker, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_advertise = {"advertise", "Yes", CV_SAVE|CV_NETVAR|CV_CALL|CV_NOINIT, CV_YesNo, Advertise_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_advertise = {"advertise", "No", CV_NETVAR|CV_CALL|CV_NOINIT, CV_YesNo, Advertise_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 #if defined (MASTERSERVER) && defined (HAVE_THREADS)
 int           ms_QueryId;
