@@ -251,10 +251,6 @@ Finish_update (void)
 
 	if (! done)
 		Finish_update();
-#ifdef HAVE_DISCORDRPC
-	else
-		DRPC_UpdatePresence();
-#endif
 }
 
 static void
@@ -288,10 +284,6 @@ Finish_unlist (void)
 		I_wake_all_cond(&MSCond);
 #endif
 	}
-
-#ifdef HAVE_DISCORDRPC
-	DRPC_UpdatePresence();
-#endif
 }
 
 #ifdef HAVE_THREADS
@@ -564,4 +556,8 @@ Advertise_OnChange(void)
 	{
 		UnregisterServer();
 	}
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
