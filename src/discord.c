@@ -482,6 +482,11 @@ void DRPC_UpdatePresence(void)
 	DiscordRichPresence discordPresence;
 	memset(&discordPresence, 0, sizeof(discordPresence));
 
+	if (dedicated)
+	{
+		return;
+	}
+
 	if (!cv_discordrp.value)
 	{
 		// User doesn't want to show their game information, so update with empty presence.
