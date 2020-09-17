@@ -4401,14 +4401,22 @@ player_t *K_FindJawzTarget(mobj_t *actor, player_t *source)
 static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 {
 	const INT32 numsnds = 13;
+
+	const fixed_t closedist = 160*FRACUNIT;
+	const fixed_t fardist = 1536*FRACUNIT;
+
+	const UINT8 dampenval = 64; // 255 * 64 = close enough to FRACUNIT/4
+
 	INT32 class, s, w; // engine class number
+
 	UINT8 volume = 255;
-	fixed_t volumedampen = 0;
+	fixed_t volumedampen = FRACUNIT;
+
 	INT32 targetsnd = 0;
 	INT32 i;
 
-	s = (player->kartspeed-1)/3;
-	w = (player->kartweight-1)/3;
+	s = (player->kartspeed - 1) / 3;
+	w = (player->kartweight - 1) / 3;
 
 #define LOCKSTAT(stat) \
 	if (stat < 0) { stat = 0; } \
@@ -4417,81 +4425,114 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 	LOCKSTAT(w);
 #undef LOCKSTAT
 
-	class = s+(3*w);
+	class = s + (3*w);
 
-	// Silence the engines
 	if (leveltime < 8 || player->spectator || player->exiting)
 	{
-		player->kartstuff[k_enginesnd] = 0; // Reset sound number
+		// Silence the engines, and reset sound number while we're at it.
+		player->kartstuff[k_enginesnd] = 0;
 		return;
 	}
 
 #if 0
 	if ((leveltime % 8) != ((player-players) % 8)) // Per-player offset, to make engines sound distinct!
 #else
-	if (leveltime % 8) // .25 seconds of wait time between engine sounds
+	if (leveltime % 8)
 #endif
+	{
+		// .25 seconds of wait time between each engine sound playback
 		return;
+	}
 
-	if ((leveltime >= starttime-(2*TICRATE) && leveltime <= starttime) || (player->kartstuff[k_respawn] == 1)) // Startup boosts
+	if ((leveltime >= starttime-(2*TICRATE) && leveltime <= starttime) || (player->kartstuff[k_respawn] == 1))
+	{
+		// Startup boosts only want to check for BT_ACCELERATE being pressed.
 		targetsnd = ((cmd->buttons & BT_ACCELERATE) ? 12 : 0);
+	}
 	else
-		targetsnd = (((6*cmd->forwardmove)/25) + ((player->speed / mapobjectscale)/5))/2;
+	{
+		// Average out the value of forwardmove and the speed that you're moving at.
+		targetsnd = (((6 * cmd->forwardmove) / 25) + ((player->speed / mapobjectscale) / 5)) / 2;
+	}
 
-	if (targetsnd < 0)
-		targetsnd = 0;
-	if (targetsnd > 12)
-		targetsnd = 12;
+	if (targetsnd < 0) { targetsnd = 0; }
+	if (targetsnd > 12) { targetsnd = 12; }
 
-	if (player->kartstuff[k_enginesnd] < targetsnd)
-		player->kartstuff[k_enginesnd]++;
-	if (player->kartstuff[k_enginesnd] > targetsnd)
-		player->kartstuff[k_enginesnd]--;
+	if (player->kartstuff[k_enginesnd] < targetsnd) { player->kartstuff[k_enginesnd]++; }
+	if (player->kartstuff[k_enginesnd] > targetsnd) { player->kartstuff[k_enginesnd]--; }
 
-	if (player->kartstuff[k_enginesnd] < 0)
-		player->kartstuff[k_enginesnd] = 0;
-	if (player->kartstuff[k_enginesnd] > 12)
-		player->kartstuff[k_enginesnd] = 12;
+	if (player->kartstuff[k_enginesnd] < 0) { player->kartstuff[k_enginesnd] = 0; }
+	if (player->kartstuff[k_enginesnd] > 12) { player->kartstuff[k_enginesnd] = 12; }
+
+	// This code calculates how many players (and thus, how many engine sounds) are within ear shot,
+	// and rebalances the volume of your engine sound based on how far away they are.
+
+	// This results in multiple things:
+	// - When on your own, you will hear your own engine sound extremely clearly.
+	// - When you were alone but someone is gaining on you, yours will go quiet, and you can hear theirs more clearly.
+	// - When around tons of people, engine sounds will try to rebalance to not be as obnoxious.
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		UINT8 thisvol = 0;
 		fixed_t dist;
 
-		if (!playeringame[i] || !players[i].mo || players[i].spectator || players[i].exiting)
-			continue;
-
-		if (P_IsDisplayPlayer(&players[i]))
+		if (!playeringame[i] || !players[i].mo)
 		{
-			volumedampen += FRACUNIT; // We already know what this is gonna be, let's not waste our time.
+			// This player doesn't exist.
 			continue;
 		}
 
-		dist = P_AproxDistance(P_AproxDistance(player->mo->x-players[i].mo->x,
-			player->mo->y-players[i].mo->y), player->mo->z-players[i].mo->z) / 2;
+		if (players[i].spectator || players[i].exiting)
+		{
+			// This player isn't playing an engine sound.
+			continue;
+		}
+
+		if (player == &players[i] || P_IsDisplayPlayer(&players[i]))
+		{
+			// Don't dampen yourself!
+			continue;
+		}
+
+		dist = P_AproxDistance(
+			P_AproxDistance(
+				player->mo->x - players[i].mo->x,
+				player->mo->y - players[i].mo->y),
+				player->mo->z - players[i].mo->z) / 2;
 
 		dist = FixedDiv(dist, mapobjectscale);
 
-		if (dist > 1536<<FRACBITS)
+		if (dist > fardist)
+		{
+			// ENEMY OUT OF RANGE !
 			continue;
-		else if (dist < 160<<FRACBITS) // engine sounds' approx. range
+		}
+		else if (dist < closedist)
+		{
+			// engine sounds' approx. range
 			thisvol = 255;
+		}
 		else
-			thisvol = (15 * (((160<<FRACBITS) - dist)>>FRACBITS)) / (((1536<<FRACBITS)-(160<<FRACBITS))>>(FRACBITS+4));
+		{
+			thisvol = (15 * ((closedist - dist) / FRACUNIT)) / ((fardist - closedist) >> (FRACBITS+4));
+		}
 
-		if (thisvol == 0)
-			continue;
-
-		volumedampen += (thisvol * 257); // 255 * 257 = FRACUNIT
+		volumedampen += (thisvol * dampenval);
 	}
 
 	if (volumedampen > FRACUNIT)
-		volume = FixedDiv(volume<<FRACBITS, volumedampen)>>FRACBITS;
+	{
+		volume = FixedDiv(volume * FRACUNIT, volumedampen) / FRACUNIT;
+	}
 
-	if (volume <= 0) // Might as well
+	if (volume <= 0) 
+	{
+		// Don't need to play the sound at all.
 		return;
+	}
 
-	S_StartSoundAtVolume(player->mo, (sfx_krta00 + player->kartstuff[k_enginesnd]) + (class*numsnds), volume);
+	S_StartSoundAtVolume(player->mo, (sfx_krta00 + player->kartstuff[k_enginesnd]) + (class * numsnds), volume);
 }
 
 static void K_UpdateInvincibilitySounds(player_t *player)
