@@ -4405,7 +4405,7 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 	const fixed_t closedist = 160*FRACUNIT;
 	const fixed_t fardist = 1536*FRACUNIT;
 
-	const UINT8 dampenval = 64; // 255 * 64 = close enough to FRACUNIT/4
+	const UINT8 dampenval = 48; // 255 * 48 = close enough to FRACUNIT/6
 
 	INT32 class, s, w; // engine class number
 
