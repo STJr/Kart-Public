@@ -10650,10 +10650,7 @@ void P_SpawnPlayer(INT32 playernum)
 	else if (netgame && p->jointime <= 1 && pcount)
 	{
 		p->spectator = true;
-		// Oni doesn't want this
-		/*if (pcount == 1 || leveltime < starttime)
-			p->pflags |= PF_WANTSTOJOIN;
-		p->jointime = 2;*/
+		p->spectatorreentry = (cv_spectatorreentry.value * TICRATE);
 	}
 	else if (multiplayer && !netgame)
 	{
@@ -10667,6 +10664,8 @@ void P_SpawnPlayer(INT32 playernum)
 			// Spawn as a spectator,
 			// yes even in splitscreen mode
 			p->spectator = true;
+			p->spectatorreentry = (cv_spectatorreentry.value * TICRATE);
+
 			if (playernum&1) p->skincolor = skincolor_redteam;
 			else             p->skincolor = skincolor_blueteam;
 
@@ -10686,7 +10685,10 @@ void P_SpawnPlayer(INT32 playernum)
 	{
 		// Fix stupid non spectator spectators.
 		if (!p->spectator && !p->ctfteam)
+		{
 			p->spectator = true;
+			p->spectatorreentry = (cv_spectatorreentry.value * TICRATE);
+		}
 
 		// Fix team colors.
 		// This code isn't being done right somewhere else. Oh well.

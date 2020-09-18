@@ -282,6 +282,7 @@ typedef struct
 	INT32 onconveyor;
 
 	tic_t jointime;
+	tic_t spectatorreentry;
 
 	UINT8 splitscreenindex;
 
