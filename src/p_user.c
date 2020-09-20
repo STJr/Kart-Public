@@ -8489,6 +8489,55 @@ void P_PlayerThink(player_t *player)
 		}
 	}
 
+	if (netgame && cv_antigrief.value != 0)
+	{
+		if (!player->spectator && !player->exiting && !(player->pflags & PF_TIMEOVER))
+		{
+			const tic_t griefval = cv_antigrief.value * TICRATE;
+			const UINT8 n = player - players;
+
+			if (n != serverplayer && !IsPlayerAdmin(n))
+			{
+				if (player->grieftime > griefval)
+				{
+					player->griefstrikes++;
+					player->grieftime = 0;
+
+					if (server)
+					{
+						if (player->griefstrikes > 2)
+						{
+							// Send kick
+							XBOXSTATIC UINT8 buf[2];
+
+							buf[0] = n;
+							buf[1] = KICK_MSG_CON_FAIL;
+							SendNetXCmd(XD_KICK, &buf, 2);
+						}
+						else
+						{
+							// Send spectate
+							changeteam_union NetPacket;
+							UINT16 usvalue;
+
+							NetPacket.value.l = NetPacket.value.b = 0;
+							NetPacket.packet.newteam = 0;
+							NetPacket.packet.playernum = n;
+							NetPacket.packet.verification = true;
+
+							usvalue = SHORT(NetPacket.value.l|NetPacket.value.b);
+							SendNetXCmd(XD_TEAMCHANGE, &usvalue, sizeof(usvalue));
+						}
+					}
+				}
+				else
+				{
+					player->grieftime++;
+				}
+			}
+		}
+	}
+
 	if ((netgame || multiplayer) && player->spectator && cmd->buttons & BT_ATTACK && !player->powers[pw_flashing])
 	{
 		player->pflags ^= PF_WANTSTOJOIN;

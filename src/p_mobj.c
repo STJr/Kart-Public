@@ -10730,6 +10730,8 @@ void P_SpawnPlayer(INT32 playernum)
 	// Spawn with a pity shield if necessary.
 	//P_DoPityCheck(p);
 
+	p->grieftime = 0;
+
 	if (G_BattleGametype()) // SRB2kart
 	{
 		mobj_t *overheadarrow = P_SpawnMobj(mobj->x, mobj->y, mobj->z + P_GetPlayerHeight(p)+16*FRACUNIT, MT_PLAYERARROW);

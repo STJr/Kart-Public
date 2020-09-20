@@ -646,6 +646,9 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	rsp->jointime = (tic_t)LONG(players[i].jointime);
 	rsp->spectatorreentry = (tic_t)LONG(players[i].spectatorreentry);
 
+	rsp->grieftime = (tic_t)LONG(players[i].grieftime);
+	rsp->griefstrikes = players[i].griefstrikes;
+
 	rsp->splitscreenindex = players[i].splitscreenindex;
 
 	rsp->hasmo = false;
@@ -769,6 +772,9 @@ static void resynch_read_player(resynch_pak *rsp)
 
 	players[i].jointime = (tic_t)LONG(rsp->jointime);
 	players[i].spectatorreentry = (tic_t)LONG(rsp->spectatorreentry);
+
+	players[i].grieftime = (tic_t)LONG(rsp->grieftime);
+	players[i].griefstrikes = rsp->griefstrikes;
 
 	players[i].splitscreenindex = rsp->splitscreenindex;
 

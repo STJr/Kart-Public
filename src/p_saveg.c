@@ -248,6 +248,9 @@ static void P_NetArchivePlayers(void)
 		WRITEUINT32(save_p, players[i].jointime);
 		WRITEUINT32(save_p, players[i].spectatorreentry);
 
+		WRITEUINT32(save_p, players[i].grieftime);
+		WRITEUINT8(save_p, players[i].griefstrikes);
+
 		WRITEUINT8(save_p, players[i].splitscreenindex);
 
 		WRITEUINT16(save_p, flags);
@@ -413,6 +416,9 @@ static void P_NetUnArchivePlayers(void)
 
 		players[i].jointime = READUINT32(save_p);
 		players[i].spectatorreentry = READUINT32(save_p);
+
+		players[i].grieftime = READUINT32(save_p);
+		players[i].griefstrikes = READUINT8(save_p);
 
 		players[i].splitscreenindex = READUINT8(save_p);
 

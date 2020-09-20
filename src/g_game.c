@@ -2604,6 +2604,8 @@ void G_PlayerReborn(INT32 player)
 	INT32 respawnflip;
 	boolean songcredit = false;
 	tic_t spectatorreentry;
+	tic_t grieftime;
+	UINT8 griefstrikes;
 
 	score = players[player].score;
 	marescore = players[player].marescore;
@@ -2696,6 +2698,9 @@ void G_PlayerReborn(INT32 player)
 
 	spectatorreentry = players[player].spectatorreentry;
 
+	grieftime = players[player].grieftime;
+	griefstrikes = players[player].griefstrikes;
+
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
 
@@ -2748,7 +2753,10 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_wanted] = wanted;
 	p->kartstuff[k_eggmanblame] = -1;
 	p->kartstuff[k_starpostflip] = respawnflip;
+
 	p->spectatorreentry = spectatorreentry;
+	p->grieftime = grieftime;
+	p->griefstrikes = griefstrikes;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;

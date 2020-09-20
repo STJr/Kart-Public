@@ -250,6 +250,9 @@ consvar_t cv_ingamecap = {"ingamecap", "0", CV_NETVAR, ingamecap_cons_t, NULL, 0
 static CV_PossibleValue_t spectatorreentry_cons_t[] = {{0, "MIN"}, {10*60, "MAX"}, {0, NULL}};
 consvar_t cv_spectatorreentry = {"spectatorreentry", "60", CV_NETVAR, spectatorreentry_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
+static CV_PossibleValue_t antigrief_cons_t[] = {{20, "MIN"}, {60, "MAX"}, {0, "Off"}, {0, NULL}};
+consvar_t cv_antigrief = {"antigrief", "30", CV_NETVAR, antigrief_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 consvar_t cv_startinglives = {"startinglives", "3", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, startingliveslimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t respawntime_cons_t[] = {{0, "MIN"}, {30, "MAX"}, {0, NULL}};
@@ -683,6 +686,7 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_allowteamchange);
 	CV_RegisterVar(&cv_ingamecap);
 	CV_RegisterVar(&cv_spectatorreentry);
+	CV_RegisterVar(&cv_antigrief);
 	CV_RegisterVar(&cv_respawntime);
 	CV_RegisterVar(&cv_killingdead);
 

@@ -522,6 +522,9 @@ typedef struct player_s
 	tic_t jointime; // Timer when player joins game to change skin/color
 	tic_t spectatorreentry;
 
+	tic_t grieftime;
+	UINT8 griefstrikes;
+
 	UINT8 splitscreenindex;
 #ifdef HWRENDER
 	fixed_t fovadd; // adjust FOV for hw rendering
