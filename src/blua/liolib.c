@@ -190,7 +190,7 @@ static int io_open (lua_State *L) {
 		return pushresult(L,0,filename);
 	}
 
-	destFilename = va("luafiles"PATHSEP"%s", filename);
+	destFilename = va("%s"PATHSEP"luafiles"PATHSEP"%s", srb2home, filename);
 
 	// Make directories as needed
 	splitter = destFilename;
