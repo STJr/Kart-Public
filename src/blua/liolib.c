@@ -19,6 +19,7 @@
 #include "lualib.h"
 #include "../i_system.h"
 #include "../doomdef.h"
+#include "../d_main.h"
 #include "../m_misc.h"
 
 
