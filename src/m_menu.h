@@ -17,6 +17,8 @@
 
 #include "d_event.h"
 #include "command.h"
+#include "i_threads.h"
+#include "mserv.h"
 #include "r_things.h" // for SKINNAMESIZE
 
 //
@@ -28,6 +30,9 @@
 // this can resize the view and change game parameters.
 // Does all the real work of the menu interaction.
 boolean M_Responder(event_t *ev);
+
+// Called by main loop, runs for demo playback. If this returns true, nullify any further user input.
+boolean M_DemoResponder(event_t *ev);
 
 // Called by main loop, only used for menu (skull cursor) animation.
 void M_Ticker(void);
@@ -54,6 +59,9 @@ void M_SortServerList(void);
 // Draws a box with a texture inside as background for messages
 void M_DrawTextBox(INT32 x, INT32 y, INT32 width, INT32 boxlines);
 
+// Used in d_netcmd to restart time attack
+void M_ModeAttackRetry(INT32 choice);
+
 // the function to show a message box typing with the string inside
 // string must be static (not in the stack)
 // routine is a function taking a INT32 in parameter
@@ -65,6 +73,17 @@ typedef enum
 	                // and routine is void routine(event_t *) (ex: set control)
 } menumessagetype_t;
 void M_StartMessage(const char *string, void *routine, menumessagetype_t itemtype);
+
+typedef enum
+{
+	M_NOT_WAITING,
+
+	M_WAITING_VERSION,
+	M_WAITING_SERVERS,
+}
+M_waiting_mode_t;
+
+extern M_waiting_mode_t m_waiting_mode;
 
 // Called by linux_x/i_video_xshm.c
 void M_QuitResponse(INT32 ch);
@@ -107,7 +126,6 @@ boolean M_CanShowLevelInList(INT32 mapnum, INT32 gt);
 #define IT_CV_NOPRINT     1536
 #define IT_CV_NOMOD       2048
 #define IT_CV_INVISSLIDER 2560
-#define IT_CV_PASSWORD    3072
 
 //call/submenu specific
 // There used to be a lot more here but ...
@@ -170,6 +188,10 @@ typedef struct menu_s
 
 void M_SetupNextMenu(menu_t *menudef);
 void M_ClearMenus(boolean callexitmenufunc);
+
+#ifdef HAVE_THREADS
+extern I_mutex m_menu_mutex;
+#endif
 
 extern menu_t *currentMenu;
 
@@ -240,6 +262,8 @@ void Addons_option_Onchange(void);
 
 void M_ReplayHut(INT32 choice);
 void M_SetPlaybackMenuPointer(void);
+
+void M_RefreshPauseMenu(void);
 
 INT32 HU_GetHighlightColor(void);
 

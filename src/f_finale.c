@@ -24,6 +24,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "i_system.h"
+#include "i_threads.h"
 #include "m_menu.h"
 #include "dehacked.h"
 #include "g_input.h"
@@ -317,7 +318,13 @@ void F_IntroDrawer(void)
 				{
 					I_OsPolling();
 					I_UpdateNoBlit();
+#ifdef HAVE_THREADS
+					I_lock_mutex(&m_menu_mutex);
+#endif
 					M_Drawer(); // menu is drawn even on top of wipes
+#ifdef HAVE_THREADS
+					I_unlock_mutex(m_menu_mutex);
+#endif
 					I_FinishUpdate(); // Update the screen with the image Tails 06-19-2001
 				}
 			}
@@ -442,6 +449,7 @@ static const char *credits[] = {
 	"\"Lat\'\"",
 	"\"Monster Iestyn\"",
 	"\"Shuffle\"",
+	"\"SteelT\"",
 	"",
 	"\1Lead Artists",
 	"Desmond \"Blade\" DesJardins",
@@ -466,17 +474,17 @@ static const char *credits[] = {
 	"\"DirkTheHusky\"",
 	"\"LJSTAR\"",
 	"\"MotorRoach\"",
-	"\"Mr. McScrewup\"",
 	"\"Nev3r\"",
+	"\"rairai104n\"",
 	"\"Ritz\"",
 	"\"Rob\"",
 	"\"SmithyGNC\"",
 	"\"Snu\"",
 	"\"Spherallic\"",
+	"\"TelosTurntable\"",
 	"\"VAdaPEGA\"",
 	"\"Virt\"",
 	"\"Voltrix\"",
-	"\"zxyspku\"",
 	"",
 	"\1Sound Design",
 	"James \"SeventhSentinel\" Hall",
@@ -504,6 +512,7 @@ static const char *credits[] = {
 	"Sherman \"CoatRack\" DesJardins",
 	"Colette \"fickleheart\" Bordelon",
 	"Vivian \"toaster\" Grannell",
+	"\"Gunla\"",
 	"James \"SeventhSentinel\" Hall",
 	"\"Lat\'\"",
 	"\"MK\"",
@@ -566,7 +575,7 @@ static struct {
 	// This Tyler52 gag is troublesome
 	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
 	// Current max image spacing: (200*17)
-	{112, (15*100)+(17*38)+(86*15), "TYLER52", SKINCOLOR_NONE},
+	{112, (15*100)+(17*38)+(88*15), "TYLER52", SKINCOLOR_NONE},
 	{0, 0, NULL, SKINCOLOR_NONE}
 };
 

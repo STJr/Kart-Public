@@ -29,6 +29,7 @@
 #include "m_random.h"
 #include "m_misc.h"
 #include "i_video.h"
+#include "i_joy.h"
 #include "p_slopes.h"
 #include "p_spec.h"
 #include "r_splats.h"
@@ -1726,8 +1727,8 @@ void P_DoPlayerExit(player_t *player)
 			P_EndingMusic(player);
 
 		// SRB2kart 120217
-		//if (!countdown2)
-			//countdown2 = countdown + 8*TICRATE;
+		//if (!exitcountdown)
+			//exitcountdown = racecountdown + 8*TICRATE;
 
 		if (P_CheckRacers())
 			player->exiting = raceexittime+1;
@@ -1780,13 +1781,8 @@ boolean P_InSpaceSector(mobj_t *mo) // Returns true if you are in space
 
 			if (GETSECSPECIAL(rover->master->frontsector->special, 1) != SPACESPECIAL)
 				continue;
-#ifdef ESLOPE
 			topheight = *rover->t_slope ? P_GetZAt(*rover->t_slope, mo->x, mo->y) : *rover->topheight;
 			bottomheight = *rover->b_slope ? P_GetZAt(*rover->b_slope, mo->x, mo->y) : *rover->bottomheight;
-#else
-			topheight = *rover->topheight;
-			bottomheight = *rover->bottomheight;
-#endif
 
 			if (mo->z + (mo->height/2) > topheight)
 				continue;
@@ -1820,13 +1816,8 @@ boolean P_InQuicksand(mobj_t *mo) // Returns true if you are in quicksand
 			if (!(rover->flags & FF_QUICKSAND))
 				continue;
 
-#ifdef ESLOPE
 			topheight = *rover->t_slope ? P_GetZAt(*rover->t_slope, mo->x, mo->y) : *rover->topheight;
 			bottomheight = *rover->b_slope ? P_GetZAt(*rover->b_slope, mo->x, mo->y) : *rover->bottomheight;
-#else
-			topheight = *rover->topheight;
-			bottomheight = *rover->bottomheight;
-#endif
 
 			if (mo->z + flipoffset > topheight)
 				continue;
@@ -1965,9 +1956,7 @@ static void P_CheckBouncySectors(player_t *player)
 	fixed_t oldx;
 	fixed_t oldy;
 	fixed_t oldz;
-#ifdef ESLOPE
 	vector3_t momentum;
-#endif
 
 	oldx = player->mo->x;
 	oldy = player->mo->y;
@@ -2022,7 +2011,6 @@ static void P_CheckBouncySectors(player_t *player)
 					{
 						fixed_t newmom;
 
-#ifdef ESLOPE
 						pslope_t *slope;
 						if (abs(oldz - topheight) < abs(oldz + player->mo->height - bottomheight)) { // Hit top
 							slope = *rover->t_slope;
@@ -2038,9 +2026,6 @@ static void P_CheckBouncySectors(player_t *player)
 							P_ReverseQuantizeMomentumToSlope(&momentum, slope);
 
 						newmom = momentum.z = -FixedMul(momentum.z,linedist)/2;
-#else
-						newmom = -FixedMul(player->mo->momz,linedist);
-#endif
 
 						if (abs(newmom) < (linedist*2))
 						{
@@ -2063,7 +2048,6 @@ static void P_CheckBouncySectors(player_t *player)
 						else if (newmom < -P_GetPlayerHeight(player)/2)
 							newmom = -P_GetPlayerHeight(player)/2;
 
-#ifdef ESLOPE
 						momentum.z = newmom*2;
 
 						if (slope)
@@ -2072,9 +2056,6 @@ static void P_CheckBouncySectors(player_t *player)
 						player->mo->momx = momentum.x;
 						player->mo->momy = momentum.y;
 						player->mo->momz = momentum.z/2;
-#else
-						player->mo->momz = newmom;
-#endif
 
 						if (player->pflags & PF_SPINNING)
 						{
@@ -2131,13 +2112,8 @@ static void P_CheckQuicksand(player_t *player)
 		if (!(rover->flags & FF_QUICKSAND))
 			continue;
 
-#ifdef ESLOPE
 		topheight = *rover->t_slope ? P_GetZAt(*rover->t_slope, player->mo->x, player->mo->y) : *rover->topheight;
 		bottomheight = *rover->b_slope ? P_GetZAt(*rover->b_slope, player->mo->x, player->mo->y) : *rover->bottomheight;
-#else
-		topheight = *rover->topheight;
-		bottomheight = *rover->bottomheight;
-#endif
 
 		if (topheight >= player->mo->z && bottomheight < player->mo->z + player->mo->height)
 		{
@@ -2505,15 +2481,10 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 			floorclimb = true;
 		else
 		{
-#ifdef ESLOPE
 			floorheight = glidesector->sector->f_slope ? P_GetZAt(glidesector->sector->f_slope, player->mo->x, player->mo->y)
 													   : glidesector->sector->floorheight;
 			ceilingheight = glidesector->sector->c_slope ? P_GetZAt(glidesector->sector->c_slope, player->mo->x, player->mo->y)
 														 : glidesector->sector->ceilingheight;
-#else
-			floorheight = glidesector->sector->floorheight;
-			ceilingheight = glidesector->sector->ceilingheight;
-#endif
 
 			if (glidesector->sector->ffloors)
 			{
@@ -2527,13 +2498,8 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 
 					floorclimb = true;
 
-#ifdef ESLOPE
 					topheight = *rover->t_slope ? P_GetZAt(*rover->t_slope, player->mo->x, player->mo->y) : *rover->topheight;
 					bottomheight = *rover->b_slope ? P_GetZAt(*rover->b_slope, player->mo->x, player->mo->y) : *rover->bottomheight;
-#else
-					topheight = *rover->topheight;
-					bottomheight = *rover->bottomheight;
-#endif
 
 					// Only supports rovers that are moving like an 'elevator', not just the top or bottom.
 					if (rover->master->frontsector->floorspeed && rover->master->frontsector->ceilspeed == 42)
@@ -2574,11 +2540,7 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 								if (roverbelow == rover)
 									continue;
 
-#ifdef ESLOPE
 								bottomheight2 = *roverbelow->b_slope ? P_GetZAt(*roverbelow->b_slope, player->mo->x, player->mo->y) : *roverbelow->bottomheight;
-#else
-								bottomheight2 = *roverbelow->bottomheight;
-#endif
 
 								if (bottomheight2 < topheight + FixedMul(16*FRACUNIT, player->mo->scale))
 									foundfof = true;
@@ -2624,11 +2586,7 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 								if (roverbelow == rover)
 									continue;
 
-#ifdef ESLOPE
 								topheight2 = *roverbelow->t_slope ? P_GetZAt(*roverbelow->t_slope, player->mo->x, player->mo->y) : *roverbelow->topheight;
-#else
-								topheight2 = *roverbelow->topheight;
-#endif
 
 								if (topheight2 > bottomheight - FixedMul(16*FRACUNIT, player->mo->scale))
 									foundfof = true;
@@ -2683,11 +2641,7 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 							if (!(rover->flags & FF_EXISTS) || !(rover->flags & FF_BLOCKPLAYER) || (rover->flags & FF_BUSTUP))
 								continue;
 
-#ifdef ESLOPE
 							bottomheight = *rover->b_slope ? P_GetZAt(*rover->b_slope, player->mo->x, player->mo->y) : *rover->bottomheight;
-#else
-							bottomheight = *rover->bottomheight;
-#endif
 
 							if (bottomheight < floorheight + FixedMul(16*FRACUNIT, player->mo->scale))
 							{
@@ -2728,11 +2682,7 @@ static void P_DoClimbing(player_t *player)  // SRB2kart - unused
 							if (!(rover->flags & FF_EXISTS) || !(rover->flags & FF_BLOCKPLAYER) || (rover->flags & FF_BUSTUP))
 								continue;
 
-#ifdef ESLOPE
 							topheight = *rover->t_slope ? P_GetZAt(*rover->t_slope, player->mo->x, player->mo->y) : *rover->topheight;
-#else
-							topheight = *rover->topheight;
-#endif
 
 							if (topheight > ceilingheight - FixedMul(16*FRACUNIT, player->mo->scale))
 							{
@@ -3101,12 +3051,10 @@ static void P_DoTeeter(player_t *player) // SRB2kart - unused.
 
 			ceilingheight = sec->ceilingheight;
 			floorheight = sec->floorheight;
-#ifdef ESLOPE
 			if (sec->c_slope)
 				ceilingheight = P_GetZAt(sec->c_slope, checkx, checky);
 			if (sec->f_slope)
 				floorheight = P_GetZAt(sec->f_slope, checkx, checky);
-#endif
 			highestceilingheight = (ceilingheight > highestceilingheight) ? ceilingheight : highestceilingheight;
 			lowestfloorheight = (floorheight < lowestfloorheight) ? floorheight : lowestfloorheight;
 
@@ -3117,13 +3065,8 @@ static void P_DoTeeter(player_t *player) // SRB2kart - unused.
 			{
 				if (!(rover->flags & FF_EXISTS)) continue;
 
-#ifdef ESLOPE
 				topheight = *rover->t_slope ? P_GetZAt(*rover->t_slope, player->mo->x, player->mo->y) : *rover->topheight;
 				bottomheight = *rover->b_slope ? P_GetZAt(*rover->b_slope, player->mo->x, player->mo->y) : *rover->bottomheight;
-#else
-				topheight = *rover->topheight;
-				bottomheight = *rover->bottomheight;
-#endif
 
 				if (P_CheckSolidLava(player->mo, rover))
 					;
@@ -3195,7 +3138,6 @@ static void P_DoTeeter(player_t *player) // SRB2kart - unused.
 		BMBOUNDFIX(xl, xh, yl, yh);
 
 	// Polyobjects
-#ifdef POLYOBJECTS
 		validcount++;
 
 		for (by = yl; by <= yh; by++)
@@ -3289,7 +3231,6 @@ static void P_DoTeeter(player_t *player) // SRB2kart - unused.
 					plink = (polymaplink_t *)(plink->link.next);
 				}
 			}
-#endif
 		if (teeter) // only bother with objects as a last resort if you were already teetering
 		{
 			mobj_t *oldtmthing = tmthing;
@@ -3582,9 +3523,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 		&& !P_PlayerInPain(player)) // subsequent revs
 	{
 		if ((cmd->buttons & BT_BRAKE) && player->speed < FixedMul(5<<FRACBITS, player->mo->scale) && !player->mo->momz && onground && !(player->pflags & PF_USEDOWN) && !(player->pflags & PF_SPINNING)
-#ifdef ESLOPE
 			&& (!player->mo->standingslope || (player->mo->standingslope->flags & SL_NOPHYSICS) || abs(player->mo->standingslope->zdelta) < FRACUNIT/2)
-#endif
 			)
 		{
 			player->mo->momx = player->cmomx;
@@ -3615,9 +3554,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 		// AKA Just go into a spin on the ground, you idiot. ;)
 		else if ((cmd->buttons & BT_BRAKE || ((twodlevel || (player->mo->flags2 & MF2_TWOD)) && cmd->forwardmove < -20))
 			&& !player->climbing && !player->mo->momz && onground && (player->speed > FixedMul(5<<FRACBITS, player->mo->scale)
-#ifdef ESLOPE
 			|| (player->mo->standingslope && (!(player->mo->standingslope->flags & SL_NOPHYSICS)) && abs(player->mo->standingslope->zdelta) >= FRACUNIT/2)
-#endif
 			) && !(player->pflags & PF_USEDOWN) && !(player->pflags & PF_SPINNING))
 		{
 			player->pflags |= PF_SPINNING;
@@ -3631,9 +3568,7 @@ static void P_DoSpinDash(player_t *player, ticcmd_t *cmd) // SRB2kart - unused.
 	// Rolling normally
 	if (onground && player->pflags & PF_SPINNING && !(player->pflags & PF_STARTDASH)
 		&& player->speed < FixedMul(5*FRACUNIT,player->mo->scale)
-#ifdef ESLOPE
 			&& (!player->mo->standingslope || (player->mo->standingslope->flags & SL_NOPHYSICS) || abs(player->mo->standingslope->zdelta) < FRACUNIT/2)
-#endif
 			)
 	{
 		if (GETSECSPECIAL(player->mo->subsector->sector->special, 4) == 7 || (player->mo->ceilingz - player->mo->floorz < P_GetPlayerHeight(player)))
@@ -3872,9 +3807,7 @@ static void P_2dMovement(player_t *player)
 	else if (player->onconveyor == 4 && !P_IsObjectOnGround(player->mo)) // Actual conveyor belt
 		player->cmomx = player->cmomy = 0;
 	else if (player->onconveyor != 2 && player->onconveyor != 4
-#ifdef POLYOBJECTS
 				&& player->onconveyor != 1
-#endif
 	)
 		player->cmomx = player->cmomy = 0;
 
@@ -4022,12 +3955,10 @@ static void P_3dMovement(player_t *player)
 	//fixed_t normalspd = FixedMul(player->normalspeed, player->mo->scale);
 	boolean analogmove = false;
 	fixed_t oldMagnitude, newMagnitude;
-#ifdef ESLOPE
 	vector3_t totalthrust;
 
 	totalthrust.x = totalthrust.y = 0; // I forget if this is needed
 	totalthrust.z = FRACUNIT*P_MobjFlip(player->mo)/3; // A bit of extra push-back on slopes
-#endif // ESLOPE
 
 	// Get the old momentum; this will be needed at the end of the function! -SH
 	oldMagnitude = R_PointToDist2(player->mo->momx - player->cmomx, player->mo->momy - player->cmomy, 0, 0);
@@ -4071,9 +4002,7 @@ static void P_3dMovement(player_t *player)
 	else if (player->onconveyor == 4 && !P_IsObjectOnGround(player->mo)) // Actual conveyor belt
 		player->cmomx = player->cmomy = 0;
 	else if (player->onconveyor != 2 && player->onconveyor != 4
-#ifdef POLYOBJECTS
 				&& player->onconveyor != 1
-#endif
 	)
 		player->cmomx = player->cmomy = 0;
 
@@ -4151,12 +4080,8 @@ static void P_3dMovement(player_t *player)
 			movepushforward = 0;
 		}
 
-#ifdef ESLOPE
 		totalthrust.x += P_ReturnThrustX(player->mo, movepushangle, movepushforward);
 		totalthrust.y += P_ReturnThrustY(player->mo, movepushangle, movepushforward);
-#else
-		P_Thrust(player->mo, movepushangle, movepushforward);
-#endif
 	}
 	else if (!(player->kartstuff[k_spinouttimer]))
 	{
@@ -4171,15 +4096,10 @@ static void P_3dMovement(player_t *player)
 		else
 			movepushside = (cmd->sidemove * FRACUNIT/128) - FixedDiv(player->speed, K_GetKartSpeed(player, true));
 
-#ifdef ESLOPE
 		totalthrust.x += P_ReturnThrustX(player->mo, movepushsideangle, movepushside);
 		totalthrust.y += P_ReturnThrustY(player->mo, movepushsideangle, movepushside);
-#else
-		P_Thrust(player->mo, movepushsideangle, movepushside);
-#endif
 	}
 
-#ifdef ESLOPE
 	if ((totalthrust.x || totalthrust.y)
 		&& player->mo->standingslope && (!(player->mo->standingslope->flags & SL_NOPHYSICS)) && abs(player->mo->standingslope->zdelta) > FRACUNIT/2) {
 		// Factor thrust to slope, but only for the part pushing up it!
@@ -4199,7 +4119,6 @@ static void P_3dMovement(player_t *player)
 
 	player->mo->momx += totalthrust.x;
 	player->mo->momy += totalthrust.y;
-#endif
 
 	// Time to ask three questions:
 	// 1) Are we over topspeed?
@@ -5600,14 +5519,12 @@ void P_ElementalFireTrail(player_t *player)
 	{
 		newx = player->mo->x + P_ReturnThrustX(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(24*FRACUNIT, player->mo->scale));
 		newy = player->mo->y + P_ReturnThrustY(player->mo, travelangle + ((i&1) ? -1 : 1)*ANGLE_135, FixedMul(24*FRACUNIT, player->mo->scale));
-#ifdef ESLOPE
 		if (player->mo->standingslope)
 		{
 			ground = P_GetZAt(player->mo->standingslope, newx, newy);
 			if (player->mo->eflags & MFE_VERTICALFLIP)
 				ground -= FixedMul(mobjinfo[MT_SPINFIRE].height, player->mo->scale);
 		}
-#endif
 		flame = P_SpawnMobj(newx, newy, ground, MT_SPINFIRE);
 		P_SetTarget(&flame->target, player->mo);
 		flame->angle = travelangle;
@@ -7087,7 +7004,7 @@ static void P_DeathThink(player_t *player)
 	}
 
 	// Keep time rolling
-	if (!(countdown2 && !countdown) && !(player->exiting || mapreset) && !(player->pflags & PF_TIMEOVER))
+	if (!(exitcountdown && !racecountdown) && !(player->exiting || mapreset) && !(player->pflags & PF_TIMEOVER))
 	{
 		if (leveltime >= starttime)
 		{
@@ -7204,10 +7121,248 @@ fixed_t t_cam4_rotate = -42;
 
 #define MAXCAMERADIST 140*FRACUNIT // Max distance the camera can be in front of the player (2D mode)
 
+// Heavily simplified version of G_BuildTicCmd that only takes the local first player's control input and converts it to readable ticcmd_t
+// we then throw that ticcmd garbage in the camera and make it move
+
+// redefine this
+static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
+static fixed_t sidemove[2] = {2<<FRACBITS>>16, 4<<FRACBITS>>16};
+static fixed_t angleturn[3] = {KART_FULLTURN/2, KART_FULLTURN, KART_FULLTURN/4}; // + slow turn
+
+static ticcmd_t cameracmd;
+
+struct demofreecam_s democam;
+
+// called by m_menu to reinit cam input every time it's toggled
+void P_InitCameraCmd(void)
+{
+	memset(&cameracmd, 0, sizeof(ticcmd_t));	// initialize cmd
+}
+
+static ticcmd_t *P_CameraCmd(camera_t *cam)
+{
+	INT32 laim, th, tspeed, forward, side, axis; //i
+	const INT32 speed = 1;
+	// these ones used for multiple conditions
+	boolean turnleft, turnright, mouseaiming;
+	boolean invertmouse, lookaxis, usejoystick, kbl;
+	angle_t lang;
+	INT32 player_invert;
+	INT32 screen_invert;
+
+	ticcmd_t *cmd = &cameracmd;
+
+	(void)cam;
+
+	if (!demo.playback)
+		return cmd;	// empty cmd, no.
+
+	lang = democam.localangle;
+	laim = democam.localaiming;
+	th = democam.turnheld;
+	kbl = democam.keyboardlook;
+
+	G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
+
+	cmd->angleturn = (INT16)(lang >> 16);
+	cmd->aiming = G_ClipAimingPitch(&laim);
+
+	mouseaiming = true;
+	invertmouse = cv_invertmouse.value;
+	lookaxis = cv_lookaxis.value;
+
+	usejoystick = true;
+	turnright = InputDown(gc_turnright, 1);
+	turnleft = InputDown(gc_turnleft, 1);
+
+	axis = JoyAxis(AXISTURN, 1);
+
+	if (encoremode)
+	{
+		turnright ^= turnleft; // swap these using three XORs
+		turnleft ^= turnright;
+		turnright ^= turnleft;
+		axis = -axis;
+	}
+
+	if (axis != 0)
+	{
+		turnright = turnright || (axis > 0);
+		turnleft = turnleft || (axis < 0);
+	}
+	forward = side = 0;
+
+	// use two stage accelerative turning
+	// on the keyboard and joystick
+	if (turnleft || turnright)
+		th += 1;
+	else
+		th = 0;
+
+	if (th < SLOWTURNTICS)
+		tspeed = 2; // slow turn
+	else
+		tspeed = speed;
+
+	// let movement keys cancel each other out
+	if (turnright && !(turnleft))
+	{
+		cmd->angleturn = (INT16)(cmd->angleturn - (angleturn[tspeed]));
+		side += sidemove[1];
+	}
+	else if (turnleft && !(turnright))
+	{
+		cmd->angleturn = (INT16)(cmd->angleturn + (angleturn[tspeed]));
+		side -= sidemove[1];
+	}
+
+	cmd->angleturn = (INT16)(cmd->angleturn - ((mousex*(encoremode ? -1 : 1)*8)));
+
+	axis = JoyAxis(AXISMOVE, 1);
+	if (InputDown(gc_accelerate, 1) || (usejoystick && axis > 0))
+		cmd->buttons |= BT_ACCELERATE;
+	axis = JoyAxis(AXISBRAKE, 1);
+	if (InputDown(gc_brake, 1) || (usejoystick && axis > 0))
+		cmd->buttons |= BT_BRAKE;
+	axis = JoyAxis(AXISAIM, 1);
+	if (InputDown(gc_aimforward, 1) || (usejoystick && axis < 0))
+		forward += forwardmove[1];
+	if (InputDown(gc_aimbackward, 1) || (usejoystick && axis > 0))
+		forward -= forwardmove[1];
+
+	// fire with any button/key
+	axis = JoyAxis(AXISFIRE, 1);
+	if (InputDown(gc_fire, 1) || (usejoystick && axis > 0))
+		cmd->buttons |= BT_ATTACK;
+
+	// spectator aiming shit, ahhhh...
+	player_invert = invertmouse ? -1 : 1;
+	screen_invert = 1;	// nope
+
+	// mouse look stuff (mouse look is not the same as mouse aim)
+	kbl = false;
+
+	// looking up/down
+	laim += (mlooky<<19)*player_invert*screen_invert;
+
+	axis = JoyAxis(AXISLOOK, 1);
+
+	// spring back if not using keyboard neither mouselookin'
+	if (!kbl && !lookaxis && !mouseaiming)
+		laim = 0;
+
+	if (InputDown(gc_lookup, 1) || (axis < 0))
+	{
+		laim += KB_LOOKSPEED * screen_invert;
+		kbl = true;
+	}
+	else if (InputDown(gc_lookdown, 1) || (axis > 0))
+	{
+		laim -= KB_LOOKSPEED * screen_invert;
+		kbl = true;
+	}
+
+	if (InputDown(gc_centerview, 1)) // No need to put a spectator limit on this one though :V
+		laim = 0;
+
+	cmd->aiming = G_ClipAimingPitch(&laim);
+
+	mousex = mousey = mlooky = 0;
+
+	if (forward > MAXPLMOVE)
+		forward = MAXPLMOVE;
+	else if (forward < -MAXPLMOVE)
+		forward = -MAXPLMOVE;
+
+	if (side > MAXPLMOVE)
+		side = MAXPLMOVE;
+	else if (side < -MAXPLMOVE)
+		side = -MAXPLMOVE;
+
+	if (forward || side)
+	{
+		cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
+		cmd->sidemove = (SINT8)(cmd->sidemove + side);
+	}
+
+	lang += (cmd->angleturn<<16);
+
+	democam.localangle = lang;
+	democam.localaiming = laim;
+	democam.turnheld = th;
+	democam.keyboardlook = kbl;
+
+	return cmd;
+}
+
+void P_DemoCameraMovement(camera_t *cam)
+{
+	ticcmd_t *cmd;
+	angle_t thrustangle;
+	mobj_t *awayviewmobj_hack;
+	player_t *lastp;
+
+	// update democam stuff with what we got here:
+	democam.cam = cam;
+	democam.localangle = cam->angle;
+	democam.localaiming = cam->aiming;
+
+	// first off we need to get button input
+	cmd = P_CameraCmd(cam);
+
+	cam->aiming = cmd->aiming<<FRACBITS;
+	cam->angle = cmd->angleturn<<16;
+
+	// camera movement:
+
+	if (cmd->buttons & BT_ACCELERATE)
+		cam->z += 32*mapobjectscale;
+	else if (cmd->buttons & BT_BRAKE)
+		cam->z -= 32*mapobjectscale;
+
+	// if you hold item, you will lock on to displayplayer. (The last player you were ""f12-ing"")
+	if (cmd->buttons & BT_ATTACK)
+	{
+		lastp = &players[displayplayers[0]];	// Fun fact, I was trying displayplayers[0]->mo as if it was Lua like an absolute idiot.
+		cam->angle = R_PointToAngle2(cam->x, cam->y, lastp->mo->x, lastp->mo->y);
+		cam->aiming = R_PointToAngle2(0, cam->z, R_PointToDist2(cam->x, cam->y, lastp->mo->x, lastp->mo->y), lastp->mo->z + lastp->mo->scale*128*P_MobjFlip(lastp->mo));	// This is still unholy. Aim a bit above their heads.
+	}
+
+
+	cam->momx = cam->momy = cam->momz = 0;
+	if (cmd->forwardmove != 0)
+	{
+
+		thrustangle = cam->angle >> ANGLETOFINESHIFT;
+
+		cam->x += FixedMul(cmd->forwardmove*mapobjectscale, FINECOSINE(thrustangle));
+		cam->y += FixedMul(cmd->forwardmove*mapobjectscale, FINESINE(thrustangle));
+		cam->z += FixedMul(cmd->forwardmove*mapobjectscale, AIMINGTOSLOPE(cam->aiming));
+		// momentums are useless here, directly add to the coordinates
+
+		// this.......... doesn't actually check for floors and walls and whatnot but the function to do that is a pure mess so fuck that.
+		// besides freecam going inside walls sounds pretty cool on paper.
+	}
+
+	// awayviewmobj hack; this is to prevent us from hearing sounds from the player's perspective
+
+	awayviewmobj_hack = P_SpawnMobj(cam->x, cam->y, cam->z, MT_THOK);
+	awayviewmobj_hack->tics = 2;
+	awayviewmobj_hack->flags2 |= MF2_DONTDRAW;
+
+	democam.soundmobj = awayviewmobj_hack;
+
+	// update subsector to avoid crashes;
+	cam->subsector = R_PointInSubsector(cam->x, cam->y);
+}
+
 void P_ResetCamera(player_t *player, camera_t *thiscam)
 {
 	tic_t tries = 0;
 	fixed_t x, y, z;
+
+	if (demo.freecam)
+		return;	// do not reset the camera there.
 
 	if (!player->mo)
 		return;
@@ -7248,13 +7403,14 @@ void P_ResetCamera(player_t *player, camera_t *thiscam)
 
 boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcalled)
 {
-	static UINT8 lookbackdelay[4] = {0,0,0,0};
+	static boolean lookbackactive[MAXSPLITSCREENPLAYERS];
+	static UINT8 lookbackdelay[MAXSPLITSCREENPLAYERS];
 	UINT8 num;
 	angle_t angle = 0, focusangle = 0, focusaiming = 0;
-	fixed_t x, y, z, dist, height, viewpointx, viewpointy, camspeed, camdist, camheight, pviewheight;
+	fixed_t x, y, z, dist, viewpointx, viewpointy, camspeed, camdist, camheight, pviewheight;
 	fixed_t pan, xpan, ypan;
 	INT32 camrotate;
-	boolean camstill, lookback;
+	boolean camstill, lookback, lookbackdown;
 	UINT8 timeover;
 	mobj_t *mo;
 	fixed_t f1, f2;
@@ -7263,6 +7419,8 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	subsector_t *newsubsec;
 #endif
 
+	democam.soundmobj = NULL;	// reset this each frame, we don't want the game crashing for stupid reasons now do we
+
 	// We probably shouldn't move the camera if there is no player or player mobj somehow
 	if (!player || !player->mo)
 		return true;
@@ -7270,6 +7428,12 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	// This can happen when joining
 	if (thiscam->subsector == NULL || thiscam->subsector->sector == NULL)
 		return true;
+
+	if (demo.freecam)
+	{
+		P_DemoCameraMovement(thiscam);
+		return true;
+	}
 
 	mo = player->mo;
 
@@ -7426,7 +7590,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		const INT32 timeovercam = max(0, min(180, (player->kartstuff[k_timeovercam] - 2*TICRATE)*15));
 		camrotate += timeovercam;
 	}
-	else if (leveltime < introtime) // Whoooshy camera!
+	else if (leveltime < introtime && !(modeattacking && !demo.playback)) // Whoooshy camera! (don't do this in RA when we PLAY, still do it in replays however~)
 	{
 		const INT32 introcam = (introtime - leveltime);
 		camrotate += introcam*5;
@@ -7437,15 +7601,19 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camstill = true;
 	else if (lookback || lookbackdelay[num]) // SRB2kart - Camera flipper
 	{
+#define MAXLOOKBACKDELAY 2
 		camspeed = FRACUNIT;
 		if (lookback)
 		{
 			camrotate += 180;
-			lookbackdelay[num] = 2;
+			lookbackdelay[num] = MAXLOOKBACKDELAY;
 		}
 		else
 			lookbackdelay[num]--;
 	}
+	lookbackdown = (lookbackdelay[num] == MAXLOOKBACKDELAY) != lookbackactive[num];
+	lookbackactive[num] = (lookbackdelay[num] == MAXLOOKBACKDELAY);
+#undef MAXLOOKBACKDELAY
 
 	if (mo->eflags & MFE_VERTICALFLIP)
 		camheight += thiscam->height;
@@ -7488,8 +7656,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		thiscam->angle = angle;
 	}
 
-	height = camheight;
-
 	// sets ideal cam pos
 	dist = camdist;
 
@@ -7498,10 +7664,7 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	dist += abs(thiscam->momz)/4;
 
 	if (player->kartstuff[k_boostcam])
-	{
 		dist -= FixedMul(11*dist/16, player->kartstuff[k_boostcam]);
-		height -= FixedMul(height, player->kartstuff[k_boostcam]);
-	}
 
 	x = mo->x - FixedMul(FINECOSINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
 	y = mo->y - FixedMul(FINESINE((angle>>ANGLETOFINESHIFT) & FINEMASK), dist);
@@ -7598,7 +7761,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			}
 		}
 
-#ifdef POLYOBJECTS
 	// Check polyobjects and see if floorz/ceilingz need to be altered
 	{
 		INT32 xl, xh, yl, yh, bx, by;
@@ -7677,7 +7839,6 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 				}
 			}
 	}
-#endif
 
 		// crushed camera
 		if (myceilingz <= myfloorz + thiscam->height && !resetcalled && !cameranoclip)
@@ -7823,6 +7984,9 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 			thiscam->aiming = ANGLE_22h;
 	}
 
+	if (lookbackdown)
+		P_MoveChaseCamera(player, thiscam, false);
+
 	return (x == thiscam->x && y == thiscam->y && z == thiscam->z && angle == thiscam->aiming);
 }
 
@@ -7954,13 +8118,8 @@ static void P_CalcPostImg(player_t *player)
 			if (!(rover->flags & FF_EXISTS))
 				continue;
 
-#ifdef ESLOPE
 			topheight = *rover->t_slope ? P_GetZAt(*rover->t_slope, player->mo->x, player->mo->y) : *rover->topheight;
 			bottomheight = *rover->b_slope ? P_GetZAt(*rover->b_slope, player->mo->x, player->mo->y) : *rover->bottomheight;
-#else
-			topheight = *rover->topheight;
-			bottomheight = *rover->bottomheight;
-#endif
 
 			if (pviewheight >= topheight || pviewheight <= bottomheight)
 				continue;
@@ -7982,13 +8141,8 @@ static void P_CalcPostImg(player_t *player)
 			if (!(rover->flags & FF_EXISTS) || !(rover->flags & FF_SWIMMABLE) || rover->flags & FF_BLOCKPLAYER)
 				continue;
 
-#ifdef ESLOPE
 			topheight = *rover->t_slope ? P_GetZAt(*rover->t_slope, player->mo->x, player->mo->y) : *rover->topheight;
 			bottomheight = *rover->b_slope ? P_GetZAt(*rover->b_slope, player->mo->x, player->mo->y) : *rover->bottomheight;
-#else
-			topheight = *rover->topheight;
-			bottomheight = *rover->bottomheight;
-#endif
 
 			if (pviewheight >= topheight || pviewheight <= bottomheight)
 				continue;
@@ -8057,8 +8211,8 @@ void P_DoTimeOver(player_t *player)
 
 	P_EndingMusic(player);
 
-	if (!countdown2)
-		countdown2 = 5*TICRATE;
+	if (!exitcountdown)
+		exitcountdown = 5*TICRATE;
 }
 
 //
@@ -8201,7 +8355,7 @@ void P_PlayerThink(player_t *player)
 			// begin the drown music for countdown!
 
 			// SRB2Kart: despite how perfect this is, it's disabled FOR A REASON
-			/*if (countdown == 11*TICRATE - 1)
+			/*if (racecountdown == 11*TICRATE - 1)
 			{
 				if (P_IsLocalPlayer(player))
 					S_ChangeMusicInternal("drown", false);
@@ -8209,7 +8363,7 @@ void P_PlayerThink(player_t *player)
 
 			// If you've hit the countdown and you haven't made
 			//  it to the exit, you're a goner!
-			else if (countdown == 1 && !player->exiting && !player->spectator && player->lives > 0)
+			else if (racecountdown == 1 && !player->exiting && !player->spectator && player->lives > 0)
 			{
 				P_DoTimeOver(player);
 
@@ -8223,10 +8377,10 @@ void P_PlayerThink(player_t *player)
 		if (player->exiting > 1 && (player->exiting < raceexittime+2 || !G_RaceGametype())) // SRB2kart - "&& player->exiting > 1"
 			player->exiting--;
 
-		if (player->exiting && countdown2)
+		if (player->exiting && exitcountdown)
 			player->exiting = 99; // SRB2kart
 
-		if (player->exiting == 2 || countdown2 == 2)
+		if (player->exiting == 2 || exitcountdown == 2)
 		{
 			if (cv_playersforexit.value) // Count to be sure everyone's exited
 			{
@@ -8263,9 +8417,7 @@ void P_PlayerThink(player_t *player)
 	P_MobjCheckWater(player->mo);
 
 #ifndef SECTORSPECIALSAFTERTHINK
-#ifdef POLYOBJECTS
 	if (player->onconveyor != 1 || !P_IsObjectOnGround(player->mo))
-#endif
 	player->onconveyor = 0;
 	// check special sectors : damage & secrets
 
@@ -8423,10 +8575,8 @@ void P_PlayerThink(player_t *player)
 	// it lasts for one tic.
 	player->pflags &= ~PF_FULLSTASIS;
 
-#ifdef POLYOBJECTS
 	if (player->onconveyor == 1)
 			player->cmomy = player->cmomx = 0;
-#endif
 
 	//P_DoSuperStuff(player);
 	//P_CheckSneakerAndLivesTimer(player);
@@ -8674,9 +8824,7 @@ void P_PlayerAfterThink(player_t *player)
 	cmd = &player->cmd;
 
 #ifdef SECTORSPECIALSAFTERTHINK
-#ifdef POLYOBJECTS
 	if (player->onconveyor != 1 || !P_IsObjectOnGround(player->mo))
-#endif
 	player->onconveyor = 0;
 	// check special sectors : damage & secrets
 

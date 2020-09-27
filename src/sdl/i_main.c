@@ -45,6 +45,7 @@ extern int SDL_main(int argc, char *argv[]);
 
 #ifdef LOGMESSAGES
 FILE *logstream = NULL;
+char  logfilename[1024];
 #endif
 
 #ifndef DOXYGEN
@@ -55,6 +56,10 @@ FILE *logstream = NULL;
 #ifndef O_SEQUENTIAL
 #define O_SEQUENTIAL 0
 #endif
+#endif
+
+#if defined (_WIN32)
+#include "exchndl.h"
 #endif
 
 #if defined (_WIN32)
@@ -96,6 +101,20 @@ static inline VOID MakeCodeWritable(VOID)
 #endif
 
 
+#ifdef _WIN32
+static void
+ChDirToExe (void)
+{
+	CHAR path[MAX_PATH];
+	if (GetModuleFileNameA(NULL, path, MAX_PATH) > 0)
+	{
+		strrchr(path, '\\')[0] = '\0';
+		SetCurrentDirectoryA(path);
+	}
+}
+#endif
+
+
 /**	\brief	The main function
 
 	\param	argc	number of arg
@@ -125,15 +144,21 @@ int main(int argc, char **argv)
 #endif
 #endif
 
+#ifdef _WIN32
+	ChDirToExe();
+#endif
+
 	logdir = D_Home();
 
 #ifdef LOGMESSAGES
 #ifdef DEFAULTDIR
 	if (logdir)
-		logstream = fopen(va("%s/"DEFAULTDIR"/log.txt",logdir), "wt");
+		strcpy(logfilename, va("%s/"DEFAULTDIR"/log.txt",logdir));
 	else
 #endif
-		logstream = fopen("./log.txt", "wt");
+		strcpy(logfilename, "./log.txt");
+
+	logstream = fopen(logfilename, "wt");
 #endif
 
 	//I_OutputMsg("I_StartupSystem() ...\n");
@@ -149,7 +174,7 @@ int main(int argc, char **argv)
 			)
 #endif
 		{
-			LoadLibraryA("exchndl.dll");
+			ExcHndlInit();
 		}
 	}
 #ifndef __MINGW32__
@@ -157,6 +182,7 @@ int main(int argc, char **argv)
 #endif
 	MakeCodeWritable();
 #endif
+
 	// startup SRB2
 	CONS_Printf("Setting up SRB2Kart...\n");
 	D_SRB2Main();

@@ -12,6 +12,7 @@
 
 #include "d_event.h"
 #include "command.h"
+#include "i_threads.h"
 
 #ifdef _WII
 void CON_InitWii(void);
@@ -20,6 +21,10 @@ void CON_Init(void);
 #endif
 
 boolean CON_Responder(event_t *ev);
+
+#ifdef HAVE_THREADS
+extern I_mutex con_mutex;
+#endif
 
 // set true when screen size has changed, to adapt console
 extern boolean con_recalc;

@@ -55,6 +55,10 @@
 #define CV_RESTRICT 0
 #endif
 
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
+#endif
+
 // ------
 // protos
 // ------
@@ -77,6 +81,7 @@ static void Got_RandomSeed(UINT8 **cp, INT32 playernum);
 static void Got_RunSOCcmd(UINT8 **cp, INT32 playernum);
 static void Got_Teamchange(UINT8 **cp, INT32 playernum);
 static void Got_Clearscores(UINT8 **cp, INT32 playernum);
+static void Got_DiscordInfo(UINT8 **cp, INT32 playernum);
 
 static void PointLimit_OnChange(void);
 static void TimeLimit_OnChange(void);
@@ -172,7 +177,6 @@ static void Got_Verification(UINT8 **cp, INT32 playernum);
 static void Got_Removal(UINT8 **cp, INT32 playernum);
 static void Command_Verify_f(void);
 static void Command_RemoveAdmin_f(void);
-static void Command_ChangeJoinPassword_f(void);
 static void Command_MotD_f(void);
 static void Got_MotD_f(UINT8 **cp, INT32 playernum);
 
@@ -554,8 +558,6 @@ void D_RegisterServerCommands(void)
 	RegisterNetXCmd(XD_PICKVOTE, Got_PickVotecmd);
 
 	// Remote Administration
-	CV_RegisterVar(&cv_dummyjoinpassword);
-	COM_AddCommand("joinpassword", Command_ChangeJoinPassword_f);
 	COM_AddCommand("password", Command_Changepassword_f);
 	RegisterNetXCmd(XD_LOGIN, Got_Login);
 	COM_AddCommand("login", Command_Login_f); // useful in dedicated to kick off remote admin
@@ -686,6 +688,7 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_maxsend);
 	CV_RegisterVar(&cv_noticedownload);
 	CV_RegisterVar(&cv_downloadspeed);
+	CV_RegisterVar(&cv_httpsource);
 #ifndef NONET
 	CV_RegisterVar(&cv_allownewplayer);
 #ifdef VANILLAJOINNEXTROUND
@@ -706,10 +709,13 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_showping);
 
 #ifdef SEENAMES
-	 CV_RegisterVar(&cv_allowseenames);
+	CV_RegisterVar(&cv_allowseenames);
 #endif
 
 	CV_RegisterVar(&cv_dummyconsvar);
+
+	CV_RegisterVar(&cv_discordinvites);
+	RegisterNetXCmd(XD_DISCORD, Got_DiscordInfo);
 }
 
 // =========================================================================
@@ -1002,6 +1008,12 @@ void D_RegisterClientCommands(void)
 #if defined(HAVE_BLUA) && defined(LUA_ALLOW_BYTECODE)
 	COM_AddCommand("dumplua", Command_Dumplua_f);
 #endif
+
+#ifdef HAVE_DISCORDRPC
+	CV_RegisterVar(&cv_discordrp);
+	CV_RegisterVar(&cv_discordstreamer);
+	CV_RegisterVar(&cv_discordasks);
+#endif
 }
 
 /** Checks if a name (as received from another player) is okay.
@@ -1206,6 +1218,8 @@ static void SetPlayerName(INT32 playernum, char *newname)
 			if (netgame)
 				HU_AddChatText(va("\x82*%s renamed to %s", player_names[playernum], newname), false);
 
+			player_name_changes[playernum]++;
+
 			strcpy(player_names[playernum], newname);
 			demo_extradata[playernum] |= DXD_NAME;
 		}
@@ -1387,7 +1401,12 @@ static void SendNameAndColor(void)
 	snacpending++;
 
 	// Don't change name if muted
-	if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
+	if (player_name_changes[consoleplayer] >= MAXNAMECHANGES)
+	{
+		CV_StealthSet(&cv_playername, player_names[consoleplayer]);
+		HU_AddChatText("\x85*You must wait to change your name again", false);
+	}
+	else if (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))
 		CV_StealthSet(&cv_playername, player_names[consoleplayer]);
 	else // Cleanup name if changing it
 		CleanupPlayerName(consoleplayer, cv_playername.zstring);
@@ -1511,7 +1530,12 @@ static void SendNameAndColor2(void)
 	snac2pending++;
 
 	// Don't change name if muted
-	if (cv_mute.value && !(server || IsPlayerAdmin(displayplayers[1])))
+	if (player_name_changes[displayplayers[1]] >= MAXNAMECHANGES)
+	{
+		CV_StealthSet(&cv_playername2, player_names[displayplayers[1]]);
+		HU_AddChatText("\x85*You must wait to change your name again", false);
+	}
+	else if (cv_mute.value && !(server || IsPlayerAdmin(displayplayers[1])))
 		CV_StealthSet(&cv_playername2, player_names[displayplayers[1]]);
 	else // Cleanup name if changing it
 		CleanupPlayerName(displayplayers[1], cv_playername2.zstring);
@@ -1626,7 +1650,12 @@ static void SendNameAndColor3(void)
 	snac3pending++;
 
 	// Don't change name if muted
-	if (cv_mute.value && !(server || IsPlayerAdmin(displayplayers[2])))
+	if (player_name_changes[displayplayers[2]] >= MAXNAMECHANGES)
+	{
+		CV_StealthSet(&cv_playername3, player_names[displayplayers[2]]);
+		HU_AddChatText("\x85*You must wait to change your name again", false);
+	}
+	else if (cv_mute.value && !(server || IsPlayerAdmin(displayplayers[2])))
 		CV_StealthSet(&cv_playername3, player_names[displayplayers[2]]);
 	else // Cleanup name if changing it
 		CleanupPlayerName(displayplayers[2], cv_playername3.zstring);
@@ -1749,7 +1778,12 @@ static void SendNameAndColor4(void)
 	snac4pending++;
 
 	// Don't change name if muted
-	if (cv_mute.value && !(server || IsPlayerAdmin(displayplayers[3])))
+	if (player_name_changes[displayplayers[3]] >= MAXNAMECHANGES)
+	{
+		CV_StealthSet(&cv_playername4, player_names[displayplayers[3]]);
+		HU_AddChatText("\x85*You must wait to change your name again", false);
+	}
+	else if (cv_mute.value && !(server || IsPlayerAdmin(displayplayers[3])))
 		CV_StealthSet(&cv_playername4, player_names[displayplayers[3]]);
 	else // Cleanup name if changing it
 		CleanupPlayerName(displayplayers[3], cv_playername4.zstring);
@@ -1804,8 +1838,11 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 	skin = READUINT8(*cp);
 
 	// set name
-	if (strcasecmp(player_names[playernum], name) != 0)
-		SetPlayerName(playernum, name);
+	if (player_name_changes[playernum] < MAXNAMECHANGES)
+	{
+		if (strcasecmp(player_names[playernum], name) != 0)
+			SetPlayerName(playernum, name);
+	}
 
 	// set color
 	p->skincolor = color % MAXSKINCOLORS;
@@ -1861,6 +1898,11 @@ static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
 	}
 	else
 		SetPlayerSkinByNum(playernum, skin);
+
+#ifdef HAVE_DISCORDRPC
+	if (playernum == consoleplayer)
+		DRPC_UpdatePresence();
+#endif
 }
 
 void SendWeaponPref(void)
@@ -2039,6 +2081,9 @@ static void Command_View_f(void)
 				"You must be viewing a multiplayer replay to use this.\n");
 		return;
 	}
+
+	if (demo.freecam)
+		return;
 
 	displayplayerp = &displayplayers[viewnum-1];
 
@@ -2768,6 +2813,10 @@ static void Got_Mapcmd(UINT8 **cp, INT32 playernum)
 	if (demo.recording) // Okay, level loaded, character spawned and skinned,
 		G_BeginRecording(); // I AM NOW READY TO RECORD.
 	demo.deferstart = true;
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 static void Command_Pause(void)
@@ -2787,11 +2836,17 @@ static void Command_Pause(void)
 
 	if (cv_pause.value || server || (IsPlayerAdmin(consoleplayer)))
 	{
-		if (!paused && (modeattacking || !(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING || gamestate == GS_WAITINGPLAYERS)))
+		if (!paused && (!(gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING || gamestate == GS_WAITINGPLAYERS)))
 		{
 			CONS_Printf(M_GetText("You can't pause here.\n"));
 			return;
 		}
+		else if (modeattacking)	// in time attack, pausing restarts the map
+		{
+			M_ModeAttackRetry(0);	// directly call from m_menu;
+			return;
+		}
+
 		SendNetXCmd(XD_PAUSE, &buf, 2);
 	}
 	else
@@ -2868,6 +2923,12 @@ static void Command_Respawn(void)
 		return;
 	}
 
+	if (players[consoleplayer].mo && (players[consoleplayer].kartstuff[k_spinouttimer] || spbplace == players[consoleplayer].kartstuff[k_position])) // KART: Nice try, but no, you won't be cheesing spb anymore (x2)
+	{
+		CONS_Printf(M_GetText("Nice try.\n"));
+		return;
+	}
+
 	/*if (!G_RaceGametype()) // srb2kart: not necessary, respawning makes you lose a bumper in battle, so it's not desirable to use as a way to escape a hit
 	{
 		CONS_Printf(M_GetText("You may only use this in co-op, race, and competition!\n"));
@@ -2890,7 +2951,7 @@ static void Got_Respawn(UINT8 **cp, INT32 playernum)
 	INT32 respawnplayer = READINT32(*cp);
 
 	// You can't respawn someone else. Nice try, there.
-	if (respawnplayer != playernum) // srb2kart: "|| (!G_RaceGametype())"
+	if (respawnplayer != playernum || players[respawnplayer].kartstuff[k_spinouttimer] || spbplace == players[respawnplayer].kartstuff[k_position]) // srb2kart: "|| (!G_RaceGametype())"
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("Illegal respawn command received from %s\n"), player_names[playernum]);
 		if (server)
@@ -4055,131 +4116,6 @@ static void Got_Removal(UINT8 **cp, INT32 playernum)
 	CONS_Printf(M_GetText("You are no longer a server administrator.\n"));
 }
 
-// Join password stuff
-consvar_t cv_dummyjoinpassword = {"dummyjoinpassword", "", CV_HIDEN|CV_NOSHOWHELP|CV_PASSWORD, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
-
-#define NUMJOINCHALLENGES 32
-static UINT8 joinpassmd5[MD5_LEN+1];
-boolean joinpasswordset = false;
-static UINT8 joinpasschallenges[NUMJOINCHALLENGES][MD5_LEN];
-static tic_t joinpasschallengeson[NUMJOINCHALLENGES];
-
-boolean D_IsJoinPasswordOn(void)
-{
-	return joinpasswordset;
-}
-
-static inline void GetChallengeAnswer(UINT8 *question, UINT8 *passwordmd5, UINT8 *answer)
-{
-	D_MD5PasswordPass(question, MD5_LEN, (char *) passwordmd5, answer);
-}
-
-void D_ComputeChallengeAnswer(UINT8 *question, const char *pw, UINT8 *answer)
-{
-	static UINT8 passwordmd5[MD5_LEN+1];
-
-	memset(passwordmd5, 0x00, MD5_LEN+1);
-	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &passwordmd5);
-	GetChallengeAnswer(question, passwordmd5, answer);
-}
-
-void D_SetJoinPassword(const char *pw)
-{
-	memset(joinpassmd5, 0x00, MD5_LEN+1);
-	D_MD5PasswordPass((const UINT8 *)pw, strlen(pw), BASESALT, &joinpassmd5);
-	joinpasswordset = true;
-}
-
-boolean D_VerifyJoinPasswordChallenge(UINT8 num, UINT8 *answer)
-{
-	boolean passed = false;
-
-	num %= NUMJOINCHALLENGES;
-
-	//@TODO use a constant-time memcmp....
-	if (joinpasschallengeson[num] > 0 && memcmp(answer, joinpasschallenges[num], MD5_LEN) == 0)
-		passed = true;
-
-	// Wipe and reset the challenge so that it can't be tried against again, as a small measure against brute-force attacks.
-	memset(joinpasschallenges[num], 0x00, MD5_LEN);
-	joinpasschallengeson[num] = 0;
-
-	return passed;
-}
-
-void D_MakeJoinPasswordChallenge(UINT8 *num, UINT8 *question)
-{
-	size_t i;
-
-	for (i = 0; i < NUMJOINCHALLENGES; i++)
-	{
-		(*num) = M_RandomKey(NUMJOINCHALLENGES);
-
-		if (joinpasschallengeson[(*num)] == 0)
-			break;
-	}
-
-	if (joinpasschallengeson[(*num)] > 0)
-	{
-		// Ugh, all challenges are (probably) taken. Let's find the oldest one and overwrite it.
-		tic_t oldesttic = INT32_MAX;
-
-		for (i = 0; i < NUMJOINCHALLENGES; i++)
-		{
-			if (joinpasschallengeson[i] < oldesttic)
-			{
-				(*num) = i;
-				oldesttic = joinpasschallengeson[i];
-			}
-		}
-	}
-
-	joinpasschallengeson[(*num)] = I_GetTime();
-
-	memset(question, 0x00, MD5_LEN);
-	for (i = 0; i < MD5_LEN; i++)
-		question[i] = M_RandomByte();
-
-	// Store the answer in memory. What was the question again?
-	GetChallengeAnswer(question, joinpassmd5, joinpasschallenges[(*num)]);
-
-	// This ensures that num is always non-zero and will be valid when used for the answer
-	if ((*num) == 0)
-		(*num) = NUMJOINCHALLENGES;
-}
-
-// Remote Administration
-static void Command_ChangeJoinPassword_f(void)
-{
-#ifdef NOMD5
-	// If we have no MD5 support then completely disable XD_LOGIN responses for security.
-	CONS_Alert(CONS_NOTICE, "Remote administration commands are not supported in this build.\n");
-#else
-	if (client) // cannot change remotely
-	{
-		CONS_Printf(M_GetText("Only the server can use this.\n"));
-		return;
-	}
-
-	if (COM_Argc() != 2)
-	{
-		CONS_Printf(M_GetText("joinpassword <password>: set a password to join the server\nUse -remove to disable the password.\n"));
-		return;
-	}
-
-	if (strcmp(COM_Argv(1), "-remove") == 0)
-	{
-		joinpasswordset = false;
-		CONS_Printf(M_GetText("Join password removed.\n"));
-	}
-	else
-	{
-		D_SetJoinPassword(COM_Argv(1));
-		CONS_Printf(M_GetText("Join password set.\n"));
-	}
-#endif
-}
-
 static void Command_MotD_f(void)
 {
 	size_t i, j;
@@ -4299,7 +4235,7 @@ static void Command_RunSOC(void)
 static void Got_RunSOCcmd(UINT8 **cp, INT32 playernum)
 {
 	char filename[256];
-	filestatus_t ncs = FS_NOTFOUND;
+	filestatus_t ncs = FS_NOTCHECKED;
 
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum))
 	{
@@ -4471,7 +4407,7 @@ static void Command_Delfile(void)
 static void Got_RequestAddfilecmd(UINT8 **cp, INT32 playernum)
 {
 	char filename[241];
-	filestatus_t ncs = FS_NOTFOUND;
+	filestatus_t ncs = FS_NOTCHECKED;
 	UINT8 md5sum[16];
 	boolean kick = false;
 	boolean toomany = false;
@@ -4566,7 +4502,7 @@ static void Got_Delfilecmd(UINT8 **cp, INT32 playernum)
 static void Got_Addfilecmd(UINT8 **cp, INT32 playernum)
 {
 	char filename[241];
-	filestatus_t ncs = FS_NOTFOUND;
+	filestatus_t ncs = FS_NOTCHECKED;
 	UINT8 md5sum[16];
 
 	READSTRINGN(*cp, filename, 240);
@@ -4854,6 +4790,10 @@ static void TimeLimit_OnChange(void)
 	}
 	else if (netgame || multiplayer)
 		CONS_Printf(M_GetText("Time limit disabled\n"));
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 /** Adjusts certain settings to match a changed gametype.
@@ -5424,11 +5364,11 @@ static void Fishcake_OnChange(void)
 static void Command_Isgamemodified_f(void)
 {
 	if (majormods)
-		CONS_Printf("The game has been modified with major add-ons, so you cannot play Record Attack.\n");
+		CONS_Printf("The game has been modified with major addons, so you cannot play Record Attack.\n");
 	else if (savemoddata)
-		CONS_Printf("The game has been modified with an add-on with its own save data, so you can play Record Attack and earn medals.\n");
+		CONS_Printf("The game has been modified with an addon with its own save data, so you can play Record Attack and earn medals.\n");
 	else if (modifiedgame)
-		CONS_Printf("The game has been modified with only minor add-ons. You can play Record Attack, earn medals and unlock extras.\n");
+		CONS_Printf("The game has been modified with only minor addons. You can play Record Attack, earn medals and unlock extras.\n");
 	else
 		CONS_Printf("The game has not been modified. You can play Record Attack, earn medals and unlock extras.\n");
 }
@@ -5878,4 +5818,33 @@ static void KartEliminateLast_OnChange(void)
 {
 	if (G_RaceGametype() && cv_karteliminatelast.value)
 		P_CheckRacers();
+}
+
+void Got_DiscordInfo(UINT8 **p, INT32 playernum)
+{
+	if (playernum != serverplayer /*&& !IsPlayerAdmin(playernum)*/)
+	{
+		// protect against hacked/buggy client
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal Discord info command received from %s\n"), player_names[playernum]);
+		if (server)
+		{
+			XBOXSTATIC UINT8 buf[2];
+
+			buf[0] = (UINT8)playernum;
+			buf[1] = KICK_MSG_CON_FAIL;
+			SendNetXCmd(XD_KICK, &buf, 2);
+		}
+		return;
+	}
+
+	// Don't do anything with the information if we don't have Discord RP support
+#ifdef HAVE_DISCORDRPC
+	discordInfo.maxPlayers = READUINT8(*p);
+	discordInfo.joinsAllowed = (boolean)READUINT8(*p);
+	discordInfo.everyoneCanInvite = (boolean)READUINT8(*p);
+
+	DRPC_UpdatePresence();
+#else
+	(*p) += 3;
+#endif
 }

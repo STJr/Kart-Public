@@ -20,6 +20,7 @@
 /// \brief SRB2 graphics stuff for SDL
 
 #include <stdlib.h>
+#include <errno.h>
 
 #include <signal.h>
 
@@ -81,6 +82,10 @@
 #include "ogl_sdl.h"
 #endif
 
+#ifdef HAVE_DISCORDRPC
+#include "../discord.h"
+#endif
+
 // maximum number of windowed modes (see windowedModes[][])
 #define MAXWINMODES (18)
 
@@ -92,7 +97,7 @@ static INT32 numVidModes = -1;
 */
 static char vidModeName[33][32]; // allow 33 different modes
 
-rendermode_t rendermode=render_soft;
+rendermode_t rendermode = render_none;
 
 boolean highcolor = false;
 
@@ -351,11 +356,6 @@ static INT32 Impl_SDL_Scancode_To_Keycode(SDL_Scancode code)
 		case SDL_SCANCODE_RGUI:   return KEY_RIGHTWIN;
 		default:                  break;
 	}
-#ifdef HWRENDER
-	DBG_Printf("Unknown incoming scancode: %d, represented %c\n",
-				code,
-				SDL_GetKeyName(SDL_GetKeyFromScancode(code)));
-#endif
 	return 0;
 }
 
@@ -635,11 +635,6 @@ static void Impl_HandleWindowEvent(SDL_WindowEvent evt)
 			if (cv_usemouse.value) I_StartupMouse();
 		}
 		//else firsttimeonmouse = SDL_FALSE;
-
-		capslock = !!( SDL_GetModState() & KMOD_CAPS );// in case CL changes
-
-		if (USE_MOUSEINPUT)
-			SDLdoGrabMouse();
 	}
 	else if (!mousefocus && !kbfocus)
 	{
@@ -1296,6 +1291,8 @@ void I_StartupMouse(void)
 //
 void I_OsPolling(void)
 {
+	SDL_Keymod mod;
+
 	if (consolevent)
 		I_GetConsoleEvents();
 	if (SDL_WasInit(SDL_INIT_JOYSTICK) == SDL_INIT_JOYSTICK)
@@ -1310,6 +1307,18 @@ void I_OsPolling(void)
 	I_GetMouseEvents();
 
 	I_GetEvent();
+
+	mod = SDL_GetModState();
+	/* Handle here so that our state is always synched with the system. */
+	shiftdown = ctrldown = altdown = 0;
+	capslock = false;
+	if (mod & KMOD_LSHIFT) shiftdown |= 1;
+	if (mod & KMOD_RSHIFT) shiftdown |= 2;
+	if (mod & KMOD_LCTRL)   ctrldown |= 1;
+	if (mod & KMOD_RCTRL)   ctrldown |= 2;
+	if (mod & KMOD_LALT)     altdown |= 1;
+	if (mod & KMOD_RALT)     altdown |= 2;
+	if (mod & KMOD_CAPS) capslock = true;
 }
 
 //
@@ -1382,6 +1391,11 @@ void I_FinishUpdate(void)
 
 	if (cv_showping.value && netgame && consoleplayer != serverplayer)
 		SCR_DisplayLocalPing();
+
+#ifdef HAVE_DISCORDRPC
+	if (discordRequestList != NULL)
+		ST_AskToJoinEnvelope();
+#endif
 
 	if (rendermode == render_soft && screens[0])
 	{
@@ -1641,6 +1655,7 @@ INT32 VID_SetMode(INT32 modeNum)
 	//Impl_SetWindowName("SRB2Kart "VERSIONSTRING);
 
 	SDLSetMode(vid.width, vid.height, USE_FULLSCREEN);
+	Impl_VideoSetupBuffer();
 
 	if (rendermode == render_soft)
 	{
@@ -1649,8 +1664,6 @@ INT32 VID_SetMode(INT32 modeNum)
 			SDL_FreeSurface(bufSurface);
 			bufSurface = NULL;
 		}
-
-		Impl_VideoSetupBuffer();
 	}
 
 	return SDL_TRUE;
@@ -1773,7 +1786,7 @@ static void Impl_VideoSetupSDLBuffer(void)
 static void Impl_VideoSetupBuffer(void)
 {
 	// Set up game's software render buffer
-	if (rendermode == render_soft)
+	//if (rendermode == render_soft)
 	{
 		vid.rowbytes = vid.width * vid.bpp;
 		vid.direct = NULL;
@@ -1785,6 +1798,13 @@ static void Impl_VideoSetupBuffer(void)
 			I_Error("%s", M_GetText("Not enough memory for video buffer\n"));
 		}
 	}
+}
+
+static FILE *
+OpenRendererFile (const char * mode)
+{
+	char * path = va(pandf,srb2home,"renderer.txt");
+	return fopen(path, mode);
 }
 
 void I_StartupGraphics(void)
@@ -1828,8 +1848,66 @@ void I_StartupGraphics(void)
 			framebuffer = SDL_TRUE;
 	}
 	if (M_CheckParm("-software"))
-	{
 		rendermode = render_soft;
+#ifdef HWRENDER
+	else if (M_CheckParm("-opengl"))
+		rendermode = render_opengl;
+#endif
+
+	if (rendermode == render_none)
+	{
+#ifdef HWRENDER
+		char   line[16];
+		char * word;
+		FILE * file = OpenRendererFile("r");
+		if (file != NULL)
+		{
+			if (fgets(line, sizeof line, file) != NULL)
+			{
+				word = strtok(line, "\n");
+
+				if (strcasecmp(word, "software") == 0)
+				{
+					rendermode = render_soft;
+				}
+				else if (strcasecmp(word, "opengl") == 0)
+				{
+					rendermode = render_opengl;
+				}
+
+				if (rendermode != render_none)
+				{
+					CONS_Printf("Using last known renderer: %s\n", line);
+				}
+			}
+			fclose(file);
+		}
+#endif
+		if (rendermode == render_none)
+		{
+			rendermode = render_soft;
+			CONS_Printf("Using default software renderer.\n");
+		}
+	}
+	else
+	{
+		FILE * file = OpenRendererFile("w");
+		if (file != NULL)
+		{
+			if (rendermode == render_soft)
+			{
+				fputs("software\n", file);
+			}
+			else if (rendermode == render_opengl)
+			{
+				fputs("opengl\n", file);
+			}
+			fclose(file);
+		}
+		else
+		{
+			CONS_Printf("Could not save renderer to file: %s\n", strerror(errno));
+		}
 	}
 
 	usesdl2soft = M_CheckParm("-softblit");
@@ -1838,9 +1916,8 @@ void I_StartupGraphics(void)
 	//SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY>>1,SDL_DEFAULT_REPEAT_INTERVAL<<2);
 	VID_Command_ModeList_f();
 #ifdef HWRENDER
-	if (M_CheckParm("-opengl") || rendermode == render_opengl)
+	if (rendermode == render_opengl)
 	{
-		rendermode = render_opengl;
 		HWD.pfnInit             = hwSym("Init",NULL);
 		HWD.pfnFinishUpdate     = NULL;
 		HWD.pfnDraw2DLine       = hwSym("Draw2DLine",NULL);
@@ -1857,7 +1934,6 @@ void I_StartupGraphics(void)
 		HWD.pfnDrawModel        = hwSym("DrawModel",NULL);
 		HWD.pfnCreateModelVBOs  = hwSym("CreateModelVBOs",NULL);
 		HWD.pfnSetTransform     = hwSym("SetTransform",NULL);
-		HWD.pfnGetRenderVersion = hwSym("GetRenderVersion",NULL);
 		HWD.pfnPostImgRedraw    = hwSym("PostImgRedraw",NULL);
 		HWD.pfnFlushScreenTextures=hwSym("FlushScreenTextures",NULL);
 		HWD.pfnStartScreenWipe  = hwSym("StartScreenWipe",NULL);
@@ -1867,13 +1943,22 @@ void I_StartupGraphics(void)
 		HWD.pfnMakeScreenTexture= hwSym("MakeScreenTexture",NULL);
 		HWD.pfnMakeScreenFinalTexture=hwSym("MakeScreenFinalTexture",NULL);
 		HWD.pfnDrawScreenFinalTexture=hwSym("DrawScreenFinalTexture",NULL);
-		// check gl renderer lib
-		if (HWD.pfnGetRenderVersion() != VERSION)
-			I_Error("%s", M_GetText("The version of the renderer doesn't match the version of the executable\nBe sure you have installed SRB2Kart properly.\n"));
-		if (!HWD.pfnInit(I_Error)) // let load the OpenGL library
-		{
+
+		HWD.pfnRenderSkyDome = hwSym("RenderSkyDome",NULL);
+
+		HWD.pfnLoadShaders = hwSym("LoadShaders",NULL);
+		HWD.pfnKillShaders = hwSym("KillShaders",NULL);
+		HWD.pfnSetShader = hwSym("SetShader",NULL);
+		HWD.pfnUnSetShader = hwSym("UnSetShader",NULL);
+
+		HWD.pfnLoadCustomShader = hwSym("LoadCustomShader",NULL);
+		HWD.pfnInitCustomShaders = hwSym("InitCustomShaders",NULL);
+
+		HWD.pfnStartBatching = hwSym("StartBatching",NULL);
+		HWD.pfnRenderBatches = hwSym("RenderBatches",NULL);
+
+		if (!HWD.pfnInit()) // load the OpenGL library
 			rendermode = render_soft;
-		}
 	}
 #endif
 

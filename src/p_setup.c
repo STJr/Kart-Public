@@ -78,9 +78,7 @@
 #include "hardware/hw_light.h"
 #endif
 
-#ifdef ESLOPE
 #include "p_slopes.h"
-#endif
 
 // SRB2Kart
 #include "k_kart.h"
@@ -467,11 +465,7 @@ static void P_LoadRawSegs(UINT8 *data, size_t i)
 		li->length = P_SegLength(li);
 #ifdef HWRENDER
 		if (rendermode == render_opengl)
-		{
 			li->flength = P_SegLengthFloat(li);
-			//Hurdler: 04/12/2000: for now, only used in hardware mode
-			li->lightmaps = NULL; // list of static lightmap for this seg
-		}
 		li->pv1 = li->pv2 = NULL;
 #endif
 
@@ -1010,9 +1004,7 @@ static void P_LoadThings(void)
 
 		// Z for objects
 		mt->z = (INT16)(
-#ifdef ESLOPE
 				mtsector->f_slope ? P_GetZAt(mtsector->f_slope, mt->x << FRACBITS, mt->y << FRACBITS) :
-#endif
 				mtsector->floorheight)>>FRACBITS;
 
 		if (mt->type == 1700 // MT_AXIS
@@ -1283,9 +1275,7 @@ static void P_LoadRawLineDefs(UINT8 *data, size_t i)
 		if (ld->sidenum[1] != 0xffff && ld->special)
 			sides[ld->sidenum[1]].special = ld->special;
 
-#ifdef POLYOBJECTS
 		ld->polyobj = NULL;
-#endif
 	}
 }
 
@@ -1409,7 +1399,6 @@ static inline void P_LoadSideDefs(lumpnum_t lumpnum)
 	P_LoadRawSideDefs(W_LumpLength(lumpnum));
 }
 
-
 static void P_LoadRawSideDefs2(void *data)
 {
 	UINT16 i;
@@ -1480,6 +1469,8 @@ static void P_LoadRawSideDefs2(void *data)
 						|| (msd->bottomtexture[0] == '#' && msd->bottomtexture[1] && msd->bottomtexture[2] && msd->bottomtexture[3] && msd->bottomtexture[4] && msd->bottomtexture[5] && msd->bottomtexture[6]))
 					{
 						char *col;
+						RGBA_t color;
+						size_t j;
 
 						sec->midmap = R_CreateColormap(msd->toptexture, msd->midtexture,
 							msd->bottomtexture);
@@ -1492,16 +1483,41 @@ static void P_LoadRawSideDefs2(void *data)
 						{
 							col = msd->toptexture;
 
-							sec->extra_colormap->rgba =
-								(HEX2INT(col[1]) << 4) + (HEX2INT(col[2]) << 0) +
-								(HEX2INT(col[3]) << 12) + (HEX2INT(col[4]) << 8) +
-								(HEX2INT(col[5]) << 20) + (HEX2INT(col[6]) << 16);
+							// encore mode colormaps!
+							// do it like software by aproximating a color to a palette index, and then convert it to its encore variant and then back to a color code.
+							// do this for both the start and fade colormaps.
+							
+							color.s.red = (HEX2INT(col[1]) << 4) + HEX2INT(col[2]);
+							color.s.green = (HEX2INT(col[3]) << 4) + HEX2INT(col[4]);
+							color.s.blue = (HEX2INT(col[5]) << 4) + HEX2INT(col[6]);
+
+#ifdef GLENCORE
+							if (encoremap)
+							{
+								j = encoremap[NearestColor(color.s.red, color.s.green, color.s.blue)];
+								//CONS_Printf("R_CreateColormap: encoremap[%d] = %d\n", j, encoremap[j]); -- moved encoremap upwards for optimisation
+								color = pLocalPalette[j]; // note: this sets alpha to 255, we will reset it below
+							}
+#endif
+							color.s.alpha = 0; // reset/init the alpha, so the addition below will work correctly
+							sec->extra_colormap->rgba = color.rgba;
 
 							// alpha
 							if (msd->toptexture[7])
 								sec->extra_colormap->rgba += (ALPHA2INT(col[7]) << 24);
 							else
 								sec->extra_colormap->rgba += (25 << 24);
+
+							/*nearest = NearestColor(
+								(HEX2INT(col[1]) << 4) + (HEX2INT(col[2]) << 0),
+								(HEX2INT(col[3]) << 4) + (HEX2INT(col[4]) << 0),
+								(HEX2INT(col[5]) << 4) + (HEX2INT(col[6]) << 0)
+							);
+
+							sec->extra_colormap->rgba =
+								pLocalPalette[nearest].s.red +
+								(pLocalPalette[nearest].s.green << 8) +
+								(pLocalPalette[nearest].s.blue << 16);*/
 						}
 						else
 							sec->extra_colormap->rgba = 0;
@@ -1510,10 +1526,22 @@ static void P_LoadRawSideDefs2(void *data)
 						{
 							col = msd->bottomtexture;
 
-							sec->extra_colormap->fadergba =
-								(HEX2INT(col[1]) << 4) + (HEX2INT(col[2]) << 0) +
-								(HEX2INT(col[3]) << 12) + (HEX2INT(col[4]) << 8) +
-								(HEX2INT(col[5]) << 20) + (HEX2INT(col[6]) << 16);
+							// do the exact same thing as above here.
+							
+							color.s.red = (HEX2INT(col[1]) << 4) + HEX2INT(col[2]);
+							color.s.green = (HEX2INT(col[3]) << 4) + HEX2INT(col[4]);
+							color.s.blue = (HEX2INT(col[5]) << 4) + HEX2INT(col[6]);
+
+#ifdef GLENCORE
+							if (encoremap)
+							{
+								j = encoremap[NearestColor(color.s.red, color.s.green, color.s.blue)];
+								//CONS_Printf("R_CreateColormap: encoremap[%d] = %d\n", j, encoremap[j]); -- moved encoremap upwards for optimisation
+								color = pLocalPalette[j]; // note: this sets alpha to 255, we will reset it below
+							}
+#endif
+							color.s.alpha = 0; // reset/init the alpha, so the addition below will work correctly
+							sec->extra_colormap->fadergba = color.rgba;
 
 							// alpha
 							if (msd->bottomtexture[7])
@@ -1659,6 +1687,7 @@ static void P_LoadRawSideDefs2(void *data)
 	}
 	R_ClearTextureNumCache(true);
 }
+
 
 // Delay loading texture names until after loaded linedefs.
 static void P_LoadSideDefs2(lumpnum_t lumpnum)
@@ -1916,11 +1945,9 @@ static void P_CreateBlockMap(void)
 		blocklinks = Z_Calloc(count, PU_LEVEL, NULL);
 		blockmap = blockmaplump + 4;
 
-#ifdef POLYOBJECTS
 		// haleyjd 2/22/06: setup polyobject blockmap
 		count = sizeof(*polyblocklinks) * bmapwidth * bmapheight;
 		polyblocklinks = Z_Calloc(count, PU_LEVEL, NULL);
-#endif
 	}
 }
 
@@ -1993,11 +2020,9 @@ static boolean P_LoadBlockMap(lumpnum_t lumpnum)
 	blocklinks = Z_Calloc(count, PU_LEVEL, NULL);
 	blockmap = blockmaplump+4;
 
-#ifdef POLYOBJECTS
 	// haleyjd 2/22/06: setup polyobject blockmap
 	count = sizeof(*polyblocklinks) * bmapwidth * bmapheight;
 	polyblocklinks = Z_Calloc(count, PU_LEVEL, NULL);
-#endif
 	return true;
 /* Original
 		blockmaplump = W_CacheLumpNum(lump, PU_LEVEL);
@@ -2059,11 +2084,9 @@ static boolean P_LoadRawBlockMap(UINT8 *data, size_t count, const char *lumpname
 	blocklinks = Z_Calloc(count, PU_LEVEL, NULL);
 	blockmap = blockmaplump+4;
 
-#ifdef POLYOBJECTS
 	// haleyjd 2/22/06: setup polyobject blockmap
 	count = sizeof(*polyblocklinks) * bmapwidth * bmapheight;
 	polyblocklinks = Z_Calloc(count, PU_LEVEL, NULL);
-#endif
 	return true;
 #endif
 }
@@ -2346,7 +2369,7 @@ static void P_LevelInitStuff(void)
 		players[i].lives = 1; // SRB2Kart
 #endif
 
-		players[i].realtime = countdown = countdown2 = 0;
+		players[i].realtime = racecountdown = exitcountdown = 0;
 		curlap = bestlap = 0; // SRB2Kart
 
 		players[i].gotcontinue = false;
@@ -2852,26 +2875,34 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Encore mode fade to pink to white
 	// This is handled BEFORE sounds are stopped.
-	if (rendermode != render_none && encoremode && !prevencoremode && !demo.rewinding)
+	if (encoremode && !prevencoremode && !demo.rewinding)
 	{
 		tic_t locstarttime, endtime, nowtime;
 
-		S_StopMusic(); // er, about that...
+		if (rendermode != render_none)
+		{
+			S_StopMusic(); // er, about that...
 
-		S_StartSound(NULL, sfx_ruby1);
+			S_StartSound(NULL, sfx_ruby1);
 
-		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 122);
+			F_WipeStartScreen();
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 122);
 
-		F_WipeEndScreen();
-		F_RunWipe(wipedefs[wipe_speclevel_towhite], false);
+			F_WipeEndScreen();
+			F_RunWipe(wipedefs[wipe_speclevel_towhite], false);
 
-		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
+			F_WipeStartScreen();
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 120);
 
-		F_WipeEndScreen();
-		F_RunWipe(wipedefs[wipe_level_final], false);
-
+			F_WipeEndScreen();
+			F_RunWipe(wipedefs[wipe_level_final], false);
+		}
+		else //dedicated servers can call this now, to wait the appropriate amount of time for clients to wipe
+		{
+			F_RunWipe(wipedefs[wipe_speclevel_towhite], false);
+			F_RunWipe(wipedefs[wipe_level_final], false);
+		}
+		
 		locstarttime = nowtime = lastwipetic;
 		endtime = locstarttime + (3*TICRATE)/2;
 
@@ -2904,13 +2935,20 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	// Let's fade to white here
 	// But only if we didn't do the encore startup wipe
-	if (rendermode != render_none && !ranspecialwipe && !demo.rewinding)
+	if (!ranspecialwipe && !demo.rewinding)
 	{
-		F_WipeStartScreen();
-		V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, levelfadecol);
+		if(rendermode != render_none)
+		{
+			F_WipeStartScreen();
+			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, levelfadecol);
 
-		F_WipeEndScreen();
-		F_RunWipe(wipedefs[(encoremode ? wipe_level_final : wipe_level_toblack)], false);
+			F_WipeEndScreen();
+			F_RunWipe(wipedefs[(encoremode ? wipe_level_final : wipe_level_toblack)], false);
+		}
+		else //dedicated servers
+		{
+			F_RunWipe(wipedefs[(encoremode ? wipe_level_final : wipe_level_toblack)], false);
+		}
 	}
 
 	// Reset the palette now all fades have been done
@@ -2926,7 +2964,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		snprintf(tx, 63, "%s%s%s",
 			mapheaderinfo[gamemap-1]->lvlttl,
 			(strlen(mapheaderinfo[gamemap-1]->zonttl) > 0) ? va(" %s",mapheaderinfo[gamemap-1]->zonttl) : // SRB2kart
-			((mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " ZONE"),
+			((mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " Zone"),
 			(strlen(mapheaderinfo[gamemap-1]->actnum) > 0) ? va(", Act %s",mapheaderinfo[gamemap-1]->actnum) : "");
 		V_DrawSmallString(1, 195, V_ALLOWLOWERCASE, tx);
 		I_UpdateNoVsync();
@@ -3068,9 +3106,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		P_PrepareThings(lastloadedmaplumpnum + ML_THINGS);
 	}
 
-#ifdef ESLOPE
 	P_ResetDynamicSlopes();
-#endif
 
 	P_LoadThings();
 
@@ -3091,10 +3127,6 @@ boolean P_SetupLevel(boolean skipprecip)
 #ifdef HWRENDER // not win32 only 19990829 by Kin
 	if (rendermode != render_soft && rendermode != render_none)
 	{
-#ifdef ALAM_LIGHTING
-		// BP: reset light between levels (we draw preview frame lights on current frame)
-		HWR_ResetLights();
-#endif
 		// Correct missing sidedefs & deep water trick
 		HWR_CorrectSWTricks();
 		HWR_CreatePlanePolygons((INT32)numnodes - 1);
@@ -3203,8 +3235,9 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	if (!dedicated)
 	{
-		for (i = 0; i <= splitscreen; i++)
-			P_SetupCamera(displayplayers[i], &camera[i]);
+		if (!demo.freecam)
+			for (i = 0; i <= splitscreen; i++)
+				P_SetupCamera(displayplayers[i], &camera[i]);
 
 		// Salt: CV_ClearChangedFlags() messes with your settings :(
 		/*if (!cv_cam_height.changed)
@@ -3330,7 +3363,7 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	if (loadprecip) // uglier hack
 	{ // to make a newly loaded level start on the second frame.
-		INT32 buf = gametic % BACKUPTICS;
+		INT32 buf = gametic % TICQUEUE;
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
 			if (playeringame[i])

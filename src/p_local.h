@@ -109,6 +109,20 @@ typedef struct camera_s
 	fixed_t pan;
 } camera_t;
 
+// demo freecam or something before i commit die
+struct demofreecam_s {
+
+	camera_t *cam;	// this is useful when the game is paused, notably
+	mobj_t *soundmobj;	// mobj to play sound from, used in s_sound
+	
+	angle_t localangle;	// keeps track of the cam angle for cmds
+	angle_t localaiming;	// ditto with aiming
+	boolean turnheld;	// holding turn button for gradual turn speed
+	boolean keyboardlook;	// keyboard look
+};
+
+extern struct demofreecam_s democam;
+
 extern camera_t camera[MAXSPLITSCREENPLAYERS];
 extern consvar_t cv_cam_dist, cv_cam_still, cv_cam_height;
 extern consvar_t cv_cam_speed, cv_cam_rotate, cv_cam_rotspeed;
@@ -133,7 +147,9 @@ void P_AddPlayerScore(player_t *player, UINT32 amount);
 void P_ResetCamera(player_t *player, camera_t *thiscam);
 boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam);
 void P_SlideCameraMove(camera_t *thiscam);
+void P_DemoCameraMovement(camera_t *cam);
 boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcalled);
+void P_InitCameraCmd(void);
 boolean P_PlayerInPain(player_t *player);
 void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor);
 void P_ResetPlayer(player_t *player);
@@ -312,9 +328,7 @@ extern mobj_t *tmfloorthing, *tmhitthing, *tmthing;
 extern camera_t *mapcampointer;
 extern fixed_t tmx;
 extern fixed_t tmy;
-#ifdef ESLOPE
 extern pslope_t *tmfloorslope, *tmceilingslope;
-#endif
 
 /* cphipps 2004/08/30 */
 extern void P_MapStart(void);

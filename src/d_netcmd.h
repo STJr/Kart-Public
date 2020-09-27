@@ -178,9 +178,10 @@ typedef enum
 	XD_MODIFYVOTE,  // 23
 	XD_PICKVOTE,    // 24
 	XD_REMOVEPLAYER,// 25
+	XD_DISCORD,     // 26
 #ifdef HAVE_BLUA
-	XD_LUACMD,      // 26
-	XD_LUAVAR,      // 27
+	XD_LUACMD,      // 27
+	XD_LUAVAR,      // 28
 #endif
 	MAXNETXCMD
 } netxcmd_t;
@@ -245,14 +246,6 @@ void ClearAdminPlayers(void);
 void RemoveAdminPlayer(INT32 playernum);
 void ItemFinder_OnChange(void);
 void D_SetPassword(const char *pw);
-
-extern consvar_t cv_dummyjoinpassword;
-extern boolean joinpasswordset;
-boolean D_IsJoinPasswordOn(void);
-void D_ComputeChallengeAnswer(UINT8 *question, const char *pw, UINT8 *answer);
-void D_SetJoinPassword(const char *pw);
-boolean D_VerifyJoinPasswordChallenge(UINT8 num, UINT8 *answer);
-void D_MakeJoinPasswordChallenge(UINT8 *num, UINT8 *question);
 
 // used for the player setup menu
 UINT8 CanChangeSkin(INT32 playernum);

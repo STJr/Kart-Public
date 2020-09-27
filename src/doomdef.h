@@ -30,7 +30,6 @@
 #ifdef HAVE_MIXER
     //#if !defined(DC) && !defined(_WIN32_WCE) && !defined(_XBOX) && !defined(GP2X)
     #define SOUND SOUND_MIXER
-    #define NOHS // No HW3SOUND
     #ifdef HW3SOUND
     #undef HW3SOUND
     #endif
@@ -47,7 +46,6 @@
 // Use FMOD?
 #ifdef HAVE_FMOD
     #define SOUND SOUND_FMOD
-    #define NOHS // No HW3SOUND
     #ifdef HW3SOUND
     #undef HW3SOUND
     #endif
@@ -63,10 +61,6 @@
 #define NONET
 #if !defined (HWRENDER) && !defined (NOHW)
 #define HWRENDER
-#endif
-// judgecutor: 3D sound support
-#if !defined(HW3SOUND) && !defined (NOHS)
-#define HW3SOUND
 #endif
 #endif
 
@@ -138,7 +132,11 @@
 
 #ifdef LOGMESSAGES
 extern FILE *logstream;
+extern char  logfilename[1024];
 #endif
+
+/* A mod name to further distinguish versions. */
+#define SRB2APPLICATION "SRB2Kart"
 
 //#define DEVELOP // Disable this for release builds to remove excessive cheat commands and enable MD5 checking and stuff, all in one go. :3
 #ifdef DEVELOP
@@ -149,10 +147,10 @@ extern FILE *logstream;
 // most interface strings are ignored in development mode.
 // we use comprevision and compbranch instead.
 #else
-#define VERSION    110 // Game version
-#define SUBVERSION 0 // more precise version number
-#define VERSIONSTRING "v1.1"
-#define VERSIONSTRINGW L"v1.1"
+#define VERSION    1 // Game version
+#define SUBVERSION 3 // more precise version number
+#define VERSIONSTRING "v1.3"
+#define VERSIONSTRINGW L"v1.3"
 // Hey! If you change this, add 1 to the MODVERSION below! Otherwise we can't force updates!
 // And change CMakeLists.txt, for CMake users!
 // AND appveyor.yml, for the build bots!
@@ -183,31 +181,12 @@ extern FILE *logstream;
 // Please change to apply to your modification (we don't want everyone asking where your mod is on SRB2.org!).
 #define UPDATE_ALERT_STRING \
 "A new update is available for SRB2Kart.\n"\
-"Please visit mb.srb2.org to download it.\n"\
+"Please visit kartkrew.org to download it.\n"\
 "\n"\
 "You are using version: %s\n"\
 "The newest version is: %s\n"\
-"\n"\
-"This update is required for online\n"\
-"play using the Master Server.\n"\
-"You will not be able to connect to\n"\
-"the Master Server until you update to\n"\
-"the newest version of the game.\n"\
 "\n"\
 "(Press a key)\n"
-
-// The string used in the I_Error alert upon trying to host through command line parameters.
-// Generally less filled with newlines, since Windows gives you lots more room to work with.
-#define UPDATE_ALERT_STRING_CONSOLE \
-"A new update is available for SRB2Kart.\n"\
-"Please visit mb.srb2.org to download it.\n"\
-"\n"\
-"You are using version: %s\n"\
-"The newest version is: %s\n"\
-"\n"\
-"This update is required for online play using the Master Server.\n"\
-"You will not be able to connect to the Master Server\n"\
-"until you update to the newest version of the game.\n"
 
 // For future use, the codebase is the version of SRB2 that the modification is based on,
 // and should not be changed unless you have merged changes between versions of SRB2
@@ -225,7 +204,7 @@ extern FILE *logstream;
 // it's only for detection of the version the player is using so the MS can alert them of an update.
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.1.0 is not version "1".
-#define MODVERSION 5
+#define MODVERSION 7
 
 // Filter consvars by version
 // To version config.cfg, MAJOREXECVERSION is set equal to MODVERSION automatically.
@@ -502,7 +481,7 @@ void CONS_Debug(INT32 debugflags, const char *fmt, ...) FUNCDEBUG;
 
 // Things that used to be in dstrings.h
 #define SAVEGAMENAME "srb2sav"
-char savegamename[256];
+extern char savegamename[256];
 
 // m_misc.h
 #ifdef GETTEXT
@@ -547,6 +526,9 @@ extern INT32 cv_debug;
 // Modifier key variables, accessible anywhere
 extern UINT8 shiftdown, ctrldown, altdown;
 extern boolean capslock;
+
+// WARNING: a should be unsigned but to add with 2048, it isn't!
+#define AIMINGTODY(a) (FINETANGENT((2048+(((INT32)a)>>ANGLETOFINESHIFT)) & FINEMASK)*160)
 
 // if we ever make our alloc stuff...
 #define ZZ_Alloc(x) Z_Malloc(x, PU_STATIC, NULL)
@@ -600,11 +582,9 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 /// Kalaron/Eternity Engine slope code (SRB2CB ported)
 #define ESLOPE
 
-#ifdef ESLOPE
 /// Backwards compatibility with SRB2CB's slope linedef types.
 ///	\note	A simple shim that prints a warning.
 #define ESLOPE_TYPESHIM
-#endif
 
 ///	Delete file while the game is running.
 ///	\note	EXTREMELY buggy, tends to crash game.
@@ -633,11 +613,6 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 ///	\note	XMOD port.
 ///	    	Most modifications should probably enable this.
 //#define SAVEGAME_OTHERVERSIONS
-
-#if !defined (_NDS) && !defined (_PSP)
-///	Shuffle's incomplete OpenGL sorting code.
-#define SHUFFLE // This has nothing to do with sorting, why was it disabled?
-#endif
 
 #if !defined (_NDS) && !defined (_PSP)
 ///	Allow the use of the SOC RESETINFO command.
@@ -675,6 +650,15 @@ extern const char *compdate, *comptime, *comprevision, *compbranch;
 /// on the bright side it fixes some weird issues with translucent walls
 /// \note	SRB2CB port.
 ///      	SRB2CB itself ported this from PrBoom+
-#define NEWCLIP
+//#define NEWCLIP
+
+/// Hardware renderer: OpenGL
+#define GL_SHADERS
+
+#if defined (HAVE_CURL) && ! defined (NONET)
+#define MASTERSERVER
+#else
+#undef UPDATE_ALERT
+#endif
 
 #endif // __DOOMDEF__

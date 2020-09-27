@@ -23,6 +23,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.4
           compiler: gcc-4.4
@@ -37,6 +38,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.6
           compiler: gcc-4.6
@@ -51,6 +53,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.7
           compiler: gcc-4.7
@@ -72,6 +75,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -88,6 +92,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-7
           compiler: gcc-7
@@ -104,6 +109,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-8
           compiler: gcc-8
@@ -124,6 +130,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - clang-3.5
           compiler: clang-3.5
@@ -140,6 +147,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - clang-3.6
           compiler: clang-3.6
@@ -156,6 +164,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - clang-3.7
           compiler: clang-3.7
@@ -172,6 +181,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - clang-3.8
           compiler: clang-3.8
@@ -188,6 +198,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - clang-3.9
           compiler: clang-3.9
@@ -294,6 +305,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -435,6 +447,31 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
+              - p7zip-full
+              - gcc-4.8
+          compiler: gcc-4.8
+          dist: xenial
+          if: env(DPL_ENABLED) = "1" AND (env(_DPL_JOB_ENABLED) = "1" OR env(DPL_JOB_ENABLE_ALL) = "1")
+              AND (branch =~ /^.*deployer.*$/ OR (tag IS present AND env(DPL_TAG_ENABLED) = "1"))
+              AND env(DPL_TERMINATE_MAIN) != "1"
+          env:
+          - _DPL_JOB_ENABLED=1
+          - _DPL_JOB_NAME=focal
+          - _DPL_DPUT_TARGET=1
+          - _DPL_PACKAGE_SOURCE=1
+          - PACKAGE_DISTRO=focal
+          - PACKAGE_SUBVERSION=~20.04focal
+          #gcc-4.8 (Ubuntu 4.8.5-2ubuntu1~14.04.1) 4.8.5
+        - os: linux
+          addons:
+            apt:
+              packages:
+              - libsdl2-mixer-dev
+              - libpng-dev
+              - libgl1-mesa-dev
+              - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -458,6 +495,31 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
+              - p7zip-full
+              - gcc-4.8
+          compiler: gcc-4.8
+          dist: xenial
+          if: env(DPL_ENABLED) = "1" AND (env(_DPL_JOB_ENABLED) = "1" OR env(DPL_JOB_ENABLE_ALL) = "1")
+              AND (branch =~ /^.*deployer.*$/ OR (tag IS present AND env(DPL_TAG_ENABLED) = "1"))
+              AND env(DPL_TERMINATE_MAIN) != "1"
+          env:
+          - _DPL_JOB_ENABLED=1
+          - _DPL_JOB_NAME=xenial
+          - _DPL_DPUT_TARGET=1
+          - _DPL_PACKAGE_SOURCE=1
+          - PACKAGE_DISTRO=xenial
+          - PACKAGE_SUBVERSION=~16.04xenial
+          #gcc-4.8 (Ubuntu 4.8.5-2ubuntu1~14.04.1) 4.8.5
+        - os: linux
+          addons:
+            apt:
+              packages:
+              - libsdl2-mixer-dev
+              - libpng-dev
+              - libgl1-mesa-dev
+              - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -481,6 +543,7 @@ matrix:
               - libpng-dev
               - libgl1-mesa-dev
               - libgme-dev
+              - libcurl4-openssl-dev
               - p7zip-full
               - gcc-4.8
           compiler: gcc-4.8
@@ -490,57 +553,11 @@ matrix:
               AND env(DPL_TERMINATE_MAIN) != "1"
           env:
           - _DPL_JOB_ENABLED=1
-          - _DPL_JOB_NAME=disco
+          - _DPL_JOB_NAME=eoan
           - _DPL_DPUT_TARGET=1
           - _DPL_PACKAGE_SOURCE=1
-          - PACKAGE_DISTRO=disco
-          - PACKAGE_SUBVERSION=~19.04disco
-          #gcc-4.8 (Ubuntu 4.8.5-2ubuntu1~14.04.1) 4.8.5
-        - os: linux
-          addons:
-            apt:
-              packages:
-              - libsdl2-mixer-dev
-              - libpng-dev
-              - libgl1-mesa-dev
-              - libgme-dev
-              - p7zip-full
-              - gcc-4.8
-          compiler: gcc-4.8
-          dist: xenial
-          if: env(DPL_ENABLED) = "1" AND (env(_DPL_JOB_ENABLED) = "1" OR env(DPL_JOB_ENABLE_ALL) = "1")
-              AND (branch =~ /^.*deployer.*$/ OR (tag IS present AND env(DPL_TAG_ENABLED) = "1"))
-              AND env(DPL_TERMINATE_MAIN) != "1"
-          env:
-          - _DPL_JOB_ENABLED=1
-          - _DPL_JOB_NAME=cosmic
-          - _DPL_DPUT_TARGET=1
-          - _DPL_PACKAGE_SOURCE=1
-          - PACKAGE_DISTRO=cosmic
-          - PACKAGE_SUBVERSION=~18.10cosmic
-          #gcc-4.8 (Ubuntu 4.8.5-2ubuntu1~14.04.1) 4.8.5
-        - os: linux
-          addons:
-            apt:
-              packages:
-              - libsdl2-mixer-dev
-              - libpng-dev
-              - libgl1-mesa-dev
-              - libgme-dev
-              - p7zip-full
-              - gcc-4.8
-          compiler: gcc-4.8
-          dist: xenial
-          if: env(DPL_ENABLED) = "1" AND (env(_DPL_JOB_ENABLED) = "1" OR env(DPL_JOB_ENABLE_ALL) = "1")
-              AND (branch =~ /^.*deployer.*$/ OR (tag IS present AND env(DPL_TAG_ENABLED) = "1"))
-              AND env(DPL_TERMINATE_MAIN) != "1"
-          env:
-          - _DPL_JOB_ENABLED=1
-          - _DPL_JOB_NAME=xenial
-          - _DPL_DPUT_TARGET=1
-          - _DPL_PACKAGE_SOURCE=1
-          - PACKAGE_DISTRO=xenial
-          - PACKAGE_SUBVERSION=~16.04xenial
+          - PACKAGE_DISTRO=eoan
+          - PACKAGE_SUBVERSION=~19.10eoan
           #gcc-4.8 (Ubuntu 4.8.5-2ubuntu1~14.04.1) 4.8.5
     allow_failures:
       - compiler: clang-3.5
@@ -567,6 +584,7 @@ addons:
     - libgl1-mesa-dev
     - libgme-dev
     - zlib1g-dev
+    - libcurl4-openssl-dev
     - p7zip-full
   homebrew:
     taps:
@@ -576,6 +594,7 @@ addons:
     - game-music-emu
     - p7zip
     - cmake
+    - curl
     update: true
 
 

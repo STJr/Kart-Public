@@ -38,7 +38,7 @@ extern INT32 msg_id;
 #include "p_local.h" // camera info
 #include "m_misc.h" // for tunes command
 
-#if defined(HAVE_BLUA) && defined(HAVE_LUA_MUSICPLUS)
+#ifdef HAVE_BLUA
 #include "lua_hook.h" // MusicChange hook
 #endif
 
@@ -161,6 +161,9 @@ typedef struct
 
 	// origin of sound
 	const void *origin;
+
+	// initial volume of sound, which is applied after distance and direction
+	INT32 volume;
 
 	// handle of the sound being played
 	INT32 handle;
@@ -432,6 +435,7 @@ void S_StopSoundByNum(sfxenum_t sfxnum)
 
 void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 {
+	const INT32 initial_volume = volume;
 	INT32 sep, pitch, priority, cnum;
 	sfxinfo_t *sfx;
 	const boolean reverse = (stereoreverse.value ^ encoremode);
@@ -442,7 +446,7 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 	listener_t listener3 = {0,0,0,0};
 	listener_t listener4 = {0,0,0,0};
 
-	mobj_t *listenmobj = players[displayplayers[0]].mo;
+	mobj_t *listenmobj = democam.soundmobj ? : players[displayplayers[0]].mo;
 	mobj_t *listenmobj2 = NULL;
 	mobj_t *listenmobj3 = NULL;
 	mobj_t *listenmobj4 = NULL;
@@ -789,6 +793,7 @@ dontplay4:
 
 	// Assigns the handle to one of the channels in the
 	// mix/output buffer.
+	channels[cnum].volume = initial_volume;
 	channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority, cnum);
 }
 
@@ -903,7 +908,7 @@ void S_UpdateSounds(void)
 	listener_t listener3;
 	listener_t listener4;
 
-	mobj_t *listenmobj = players[displayplayers[0]].mo;
+	mobj_t *listenmobj = democam.soundmobj ? : players[displayplayers[0]].mo;
 	mobj_t *listenmobj2 = NULL;
 	mobj_t *listenmobj3 = NULL;
 	mobj_t *listenmobj4 = NULL;
@@ -1054,7 +1059,7 @@ void S_UpdateSounds(void)
 			if (I_SoundIsPlaying(c->handle))
 			{
 				// initialize parameters
-				volume = 255; // 8 bits internal volume precision
+				volume = c->volume; // 8 bits internal volume precision
 				pitch = NORM_PITCH;
 				sep = NORM_SEP;
 
@@ -1361,15 +1366,12 @@ INT32 S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source, INT32 *v
 	}
 
 	// volume calculation
-	if (approx_dist < S_CLOSE_DIST)
-	{
-		// SfxVolume is now hardware volume
-		*vol = 255; // not snd_SfxVolume
-	}
-	else
+	/* not sure if it should be > (no =), but this matches the old behavior */
+	if (approx_dist >= S_CLOSE_DIST)
 	{
 		// distance effect
-		*vol = (15 * ((S_CLIPPING_DIST - approx_dist)>>FRACBITS)) / S_ATTENUATOR;
+		INT32 n = (15 * ((S_CLIPPING_DIST - approx_dist)>>FRACBITS));
+		*vol = FixedMul(*vol * FRACUNIT / 255, n) / S_ATTENUATOR;
 	}
 
 	if (splitscreen)
@@ -1989,7 +1991,7 @@ void S_ChangeMusicEx(const char *mmusic, UINT16 mflags, boolean looping, UINT32 
 		return;
 
 	strncpy(newmusic, mmusic, 7);
-#if defined(HAVE_BLUA) && defined(HAVE_LUA_MUSICPLUS)
+#ifdef HAVE_BLUA
 	if(LUAh_MusicChange(music_name, newmusic, &mflags, &looping, &position, &prefadems, &fadeinms))
 		return;
 #endif

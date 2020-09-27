@@ -22,6 +22,7 @@
 #include "z_zone.h"
 
 #include "i_system.h"
+#include "i_threads.h"
 #include "m_menu.h"
 #include "console.h"
 #include "d_main.h"
@@ -372,12 +373,22 @@ void F_RunWipe(UINT8 wipetype, boolean drawMenu)
 			HWR_DoWipe(wipetype, wipeframe-1); // send in the wipe type and wipeframe because we need to cache the graphic
 		else
 #endif
-		F_DoWipe(fmask);
+		if (rendermode != render_none) //this allows F_RunWipe to be called in dedicated servers
+			F_DoWipe(fmask);
+
 		I_OsPolling();
 		I_UpdateNoBlit();
 
 		if (drawMenu)
+		{
+#ifdef HAVE_THREADS
+			I_lock_mutex(&m_menu_mutex);
+#endif
 			M_Drawer(); // menu is drawn even on top of wipes
+#ifdef HAVE_THREADS
+			I_unlock_mutex(m_menu_mutex);
+#endif
+		}
 
 		I_FinishUpdate(); // page flip or blit buffer
 

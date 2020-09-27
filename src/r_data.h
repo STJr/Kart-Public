@@ -98,6 +98,10 @@ void R_MakeInvertmap(void);
 #endif
 const char *R_ColormapNameForNum(INT32 num);
 
+UINT8 NearestColor(UINT8 r, UINT8 g, UINT8 b);
+
 extern INT32 numtextures;
+
+UINT8 NearestColor(UINT8 r, UINT8 g, UINT8 b);
 
 #endif

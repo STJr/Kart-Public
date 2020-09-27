@@ -32,6 +32,7 @@
 #include "sounds.h"
 #include "s_sound.h"
 #include "i_system.h"
+#include "i_threads.h"
 
 // Addfile
 #include "filesrch.h"
@@ -80,6 +81,11 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 //int	vsnprintf(char *str, size_t n, const char *fmt, va_list ap);
 #endif
 
+#ifdef HAVE_DISCORDRPC
+//#include "discord_rpc.h"
+#include "discord.h"
+#endif
+
 #define SKULLXOFF -32
 #define LINEHEIGHT 16
 #define STRINGHEIGHT 8
@@ -117,6 +123,12 @@ typedef enum
 	QUIT3MSG6,
 	NUM_QUITMESSAGES
 } text_enum;
+
+#ifdef HAVE_THREADS
+I_mutex m_menu_mutex;
+#endif
+
+M_waiting_mode_t m_waiting_mode = M_NOT_WAITING;
 
 const char *quitmsg[NUM_QUITMESSAGES];
 
@@ -170,7 +182,6 @@ static void M_StopMessage(INT32 choice);
 
 #ifndef NONET
 static void M_HandleServerPage(INT32 choice);
-static void M_RoomMenu(INT32 choice);
 #endif
 
 // Prototyping is fun, innit?
@@ -178,8 +189,17 @@ static void M_RoomMenu(INT32 choice);
 // NEEDED FUNCTION PROTOTYPES GO HERE
 // ==========================================================================
 
+void M_SetWaitingMode(int mode);
+int  M_GetWaitingMode(void);
+
 // the haxor message menu
 menu_t MessageDef;
+
+#ifdef HAVE_DISCORDRPC
+menu_t MISC_DiscordRequestsDef;
+static void M_HandleDiscordRequests(INT32 choice);
+static void M_DrawDiscordRequests(void);
+#endif
 
 menu_t SPauseDef;
 
@@ -231,7 +251,6 @@ static void M_HandleStaffReplay(INT32 choice);
 static void M_ReplayTimeAttack(INT32 choice);
 static void M_ChooseTimeAttack(INT32 choice);
 //static void M_ChooseNightsAttack(INT32 choice);
-static void M_ModeAttackRetry(INT32 choice);
 static void M_ModeAttackEndGame(INT32 choice);
 static void M_SetGuestReplay(INT32 choice);
 //static void M_ChoosePlayer(INT32 choice);
@@ -246,7 +265,6 @@ static void M_ConnectMenu(INT32 choice);
 static void M_ConnectMenuModChecks(INT32 choice);
 static void M_Refresh(INT32 choice);
 static void M_Connect(INT32 choice);
-static void M_ChooseRoom(INT32 choice);
 #endif
 static void M_StartOfflineServerMenu(INT32 choice);
 static void M_StartServer(INT32 choice);
@@ -280,13 +298,16 @@ static void M_ResetControls(INT32 choice);
 // Video & Sound
 menu_t OP_VideoOptionsDef, OP_VideoModeDef;
 #ifdef HWRENDER
-menu_t OP_OpenGLOptionsDef, OP_OpenGLFogDef, OP_OpenGLColorDef;
+menu_t OP_OpenGLOptionsDef, OP_OpenGLColorDef;
 #endif
 menu_t OP_SoundOptionsDef;
 //static void M_RestartAudio(void);
 
 //Misc
 menu_t OP_DataOptionsDef, OP_ScreenshotOptionsDef, OP_EraseDataDef;
+#ifdef HAVE_DISCORDRPC
+menu_t OP_DiscordOptionsDef;
+#endif
 menu_t OP_HUDOptionsDef, OP_ChatOptionsDef;
 menu_t OP_GameOptionsDef, OP_ServerOptionsDef;
 #ifndef NONET
@@ -319,6 +340,7 @@ static void M_PlaybackFastForward(INT32 choice);
 static void M_PlaybackAdvance(INT32 choice);
 static void M_PlaybackSetViews(INT32 choice);
 static void M_PlaybackAdjustView(INT32 choice);
+static void M_PlaybackToggleFreecam(INT32 choice);
 static void M_PlaybackQuit(INT32 choice);
 
 static UINT8 playback_enterheld = 0; // horrid hack to prevent holding the button from being extremely fucked
@@ -346,13 +368,11 @@ static void M_DrawHUDOptions(void);
 static void M_DrawVideoMode(void);
 static void M_DrawMonitorToggles(void);
 #ifdef HWRENDER
-static void M_OGL_DrawFogMenu(void);
 static void M_OGL_DrawColorMenu(void);
 #endif
 static void M_DrawMPMainMenu(void);
 #ifndef NONET
 static void M_DrawConnectMenu(void);
-static void M_DrawRoomMenu(void);
 #endif
 static void M_DrawJoystick(void);
 static void M_DrawSetupMultiPlayerMenu(void);
@@ -372,9 +392,6 @@ static void M_HandleLevelStats(INT32 choice);
 static void M_HandleConnectIP(INT32 choice);
 #endif
 static void M_HandleSetupMultiPlayer(INT32 choice);
-#ifdef HWRENDER
-static void M_HandleFogColor(INT32 choice);
-#endif
 static void M_HandleVideoMode(INT32 choice);
 static void M_HandleMonitorToggles(INT32 choice);
 
@@ -516,26 +533,26 @@ static menuitem_t MISC_ReplayOptionsMenu[] =
 	{IT_CVAR|IT_STRING, NULL, "Sync Check Interval", &cv_netdemosyncquality,     10},
 };
 
+static tic_t playback_last_menu_interaction_leveltime = 0;
 static menuitem_t PlaybackMenu[] =
 {
-	{IT_CALL   | IT_STRING, "M_PHIDE",  "Hide Menu", M_SelectableClearMenus, 0},
+	{IT_CALL   | IT_STRING, "M_PHIDE",  "Hide Menu (Esc)", M_SelectableClearMenus, 0},
 
-	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind",        M_PlaybackRewind,      20},
-	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause",         M_PlaybackPause,       36},
-	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Forward",  M_PlaybackFastForward, 52},
-	{IT_CALL   | IT_STRING, "M_PSTEPB", "Backup Frame",  M_PlaybackRewind,      20},
+	{IT_CALL   | IT_STRING, "M_PREW",   "Rewind ([)",        M_PlaybackRewind,      20},
+	{IT_CALL   | IT_STRING, "M_PPAUSE", "Pause (\\)",         M_PlaybackPause,       36},
+	{IT_CALL   | IT_STRING, "M_PFFWD",  "Fast-Forward (])",  M_PlaybackFastForward, 52},
+	{IT_CALL   | IT_STRING, "M_PSTEPB", "Backup Frame ([)",  M_PlaybackRewind,      20},
 	{IT_CALL   | IT_STRING, "M_PRESUM", "Resume",        M_PlaybackPause,       36},
-	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame", M_PlaybackAdvance,     52},
+	{IT_CALL   | IT_STRING, "M_PFADV",  "Advance Frame (])", M_PlaybackAdvance,     52},
 
-	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count",  M_PlaybackSetViews, 72},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint",   M_PlaybackAdjustView, 88},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 2", M_PlaybackAdjustView, 104},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3", M_PlaybackAdjustView, 120},
-	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4", M_PlaybackAdjustView, 136},
+	{IT_ARROWS | IT_STRING, "M_PVIEWS", "View Count (- and =)",  M_PlaybackSetViews, 72},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint (1)",   M_PlaybackAdjustView, 88},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 2 (2)", M_PlaybackAdjustView, 104},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 3 (3)", M_PlaybackAdjustView, 120},
+	{IT_ARROWS | IT_STRING, "M_PNVIEW", "Viewpoint 4 (4)", M_PlaybackAdjustView, 136},
 
-	//{IT_CALL   | IT_STRING, "M_POPTS",  "More Options...", M_ReplayHut, 156},
-	//{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 172},
-	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 156},
+	{IT_CALL   | IT_STRING, "M_PVIEWS", "Toggle Free Camera (')",	M_PlaybackToggleFreecam, 156},
+	{IT_CALL   | IT_STRING, "M_PEXIT",  "Stop Playback",   M_PlaybackQuit, 172},
 };
 typedef enum
 {
@@ -551,6 +568,7 @@ typedef enum
 	playback_view2,
 	playback_view3,
 	playback_view4,
+	playback_freecamera,
 	//playback_moreoptions,
 	playback_quit
 } playback_e;
@@ -577,9 +595,13 @@ typedef enum
 // ---------------------
 static menuitem_t MPauseMenu[] =
 {
-	{IT_STRING | IT_CALL,     NULL, "Add-ons...",        M_Addons,                8},
+	{IT_STRING | IT_CALL,     NULL, "Addons...",        M_Addons,                8},
 	{IT_STRING | IT_SUBMENU,  NULL, "Scramble Teams...", &MISC_ScrambleTeamDef,  16},
 	{IT_STRING | IT_CALL,     NULL, "Switch Map..."    , M_MapChange,            24},
+
+#ifdef HAVE_DISCORDRPC
+	{IT_STRING | IT_SUBMENU,  NULL, "Ask To Join Requests...", &MISC_DiscordRequestsDef, 24},
+#endif
 
 	{IT_CALL | IT_STRING,    NULL, "Continue",           M_SelectableClearMenus, 40},
 	{IT_CALL | IT_STRING,    NULL, "P1 Setup...",        M_SetupMultiPlayer,     48}, // splitscreen
@@ -604,6 +626,9 @@ typedef enum
 	mpause_addons = 0,
 	mpause_scramble,
 	mpause_switchmap,
+#ifdef HAVE_DISCORDRPC
+	mpause_discordrequests,
+#endif
 
 	mpause_continue,
 	mpause_psetupsplit,
@@ -653,6 +678,13 @@ typedef enum
 	spause_title,
 	spause_quit
 } spause_e;
+
+#ifdef HAVE_DISCORDRPC
+static menuitem_t MISC_DiscordRequestsMenu[] =
+{
+	{IT_KEYHANDLER|IT_NOTHING, NULL, "", M_HandleDiscordRequests, 0},
+};
+#endif
 
 // -----------------
 // Misc menu options
@@ -984,10 +1016,9 @@ static menuitem_t MP_MainMenu[] =
 
 static menuitem_t MP_ServerMenu[] =
 {
-	{IT_STRING|IT_CVAR,                NULL, "Max. Player Count",     &cv_maxplayers,         0},
-	{IT_STRING|IT_CALL,                NULL, "Room...",               M_RoomMenu,            10},
-	{IT_STRING|IT_CVAR|IT_CV_STRING,   NULL, "Server Name",           &cv_servername,        20},
-	{IT_STRING|IT_CVAR|IT_CV_PASSWORD, NULL, "Password",              &cv_dummyjoinpassword, 44},
+	{IT_STRING|IT_CVAR,                NULL, "Max. Player Count",     &cv_maxplayers,        10},
+	{IT_STRING|IT_CVAR,                NULL, "Advertise",             &cv_advertise,         20},
+	{IT_STRING|IT_CVAR|IT_CV_STRING,   NULL, "Server Name",           &cv_servername,        30},
 
 	{IT_STRING|IT_CVAR,                NULL, "Game Type",             &cv_newgametype,       68},
 	{IT_STRING|IT_CVAR,                NULL, "Level",                 &cv_nextmap,           78},
@@ -1016,53 +1047,29 @@ static menuitem_t MP_PlayerSetupMenu[] =
 #ifndef NONET
 static menuitem_t MP_ConnectMenu[] =
 {
-	{IT_STRING | IT_CALL,       NULL, "Room...",  M_RoomMenu,         4},
-	{IT_STRING | IT_CVAR,       NULL, "Sort By",  &cv_serversort,     12},
-	{IT_STRING | IT_KEYHANDLER, NULL, "Page",     M_HandleServerPage, 20},
-	{IT_STRING | IT_CALL,       NULL, "Refresh",  M_Refresh,          28},
+	{IT_STRING | IT_CVAR,       NULL, "Sort By",  &cv_serversort,      4},
+	{IT_STRING | IT_KEYHANDLER, NULL, "Page",     M_HandleServerPage, 12},
+	{IT_STRING | IT_CALL,       NULL, "Refresh",  M_Refresh,          20},
 
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          48-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          60-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          72-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          84-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          96-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         108-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         120-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         132-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         144-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         156-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         168-4},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          36},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          48},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          60},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          72},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          84},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          96},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         108},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         120},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         132},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         144},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         156},
 };
 
 enum
 {
-	mp_connect_room,
 	mp_connect_sort,
 	mp_connect_page,
 	mp_connect_refresh,
 	FIRSTSERVERLINE
-};
-
-static menuitem_t MP_RoomMenu[] =
-{
-	{IT_STRING | IT_CALL, NULL, "<Offline Mode>", M_ChooseRoom,   9},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  18},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  27},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  36},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  45},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  54},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  63},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  72},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  81},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  90},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom,  99},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 108},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 117},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 126},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 135},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 144},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 153},
-	{IT_DISABLED,         NULL, "",               M_ChooseRoom, 162},
 };
 #endif
 
@@ -1244,15 +1251,13 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR,	NULL,	"Weather Draw Distance",&cv_drawdist_precip,	 55},
 	//{IT_STRING | IT_CVAR,	NULL,	"Weather Density",		&cv_precipdensity,		 65},
 	{IT_STRING | IT_CVAR,	NULL,	"Skyboxes",				&cv_skybox,				 65},
-	{IT_STRING | IT_CVAR,	NULL,	"Field of View",		&cv_fov,					75},
+	{IT_STRING | IT_CVAR,	NULL,	"Field of View",		&cv_fov,				 75},
 
 	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			 90},
 	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			100},
 
 #ifdef HWRENDER
-	{IT_STRING | IT_CVAR,	NULL,	"3D models",            &cv_grmdls,              115},
-	{IT_STRING | IT_CVAR,	NULL,	"Fallback Player 3D Model",	&cv_grfallbackplayermodel,	125},
-	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,   135},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	120},
 #endif
 };
 
@@ -1271,8 +1276,6 @@ enum
 	op_video_fps,
 	op_video_vsync,
 #ifdef HWRENDER
-	op_video_md2,
-	op_video_kartman,
 	op_video_ogl,
 #endif
 };
@@ -1285,36 +1288,19 @@ static menuitem_t OP_VideoModeMenu[] =
 #ifdef HWRENDER
 static menuitem_t OP_OpenGLOptionsMenu[] =
 {
-	{IT_SUBMENU|IT_STRING,      NULL, "Fog...",          &OP_OpenGLFogDef,      10},
-	{IT_SUBMENU|IT_STRING,      NULL, "Gamma...",        &OP_OpenGLColorDef,    20},
+	{IT_STRING | IT_CVAR,	NULL, "3D Models",					&cv_grmdls,					 10},
+	{IT_STRING | IT_CVAR,	NULL, "Fallback Player 3D Model",	&cv_grfallbackplayermodel,	 20},
+	{IT_STRING|IT_CVAR,		NULL, "Shaders",					&cv_grshaders,				 30},
 
-	{IT_STRING|IT_CVAR,         NULL, "Quality",         &cv_scr_depth,         35},
-	{IT_STRING|IT_CVAR,         NULL, "Texture Filter",  &cv_grfiltermode,      45},
-	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",     &cv_granisotropicmode, 55},
-/*#ifdef _WINDOWS
-	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",      &cv_fullscreen,       50},
-#endif
-#ifdef ALAM_LIGHTING
-	{IT_SUBMENU|IT_STRING,      NULL, "Lighting...",     &OP_OpenGLLightingDef,     70},
-#endif*/
-};
+	{IT_STRING|IT_CVAR,		NULL, "Texture Quality",			&cv_scr_depth,				 50},
+	{IT_STRING|IT_CVAR,		NULL, "Texture Filter",				&cv_grfiltermode,			 60},
+	{IT_STRING|IT_CVAR,		NULL, "Anisotropic",				&cv_granisotropicmode,		 70},
 
-#ifdef ALAM_LIGHTING
-static menuitem_t OP_OpenGLLightingMenu[] =
-{
-	{IT_STRING|IT_CVAR, NULL, "Coronas",          &cv_grcoronas,          0},
-	{IT_STRING|IT_CVAR, NULL, "Coronas size",     &cv_grcoronasize,      10},
-	{IT_STRING|IT_CVAR, NULL, "Dynamic lighting", &cv_grdynamiclighting, 20},
-	{IT_STRING|IT_CVAR, NULL, "Static lighting",  &cv_grstaticlighting,  30},
-};
-#endif
+	{IT_STRING|IT_CVAR,		NULL, "Wall Contrast Style",		&cv_grfakecontrast,			 90},
+	{IT_STRING|IT_CVAR,		NULL, "Sprite Billboarding",		&cv_grspritebillboarding,	100},
+	{IT_STRING|IT_CVAR,		NULL, "Software Perspective",		&cv_grshearing,				110},
 
-static menuitem_t OP_OpenGLFogMenu[] =
-{
-	{IT_STRING|IT_CVAR,       NULL, "Fog",         &cv_grfog,        10},
-	{IT_STRING|IT_KEYHANDLER, NULL, "Fog Color",   M_HandleFogColor, 20},
-	{IT_STRING|IT_CVAR,       NULL, "Fog Density", &cv_grfogdensity, 30},
-	{IT_STRING|IT_CVAR,       NULL, "Software Fog",&cv_grsoftwarefog,40},
+	{IT_SUBMENU|IT_STRING,	NULL, "Gamma...",					&OP_OpenGLColorDef,			130},
 };
 
 static menuitem_t OP_OpenGLColorMenu[] =
@@ -1361,11 +1347,17 @@ static menuitem_t OP_SoundOptionsMenu[] =
 
 static menuitem_t OP_DataOptionsMenu[] =
 {
-	{IT_STRING | IT_CALL,		NULL, "Screenshot Options...",	M_ScreenshotOptions,	 10},
-	{IT_STRING | IT_CALL,		NULL, "Add-on Options...",		M_AddonsOptions,		 20},
-	{IT_STRING | IT_SUBMENU,	NULL, "Replay Options...",		&MISC_ReplayOptionsDef,	 30},
 
+	{IT_STRING | IT_CALL,		NULL, "Screenshot Options...",	M_ScreenshotOptions,	 10},
+	{IT_STRING | IT_CALL,		NULL, "Addon Options...",		M_AddonsOptions,		 20},
+	{IT_STRING | IT_SUBMENU,	NULL, "Replay Options...",		&MISC_ReplayOptionsDef,	 30},
+#ifdef HAVE_DISCORDRPC
+	{IT_STRING | IT_SUBMENU,	NULL, "Discord Options...",		&OP_DiscordOptionsDef,	 40},
+
+	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 60},
+#else
 	{IT_STRING | IT_SUBMENU,	NULL, "Erase Data...",			&OP_EraseDataDef,		 50},
+#endif
 };
 
 static menuitem_t OP_ScreenshotOptionsMenu[] =
@@ -1414,7 +1406,7 @@ static menuitem_t OP_AddonsOptionsMenu[] =
 	{IT_HEADER,                      NULL, "Menu",                        NULL,                    0},
 	{IT_STRING|IT_CVAR,              NULL, "Location",                    &cv_addons_option,      10},
 	{IT_STRING|IT_CVAR|IT_CV_STRING, NULL, "Custom Folder",               &cv_addons_folder,      20},
-	{IT_STRING|IT_CVAR,              NULL, "Identify add-ons via",        &cv_addons_md5,         48},
+	{IT_STRING|IT_CVAR,              NULL, "Identify addons via",         &cv_addons_md5,         48},
 	{IT_STRING|IT_CVAR,              NULL, "Show unsupported file types", &cv_addons_showall,     58},
 
 	{IT_HEADER,                      NULL, "Search",                      NULL,                   76},
@@ -1426,6 +1418,19 @@ enum
 {
 	op_addons_folder = 2,
 };
+
+#ifdef HAVE_DISCORDRPC
+static menuitem_t OP_DiscordOptionsMenu[] =
+{
+	{IT_STRING | IT_CVAR,		NULL, "Rich Presence",			&cv_discordrp,			 10},
+
+	{IT_HEADER,					NULL, "Rich Presence Settings",	NULL,					 30},
+	{IT_STRING | IT_CVAR,		NULL, "Streamer Mode",			&cv_discordstreamer,	 40},
+
+	{IT_STRING | IT_CVAR,		NULL, "Allow Ask To Join",		&cv_discordasks,		 60},
+	{IT_STRING | IT_CVAR,		NULL, "Allow Invites",			&cv_discordinvites,		 70},
+};
+#endif
 
 static menuitem_t OP_HUDOptionsMenu[] =
 {
@@ -1501,7 +1506,7 @@ static menuitem_t OP_ServerOptionsMenu[] =
 #ifndef NONET
 	{IT_STRING | IT_CVAR,    NULL, "Max. Player Count",				&cv_maxplayers,			 90},
 	{IT_STRING | IT_CVAR,    NULL, "Allow Players to Join",			&cv_allownewplayer,		100},
-	{IT_STRING | IT_CVAR,    NULL, "Allow Add-on Downloading",		&cv_downloading,		110},
+	{IT_STRING | IT_CVAR,    NULL, "Allow Addon Downloading",		&cv_downloading,		110},
 	{IT_STRING | IT_CVAR,    NULL, "Pause Permission",				&cv_pause,				120},
 	{IT_STRING | IT_CVAR,    NULL, "Mute All Chat",					&cv_mute,				130},
 
@@ -1666,6 +1671,19 @@ menu_t PlaybackMenuDef = {
 menu_t MAPauseDef = PAUSEMENUSTYLE(MAPauseMenu, 40, 72);
 menu_t SPauseDef = PAUSEMENUSTYLE(SPauseMenu, 40, 72);
 menu_t MPauseDef = PAUSEMENUSTYLE(MPauseMenu, 40, 72);
+
+#ifdef HAVE_DISCORDRPC
+menu_t MISC_DiscordRequestsDef = {
+	NULL,
+	sizeof (MISC_DiscordRequestsMenu)/sizeof (menuitem_t),
+	&MPauseDef,
+	MISC_DiscordRequestsMenu,
+	M_DrawDiscordRequests,
+	0, 0,
+	0,
+	NULL
+};
+#endif
 
 // Misc Main Menu
 menu_t MISC_ScrambleTeamDef = DEFAULTMENUSTYLE(NULL, MISC_ScrambleTeamMenu, &MPauseDef, 27, 40);
@@ -1950,17 +1968,6 @@ menu_t MP_ConnectDef =
 	0,
 	M_CancelConnect
 };
-menu_t MP_RoomDef =
-{
-	"M_MULTI",
-	sizeof (MP_RoomMenu)/sizeof (menuitem_t),
-	&MP_ConnectDef,
-	MP_RoomMenu,
-	M_DrawRoomMenu,
-	27, 32,
-	0,
-	NULL
-};
 #endif
 menu_t MP_PlayerSetupDef =
 {
@@ -2078,20 +2085,6 @@ menu_t OP_MonitorToggleDef =
 
 #ifdef HWRENDER
 menu_t OP_OpenGLOptionsDef = DEFAULTMENUSTYLE("M_VIDEO", OP_OpenGLOptionsMenu, &OP_VideoOptionsDef, 30, 30);
-#ifdef ALAM_LIGHTING
-menu_t OP_OpenGLLightingDef = DEFAULTMENUSTYLE("M_VIDEO", OP_OpenGLLightingMenu, &OP_OpenGLOptionsDef, 60, 40);
-#endif
-menu_t OP_OpenGLFogDef =
-{
-	"M_VIDEO",
-	sizeof (OP_OpenGLFogMenu)/sizeof (menuitem_t),
-	&OP_OpenGLOptionsDef,
-	OP_OpenGLFogMenu,
-	M_OGL_DrawFogMenu,
-	60, 40,
-	0,
-	NULL
-};
 menu_t OP_OpenGLColorDef =
 {
 	"M_VIDEO",
@@ -2107,6 +2100,9 @@ menu_t OP_OpenGLColorDef =
 menu_t OP_DataOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_DataOptionsMenu, &OP_MainDef, 60, 30);
 menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_SCSHOT", OP_ScreenshotOptionsMenu, &OP_DataOptionsDef, 30, 30);
 menu_t OP_AddonsOptionsDef = DEFAULTMENUSTYLE("M_ADDONS", OP_AddonsOptionsMenu, &OP_DataOptionsDef, 30, 30);
+#ifdef HAVE_DISCORDRPC
+menu_t OP_DiscordOptionsDef = DEFAULTMENUSTYLE(NULL, OP_DiscordOptionsMenu, &OP_DataOptionsDef, 30, 30);
+#endif
 menu_t OP_EraseDataDef = DEFAULTMENUSTYLE("M_DATA", OP_EraseDataMenu, &OP_DataOptionsDef, 30, 30);
 
 // ==========================================================================
@@ -2464,9 +2460,6 @@ static void M_NextOpt(void)
 {
 	INT16 oldItemOn = itemOn; // prevent infinite loop
 
-	if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
-		((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value = 0;
-
 	do
 	{
 		if (itemOn + 1 > currentMenu->numitems - 1)
@@ -2479,9 +2472,6 @@ static void M_NextOpt(void)
 static void M_PrevOpt(void)
 {
 	INT16 oldItemOn = itemOn; // prevent infinite loop
-
-	if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
-		((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value = 0;
 
 	do
 	{
@@ -2767,10 +2757,8 @@ boolean M_Responder(event_t *ev)
 	// BP: one of the more big hack i have never made
 	if (routine && (currentMenu->menuitems[itemOn].status & IT_TYPE) == IT_CVAR)
 	{
-		if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_STRING || (currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
+		if ((currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_STRING)
 		{
-			if (ch == KEY_TAB && (currentMenu->menuitems[itemOn].status & IT_CVARTYPE) == IT_CV_PASSWORD)
-				((consvar_t *)currentMenu->menuitems[itemOn].itemaction)->value ^= 1;
 
 			if (shiftdown && ch >= 32 && ch <= 127)
 				ch = shiftxform[ch];
@@ -2783,8 +2771,9 @@ boolean M_Responder(event_t *ev)
 			routine = M_ChangeCvar;
 	}
 
-	if (currentMenu == &PlaybackMenuDef)
+	if (currentMenu == &PlaybackMenuDef && !con_destlines)
 	{
+		playback_last_menu_interaction_leveltime = leveltime;
 		// Flip left/right with up/down for the playback menu, since it's a horizontal icon row.
 		switch (ch)
 		{
@@ -2792,6 +2781,56 @@ boolean M_Responder(event_t *ev)
 			case KEY_UPARROW: ch = KEY_RIGHTARROW; break;
 			case KEY_RIGHTARROW: ch = KEY_DOWNARROW; break;
 			case KEY_DOWNARROW: ch = KEY_LEFTARROW; break;
+
+			// arbitrary keyboard shortcuts because fuck you
+
+			case '\'':	// toggle freecam
+				M_PlaybackToggleFreecam(0);
+				break;
+
+			case ']':	// ffw / advance frame (depends on if paused or not)
+				if (paused)
+					M_PlaybackAdvance(0);
+				else
+					M_PlaybackFastForward(0);
+				break;
+
+			case '[':	// rewind /backupframe, uses the same function
+				M_PlaybackRewind(0);
+				break;
+
+			case '\\':	// pause
+				M_PlaybackPause(0);
+				break;
+
+			// viewpoints, an annoyance (tm)
+			case '-':	// viewpoint minus
+				M_PlaybackSetViews(-1);	// yeah lol.
+				break;
+
+			case '=':	// viewpoint plus
+				M_PlaybackSetViews(1);	// yeah lol.
+				break;
+
+			// switch viewpoints:
+			case '1':	// viewpoint for p1 (also f12)
+				// maximum laziness:
+				if (!demo.freecam)
+					G_AdjustView(1, 1, true);
+				break;
+			case '2':	// viewpoint for p2
+				if (!demo.freecam)
+					G_AdjustView(2, 1, true);
+				break;
+			case '3':	// viewpoint for p3
+				if (!demo.freecam)
+					G_AdjustView(3, 1, true);
+				break;
+			case '4':	// viewpoint for p4
+				if (!demo.freecam)
+					G_AdjustView(4, 1, true);
+				break;
+
 			default: break;
 		}
 	}
@@ -2846,9 +2885,9 @@ boolean M_Responder(event_t *ev)
 			if (currentMenu == &PlaybackMenuDef)
 			{
 				boolean held = (boolean)playback_enterheld;
-				playback_enterheld = TICRATE/7;
 				if (held)
 					return true;
+				playback_enterheld = 3;
 			}
 
 			if (routine)
@@ -2860,7 +2899,7 @@ boolean M_Responder(event_t *ev)
 					if (((currentMenu->menuitems[itemOn].status & IT_CALLTYPE) & IT_CALL_NOTMODIFIED) && majormods)
 					{
 						S_StartSound(NULL, sfx_menu1);
-						M_StartMessage(M_GetText("This cannot be done with complex add-ons\nor in a cheated game.\n\n(Press a key)\n"), NULL, MM_NOTHING);
+						M_StartMessage(M_GetText("This cannot be done with complex addons\nor in a cheated game.\n\n(Press a key)\n"), NULL, MM_NOTHING);
 						return true;
 					}
 				}
@@ -2892,7 +2931,6 @@ boolean M_Responder(event_t *ev)
 				//make sure the game doesn't still think we're in a netgame.
 				if (!Playing() && netgame && multiplayer)
 				{
-					MSCloseUDPSocket();		// Clean up so we can re-open the connection later.
 					netgame = false;
 					multiplayer = false;
 				}
@@ -2949,6 +2987,93 @@ boolean M_Responder(event_t *ev)
 
 	return true;
 }
+
+// special responder for demos
+boolean M_DemoResponder(event_t *ev)
+{
+
+	INT32 ch = -1;	// cur event data
+	boolean eatinput = false;	// :omnom:
+
+	//should be accounted for beforehand but just to be safe...
+	if (!demo.playback || demo.title)
+		return false;
+
+	if (noFurtherInput)
+	{
+		// Ignore input after enter/escape/other buttons
+		// (but still allow shift keyup so caps doesn't get stuck)
+		return false;
+	}
+	else if (ev->type == ev_keydown && !con_destlines)	// not while the console is on please
+	{
+		ch = ev->data1;
+		// since this is ONLY for demos, there isn't MUCH for us to do.
+		// mirrored from m_responder
+
+		switch (ch)
+		{
+			// arbitrary keyboard shortcuts because fuck you
+
+			case '\'':	// toggle freecam
+				M_PlaybackToggleFreecam(0);
+				eatinput = true;
+				break;
+
+			case ']':	// ffw / advance frame (depends on if paused or not)
+				if (paused)
+					M_PlaybackAdvance(0);
+				else
+					M_PlaybackFastForward(0);
+				eatinput = true;
+				break;
+
+			case '[':	// rewind /backupframe, uses the same function
+				M_PlaybackRewind(0);
+				break;
+
+			case '\\':	// pause
+				M_PlaybackPause(0);
+				eatinput = true;
+				break;
+
+			// viewpoints, an annoyance (tm)
+			case '-':	// viewpoint minus
+				M_PlaybackSetViews(-1);	// yeah lol.
+				eatinput = true;
+				break;
+
+			case '=':	// viewpoint plus
+				M_PlaybackSetViews(1);	// yeah lol.
+				eatinput = true;
+				break;
+
+			// switch viewpoints:
+			case '1':	// viewpoint for p1 (also f12)
+				// maximum laziness:
+				if (!demo.freecam)
+					G_AdjustView(1, 1, true);
+				break;
+			case '2':	// viewpoint for p2
+				if (!demo.freecam)
+					G_AdjustView(2, 1, true);
+				break;
+			case '3':	// viewpoint for p3
+				if (!demo.freecam)
+					G_AdjustView(3, 1, true);
+				break;
+			case '4':	// viewpoint for p4
+				if (!demo.freecam)
+					G_AdjustView(4, 1, true);
+				break;
+
+			default: break;
+		}
+
+	}
+	return eatinput;
+}
+
 
 //
 // M_Drawer
@@ -3021,6 +3146,7 @@ void M_StartControlPanel(void)
 	if (demo.playback)
 	{
 		currentMenu = &PlaybackMenuDef;
+		playback_last_menu_interaction_leveltime = leveltime;
 	}
 	else if (!Playing())
 	{
@@ -3096,12 +3222,18 @@ void M_StartControlPanel(void)
 		MPauseMenu[mpause_psetup].status = IT_DISABLED;
 		MISC_ChangeTeamMenu[0].status = IT_DISABLED;
 		MISC_ChangeSpectateMenu[0].status = IT_DISABLED;
+
 		// Reset these in case splitscreen messes things up
+		MPauseMenu[mpause_addons].alphaKey = 8;
+		MPauseMenu[mpause_scramble].alphaKey = 8;
+		MPauseMenu[mpause_switchmap].alphaKey = 24;
+
 		MPauseMenu[mpause_switchteam].alphaKey = 48;
 		MPauseMenu[mpause_switchspectate].alphaKey = 48;
 		MPauseMenu[mpause_options].alphaKey = 64;
 		MPauseMenu[mpause_title].alphaKey = 80;
 		MPauseMenu[mpause_quit].alphaKey = 88;
+
 		Dummymenuplayer_OnChange();
 
 		if ((server || IsPlayerAdmin(consoleplayer)))
@@ -3172,6 +3304,19 @@ void M_StartControlPanel(void)
 			else // in this odd case, we still want something to be on the menu even if it's useless
 				MPauseMenu[mpause_spectate].status = IT_GRAYEDOUT;
 		}
+
+#ifdef HAVE_DISCORDRPC
+		{
+			UINT8 i;
+
+			for (i = 0; i < mpause_discordrequests; i++)
+				MPauseMenu[i].alphaKey -= 8;
+
+			MPauseMenu[mpause_discordrequests].alphaKey = MPauseMenu[i].alphaKey;
+
+			M_RefreshPauseMenu();
+		}
+#endif
 
 		currentMenu = &MPauseDef;
 		itemOn = mpause_continue;
@@ -3269,6 +3414,19 @@ void M_Ticker(void)
 		if (--vidm_testingmode == 0)
 			setmodeneeded = vidm_previousmode + 1;
 	}
+
+#if defined (MASTERSERVER) && defined (HAVE_THREADS)
+	I_lock_mutex(&ms_ServerList_mutex);
+	{
+		if (ms_ServerList)
+		{
+			CL_QueryServerList(ms_ServerList);
+			free(ms_ServerList);
+			ms_ServerList = NULL;
+		}
+	}
+	I_unlock_mutex(ms_ServerList_mutex);
+#endif
 }
 
 //
@@ -3336,9 +3494,7 @@ void M_Init(void)
 #ifdef HWRENDER
 	// Permanently hide some options based on render mode
 	if (rendermode == render_soft)
-		OP_VideoOptionsMenu[op_video_ogl].status =
-			OP_VideoOptionsMenu[op_video_kartman].status =
-			OP_VideoOptionsMenu[op_video_md2]    .status = IT_DISABLED;
+		OP_VideoOptionsMenu[op_video_ogl].status = IT_DISABLED;
 #endif
 
 #ifndef NONET
@@ -3722,8 +3878,6 @@ static void M_DrawGenericMenu(void)
 					case IT_CVAR:
 					{
 						consvar_t *cv = (consvar_t *)currentMenu->menuitems[i].itemaction;
-						char asterisks[MAXSTRINGLENGTH+1];
-						size_t sl;
 						switch (currentMenu->menuitems[i].status & IT_CVARTYPE)
 						{
 							case IT_CV_SLIDER:
@@ -3731,27 +3885,6 @@ static void M_DrawGenericMenu(void)
 							case IT_CV_NOPRINT: // color use this
 							case IT_CV_INVISSLIDER: // monitor toggles use this
 								break;
-							case IT_CV_PASSWORD:
-								if (i == itemOn)
-								{
-									V_DrawRightAlignedThinString(x + MAXSTRINGLENGTH*8 + 10, y, V_ALLOWLOWERCASE, va(M_GetText("Tab: %s password"), cv->value ? "hide" : "show"));
-								}
-
-								if (!cv->value || i != itemOn)
-								{
-									sl = strlen(cv->string);
-									memset(asterisks, '*', sl);
-									memset(asterisks + sl, 0, MAXSTRINGLENGTH+1-sl);
-
-									M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
-									V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, asterisks);
-									if (skullAnimCounter < 4 && i == itemOn)
-										V_DrawCharacter(x + 8 + V_StringWidth(asterisks, 0), y + 12,
-											'_' | 0x80, false);
-									y += 16;
-									break;
-								}
-								/* fallthru */
 							case IT_CV_STRING:
 								M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
 								V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, cv->string);
@@ -3984,6 +4117,25 @@ static void M_DrawPauseMenu(void)
 					break;*/
 			}
 			V_DrawRightAlignedString(284, 44 + (i*8), V_MONOSPACE, emblem_text[i]);
+		}
+	}
+#endif
+
+#ifdef HAVE_DISCORDRPC
+	// kind of hackily baked in here
+	if (currentMenu == &MPauseDef && discordRequestList != NULL)
+	{
+		const tic_t freq = TICRATE/2;
+
+		if ((leveltime % freq) >= freq/2)
+		{
+			V_DrawFixedPatch(204 * FRACUNIT,
+				(currentMenu->y + MPauseMenu[mpause_discordrequests].alphaKey - 1) * FRACUNIT,
+				FRACUNIT,
+				0,
+				W_CachePatchName("K_REQUE2", PU_CACHE),
+				NULL
+			);
 		}
 	}
 #endif
@@ -4503,21 +4655,11 @@ static void M_StopMessage(INT32 choice)
 // You can even put multiple images in one menu!
 static void M_DrawImageDef(void)
 {
-	// this is probably what the V_DrawFixedPatch screen-fill bullshit was for, right
-	//V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31); -- never mind, screen fade
-
-	// Grr.  Need to autodetect for pic_ts.
-	pic_t *pictest = (pic_t *)W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
-	if (!pictest->zero)
-		V_DrawScaledPic(0,0,0,W_GetNumForName(currentMenu->menuitems[itemOn].text));
+	patch_t *patch = W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
+	if (patch->width <= BASEVIDWIDTH)
+		V_DrawScaledPatch(0,0,0,patch);
 	else
-	{
-		patch_t *patch = W_CachePatchName(currentMenu->menuitems[itemOn].text,PU_CACHE);
-		if (patch->height <= BASEVIDHEIGHT)
-			V_DrawScaledPatch(0,0,0,patch);
-		else
-			V_DrawSmallScaledPatch(0,0,0,patch);
-	}
+		V_DrawSmallScaledPatch(0,0,0,patch);
 
 	if (currentMenu->menuitems[itemOn].alphaKey)
 	{
@@ -4587,8 +4729,8 @@ static void M_AddonsOptions(INT32 choice)
 	M_SetupNextMenu(&OP_AddonsOptionsDef);
 }
 
-#define LOCATIONSTRING1 "Visit \x83SRB2.ORG/MODS\x80 to get & make add-ons!"
-#define LOCATIONSTRING2 "Visit \x88SRB2.ORG/MODS\x80 to get & make add-ons!"
+#define LOCATIONSTRING1 "Visit \x83SRB2.ORG/MODS\x80 to get & make addons!"
+#define LOCATIONSTRING2 "Visit \x88SRB2.ORG/MODS\x80 to get & make addons!"
 
 static void M_Addons(INT32 choice)
 {
@@ -4764,7 +4906,7 @@ static boolean M_AddonsRefresh(void)
 		{
 			S_StartSound(NULL, sfx_s26d);
 			if (refreshdirmenu & REFRESHDIR_MAX)
-				message = va("%c%s\x80\nMaximum number of add-ons reached.\nA file could not be loaded.\nIf you wish to play with this add-on, restart the game to clear existing ones.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
+				message = va("%c%s\x80\nMaximum number of addons reached.\nA file could not be loaded.\nIf you wish to play with this addon, restart the game to clear existing ones.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 			else
 				message = va("%c%s\x80\nA file was not loaded.\nCheck the console log for more information.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 		}
@@ -4776,7 +4918,7 @@ static boolean M_AddonsRefresh(void)
 		else if (majormods && !prevmajormods)
 		{
 			S_StartSound(NULL, sfx_s221);
-			message = va("%c%s\x80\nGameplay has now been modified.\nIf you wish to play Record Attack mode, restart the game to clear existing add-ons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
+			message = va("%c%s\x80\nYou've loaded a gameplay-modifying addon.\n\nRecord Attack has been disabled, but you\ncan still play alone in local Multiplayer.\n\nIf you wish to play Record Attack mode, restart the game to disable loaded addons.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), refreshdirname);
 			prevmajormods = majormods;
 		}
 
@@ -5193,6 +5335,7 @@ void M_ReplayHut(INT32 choice)
 	G_SetGamestate(GS_TIMEATTACK);
 
 	demo.rewinding = false;
+	CL_ClearRewinds();
 
 	S_ChangeMusicInternal("replst", true);
 }
@@ -5205,7 +5348,8 @@ static void M_HandleReplayHutList(INT32 choice)
 		if (dir_on[menudepthleft])
 			dir_on[menudepthleft]--;
 		else
-			M_PrevOpt();
+			return;
+			//M_PrevOpt();
 
 		S_StartSound(NULL, sfx_menu1);
 		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
@@ -5215,7 +5359,8 @@ static void M_HandleReplayHutList(INT32 choice)
 		if (dir_on[menudepthleft] < sizedirmenu-1)
 			dir_on[menudepthleft]++;
 		else
-			itemOn = 0; // Not M_NextOpt because that would take us to the extra dummy item
+			return;
+			//itemOn = 0; // Not M_NextOpt because that would take us to the extra dummy item
 
 		S_StartSound(NULL, sfx_menu1);
 		replayScrollTitle = 0; replayScrollDelay = TICRATE; replayScrollDir = 1;
@@ -5668,7 +5813,7 @@ static void M_DrawReplayStartMenu(void)
 
 	case DFILE_ERROR_NOTLOADED:
 	case DFILE_ERROR_INCOMPLETEOUTOFORDER:
-		warning = "Loading addons will mark your game as modified, and record attack may be unavailable.\nYou can watch without loading addons, but desyncs may occur.";
+		warning = "Loading addons will mark your game as modified, and Record Attack may be unavailable.\nYou can watch without loading addons, but desyncs may occur.";
 		break;
 
 	case DFILE_ERROR_EXTRAFILES:
@@ -5722,6 +5867,11 @@ static void M_DrawPlaybackMenu(void)
 	INT16 i;
 	patch_t *icon;
 	UINT8 *activemap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_GOLD, GTC_MENUCACHE);
+	UINT32 transmap = max(0, (INT32)(leveltime - playback_last_menu_interaction_leveltime - 4*TICRATE)) / 5;
+	transmap = min(8, transmap) << V_ALPHASHIFT;
+
+	if (leveltime - playback_last_menu_interaction_leveltime >= 6*TICRATE)
+		playback_last_menu_interaction_leveltime = leveltime - 6*TICRATE;
 
 	// Toggle items
 	if (paused && !demo.rewinding)
@@ -5745,13 +5895,10 @@ static void M_DrawPlaybackMenu(void)
 	{
 		for (i = playback_viewcount; i <= playback_view4; i++)
 			PlaybackMenu[i].status = IT_DISABLED;
+		PlaybackMenu[playback_freecamera].alphaKey = 72;
+		PlaybackMenu[playback_quit].alphaKey = 88;
 
-		//PlaybackMenu[playback_moreoptions].alphaKey = 72;
-		//PlaybackMenu[playback_quit].alphaKey = 88;
-		PlaybackMenu[playback_quit].alphaKey = 72;
-
-		//currentMenu->x = BASEVIDWIDTH/2 - 52;
-		currentMenu->x = BASEVIDWIDTH/2 - 44;
+		currentMenu->x = BASEVIDWIDTH/2 - 52;
 	}
 	else
 	{
@@ -5762,11 +5909,8 @@ static void M_DrawPlaybackMenu(void)
 		for (i = splitscreen+1; i < 4; i++)
 			PlaybackMenu[playback_view1+i].status = IT_DISABLED;
 
-		//PlaybackMenu[playback_moreoptions].alphaKey = 156;
-		//PlaybackMenu[playback_quit].alphaKey = 172;
-		PlaybackMenu[playback_quit].alphaKey = 156;
-
-		//currentMenu->x = BASEVIDWIDTH/2 - 94;
+		PlaybackMenu[playback_freecamera].alphaKey = 156;
+		PlaybackMenu[playback_quit].alphaKey = 172;
 		currentMenu->x = BASEVIDWIDTH/2 - 88;
 	}
 
@@ -5803,16 +5947,16 @@ static void M_DrawPlaybackMenu(void)
 			icon = W_CachePatchName("PLAYRANK", PU_CACHE); // temp
 
 		if ((i == playback_fastforward && cv_playbackspeed.value > 1) || (i == playback_rewind && demo.rewinding))
-			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, V_SNAPTOTOP, icon, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_JAWZ, GTC_MENUCACHE));
+			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, transmap|V_SNAPTOTOP, icon, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_JAWZ, GTC_MENUCACHE));
 		else
-			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, V_SNAPTOTOP, icon, (i == itemOn) ? activemap : inactivemap);
+			V_DrawMappedPatch(currentMenu->x + currentMenu->menuitems[i].alphaKey, currentMenu->y, transmap|V_SNAPTOTOP, icon, (i == itemOn) ? activemap : inactivemap);
 
 		if (i == itemOn)
 		{
 			V_DrawCharacter(currentMenu->x + currentMenu->menuitems[i].alphaKey + 4, currentMenu->y + 14,
-				'\x1A' | V_SNAPTOTOP|highlightflags, false);
+				'\x1A' | transmap|V_SNAPTOTOP|highlightflags, false);
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 18, V_SNAPTOTOP|V_ALLOWLOWERCASE, currentMenu->menuitems[i].text);
+			V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 18, transmap|V_SNAPTOTOP|V_ALLOWLOWERCASE, currentMenu->menuitems[i].text);
 
 			if ((currentMenu->menuitems[i].status & IT_TYPE) == IT_ARROWS)
 			{
@@ -5820,11 +5964,11 @@ static void M_DrawPlaybackMenu(void)
 
 				if (!(i == playback_viewcount && splitscreen == 3))
 					V_DrawCharacter(BASEVIDWIDTH/2 - 4, currentMenu->y + 28 - (skullAnimCounter/5),
-						'\x1A' | V_SNAPTOTOP|highlightflags, false); // up arrow
+						'\x1A' | transmap|V_SNAPTOTOP|highlightflags, false); // up arrow
 
 				if (!(i == playback_viewcount && splitscreen == 0))
 					V_DrawCharacter(BASEVIDWIDTH/2 - 4, currentMenu->y + 48 + (skullAnimCounter/5),
-						'\x1B' | V_SNAPTOTOP|highlightflags, false); // down arrow
+						'\x1B' | transmap|V_SNAPTOTOP|highlightflags, false); // down arrow
 
 				switch (i)
 				{
@@ -5843,7 +5987,7 @@ static void M_DrawPlaybackMenu(void)
 					continue;
 				}
 
-				V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 38, V_SNAPTOTOP|V_ALLOWLOWERCASE|highlightflags, str);
+				V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y + 38, transmap|V_SNAPTOTOP|V_ALLOWLOWERCASE|highlightflags, str);
 			}
 		}
 	}
@@ -5920,6 +6064,10 @@ static void M_PlaybackAdvance(INT32 choice)
 
 static void M_PlaybackSetViews(INT32 choice)
 {
+
+	if (demo.freecam)
+		return;	// not here.
+
 	if (choice > 0)
 	{
 		if (splitscreen < 3)
@@ -5936,6 +6084,33 @@ static void M_PlaybackAdjustView(INT32 choice)
 {
 	G_AdjustView(itemOn - playback_viewcount, (choice > 0) ? 1 : -1, true);
 }
+
+// this one's rather tricky
+static void M_PlaybackToggleFreecam(INT32 choice)
+{
+	(void)choice;
+	M_ClearMenus(true);
+
+	// remove splitscreen:
+	splitscreen = 0;
+	R_ExecuteSetViewSize();
+
+	P_InitCameraCmd();	// init camera controls
+	if (!demo.freecam)	// toggle on
+	{
+		demo.freecam = true;
+		democam.cam = &camera[0];	// this is rather useful
+	}
+	else	// toggle off
+	{
+		demo.freecam = false;
+		// reset democam vars:
+		democam.cam = NULL;
+		democam.turnheld = false;
+		democam.keyboardlook = false;	// reset only these. localangle / aiming gets set before the cam does anything anyway
+	}
+}
+
 
 static void M_PlaybackQuit(INT32 choice)
 {
@@ -6088,7 +6263,12 @@ static void M_Options(INT32 choice)
 	OP_MainMenu[4].status = OP_MainMenu[5].status = (Playing() && !(server || IsPlayerAdmin(consoleplayer))) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU);
 
 	OP_MainMenu[8].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_CALL); // Play credits
+
+#ifdef HAVE_DISCORDRPC
+	OP_DataOptionsMenu[4].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU); // Erase data
+#else
 	OP_DataOptionsMenu[3].status = (Playing()) ? (IT_GRAYEDOUT) : (IT_STRING|IT_SUBMENU); // Erase data
+#endif
 
 	OP_GameOptionsMenu[3].status =
 		(M_SecretUnlocked(SECRET_ENCORE)) ? (IT_CVAR|IT_STRING) : IT_SECRET; // cv_kartencore
@@ -6127,6 +6307,20 @@ static void M_SelectableClearMenus(INT32 choice)
 {
 	(void)choice;
 	M_ClearMenus(true);
+}
+
+void M_RefreshPauseMenu(void)
+{
+#ifdef HAVE_DISCORDRPC
+	if (discordRequestList != NULL)
+	{
+		MPauseMenu[mpause_discordrequests].status = IT_STRING | IT_SUBMENU;
+	}
+	else
+	{
+		MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
+	}
+#endif
 }
 
 // ======
@@ -7327,7 +7521,7 @@ static void M_DrawStatsMaps(int location)
 		else
 			V_DrawString(20, y, 0, va("%s %s %s",
 				mapheaderinfo[mnum]->lvlttl,
-				(mapheaderinfo[mnum]->zonttl[0] ? mapheaderinfo[mnum]->zonttl : "ZONE"),
+				(mapheaderinfo[mnum]->zonttl[0] ? mapheaderinfo[mnum]->zonttl : "Zone"),
 				mapheaderinfo[mnum]->actnum));
 
 		y += 8;
@@ -8085,7 +8279,7 @@ static void M_SetGuestReplay(INT32 choice)
 		which(0);
 }
 
-static void M_ModeAttackRetry(INT32 choice)
+void M_ModeAttackRetry(INT32 choice)
 {
 	(void)choice;
 	G_CheckDemoStatus(); // Cancel recording
@@ -8153,7 +8347,118 @@ static void M_EndGame(INT32 choice)
 // Connect Menu
 //===========================================================================
 
-#define SERVERHEADERHEIGHT 44
+void
+M_SetWaitingMode (int mode)
+{
+#ifdef HAVE_THREADS
+	I_lock_mutex(&m_menu_mutex);
+#endif
+	{
+		m_waiting_mode = mode;
+	}
+#ifdef HAVE_THREADS
+	I_unlock_mutex(m_menu_mutex);
+#endif
+}
+
+int
+M_GetWaitingMode (void)
+{
+	int mode;
+
+#ifdef HAVE_THREADS
+	I_lock_mutex(&m_menu_mutex);
+#endif
+	{
+		mode = m_waiting_mode;
+	}
+#ifdef HAVE_THREADS
+	I_unlock_mutex(m_menu_mutex);
+#endif
+
+	return mode;
+}
+
+#ifdef MASTERSERVER
+#ifdef HAVE_THREADS
+static void
+Spawn_masterserver_thread (const char *name, void (*thread)(int*))
+{
+	int *id = malloc(sizeof *id);
+
+	I_lock_mutex(&ms_QueryId_mutex);
+	{
+		*id = ms_QueryId;
+	}
+	I_unlock_mutex(ms_QueryId_mutex);
+
+	I_spawn_thread(name, (I_thread_fn)thread, id);
+}
+
+static int
+Same_instance (int id)
+{
+	int okay;
+
+	I_lock_mutex(&ms_QueryId_mutex);
+	{
+		okay = ( id == ms_QueryId );
+	}
+	I_unlock_mutex(ms_QueryId_mutex);
+
+	return okay;
+}
+#endif/*HAVE_THREADS*/
+
+static void
+Fetch_servers_thread (int *id)
+{
+	msg_server_t * server_list;
+
+	(void)id;
+
+	M_SetWaitingMode(M_WAITING_SERVERS);
+
+#ifdef HAVE_THREADS
+	server_list = GetShortServersList(*id);
+#else
+	server_list = GetShortServersList(0);
+#endif
+
+	if (server_list)
+	{
+#ifdef HAVE_THREADS
+		if (Same_instance(*id))
+#endif
+		{
+			M_SetWaitingMode(M_NOT_WAITING);
+
+#ifdef HAVE_THREADS
+			I_lock_mutex(&ms_ServerList_mutex);
+			{
+				ms_ServerList = server_list;
+			}
+			I_unlock_mutex(ms_ServerList_mutex);
+#else
+			CL_QueryServerList(server_list);
+			free(server_list);
+#endif
+		}
+#ifdef HAVE_THREADS
+		else
+		{
+			free(server_list);
+		}
+#endif
+	}
+
+#ifdef HAVE_THREADS
+	free(id);
+#endif
+}
+#endif/*MASTERSERVER*/
+
+#define SERVERHEADERHEIGHT 36
 #define SERVERLINEHEIGHT 12
 
 #define S_LINEY(n) currentMenu->y + SERVERHEADERHEIGHT + (n * SERVERLINEHEIGHT)
@@ -8225,34 +8530,18 @@ static void M_Refresh(INT32 choice)
 	if (rendermode == render_soft)
 		I_FinishUpdate(); // page flip or blit buffer
 
-	// note: this is the one case where 0 is a valid room number
-	// because it corresponds to "All"
-	CL_UpdateServerList(!(ms_RoomId < 0), ms_RoomId);
-
 	// first page of servers
 	serverlistpage = 0;
-}
 
-static INT32 menuRoomIndex = 0;
-
-static void M_DrawRoomMenu(void)
-{
-	const char *rmotd;
-
-	// use generic drawer for cursor, items and title
-	M_DrawGenericMenu();
-
-	V_DrawString(currentMenu->x - 16, currentMenu->y, highlightflags, M_GetText("Select a room"));
-
-	M_DrawTextBox(144, 24, 20, 20);
-
-	if (itemOn == 0)
-		rmotd = M_GetText("Don't connect to the Master Server.");
-	else
-		rmotd = room_list[itemOn-1].motd;
-
-	rmotd = V_WordWrap(0, 20*8, 0, rmotd);
-	V_DrawString(144+8, 32, V_ALLOWLOWERCASE|V_RETURN8, rmotd);
+#ifdef MASTERSERVER
+#ifdef HAVE_THREADS
+	Spawn_masterserver_thread("fetch-servers", Fetch_servers_thread);
+#else/*HAVE_THREADS*/
+	Fetch_servers_thread(NULL);
+#endif/*HAVE_THREADS*/
+#else/*MASTERSERVER*/
+	CL_UpdateServerList();
+#endif/*MASTERSERVER*/
 }
 
 static void M_DrawConnectMenu(void)
@@ -8261,6 +8550,7 @@ static void M_DrawConnectMenu(void)
 	const char *gt = "Unknown";
 	const char *spd = "";
 	INT32 numPages = (serverlistcount+(SERVERS_PER_PAGE-1))/SERVERS_PER_PAGE;
+	int waiting;
 
 	for (i = FIRSTSERVERLINE; i < min(localservercount, SERVERS_PER_PAGE)+FIRSTSERVERLINE; i++)
 		MP_ConnectMenu[i].status = IT_STRING | IT_SPACE;
@@ -8268,20 +8558,12 @@ static void M_DrawConnectMenu(void)
 	if (!numPages)
 		numPages = 1;
 
-	// Room name
-	if (ms_RoomId < 0)
-		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ConnectMenu[mp_connect_room].alphaKey,
-		                         highlightflags, (itemOn == mp_connect_room) ? "<Select to change>" : "<Offline Mode>");
-	else
-		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ConnectMenu[mp_connect_room].alphaKey,
-		                         highlightflags, room_list[menuRoomIndex].name);
-
 	// Page num
 	V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ConnectMenu[mp_connect_page].alphaKey,
 	                         highlightflags, va("%u of %d", serverlistpage+1, numPages));
 
 	// Horizontal line!
-	V_DrawFill(1, currentMenu->y+40, 318, 1, 0);
+	V_DrawFill(1, currentMenu->y+32, 318, 1, 0);
 
 	if (serverlistcount <= 0)
 		V_DrawString(currentMenu->x,currentMenu->y+SERVERHEADERHEIGHT, 0, "No servers found");
@@ -8312,6 +8594,7 @@ static void M_DrawConnectMenu(void)
 
 		V_DrawSmallString(currentMenu->x+112, S_LINEY(i)+8, globalflags, gt);
 
+		// display game speed for race gametypes
 		if (serverlist[slindex].info.gametype == GT_RACE)
 		{
 			spd = kartspeed_cons_t[serverlist[slindex].info.kartvars & SV_SPEEDMASK].strvalue;
@@ -8319,15 +8602,29 @@ static void M_DrawConnectMenu(void)
 			V_DrawSmallString(currentMenu->x+132, S_LINEY(i)+8, globalflags, va("(%s Speed)", spd));
 		}
 
-		if (serverlist[slindex].info.kartvars & SV_PASSWORD)
-			V_DrawFixedPatch((currentMenu->x - 9) << FRACBITS, (S_LINEY(i)) << FRACBITS, FRACUNIT, globalflags & (~V_ALLOWLOWERCASE), W_CachePatchName("SERVLOCK", PU_CACHE), NULL);
-
 		MP_ConnectMenu[i+FIRSTSERVERLINE].status = IT_STRING | IT_CALL;
 	}
 
 	localservercount = serverlistcount;
 
 	M_DrawGenericMenu();
+
+	waiting = M_GetWaitingMode();
+
+	if (waiting)
+	{
+		const char *message;
+
+		if (waiting == M_WAITING_VERSION)
+			message = "Checking for updates...";
+		else
+			message = "Searching for servers...";
+
+		// Display a little "please wait" message.
+		M_DrawTextBox(52, BASEVIDHEIGHT/2-10, 25, 3);
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, 0, message);
+		V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2)+12, 0, "Please wait.");
+	}
 }
 
 static boolean M_CancelConnect(void)
@@ -8409,19 +8706,42 @@ void M_SortServerList(void)
 
 #ifndef NONET
 #ifdef UPDATE_ALERT
-static boolean M_CheckMODVersion(void)
+static void M_CheckMODVersion(int id)
 {
 	char updatestring[500];
-	const char *updatecheck = GetMODVersion();
+	const char *updatecheck = GetMODVersion(id);
 	if(updatecheck)
 	{
 		sprintf(updatestring, UPDATE_ALERT_STRING, VERSIONSTRING, updatecheck);
-		M_StartMessage(updatestring, NULL, MM_NOTHING);
-		return false;
-	} else
-		return true;
-}
+#ifdef HAVE_THREADS
+		I_lock_mutex(&m_menu_mutex);
 #endif
+		M_StartMessage(updatestring, NULL, MM_NOTHING);
+#ifdef HAVE_THREADS
+		I_unlock_mutex(m_menu_mutex);
+#endif
+	}
+}
+#endif/*UPDATE_ALERT*/
+
+#if defined (UPDATE_ALERT) && defined (HAVE_THREADS)
+static void
+Check_new_version_thread (int *id)
+{
+	M_SetWaitingMode(M_WAITING_VERSION);
+
+	M_CheckMODVersion(*id);
+
+	if (Same_instance(*id))
+	{
+		Fetch_servers_thread(id);
+	}
+	else
+	{
+		free(id);
+	}
+}
+#endif/*defined (UPDATE_ALERT) && defined (HAVE_THREADS)*/
 
 static void M_ConnectMenu(INT32 choice)
 {
@@ -8431,16 +8751,37 @@ static void M_ConnectMenu(INT32 choice)
 
 	// first page of servers
 	serverlistpage = 0;
-	if (ms_RoomId < 0)
-	{
-		M_RoomMenu(0); // Select a room instead of staring at an empty list
-		// This prevents us from returning to the modified game alert.
-		currentMenu->prevMenu = &MP_MainDef;
-	}
-	else
-		M_SetupNextMenu(&MP_ConnectDef);
+	M_SetupNextMenu(&MP_ConnectDef);
 	itemOn = 0;
+
+#if defined (MASTERSERVER) && defined (HAVE_THREADS)
+	I_lock_mutex(&ms_QueryId_mutex);
+	{
+		ms_QueryId++;
+	}
+	I_unlock_mutex(ms_QueryId_mutex);
+
+	I_lock_mutex(&ms_ServerList_mutex);
+	{
+		if (ms_ServerList)
+		{
+			free(ms_ServerList);
+			ms_ServerList = NULL;
+		}
+	}
+	I_unlock_mutex(ms_ServerList_mutex);
+
+#ifdef UPDATE_ALERT
+	Spawn_masterserver_thread("check-new-version", Check_new_version_thread);
+#else/*UPDATE_ALERT*/
+	Spawn_masterserver_thread("fetch-servers", Fetch_servers_thread);
+#endif/*UPDATE_ALERT*/
+#else/*defined (MASTERSERVER) && defined (HAVE_THREADS)*/
+#ifdef UPDATE_ALERT
+	M_CheckMODVersion(0);
+#endif/*UPDATE_ALERT*/
 	M_Refresh(0);
+#endif/*defined (MASTERSERVER) && defined (HAVE_THREADS)*/
 }
 
 static void M_ConnectMenuModChecks(INT32 choice)
@@ -8450,78 +8791,11 @@ static void M_ConnectMenuModChecks(INT32 choice)
 
 	if (modifiedgame)
 	{
-		M_StartMessage(M_GetText("Add-ons are currently loaded.\n\nYou will only be able to join a server if\nit has the same ones loaded in the same order, which may be unlikely.\n\nIf you wish to play on other servers,\nrestart the game to clear existing add-ons.\n\n(Press a key)\n"),M_ConnectMenu,MM_EVENTHANDLER);
+		M_StartMessage(M_GetText("You have addons loaded.\nYou won't be able to join netgames!\n\nTo play online, restart the game\nand don't load any addons.\nSRB2Kart will automatically add\neverything you need when you join.\n\n(Press a key)\n"),M_ConnectMenu,MM_EVENTHANDLER);
 		return;
 	}
 
 	M_ConnectMenu(-1);
-}
-
-static UINT32 roomIds[NUM_LIST_ROOMS];
-
-static void M_RoomMenu(INT32 choice)
-{
-	INT32 i;
-
-	(void)choice;
-
-	// Display a little "please wait" message.
-	M_DrawTextBox(52, BASEVIDHEIGHT/2-10, 25, 3);
-	V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, 0, "Fetching room info...");
-	V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2)+12, 0, "Please wait.");
-	I_OsPolling();
-	I_UpdateNoBlit();
-	if (rendermode == render_soft)
-		I_FinishUpdate(); // page flip or blit buffer
-
-	if (GetRoomsList(currentMenu == &MP_ServerDef) < 0)
-		return;
-
-#ifdef UPDATE_ALERT
-	if (!M_CheckMODVersion())
-		return;
-#endif
-
-	for (i = 1; i < NUM_LIST_ROOMS+1; ++i)
-		MP_RoomMenu[i].status = IT_DISABLED;
-	memset(roomIds, 0, sizeof(roomIds));
-
-	for (i = 0; room_list[i].header.buffer[0]; i++)
-	{
-		if(*room_list[i].name != '\0')
-		{
-			MP_RoomMenu[i+1].text = room_list[i].name;
-			roomIds[i] = room_list[i].id;
-			MP_RoomMenu[i+1].status = IT_STRING|IT_CALL;
-		}
-	}
-
-	MP_RoomDef.prevMenu = currentMenu;
-	M_SetupNextMenu(&MP_RoomDef);
-}
-
-static void M_ChooseRoom(INT32 choice)
-{
-	if (choice == 0)
-		ms_RoomId = -1;
-	else
-	{
-		ms_RoomId = roomIds[choice-1];
-		menuRoomIndex = choice - 1;
-	}
-
-	serverlistpage = 0;
-	/*
-	We were on the Multiplayer menu? That means that we must have been trying to
-	view the server browser, but we hadn't selected a room yet. So we need to go
-	to the browser next, not back there.
-	*/
-	if (currentMenu->prevMenu == &MP_MainDef)
-		M_SetupNextMenu(&MP_ConnectDef);
-	else
-		M_SetupNextMenu(currentMenu->prevMenu);
-	if (currentMenu == &MP_ConnectDef)
-		M_Refresh(0);
 }
 #endif //NONET
 
@@ -8571,11 +8845,6 @@ static void M_StartServer(INT32 choice)
 
 	// Still need to reset devmode
 	cv_debug = 0;
-
-	if (strlen(cv_dummyjoinpassword.string) > 0)
-		D_SetJoinPassword(cv_dummyjoinpassword.string);
-	else
-		joinpasswordset = false;
 
 	if (demo.playback)
 		G_StopDemo();
@@ -8743,21 +9012,6 @@ static void M_DrawServerMenu(void)
 {
 	M_DrawLevelSelectOnly(false, false);
 	M_DrawGenericMenu();
-
-#ifndef NONET
-	// Room name
-	if (currentMenu == &MP_ServerDef)
-	{
-#define mp_server_room 1
-		if (ms_RoomId < 0)
-			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ServerMenu[mp_server_room].alphaKey,
-			                         highlightflags, (itemOn == mp_server_room) ? "<Select to change>" : "<LAN Mode>");
-		else
-			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ServerMenu[mp_server_room].alphaKey,
-			                         highlightflags, room_list[menuRoomIndex].name);
-#undef mp_server_room
-	}
-#endif
 }
 
 static void M_MapChange(INT32 choice)
@@ -8787,7 +9041,6 @@ static void M_StartServerMenu(INT32 choice)
 	(void)choice;
 	levellistmode = LLM_CREATESERVER;
 	M_PrepareLevelSelect();
-	ms_RoomId = -1;
 	M_SetupNextMenu(&MP_ServerDef);
 
 }
@@ -10992,25 +11245,6 @@ static void M_QuitSRB2(INT32 choice)
 // OpenGL specific options
 // =====================================================================
 
-#define FOG_COLOR_ITEM  1
-// ===================
-// M_OGL_DrawFogMenu()
-// ===================
-static void M_OGL_DrawFogMenu(void)
-{
-	INT32 mx, my;
-
-	mx = currentMenu->x;
-	my = currentMenu->y;
-	M_DrawGenericMenu(); // use generic drawer for cursor, items and title
-	V_DrawString(BASEVIDWIDTH - mx - V_StringWidth(cv_grfogcolor.string, 0),
-		my + currentMenu->menuitems[FOG_COLOR_ITEM].alphaKey, highlightflags, cv_grfogcolor.string);
-	// blink cursor on FOG_COLOR_ITEM if selected
-	if (itemOn == FOG_COLOR_ITEM && skullAnimCounter < 4)
-		V_DrawCharacter(BASEVIDWIDTH - mx,
-			my + currentMenu->menuitems[FOG_COLOR_ITEM].alphaKey, '_' | 0x80,false);
-}
-
 // =====================
 // M_OGL_DrawColorMenu()
 // =====================
@@ -11024,61 +11258,162 @@ static void M_OGL_DrawColorMenu(void)
 	V_DrawString(mx, my + currentMenu->menuitems[0].alphaKey - 10,
 		highlightflags, "Gamma correction");
 }
+#endif
 
-//===================
-// M_HandleFogColor()
-//===================
-static void M_HandleFogColor(INT32 choice)
+#ifdef HAVE_DISCORDRPC
+static const tic_t confirmLength = 3*TICRATE/4;
+static tic_t confirmDelay = 0;
+static boolean confirmAccept = false;
+
+static void M_HandleDiscordRequests(INT32 choice)
 {
-	size_t i, l;
-	char temp[8];
-	boolean exitmenu = false; // exit to previous menu and send name change
+	if (confirmDelay > 0)
+		return;
 
 	switch (choice)
 	{
-		case KEY_DOWNARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn++;
-			break;
-
-		case KEY_UPARROW:
-			S_StartSound(NULL, sfx_menu1);
-			itemOn--;
+		case KEY_ENTER:
+			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_YES);
+			confirmAccept = true;
+			confirmDelay = confirmLength;
+			S_StartSound(NULL, sfx_s3k63);
 			break;
 
 		case KEY_ESCAPE:
-			exitmenu = true;
-			break;
-
-		case KEY_BACKSPACE:
-			S_StartSound(NULL, sfx_menu1);
-			strcpy(temp, cv_grfogcolor.string);
-			strcpy(cv_grfogcolor.zstring, "000000");
-			l = strlen(temp)-1;
-			for (i = 0; i < l; i++)
-				cv_grfogcolor.zstring[i + 6 - l] = temp[i];
-			break;
-
-		default:
-			if ((choice >= '0' && choice <= '9') || (choice >= 'a' && choice <= 'f')
-				|| (choice >= 'A' && choice <= 'F'))
-			{
-				S_StartSound(NULL, sfx_menu1);
-				strcpy(temp, cv_grfogcolor.string);
-				strcpy(cv_grfogcolor.zstring, "000000");
-				l = strlen(temp);
-				for (i = 0; i < l; i++)
-					cv_grfogcolor.zstring[5 - i] = temp[l - i];
-				cv_grfogcolor.zstring[5] = (char)choice;
-			}
+			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_NO);
+			confirmAccept = false;
+			confirmDelay = confirmLength;
+			S_StartSound(NULL, sfx_s3kb2);
 			break;
 	}
-	if (exitmenu)
+}
+
+static const char *M_GetDiscordName(discordRequest_t *r)
+{
+	if (r == NULL)
+		return "";
+
+	if (cv_discordstreamer.value)
+		return r->username;
+
+	return va("%s#%s", r->username, r->discriminator);
+}
+
+// (this goes in k_hud.c when merged into v2)
+static void M_DrawSticker(INT32 x, INT32 y, INT32 width, INT32 flags, boolean isSmall)
+{
+	patch_t *stickerEnd;
+	INT32 height;
+
+	if (isSmall == true)
 	{
-		if (currentMenu->prevMenu)
-			M_SetupNextMenu(currentMenu->prevMenu);
+		stickerEnd = W_CachePatchName("K_STIKE2", PU_CACHE);
+		height = 6;
+	}
+	else
+	{
+		stickerEnd = W_CachePatchName("K_STIKEN", PU_CACHE);
+		height = 11;
+	}
+
+	V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, FRACUNIT, flags, stickerEnd, NULL);
+	V_DrawFill(x, y, width, height, 24|flags);
+	V_DrawFixedPatch((x + width)*FRACUNIT, y*FRACUNIT, FRACUNIT, flags|V_FLIP, stickerEnd, NULL);
+}
+
+static void M_DrawDiscordRequests(void)
+{
+	discordRequest_t *curRequest = discordRequestList;
+	UINT8 *colormap;
+	patch_t *hand = NULL;
+	boolean removeRequest = false;
+
+	const char *wantText = "...would like to join!";
+	const char *controlText = "\x82" "ENTER" "\x80" " - Accept    " "\x82" "ESC" "\x80" " - Decline";
+
+	INT32 x = 100;
+	INT32 y = 133;
+
+	INT32 slide = 0;
+	INT32 maxYSlide = 18;
+
+	if (confirmDelay > 0)
+	{
+		if (confirmAccept == true)
+		{
+			colormap = R_GetTranslationColormap(TC_DEFAULT, SKINCOLOR_GREEN, GTC_MENUCACHE);
+			hand = W_CachePatchName("K_LAPH02", PU_CACHE);
+		}
 		else
-			M_ClearMenus(true);
+		{
+			colormap = R_GetTranslationColormap(TC_DEFAULT, SKINCOLOR_RED, GTC_MENUCACHE);
+			hand = W_CachePatchName("K_LAPH03", PU_CACHE);
+		}
+
+		slide = confirmLength - confirmDelay;
+
+		confirmDelay--;
+
+		if (confirmDelay == 0)
+			removeRequest = true;
+	}
+	else
+	{
+		colormap = R_GetTranslationColormap(TC_DEFAULT, SKINCOLOR_GREY, GTC_MENUCACHE);
+	}
+
+	V_DrawFixedPatch(56*FRACUNIT, 150*FRACUNIT, FRACUNIT, 0, W_CachePatchName("K_LAPE01", PU_CACHE), colormap);
+
+	if (hand != NULL)
+	{
+		fixed_t handoffset = (4 - abs((signed)(skullAnimCounter - 4))) * FRACUNIT;
+		V_DrawFixedPatch(56*FRACUNIT, 150*FRACUNIT + handoffset, FRACUNIT, 0, hand, NULL);
+	}
+
+	M_DrawSticker(x + (slide * 32), y - 1, V_ThinStringWidth(M_GetDiscordName(curRequest), V_ALLOWLOWERCASE|V_6WIDTHSPACE), 0, false);
+	V_DrawThinString(x + (slide * 32), y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_YELLOWMAP, M_GetDiscordName(curRequest));
+
+	M_DrawSticker(x, y + 12, V_ThinStringWidth(wantText, V_ALLOWLOWERCASE|V_6WIDTHSPACE), 0, true);
+	V_DrawThinString(x, y + 10, V_ALLOWLOWERCASE|V_6WIDTHSPACE, wantText);
+
+	M_DrawSticker(x, y + 26, V_ThinStringWidth(controlText, V_ALLOWLOWERCASE|V_6WIDTHSPACE), 0, true);
+	V_DrawThinString(x, y + 24, V_ALLOWLOWERCASE|V_6WIDTHSPACE, controlText);
+
+	y -= 18;
+
+	while (curRequest->next != NULL)
+	{
+		INT32 ySlide = min(slide * 4, maxYSlide);
+
+		curRequest = curRequest->next;
+
+		M_DrawSticker(x, y - 1 + ySlide, V_ThinStringWidth(M_GetDiscordName(curRequest), V_ALLOWLOWERCASE|V_6WIDTHSPACE), 0, false);
+		V_DrawThinString(x, y + ySlide, V_ALLOWLOWERCASE|V_6WIDTHSPACE, M_GetDiscordName(curRequest));
+
+		y -= 12;
+		maxYSlide = 12;
+	}
+
+	if (removeRequest == true)
+	{
+		DRPC_RemoveRequest(discordRequestList);
+
+		if (discordRequestList == NULL)
+		{
+			// No other requests
+			MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
+
+			if (currentMenu->prevMenu)
+			{
+				M_SetupNextMenu(currentMenu->prevMenu);
+				if (currentMenu == &MPauseDef)
+					itemOn = mpause_continue;
+			}
+			else
+				M_ClearMenus(true);
+
+			return;
+		}
 	}
 }
 #endif

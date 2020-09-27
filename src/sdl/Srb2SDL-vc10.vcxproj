@@ -93,6 +93,7 @@
     <Import Project="..\..\libs\libpng.props" />
     <Import Project="..\..\libs\SDL2.props" />
     <Import Project="..\..\libs\SDL_mixer.props" />
+    <Import Project="..\..\libs\libgme.props" />
     <Import Project="Srb2SDL.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -222,7 +223,6 @@
     <ClInclude Include="..\hardware\hw_defs.h" />
     <ClInclude Include="..\hardware\hw_dll.h" />
     <ClInclude Include="..\hardware\hw_drv.h" />
-    <ClInclude Include="..\hardware\hw_glide.h" />
     <ClInclude Include="..\hardware\hw_glob.h" />
     <ClInclude Include="..\hardware\hw_light.h" />
     <ClInclude Include="..\hardware\hw_main.h" />
@@ -249,6 +249,7 @@
     <ClInclude Include="..\lzf.h" />
     <ClInclude Include="..\md5.h" />
     <ClInclude Include="..\mserv.h" />
+    <ClInclude Include="..\http-mserv.h" />
     <ClInclude Include="..\m_aatree.h" />
     <ClInclude Include="..\m_anigif.h" />
     <ClInclude Include="..\m_argv.h" />
@@ -399,6 +400,7 @@
     <ClCompile Include="..\lzf.c" />
     <ClCompile Include="..\md5.c" />
     <ClCompile Include="..\mserv.c" />
+    <ClCompile Include="..\http-mserv.c" />
     <ClCompile Include="..\m_aatree.c" />
     <ClCompile Include="..\m_anigif.c" />
     <ClCompile Include="..\m_argv.c" />

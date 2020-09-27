@@ -129,6 +129,11 @@ static patch_t *gotbflag;
 static patch_t *hud_tv1;
 static patch_t *hud_tv2;
 
+#ifdef HAVE_DISCORDRPC
+// Discord Rich Presence
+static patch_t *envelope;
+#endif
+
 // SRB2kart
 
 hudinfo_t hudinfo[NUMHUDITEMS] =
@@ -203,7 +208,7 @@ void ST_Ticker(void)
 }
 
 // 0 is default, any others are special palettes.
-static INT32 st_palette = 0;
+INT32 st_palette = 0;
 
 void ST_doPaletteStuff(void)
 {
@@ -349,6 +354,11 @@ void ST_LoadGraphics(void)
 	// Midnight Channel:
 	hud_tv1 = W_CachePatchName("HUD_TV1", PU_HUDGFX);
 	hud_tv2 = W_CachePatchName("HUD_TV2", PU_HUDGFX);
+
+#ifdef HAVE_DISCORDRPC
+	// Discord Rich Presence
+	envelope = W_CachePatchName("K_REQUES", PU_HUDGFX);
+#endif
 }
 
 // made separate so that skins code can reload custom face graphics
@@ -614,9 +624,7 @@ static void ST_drawDebugInfo(void)
 	}
 
 	if (cv_debug & DBG_MEMORY)
-	{
 		V_DrawRightAlignedString(320, height,     V_MONOSPACE, va("Heap used: %7sKB", sizeu1(Z_TagsUsage(0, INT32_MAX)>>10)));
-	}
 }
 
 /*
@@ -778,7 +786,7 @@ static void ST_drawLevelTitle(void)
 		if (zonttl[0])
 			zonexpos -= V_LevelNameWidth(zonttl); // SRB2kart
 		else
-			zonexpos -= V_LevelNameWidth(M_GetText("ZONE"));
+			zonexpos -= V_LevelNameWidth(M_GetText("Zone"));
 	}
 
 	if (lvlttlxpos < 0)
@@ -815,7 +823,7 @@ static void ST_drawLevelTitle(void)
 	if (strlen(zonttl) > 0)
 		V_DrawLevelTitle(zonexpos, bary+6, 0, zonttl);
 	else if (!(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE))
-		V_DrawLevelTitle(zonexpos, bary+6, 0, M_GetText("ZONE"));
+		V_DrawLevelTitle(zonexpos, bary+6, 0, M_GetText("Zone"));
 
 	if (actnum[0])
 		V_DrawLevelTitle(ttlnumxpos+12, bary+6, 0, actnum);
@@ -1799,10 +1807,12 @@ static void ST_doItemFinderIconsAndSound(void) // SRB2kart - unused.
 //
 static void ST_overlayDrawer(void)
 {
-	/* SRB2kart doesn't need this stuff
 	//hu_showscores = auto hide score/time/rings when tab rankings are shown
 	if (!(hu_showscores && (netgame || multiplayer)))
 	{
+		K_drawKartHUD();
+
+	/* SRB2kart doesn't need this stuff
 		if (maptol & TOL_NIGHTS)
 			ST_drawNiGHTSHUD();
 		else
@@ -1826,15 +1836,15 @@ static void ST_overlayDrawer(void)
 			)
 				ST_drawLives();
 		}
-	}
 	*/
+	}
 
 	// GAME OVER pic
 	/*if (G_GametypeUsesLives() && stplyr->lives <= 0 && !(hu_showscores && (netgame || multiplayer)))
 	{
 		patch_t *p;
 
-		if (countdown == 1)
+		if (racecountdown == 1)
 			p = timeover;
 		else
 			p = sboover;
@@ -1846,8 +1856,6 @@ static void ST_overlayDrawer(void)
 	{
 		// Countdown timer for Race Mode
 		// ...moved to k_kart.c so we can take advantage of the LAPS_Y value
-
-		K_drawKartHUD();
 
 		/* SRB2kart doesn't need this stuff, I think
 		// If you are in overtime, put a big honkin' flashin' message on the screen.
@@ -1954,7 +1962,7 @@ static void ST_overlayDrawer(void)
 
 	if (!hu_showscores && netgame && !mapreset)
 	{
-		/*if (G_GametypeUsesLives() && stplyr->lives <= 0 && countdown != 1)
+		/*if (G_GametypeUsesLives() && stplyr->lives <= 0 && racecountdown != 1)
 			V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(132), 0, M_GetText("Press Viewpoint Key to watch a player."));
 		else if (gametype == GT_HIDEANDSEEK &&
 		 (!stplyr->spectator && !(stplyr->pflags & PF_TAGIT)) && (leveltime > hidetime * TICRATE))
@@ -2039,8 +2047,6 @@ static void ST_overlayDrawer(void)
 			break;
 		}
 	}
-
-	ST_drawDebugInfo();
 }
 
 void ST_DrawDemoTitleEntry(void)
@@ -2083,6 +2089,22 @@ static void ST_MayonakaStatic(void)
 	V_DrawFixedPatch(0, 142<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTOLEFT|flag, hud_tv2, NULL);
 	V_DrawFixedPatch(320<<FRACBITS, 142<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTORIGHT|V_FLIP|flag, hud_tv2, NULL);
 }
+
+#ifdef HAVE_DISCORDRPC
+void ST_AskToJoinEnvelope(void)
+{
+	const tic_t freq = TICRATE/2;
+
+	if (menuactive)
+		return;
+
+	if ((leveltime % freq) < freq/2)
+		return;
+
+	V_DrawFixedPatch(296*FRACUNIT, 2*FRACUNIT, FRACUNIT, V_SNAPTOTOP|V_SNAPTORIGHT, envelope, NULL);
+	// maybe draw number of requests with V_DrawPingNum ?
+}
+#endif
 
 void ST_Drawer(void)
 {
@@ -2142,4 +2164,5 @@ void ST_Drawer(void)
 		else
 			V_DrawFadeScreen(120, 15-timeinmap); // Then gradually fade out from there
 	}
+	ST_drawDebugInfo();
 }

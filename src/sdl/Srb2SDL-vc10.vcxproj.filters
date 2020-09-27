@@ -231,9 +231,6 @@
     <ClInclude Include="..\hardware\hw_drv.h">
       <Filter>Hw_Hardware</Filter>
     </ClInclude>
-    <ClInclude Include="..\hardware\hw_glide.h">
-      <Filter>Hw_Hardware</Filter>
-    </ClInclude>
     <ClInclude Include="..\hardware\hw_glob.h">
       <Filter>Hw_Hardware</Filter>
     </ClInclude>
@@ -292,6 +289,9 @@
       <Filter>I_Interface</Filter>
     </ClInclude>
     <ClInclude Include="..\mserv.h">
+      <Filter>I_Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\http-mserv.h">
       <Filter>I_Interface</Filter>
     </ClInclude>
     <ClInclude Include="..\lua_hook.h">
@@ -639,7 +639,7 @@
     <ClCompile Include="..\hardware\hw_md2.c">
       <Filter>Hw_Hardware</Filter>
     </ClCompile>
-    <ClCompile Include="..\hardware\hw_md2load.c">
+     <ClCompile Include="..\hardware\hw_md2load.c">
       <Filter>Hw_Hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\hardware\hw_md3load.c">
@@ -664,6 +664,9 @@
       <Filter>I_Interface</Filter>
     </ClCompile>
     <ClCompile Include="..\mserv.c">
+      <Filter>I_Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\http-mserv.c">
       <Filter>I_Interface</Filter>
     </ClCompile>
     <ClCompile Include="..\lua_baselib.c">

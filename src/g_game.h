@@ -26,10 +26,13 @@ extern char customversionstring[32];
 #ifdef SEENAMES
 extern player_t *seenplayer;
 #endif
-extern char player_names[MAXPLAYERS][MAXPLAYERNAME+1];
+extern char  player_names[MAXPLAYERS][MAXPLAYERNAME+1];
+extern INT32 player_name_changes[MAXPLAYERS];
 
 extern player_t players[MAXPLAYERS];
 extern boolean playeringame[MAXPLAYERS];
+
+extern UINT8 *demo_p;
 
 // ======================================
 // DEMO playback/recording related stuff.
@@ -60,6 +63,9 @@ struct demovars_s {
 		DSM_WILLSAVE,
 		DSM_SAVED
 	} savemode;
+
+	boolean freecam;
+
 };
 
 extern struct demovars_s demo;

@@ -3929,6 +3929,9 @@ static inline boolean PIT_GrenadeRing(mobj_t *thing)
 	if (!grenade)
 		return false;
 
+	if (grenade->flags2 & MF2_DEBRIS)
+		return false;
+
 	if (thing->type != MT_PLAYER) // Don't explode for anything but an actual player.
 		return true;
 
@@ -3977,6 +3980,9 @@ void A_GrenadeRing(mobj_t *actor)
 		return;
 #endif
 
+	if (actor->flags2 & MF2_DEBRIS)
+		return;
+
 	if (actor->state == &states[S_SSMINE_DEPLOY8])
 		explodedist = (3*explodedist)/2;
 
@@ -4001,6 +4007,9 @@ static inline boolean PIT_MineExplode(mobj_t *thing)
 	if (!grenade || P_MobjWasRemoved(grenade))
 		return false; // There's the possibility these can chain react onto themselves after they've already died if there are enough all in one spot
 
+	if (grenade->flags2 & MF2_DEBRIS)	// don't explode twice
+		return false;
+
 	if (thing == grenade || thing->type == MT_MINEEXPLOSIONSOUND) // Don't explode yourself! Endless loop!
 		return true;
 
@@ -4023,8 +4032,6 @@ static inline boolean PIT_MineExplode(mobj_t *thing)
 		thing->z - grenade->z) > explodedist)
 		return true; // Too far away
 
-	grenade->flags2 |= MF2_DEBRIS;
-
 	if (thing->player) // Looks like we're going to have to need a seperate function for this too
 		K_ExplodePlayer(thing->player, grenade->target, grenade);
 	else
@@ -4045,6 +4052,9 @@ void A_MineExplode(mobj_t *actor)
 		return;
 #endif
 
+	if (actor->flags2 & MF2_DEBRIS)
+		return;
+
 	type = (mobjtype_t)locvar1;
 
 	// Use blockmap to check for nearby shootables
@@ -4052,6 +4062,8 @@ void A_MineExplode(mobj_t *actor)
 	yl = (unsigned)(actor->y - explodedist - bmaporgy)>>MAPBLOCKSHIFT;
 	xh = (unsigned)(actor->x + explodedist - bmaporgx)>>MAPBLOCKSHIFT;
 	xl = (unsigned)(actor->x - explodedist - bmaporgx)>>MAPBLOCKSHIFT;
+
+	BMBOUNDFIX (xl, xh, yl, yh);
 
 	grenade = actor;
 
@@ -4068,6 +4080,8 @@ void A_MineExplode(mobj_t *actor)
 		K_SpawnMineExplosion(actor, SKINCOLOR_KETCHUP);
 
 	P_SpawnMobj(actor->x, actor->y, actor->z, MT_MINEEXPLOSIONSOUND);
+
+	actor->flags2 |= MF2_DEBRIS;	// Set this flag to ensure that the explosion won't be effective more than 1 frame.
 }
 //}
 
@@ -5781,13 +5795,8 @@ void A_MixUp(mobj_t *actor)
 
 				P_SetThingPosition(players[i].mo);
 
-#ifdef ESLOPE
 				players[i].mo->floorz = P_GetFloorZ(players[i].mo, players[i].mo->subsector->sector, players[i].mo->x, players[i].mo->y, NULL);
 				players[i].mo->ceilingz = P_GetCeilingZ(players[i].mo, players[i].mo->subsector->sector, players[i].mo->x, players[i].mo->y, NULL);
-#else
-				players[i].mo->floorz = players[i].mo->subsector->sector->floorheight;
-				players[i].mo->ceilingz = players[i].mo->subsector->sector->ceilingheight;
-#endif
 
 				P_CheckPosition(players[i].mo, players[i].mo->x, players[i].mo->y);
 			}
@@ -8503,6 +8512,7 @@ void A_SPBChase(mobj_t *actor)
 				//fast->momz = (3*actor->momz)/4;
 				fast->color = SKINCOLOR_RED;
 				fast->colorized = true;
+				P_SetTarget(&fast->target, actor); // easier lua access
 				K_MatchGenericExtraFlags(fast, actor);
 			}
 

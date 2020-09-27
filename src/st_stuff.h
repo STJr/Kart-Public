@@ -29,6 +29,11 @@ void ST_Ticker(void);
 // Called when naming a replay.
 void ST_DrawDemoTitleEntry(void);
 
+#ifdef HAVE_DISCORDRPC
+// Called when you have Discord asks
+void ST_AskToJoinEnvelope(void);
+#endif
+
 // Called by main loop.
 void ST_Drawer(void);
 
@@ -61,6 +66,7 @@ boolean ST_SameTeam(player_t *a, player_t *b);
 //--------------------
 
 extern boolean st_overlay; // sb overlay on or off when fullscreen
+extern INT32 st_palette; // 0 is default, any others are special palettes.
 
 extern lumpnum_t st_borderpatchnum;
 // patches, also used in intermission
