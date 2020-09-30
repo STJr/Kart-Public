@@ -16,16 +16,12 @@
 
 #include "endian.h"
 
-// Endianess handling.
-// WAD files are stored little endian.
-#ifdef SRB2_BIG_ENDIAN
-
-#define SHORT(x) ((INT16)(\
+#define SWAP_SHORT(x) ((INT16)(\
 (((UINT16)(x) & (UINT16)0x00ffU) << 8) \
 | \
 (((UINT16)(x) & (UINT16)0xff00U) >> 8))) \
 
-#define LONG(x) ((INT32)(\
+#define SWAP_LONG(x) ((INT32)(\
 (((UINT32)(x) & (UINT32)0x000000ffUL) << 24) \
 | \
 (((UINT32)(x) & (UINT32)0x0000ff00UL) <<  8) \
@@ -34,9 +30,18 @@
 | \
 (((UINT32)(x) & (UINT32)0xff000000UL) >> 24)))
 
+// Endianess handling.
+// WAD files are stored little endian.
+#ifdef SRB2_BIG_ENDIAN
+#define SHORT SWAP_SHORT
+#define LONG SWAP_LONG
+#define MSBF_SHORT(x) ((INT16)(x))
+#define MSBF_LONG(x) ((INT32)(x))
 #else
 #define SHORT(x) ((INT16)(x))
 #define LONG(x)	((INT32)(x))
+#define MSBF_SHORT SWAP_SHORT
+#define MSBF_LONG SWAP_LONG
 #endif
 
 #endif
