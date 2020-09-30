@@ -14,7 +14,7 @@
 #if defined (__linux__)
 #include <sys/random.h>
 #elif defined (_WIN32)
-//#include <ntsecapi.h>
+#define _CRT_RAND_S
 #elif defined (__APPLE__)
 #include <CommonCrypto/CommonRandom.h>
 #else
@@ -85,6 +85,28 @@ STUN_node (void)
 	return node;
 }
 
+static void
+csprng
+(
+		void * const buffer,
+		const size_t size
+){
+#if defined (_WIN32)
+	size_t o;
+
+	for (o = 0; o < size; o += sizeof (unsigned int))
+	{
+		rand_s((unsigned int *)&((char *)buffer)[o]);
+	}
+#elif defined (__linux__)
+	getrandom(buffer, size, 0U);
+#elif defined (__APPLE__)
+	CCRandomGenerateBytes(buffer, size);
+#elif defined (__FreeBSD__) || defined (__NetBSD__) || defined (__OpenBSD__)
+	arc4random_buf(buffer, size);
+#endif
+}
+
 void
 STUN_bind (stun_callback_t callback)
 {
@@ -97,15 +119,7 @@ STUN_bind (stun_callback_t callback)
 	doomcom->remotenode = node;
 	doomcom->datalength = 20;
 
-#if defined (__linux__)
-	getrandom(transaction_id, 12U, 0U);
-#elif defined (_WIN32)
-	//RtlGenRandom(transaction_id, 12UL);
-#elif defined (__APPLE__)
-	CCRandomGenerateBytes(stun_transcation_id, 12U);
-#elif defined (__FreeBSD__) || defined (__NetBSD__) || defined (__OpenBSD__)
-	arc4random_buf(transaction_id, 12U);
-#endif
+	csprng(transaction_id, 12U);
 
 	memcpy(&doomcom->data[0], &type,           2U);
 	memset(&doomcom->data[2], 0,               2U);
