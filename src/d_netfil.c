@@ -430,7 +430,7 @@ INT32 CL_CheckFiles(void)
 
 	for (i = 0; i < fileneedednum; i++)
 	{
-		if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_FALLBACK)
+		if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD || fileneeded[i].status == FS_FALLBACK)
 			downloadrequired = true;
 		
 		if (fileneeded[i].status == FS_FOUND || fileneeded[i].status == FS_NOTFOUND)
