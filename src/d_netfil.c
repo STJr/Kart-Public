@@ -433,7 +433,7 @@ INT32 CL_CheckFiles(void)
 		if (fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD || fileneeded[i].status == FS_FALLBACK)
 			downloadrequired = true;
 		
-		if (fileneeded[i].status == FS_FOUND || fileneeded[i].status == FS_NOTFOUND)
+		if (fileneeded[i].status != FS_OPEN)
 			filestoload++;
 
 		if (fileneeded[i].status != FS_NOTCHECKED) //since we're running this over multiple tics now, its possible for us to come across files checked in previous tics
