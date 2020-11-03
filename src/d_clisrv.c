@@ -2263,7 +2263,10 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 			cl_mode = CL_CHECKFILES;
 		}
 		else
+		{
 			cl_mode = CL_ASKJOIN; // files need not be checked for the server.
+			*asksent = 0;
+		}
 
 		return true;
 	}
