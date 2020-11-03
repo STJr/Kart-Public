@@ -1698,7 +1698,8 @@ void P_DoPlayerExit(player_t *player)
 	if (P_IsLocalPlayer(player) && (!player->spectator && !demo.playback))
 		legitimateexit = true;
 
-	player->griefstrikes--; // Remove a strike for finishing a race normally
+	if (player->griefstrikes > 0)
+		player->griefstrikes--; // Remove a strike for finishing a race normally
 
 	if (G_RaceGametype()) // If in Race Mode, allow
 	{
