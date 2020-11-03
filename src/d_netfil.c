@@ -128,6 +128,7 @@ static UINT32 curl_origfilesize;
 static UINT32 curl_origtotalfilesize;
 static char *curl_realname = NULL;
 fileneeded_t *curl_curfile = NULL;
+HTTP_login *curl_logins;
 #endif
 
 /** Fills a serverinfo packet with information about wad files loaded.
@@ -1082,6 +1083,8 @@ int curlprogress_callback(void *clientp, double dltotal, double dlnow, double ul
 
 void CURLPrepareFile(const char* url, int dfilenum)
 {
+	HTTP_login *login;
+
 #ifdef PARANOIA
 	if (M_CheckParm("-nodownload"))
 		I_Error("Attempted to download files in -nodownload mode");
@@ -1109,6 +1112,14 @@ void CURLPrepareFile(const char* url, int dfilenum)
 		curl_easy_setopt(http_handle, CURLOPT_PROTOCOLS, CURLPROTO_HTTP|CURLPROTO_HTTPS);
 
 		curl_easy_setopt(http_handle, CURLOPT_USERAGENT, va("SRB2Kart/v%d.%d", VERSION, SUBVERSION)); // Set user agent as some servers won't accept invalid user agents.
+
+		// Authenticate if the user so wishes
+		login = CURLGetLogin(url, NULL);
+
+		if (login)
+		{
+			curl_easy_setopt(http_handle, CURLOPT_USERPWD, login->auth);
+		}
 
 		// Follow a redirect request, if sent by the server.
 		curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1L);
@@ -1210,5 +1221,28 @@ void CURLGetFile(void)
 		curl_multi_cleanup(multi_handle);
 		curl_global_cleanup();
     }
+}
+
+HTTP_login *
+CURLGetLogin (const char *url, HTTP_login ***return_prev_next)
+{
+	HTTP_login  * login;
+	HTTP_login ** prev_next;
+
+	for (
+			prev_next = &curl_logins;
+			( login = (*prev_next));
+			prev_next = &login->next
+	){
+		if (strcmp(login->url, url) == 0)
+		{
+			if (return_prev_next)
+				(*return_prev_next) = prev_next;
+
+			return login;
+		}
+	}
+
+	return NULL;
 }
 #endif

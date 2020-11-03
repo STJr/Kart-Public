@@ -3472,6 +3472,76 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 	}
 }
 
+#ifdef HAVE_CURL
+/** Add a login for HTTP downloads. If the
+  * user/password is missing, remove it.
+  *
+  * \sa Command_list_http_logins
+  */
+static void Command_set_http_login (void)
+{
+	HTTP_login  *login;
+	HTTP_login **prev_next;
+
+	if (COM_Argc() < 2)
+	{
+		CONS_Printf(
+				"set_http_login <URL> [user:password]: Set or remove a login to "
+				"authenticate HTTP downloads.\n"
+		);
+		return;
+	}
+
+	login = CURLGetLogin(COM_Argv(1), &prev_next);
+
+	if (COM_Argc() == 2)
+	{
+		if (login)
+		{
+			(*prev_next) = login->next;
+			CONS_Printf("Login for '%s' removed.\n", login->url);
+			Z_Free(login);
+		}
+	}
+	else
+	{
+		if (login)
+			Z_Free(login->auth);
+		else
+		{
+			login = ZZ_Alloc(sizeof *login);
+			login->url  = Z_StrDup(COM_Argv(1));
+		}
+
+		login->auth = Z_StrDup(COM_Argv(2));
+
+		login->next = curl_logins;
+		curl_logins = login;
+	}
+}
+
+/** List logins for HTTP downloads.
+  *
+  * \sa Command_set_http_login
+  */
+static void Command_list_http_logins (void)
+{
+	HTTP_login *login;
+
+	for (
+			login = curl_logins;
+			login;
+			login = login->next
+	){
+		CONS_Printf(
+				"'%s' -> '%s'\n",
+				login->url,
+				login->auth
+		);
+	}
+}
+#endif/*HAVE_CURL*/
+
 static CV_PossibleValue_t netticbuffer_cons_t[] = {{0, "MIN"}, {3, "MAX"}, {0, NULL}};
 consvar_t cv_netticbuffer = {"netticbuffer", "1", CV_SAVE, netticbuffer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
@@ -3540,6 +3610,10 @@ void D_ClientServerInit(void)
 	COM_AddCommand("reloadbans", Command_ReloadBan);
 	COM_AddCommand("connect", Command_connect);
 	COM_AddCommand("nodes", Command_Nodes);
+#ifdef HAVE_CURL
+	COM_AddCommand("set_http_login", Command_set_http_login);
+	COM_AddCommand("list_http_logins", Command_list_http_logins);
+#endif
 #ifdef PACKETDROP
 	COM_AddCommand("drop", Command_Drop);
 	COM_AddCommand("droprate", Command_Droprate);
