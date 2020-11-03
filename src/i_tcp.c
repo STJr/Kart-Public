@@ -182,6 +182,7 @@ static UINT8 UPNP_support = TRUE;
 #include "d_netfil.h"
 #include "i_tcp.h"
 #include "m_argv.h"
+#include "stun.h"
 
 #include "doomstat.h"
 
@@ -612,6 +613,13 @@ static boolean SOCK_Get(void)
 			(void *)&fromaddress, &fromlen);
 		if (c != ERRSOCKET)
 		{
+#ifdef USE_STUN
+			if (STUN_got_response(doomcom->data, c))
+			{
+				return false;
+			}
+#endif
+
 			// find remote node number
 			for (j = 1; j <= MAXNETNODES; j++) //include LAN
 			{
