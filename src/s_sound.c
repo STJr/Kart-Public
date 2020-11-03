@@ -1952,7 +1952,7 @@ static boolean S_PlayMusic(boolean looping, UINT32 fadeinms)
 	S_InitMusicVolume(); // switch between digi and sequence volume
 
 	if (window_notinfocus && !cv_playmusicifunfocused.value)
-		I_PauseSong();
+		I_SetMusicVolume(0);
 
 	return true;
 }
@@ -2418,9 +2418,9 @@ static void PlayMusicIfUnfocused_OnChange(void)
 	if (window_notinfocus)
 	{
 		if (cv_playmusicifunfocused.value)
-			I_PauseSong();
+			I_SetMusicVolume(0);
 		else
-			I_ResumeSong();
+			S_InitMusicVolume();
 	}
 }
 
