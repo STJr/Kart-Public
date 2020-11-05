@@ -12,9 +12,7 @@
 
 #ifdef HAVE_DISCORDRPC
 
-#ifdef HAVE_CURL
-#include <curl/curl.h>
-#endif // HAVE_CURL
+#include <time.h>
 
 #include "i_system.h"
 #include "d_clisrv.h"
@@ -27,6 +25,8 @@
 #include "mserv.h" // cv_advertise
 #include "z_zone.h"
 #include "byteptr.h"
+#include "stun.h"
+#include "i_tcp.h" // current_port
 
 #include "discord.h"
 #include "doomdef.h"
@@ -45,16 +45,7 @@ struct discordInfo_s discordInfo;
 
 discordRequest_t *discordRequestList = NULL;
 
-#ifdef HAVE_CURL
-struct SelfIPbuffer
-{
-	CURL *curl;
-	char *pointer;
-	size_t length;
-};
-
 static char self_ip[IP_SIZE];
-#endif // HAVE_CURL
 
 /*--------------------------------------------------
 	static char *DRPC_XORIPString(const char *input)
@@ -335,39 +326,23 @@ void DRPC_Init(void)
 	DRPC_UpdatePresence();
 }
 
-#ifdef HAVE_CURL
 /*--------------------------------------------------
-	static size_t DRPC_WriteServerIP(char *s, size_t size, size_t n, void *userdata)
+	static void DRPC_GotServerIP(UINT32 address)
 
-		Writing function for use with curl. Only intended to be used with simple text.
+		Callback triggered by successful STUN response.
 
 	Input Arguments:-
-		s - Data to write
-		size - Always 1.
-		n - Length of data
-		userdata - Passed in from CURLOPT_WRITEDATA, intended to be SelfIPbuffer
+		address - IPv4 address of this machine, in network byte order.
 
 	Return:-
-		Number of bytes wrote in this pass.
+		None
 --------------------------------------------------*/
-static size_t DRPC_WriteServerIP(char *s, size_t size, size_t n, void *userdata)
+static void DRPC_GotServerIP(UINT32 address)
 {
-	struct SelfIPbuffer *buffer;
-	size_t newlength;
-
-	buffer = userdata;
-
-	newlength = buffer->length + size*n;
-	buffer->pointer = realloc(buffer->pointer, newlength+1);
-
-	memcpy(buffer->pointer + buffer->length, s, size*n);
-
-	buffer->pointer[newlength] = '\0';
-	buffer->length = newlength;
-
-	return size*n;
+	const unsigned char * p = (const unsigned char *)&address;
+	sprintf(self_ip, "%u.%u.%u.%u:%u", p[0], p[1], p[2], p[3], current_port);
+	DRPC_UpdatePresence();
 }
-#endif // HAVE_CURL
 
 /*--------------------------------------------------
 	static const char *DRPC_GetServerIP(void)
@@ -387,64 +362,21 @@ static const char *DRPC_GetServerIP(void)
 		{
 			// We're not the server, so we could successfully get the IP!
 			// No need to do anything else :)
-			return address; 
+			sprintf(self_ip, "%s:%u", address, current_port);
+			return self_ip;
 		}
-	}
-
-#ifdef HAVE_CURL
-	// This is a little bit goofy, but
-	// there's practically no good way to get your own public IP address,
-	// so we've gotta break out curl for this :V
-	if (!self_ip[0])
-	{
-		CURL *curl;
-
-		curl_global_init(CURL_GLOBAL_ALL);
-		curl = curl_easy_init();
-
-		if (curl)
-		{
-			// The API to get your public IP address from.
-			// Picked because it's stupid simple and it's been up for a long time.
-			const char *api = "http://ip4only.me/api/"; 
-
-			struct SelfIPbuffer buffer;
-			CURLcode success;
-
-			buffer.length = 0;
-			buffer.pointer = malloc(buffer.length+1);
-			buffer.pointer[0] = '\0';
-
-			curl_easy_setopt(curl, CURLOPT_URL, api);
-			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, DRPC_WriteServerIP);
-			curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
-
-			success = curl_easy_perform(curl);
-
-			if (success == CURLE_OK)
-			{
-				char *tmp;
-				tmp = strtok(buffer.pointer, ",");
-
-				if (!strcmp(tmp, "IPv4")) // ensure correct type of IP
-				{
-					tmp = strtok(NULL, ",");
-					strncpy(self_ip, tmp, IP_SIZE); // Yay, we have the IP :)
-				}
-			}
-
-			free(buffer.pointer);
-			curl_easy_cleanup(curl);
-		}
-
-		curl_global_cleanup();
 	}
 
 	if (self_ip[0])
+	{
 		return self_ip;
+	}
 	else
-#endif // HAVE_CURL
-		return NULL; // Could not get your IP for whatever reason, so we cannot do Discord invites
+	{
+		// There happens to be a good way to get it after all! :D
+		STUN_bind(DRPC_GotServerIP);
+		return NULL;
+	}
 }
 
 /*--------------------------------------------------
@@ -510,19 +442,6 @@ void DRPC_UpdatePresence(void)
 	// Server info
 	if (netgame)
 	{
-		if (cv_advertise.value)
-		{
-			discordPresence.state = "Public";
-		}
-		else
-		{
-			discordPresence.state = "Private";
-		}
-
-		discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
-		discordPresence.partySize = D_NumPlayers(); // Players in server
-		discordPresence.partyMax = discordInfo.maxPlayers; // Max players
-
 		if (DRPC_InvitesAreAllowed() == true)
 		{
 			const char *join;
@@ -536,7 +455,24 @@ void DRPC_UpdatePresence(void)
 
 				joinSecretSet = true;
 			}
+			else
+			{
+				return;
+			}
 		}
+
+		if (cv_advertise.value)
+		{
+			discordPresence.state = "Public";
+		}
+		else
+		{
+			discordPresence.state = "Private";
+		}
+
+		discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
+		discordPresence.partySize = D_NumPlayers(); // Players in server
+		discordPresence.partyMax = discordInfo.maxPlayers; // Max players
 	}
 	else
 	{
