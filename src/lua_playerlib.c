@@ -190,12 +190,7 @@ static int player_get(lua_State *L)
 	else if (fastcmp(field,"name"))
 		lua_pushstring(L, player_names[plr-players]);
 	else if (fastcmp(field,"mo"))
-	{
-		if (plr->spectator)
-			lua_pushnil(L);
-		else
-			LUA_PushUserdata(L, plr->mo, META_MOBJ);
-	}
+		LUA_PushUserdata(L, plr->mo, META_MOBJ);
 	else if (fastcmp(field,"cmd"))
 		LUA_PushUserdata(L, &plr->cmd, META_TICCMD);
 	else if (fastcmp(field,"playerstate"))
