@@ -9704,11 +9704,10 @@ static inline int lib_getenum(lua_State *L)
 		lua_pushinteger(L, mapmusposition);
 		return 1;
 	} else if (fastcmp(word,"server")) {
-		if ((!multiplayer || !(netgame || demo.playback)) && !playeringame[serverplayer])
-			return 0;
-		LUA_PushUserdata(L, &players[serverplayer], META_PLAYER);
-		return 1;
+		return LUA_PushServerPlayer(L);
 	} else if (fastcmp(word,"consoleplayer")) {	// Player controlling the console, basically our local player
+		if (consoleplayer == serverplayer)
+			return LUA_PushServerPlayer(L);
 		if (consoleplayer < 0 || !playeringame[consoleplayer])
 			return 0;
 		LUA_PushUserdata(L, &players[consoleplayer], META_PLAYER);
