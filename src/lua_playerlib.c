@@ -52,8 +52,6 @@ static int lib_iteratePlayers(lua_State *L)
 	{
 		if (!playeringame[i])
 			continue;
-		if (!players[i].mo)
-			continue;
 		LUA_PushUserdata(L, &players[i], META_PLAYER);
 		return 1;
 	}
@@ -73,8 +71,6 @@ static int lib_getPlayer(lua_State *L)
 		if (i == serverplayer)
 			return LUA_PushServerPlayer(L);
 		if (!playeringame[i])
-			return 0;
-		if (!players[i].mo)
 			return 0;
 		LUA_PushUserdata(L, &players[i], META_PLAYER);
 		return 1;
@@ -136,8 +132,6 @@ static int lib_iterateDisplayplayers(lua_State *L)
 		if (i > splitscreen || !playeringame[displayplayers[i]])
 			return 0;	// Stop! There are no more players for us to go through. There will never be a player gap in displayplayers.
 
-		if (!players[displayplayers[i]].mo)
-			continue;
 		LUA_PushUserdata(L, &players[displayplayers[i]], META_PLAYER);
 		lua_pushinteger(L, i);	// push this to recall what number we were on for the next function call. I suppose this also means you can retrieve the splitscreen player number with 'for p, n in displayplayers.iterate'!
 		return 2;
@@ -157,8 +151,6 @@ static int lib_getDisplayplayers(lua_State *L)
 		if (i > splitscreen)
 			return 0;
 		if (!playeringame[displayplayers[i]])
-			return 0;
-		if (!players[displayplayers[i]].mo)
 			return 0;
 		LUA_PushUserdata(L, &players[displayplayers[i]], META_PLAYER);
 		return 1;
