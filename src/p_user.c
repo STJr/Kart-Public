@@ -8578,7 +8578,6 @@ void P_PlayerThink(player_t *player)
 	}
 	else
 		P_MovePlayer(player);
-	}
 
 	if (!player->mo)
 	{
