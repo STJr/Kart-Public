@@ -31,7 +31,9 @@ const char *const hookNames[hook_MAX+1] = {
 	"MapChange",
 	"MapLoad",
 	"PlayerJoin",
+	"PreThinkFrame",
 	"ThinkFrame",
+	"PostThinkFrame",
 	"MobjSpawn",
 	"MobjCollide",
 	"MobjMoveCollide",
@@ -402,6 +404,29 @@ void LUAh_PlayerJoin(int playernum)
 	lua_settop(gL, 0);
 }
 
+// Hook for frame (before mobj and player thinkers)
+void LUAh_PreThinkFrame(void)
+{
+	hook_p hookp;
+	if (!gL || !(hooksAvailable[hook_PreThinkFrame/8] & (1<<(hook_PreThinkFrame%8))))
+		return;
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+	{
+		if (hookp->type != hook_PreThinkFrame)
+			continue;
+
+		lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+		lua_gettable(gL, LUA_REGISTRYINDEX);
+		if (lua_pcall(gL, 0, 0, 0)) {
+			if (!hookp->error || cv_debug & DBG_LUA)
+				CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+			lua_pop(gL, 1);
+			hookp->error = true;
+		}
+	}
+}
+
 // Hook for frame (after mobj and player thinkers)
 void LUAh_ThinkFrame(void)
 {
@@ -421,6 +446,29 @@ void LUAh_ThinkFrame(void)
 				hookp->error = true;
 			}
 		}
+}
+
+// Hook for frame (at end of tick, ie after overlays, precipitation, specials)
+void LUAh_PostThinkFrame(void)
+{
+	hook_p hookp;
+	if (!gL || !(hooksAvailable[hook_PostThinkFrame/8] & (1<<(hook_PostThinkFrame%8))))
+		return;
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+	{
+		if (hookp->type != hook_PostThinkFrame)
+			continue;
+
+		lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+		lua_gettable(gL, LUA_REGISTRYINDEX);
+		if (lua_pcall(gL, 0, 0, 0)) {
+			if (!hookp->error || cv_debug & DBG_LUA)
+				CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+			lua_pop(gL, 1);
+			hookp->error = true;
+		}
+	}
 }
 
 // Hook for Y_Ticker
