@@ -8685,6 +8685,11 @@ struct {
 	{"BT_CUSTOM2",BT_CUSTOM2}, // Lua customizable
 	{"BT_CUSTOM3",BT_CUSTOM3}, // Lua customizable
 
+	// Lua command registration flags
+	{"COM_ADMIN",COM_ADMIN},
+	{"COM_SPLITSCREEN",COM_SPLITSCREEN},
+	{"COM_LOCAL",COM_LOCAL},
+
 	// cvflags_t
 	{"CV_SAVE",CV_SAVE},
 	{"CV_CALL",CV_CALL},
@@ -9713,12 +9718,12 @@ static inline int lib_getenum(lua_State *L)
 			return 0;
 		LUA_PushUserdata(L, &players[consoleplayer], META_PLAYER);
 		return 1;
-	/*} else if (fastcmp(word,"admin")) {
-		LUA_Deprecated(L, "admin", "IsPlayerAdmin(player)");
-		if (!playeringame[adminplayers[0]] || IsPlayerAdmin(serverplayer))
-			return 0;
-		LUA_PushUserdata(L, &players[adminplayers[0]], META_PLAYER);
-		return 1;*/
+	} else if (fastcmp(word,"isserver")) {
+		lua_pushboolean(L, server);
+		return 1;
+	} else if (fastcmp(word, "isdedicatedserver")) {
+		lua_pushboolean(L, dedicated);
+		return 1;
 	} else if (fastcmp(word,"gravity")) {
 		lua_pushinteger(L, gravity);
 		return 1;

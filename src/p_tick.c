@@ -648,6 +648,10 @@ void P_Ticker(boolean run)
 #endif
 		}
 
+#ifdef HAVE_BLUA
+		LUAh_PreThinkFrame();
+#endif
+
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
 				P_PlayerThink(&players[i]);
@@ -779,6 +783,10 @@ void P_Ticker(boolean run)
 			&& --mapreset <= 1
 			&& server) // Remember: server uses it for mapchange, but EVERYONE ticks down for the animation
 				D_MapChange(gamemap, gametype, encoremode, true, 0, false, false);
+
+#ifdef HAVE_BLUA
+		LUAh_PostThinkFrame();
+#endif
 	}
 
 	// Always move the camera.
@@ -808,6 +816,10 @@ void P_PreTicker(INT32 frames)
 	for (framecnt = 0; framecnt < frames; ++framecnt)
 	{
 		P_MapStart();
+
+#ifdef HAVE_BLUA
+		LUAh_PreThinkFrame();
+#endif
 
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
@@ -842,6 +854,10 @@ void P_PreTicker(INT32 frames)
 
 		P_UpdateSpecials();
 		P_RespawnSpecials();
+
+#ifdef HAVE_BLUA
+		LUAh_PostThinkFrame();
+#endif
 
 		P_MapEnd();
 	}
