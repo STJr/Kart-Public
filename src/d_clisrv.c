@@ -1909,7 +1909,8 @@ static void SendAskInfo(INT32 node)
 	// our address to the host, it'll be able to speak to us.
 	HSendPacket(node, false, 0, sizeof (askinfo_pak));
 
-	I_NetRequestHolePunch();
+	if (node != 0 && node != BROADCASTADDR)
+		I_NetRequestHolePunch();
 }
 
 serverelem_t serverlist[MAXSERVERLIST];
@@ -5774,7 +5775,7 @@ FILESTAMP
 	MasterClient_Ticker();
 #endif
 
-	if (serverrunning)
+	if (netgame && serverrunning)
 	{
 		RenewHolePunch();
 	}
@@ -5838,7 +5839,7 @@ FILESTAMP
 	MasterClient_Ticker(); // Acking the Master Server
 #endif
 
-	if (serverrunning)
+	if (netgame && serverrunning)
 	{
 		RenewHolePunch();
 	}
