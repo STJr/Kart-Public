@@ -633,7 +633,7 @@ static boolean SOCK_Get(void)
 		fromlen = (socklen_t)sizeof(fromaddress);
 		c = recvfrom(mysockets[n], (char *)&doomcom->data, MAXPACKETLENGTH, 0,
 			(void *)&fromaddress, &fromlen);
-		if (c != ERRSOCKET)
+		if (c > 0)
 		{
 #ifdef USE_STUN
 			if (STUN_got_response(doomcom->data, c))
