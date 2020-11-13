@@ -1908,6 +1908,8 @@ static void SendAskInfo(INT32 node)
 	// now allowed traffic from the host to us in, so once the MS relays
 	// our address to the host, it'll be able to speak to us.
 	HSendPacket(node, false, 0, sizeof (askinfo_pak));
+
+	I_NetRequestHolePunch();
 }
 
 serverelem_t serverlist[MAXSERVERLIST];
@@ -5725,6 +5727,19 @@ static void UpdatePingTable(void)
 	}
 }
 
+static void RenewHolePunch(void)
+{
+	static time_t past;
+
+	const time_t now = time(NULL);
+
+	if ((now - past) > 20)
+	{
+		I_NetRegisterHolePunch();
+		past = now;
+	}
+}
+
 // Handle timeouts to prevent definitive freezes from happenning
 static void HandleNodeTimeouts(void)
 {
@@ -5758,6 +5773,11 @@ FILESTAMP
 #ifdef MASTERSERVER
 	MasterClient_Ticker();
 #endif
+
+	if (serverrunning)
+	{
+		RenewHolePunch();
+	}
 
 	if (client)
 	{
@@ -5817,6 +5837,11 @@ FILESTAMP
 #ifdef MASTERSERVER
 	MasterClient_Ticker(); // Acking the Master Server
 #endif
+
+	if (serverrunning)
+	{
+		RenewHolePunch();
+	}
 
 	if (client)
 	{

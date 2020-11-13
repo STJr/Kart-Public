@@ -58,6 +58,7 @@ extern consvar_t cv_masterserver_update_rate;
 extern consvar_t cv_masterserver_timeout;
 extern consvar_t cv_masterserver_debug;
 extern consvar_t cv_masterserver_token;
+extern consvar_t cv_rendezvousserver;
 
 extern consvar_t cv_advertise;
 
