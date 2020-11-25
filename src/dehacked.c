@@ -9687,6 +9687,9 @@ static inline int lib_getenum(lua_State *L)
 	} else if (fastcmp(word,"leveltime")) {
 		lua_pushinteger(L, leveltime);
 		return 1;
+	} else if (fastcmp(word,"defrosting")) {
+		lua_pushinteger(L, hook_defrosting);
+		return 1;
 	} else if (fastcmp(word,"curWeather")) {
 		lua_pushinteger(L, curWeather);
 		return 1;
