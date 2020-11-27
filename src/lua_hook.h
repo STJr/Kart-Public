@@ -63,6 +63,7 @@ enum hook {
 extern const char *const hookNames[];
 
 extern boolean hook_cmd_running;	// This is used by PlayerCmd and lua_playerlib to prevent anything from being wirtten to player while we run PlayerCmd.
+extern int hook_defrosting;
 
 void LUAh_MapChange(INT16 mapnumber); // Hook for map change (before load)
 void LUAh_MapLoad(void); // Hook for map load

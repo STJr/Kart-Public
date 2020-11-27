@@ -807,13 +807,15 @@ void P_Ticker(boolean run)
 // Abbreviated ticker for pre-loading, calls thinkers and assorted things
 void P_PreTicker(INT32 frames)
 {
-	INT32 i,framecnt;
+	INT32 i;
 	ticcmd_t temptic;
 
 	for (i = 0; i <= splitscreen; i++)
 		postimgtype[i] = postimg_none;
 
-	for (framecnt = 0; framecnt < frames; ++framecnt)
+	hook_defrosting = frames;
+
+	while (hook_defrosting)
 	{
 		P_MapStart();
 
@@ -860,5 +862,7 @@ void P_PreTicker(INT32 frames)
 #endif
 
 		P_MapEnd();
+
+		hook_defrosting--;
 	}
 }
