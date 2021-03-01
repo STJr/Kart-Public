@@ -1239,12 +1239,10 @@ boolean camspin[MAXSPLITSCREENPLAYERS];
 
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
 static fixed_t sidemove[2] = {2<<FRACBITS>>16, 4<<FRACBITS>>16};
-static fixed_t angleturn[3] = {KART_FULLTURN/2, KART_FULLTURN, KART_FULLTURN/4}; // + slow turn
 
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 {
-	INT32 laim, th, tspeed, forward, side, axis; //i
-	const INT32 speed = 1;
+	INT32 laim, forward, side, axis; //i
 	// these ones used for multiple conditions
 	boolean turnleft, turnright, mouseaiming, analogjoystickmove, gamepadjoystickmove;
 	boolean invertmouse, lookaxis, usejoystick, kbl, rd;
@@ -1252,7 +1250,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	camera_t *thiscam;
 	angle_t lang;
 
-	static INT32 turnheld[MAXSPLITSCREENPLAYERS]; // for accelerative turning
 	static boolean keyboard_look[MAXSPLITSCREENPLAYERS]; // true if lookup/down using keyboard
 	static boolean resetdown[MAXSPLITSCREENPLAYERS]; // don't cam reset every frame
 
@@ -1269,7 +1266,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		thiscam = &camera[ssplayer-1];
 	lang = localangle[ssplayer-1];
 	laim = localaiming[ssplayer-1];
-	th = turnheld[ssplayer-1];
 	kbl = keyboard_look[ssplayer-1];
 	rd = resetdown[ssplayer-1];
 
@@ -1354,39 +1350,27 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	}
 	forward = side = 0;
 
-	// use two stage accelerative turning
-	// on the keyboard and joystick
-	if (turnleft || turnright)
-		th += realtics;
-	else
-		th = 0;
-
-	if (th < SLOWTURNTICS)
-		tspeed = 2; // slow turn
-	else
-		tspeed = speed;
-
 	cmd->driftturn = 0;
 
 	// let movement keys cancel each other out
 	if (turnright && !(turnleft))
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn - (angleturn[tspeed]));
-		cmd->driftturn = (INT16)(cmd->driftturn - (angleturn[tspeed]));
+		cmd->angleturn = (INT16)(cmd->angleturn - KART_FULLTURN);
+		cmd->driftturn = (INT16)(cmd->driftturn - KART_FULLTURN);
 		side += sidemove[1];
 	}
 	else if (turnleft && !(turnright))
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn + (angleturn[tspeed]));
-		cmd->driftturn = (INT16)(cmd->driftturn + (angleturn[tspeed]));
+		cmd->angleturn = (INT16)(cmd->angleturn + KART_FULLTURN);
+		cmd->driftturn = (INT16)(cmd->driftturn + KART_FULLTURN);
 		side -= sidemove[1];
 	}
 
 	if (analogjoystickmove && axis != 0)
 	{
 		// JOYAXISRANGE should be 1023 (divide by 1024)
-		cmd->angleturn = (INT16)(cmd->angleturn - (((axis * angleturn[1]) >> 10))); // ANALOG!
-		cmd->driftturn = (INT16)(cmd->driftturn - (((axis * angleturn[1]) >> 10)));
+		cmd->angleturn = (INT16)(cmd->angleturn - (((axis * KART_FULLTURN) >> 10))); // ANALOG!
+		cmd->driftturn = (INT16)(cmd->driftturn - (((axis * KART_FULLTURN) >> 10)));
 		side += ((axis * sidemove[0]) >> 10);
 	}
 
@@ -1548,15 +1532,15 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	//{ SRB2kart - Drift support
 	// Not grouped with the rest of turn stuff because it needs to know what buttons you're pressing for rubber-burn turn
 	// limit turning to angleturn[1] to stop mouselook letting you look too fast
-	if (cmd->angleturn > (angleturn[1]))
-		cmd->angleturn = (angleturn[1]);
-	else if (cmd->angleturn < (-angleturn[1]))
-		cmd->angleturn = (-angleturn[1]);
+	if (cmd->angleturn > KART_FULLTURN)
+		cmd->angleturn = KART_FULLTURN;
+	else if (cmd->angleturn < -KART_FULLTURN)
+		cmd->angleturn = -KART_FULLTURN;
 
-	if (cmd->driftturn > (angleturn[1]))
-		cmd->driftturn = (angleturn[1]);
-	else if (cmd->driftturn < (-angleturn[1]))
-		cmd->driftturn = (-angleturn[1]);
+	if (cmd->driftturn > KART_FULLTURN)
+		cmd->driftturn = KART_FULLTURN;
+	else if (cmd->driftturn < -KART_FULLTURN)
+		cmd->driftturn = -KART_FULLTURN;
 
 	if (player->mo)
 		cmd->angleturn = K_GetKartTurnValue(player, cmd->angleturn);
@@ -1578,7 +1562,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		localangle[ssplayer-1] = lang;
 		localaiming[ssplayer-1] = laim;
 		keyboard_look[ssplayer-1] = kbl;
-		turnheld[ssplayer-1] = th;
 		resetdown[ssplayer-1] = rd;
 		camspin[ssplayer-1] = InputDown(gc_lookback, ssplayer);
 	}
@@ -8192,7 +8175,6 @@ void G_StopDemo(void)
 	democam.soundmobj = NULL;
 	democam.localangle = 0;
 	democam.localaiming = 0;
-	democam.turnheld = false;
 	democam.keyboardlook = false;
 
 	CV_SetValue(&cv_playbackspeed, 1);

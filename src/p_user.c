@@ -7127,7 +7127,6 @@ fixed_t t_cam4_rotate = -42;
 // redefine this
 static fixed_t forwardmove[2] = {25<<FRACBITS>>16, 50<<FRACBITS>>16};
 static fixed_t sidemove[2] = {2<<FRACBITS>>16, 4<<FRACBITS>>16};
-static fixed_t angleturn[3] = {KART_FULLTURN/2, KART_FULLTURN, KART_FULLTURN/4}; // + slow turn
 
 static ticcmd_t cameracmd;
 
@@ -7141,8 +7140,7 @@ void P_InitCameraCmd(void)
 
 static ticcmd_t *P_CameraCmd(camera_t *cam)
 {
-	INT32 laim, th, tspeed, forward, side, axis; //i
-	const INT32 speed = 1;
+	INT32 laim, forward, side, axis; //i
 	// these ones used for multiple conditions
 	boolean turnleft, turnright, mouseaiming;
 	boolean invertmouse, lookaxis, usejoystick, kbl;
@@ -7159,7 +7157,6 @@ static ticcmd_t *P_CameraCmd(camera_t *cam)
 
 	lang = democam.localangle;
 	laim = democam.localaiming;
-	th = democam.turnheld;
 	kbl = democam.keyboardlook;
 
 	G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
@@ -7192,27 +7189,15 @@ static ticcmd_t *P_CameraCmd(camera_t *cam)
 	}
 	forward = side = 0;
 
-	// use two stage accelerative turning
-	// on the keyboard and joystick
-	if (turnleft || turnright)
-		th += 1;
-	else
-		th = 0;
-
-	if (th < SLOWTURNTICS)
-		tspeed = 2; // slow turn
-	else
-		tspeed = speed;
-
 	// let movement keys cancel each other out
 	if (turnright && !(turnleft))
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn - (angleturn[tspeed]));
+		cmd->angleturn = (INT16)(cmd->angleturn - KART_FULLTURN);
 		side += sidemove[1];
 	}
 	else if (turnleft && !(turnright))
 	{
-		cmd->angleturn = (INT16)(cmd->angleturn + (angleturn[tspeed]));
+		cmd->angleturn = (INT16)(cmd->angleturn + KART_FULLTURN);
 		side -= sidemove[1];
 	}
 
@@ -7289,7 +7274,6 @@ static ticcmd_t *P_CameraCmd(camera_t *cam)
 
 	democam.localangle = lang;
 	democam.localaiming = laim;
-	democam.turnheld = th;
 	democam.keyboardlook = kbl;
 
 	return cmd;

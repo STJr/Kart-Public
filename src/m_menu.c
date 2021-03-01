@@ -6106,7 +6106,6 @@ static void M_PlaybackToggleFreecam(INT32 choice)
 		demo.freecam = false;
 		// reset democam vars:
 		democam.cam = NULL;
-		democam.turnheld = false;
 		democam.keyboardlook = false;	// reset only these. localangle / aiming gets set before the cam does anything anyway
 	}
 }
