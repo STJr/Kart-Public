@@ -4734,6 +4734,9 @@ char *G_BuildMapTitle(INT32 mapnum)
 	if (mapnum == 0)
 		return Z_StrDup("Random");
 
+	if (!mapheaderinfo[mapnum-1])
+		P_AllocMapHeader(mapnum-1);
+
 	if (strcmp(mapheaderinfo[mapnum-1]->lvlttl, ""))
 	{
 		size_t len = 1;
