@@ -2468,7 +2468,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 
 		key = I_GetKey();
 		// Only ESC and non-keyboard keys abort connection
-		if (key == KEY_ESCAPE || key >= KEY_MOUSE1 || cl_mode == CL_ABORTED)
+		if (!modeattacking && (key == KEY_ESCAPE || key >= KEY_MOUSE1 || cl_mode == CL_ABORTED))
 		{
 			CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
 			D_QuitNetGame();
