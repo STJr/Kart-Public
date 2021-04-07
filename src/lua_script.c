@@ -35,6 +35,8 @@
 
 lua_State *gL = NULL;
 
+int hook_defrosting;
+
 // List of internal libraries to load from SRB2
 static lua_CFunction liblist[] = {
 	LUA_EnumLib, // global metatable for enums
@@ -365,6 +367,14 @@ void LUA_PushUserdata(lua_State *L, void *data, const char *meta)
 		// stack is left with the userdata on top, as if getting it had originally succeeded.
 	}
 	lua_remove(L, -2); // remove LREG_VALID
+}
+
+int LUA_PushServerPlayer(lua_State *L)
+{
+	if ((!multiplayer || !(netgame || demo.playback)) && !playeringame[serverplayer])
+		return 0;
+	LUA_PushUserdata(L, &players[serverplayer], META_PLAYER);
+	return 1;
 }
 
 // When userdata is freed, use this function to remove it from Lua.

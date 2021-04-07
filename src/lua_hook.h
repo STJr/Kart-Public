@@ -20,7 +20,9 @@ enum hook {
 	hook_MapChange,
 	hook_MapLoad,
 	hook_PlayerJoin,
+	hook_PreThinkFrame,
 	hook_ThinkFrame,
+	hook_PostThinkFrame,
 	hook_MobjSpawn,
 	hook_MobjCollide,
 	hook_MobjMoveCollide,
@@ -44,6 +46,7 @@ enum hook {
 	hook_HurtMsg,
 	hook_PlayerSpawn,
 	hook_PlayerQuit,
+	hook_PlayerThink,
 	hook_MusicChange,
 	hook_ShouldSpin,	//SRB2KART
 	hook_ShouldExplode,	//SRB2KART
@@ -60,11 +63,14 @@ enum hook {
 extern const char *const hookNames[];
 
 extern boolean hook_cmd_running;	// This is used by PlayerCmd and lua_playerlib to prevent anything from being wirtten to player while we run PlayerCmd.
+extern int hook_defrosting;
 
 void LUAh_MapChange(INT16 mapnumber); // Hook for map change (before load)
 void LUAh_MapLoad(void); // Hook for map load
 void LUAh_PlayerJoin(int playernum); // Hook for Got_AddPlayer
+void LUAh_PreThinkFrame(void); // Hook for frame (before mobj and player thinkers)
 void LUAh_ThinkFrame(void); // Hook for frame (after mobj and player thinkers)
+void LUAh_PostThinkFrame(void); // Hook for frame (at end of tick, ie after overlays, precipitation, specials)
 boolean LUAh_MobjHook(mobj_t *mo, enum hook which);
 boolean LUAh_PlayerHook(player_t *plr, enum hook which);
 #define LUAh_MobjSpawn(mo) LUAh_MobjHook(mo, hook_MobjSpawn) // Hook for P_SpawnMobj by mobj type
@@ -106,5 +112,6 @@ boolean LUAh_PlayerCmd(player_t *player, ticcmd_t *cmd);	// Allows to write to p
 
 void LUAh_IntermissionThinker(void); // Hook for Y_Ticker
 void LUAh_VoteThinker(void);	// Hook for Y_VoteTicker
+#define LUAh_PlayerThink(player) LUAh_PlayerHook(player, hook_PlayerThink) // Hook for P_PlayerThink
 
 #endif
