@@ -722,6 +722,10 @@ void D_RegisterServerCommands(void)
 
 	CV_RegisterVar(&cv_dummyconsvar);
 
+#ifdef USE_STUN
+	CV_RegisterVar(&cv_stunserver);
+#endif
+
 	CV_RegisterVar(&cv_discordinvites);
 	RegisterNetXCmd(XD_DISCORD, Got_DiscordInfo);
 }

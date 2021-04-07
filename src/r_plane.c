@@ -46,7 +46,10 @@
 //#define SHITPLANESPARENCY
 
 //SoM: 3/23/2000: Use Boom visplane hashing.
-#define MAXVISPLANES 512
+#define VISPLANEHASHBITS 9
+#define VISPLANEHASHMASK ((1<<VISPLANEHASHBITS)-1)
+// the last visplane list is outside of the hash table and is used for fof planes
+#define MAXVISPLANES ((1<<VISPLANEHASHBITS)+1)
 
 static visplane_t *visplanes[MAXVISPLANES];
 static visplane_t *freetail;
@@ -61,7 +64,7 @@ INT32 numffloors;
 
 //SoM: 3/23/2000: Boom visplane hashing routine.
 #define visplane_hash(picnum,lightlevel,height) \
-  ((unsigned)((picnum)*3+(lightlevel)+(height)*7) & (MAXVISPLANES-1))
+  ((unsigned)((picnum)*3+(lightlevel)+(height)*7) & VISPLANEHASHMASK)
 
 //SoM: 3/23/2000: Use boom opening limit removal
 size_t maxopenings;
@@ -466,28 +469,30 @@ visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
 		lightlevel = 0;
 	}
 
-	// New visplane algorithm uses hash table
-	hash = visplane_hash(picnum, lightlevel, height);
-
-	for (check = visplanes[hash]; check; check = check->next)
+	if (!pfloor)
 	{
-		if (check->polyobj && pfloor)
-			continue;
-		if (polyobj != check->polyobj)
-			continue;
-		if (height == check->height && picnum == check->picnum
-			&& lightlevel == check->lightlevel
-			&& xoff == check->xoffs && yoff == check->yoffs
-			&& planecolormap == check->extra_colormap
-			&& !pfloor && !check->ffloor
-			&& check->viewx == viewx && check->viewy == viewy && check->viewz == viewz
-			&& check->viewangle == viewangle
-			&& check->plangle == plangle
-			&& check->slope == slope
-			&& check->noencore == noencore)
+		hash = visplane_hash(picnum, lightlevel, height);
+		for (check = visplanes[hash]; check; check = check->next)
 		{
-			return check;
+			if (polyobj != check->polyobj)
+				continue;
+			if (height == check->height && picnum == check->picnum
+				&& lightlevel == check->lightlevel
+				&& xoff == check->xoffs && yoff == check->yoffs
+				&& planecolormap == check->extra_colormap
+				&& check->viewx == viewx && check->viewy == viewy && check->viewz == viewz
+				&& check->viewangle == viewangle
+				&& check->plangle == plangle
+				&& check->slope == slope
+				&& check->noencore == noencore)
+			{
+				return check;
+			}
 		}
+	}
+	else
+	{
+		hash = MAXVISPLANES - 1;
 	}
 
 	check = new_visplane(hash);
@@ -559,9 +564,17 @@ visplane_t *R_CheckPlane(visplane_t *pl, INT32 start, INT32 stop)
 	}
 	else /* Cannot use existing plane; create a new one */
 	{
-		unsigned hash =
-			visplane_hash(pl->picnum, pl->lightlevel, pl->height);
-		visplane_t *new_pl = new_visplane(hash);
+		visplane_t *new_pl;
+		if (pl->ffloor)
+		{
+			new_pl = new_visplane(MAXVISPLANES - 1);
+		}
+		else
+		{
+			unsigned hash =
+				visplane_hash(pl->picnum, pl->lightlevel, pl->height);
+			new_pl = new_visplane(hash);
+		}
 
 		new_pl->height = pl->height;
 		new_pl->picnum = pl->picnum;
