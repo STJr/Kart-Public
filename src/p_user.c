@@ -8545,7 +8545,7 @@ void P_PlayerThink(player_t *player)
 						}
 					}
 				}
-				else
+				else if (player->powers[pw_flashing] == 0)
 				{
 					player->grieftime++;
 				}
