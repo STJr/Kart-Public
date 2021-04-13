@@ -361,8 +361,7 @@ static const char *DRPC_GetServerIP(void)
 		{
 			// We're not the server, so we could successfully get the IP!
 			// No need to do anything else :)
-			strcpy(self_ip, address);
-			return self_ip;
+			return address;
 		}
 	}
 
