@@ -361,8 +361,7 @@ static const char *DRPC_GetServerIP(void)
 		{
 			// We're not the server, so we could successfully get the IP!
 			// No need to do anything else :)
-			sprintf(self_ip, "%s:%u", address, current_port);
-			return self_ip;
+			return address;
 		}
 	}
 
@@ -461,10 +460,7 @@ void DRPC_UpdatePresence(void)
 			// Grab the host's IP for joining.
 			if ((join = DRPC_GetServerIP()) != NULL)
 			{
-				char *xorjoin = DRPC_XORIPString(join);
-				discordPresence.joinSecret = xorjoin;
-				free(xorjoin);
-
+				discordPresence.joinSecret = DRPC_XORIPString(join);
 				joinSecretSet = true;
 			}
 		}
