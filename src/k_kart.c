@@ -4526,7 +4526,7 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 		volume = FixedDiv(volume * FRACUNIT, volumedampen) / FRACUNIT;
 	}
 
-	if (volume <= 0) 
+	if (volume <= 0)
 	{
 		// Don't need to play the sound at all.
 		return;
@@ -5968,7 +5968,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			if (player->kartstuff[k_offroad])
 				player->mo->friction -= 4912;
-			if (player->kartstuff[k_wipeoutslow] == 1)
+			if (player->kartstuff[k_wipeoutslow] == 1 && player->kartstuff[k_pogospring] == 0)
 				player->mo->friction -= 9824;
 		}
 	}
