@@ -5123,14 +5123,14 @@ static void K_KartDrift(player_t *player, boolean onground)
 	{
 		// Starting left drift
 		player->kartstuff[k_drift] = 1;
-		player->kartstuff[k_driftend] = player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_driftend] = 0;
 	}
 	else if ((player->cmd.driftturn < 0) && player->speed > minspeed && player->kartstuff[k_jmp] == 1
 		&& (player->kartstuff[k_drift] == 0 || player->kartstuff[k_driftend] == 1)) // && player->kartstuff[k_drift] != -1)
 	{
 		// Starting right drift
 		player->kartstuff[k_drift] = -1;
-		player->kartstuff[k_driftend] = player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_driftend] = 0;
 	}
 	else if (player->kartstuff[k_jmp] == 0) // || player->kartstuff[k_turndir] == 0)
 	{
