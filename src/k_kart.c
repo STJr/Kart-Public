@@ -5066,7 +5066,7 @@ static void K_KartDrift(player_t *player, boolean onground)
 	// and will then wrongdrift or have their sparks removed because of this.
 	// This fixes this problem.
 	if (player->kartstuff[k_pogospring] == 2 && player->mo->scale > FRACUNIT)
-		minspeed = (10 * FRACUNIT);
+		minspeed = (10<<FRACBITS);
 
 	INT32 dsone = K_GetKartDriftSparkValue(player);
 	INT32 dstwo = dsone*2;
