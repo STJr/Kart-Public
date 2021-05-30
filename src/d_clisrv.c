@@ -1228,7 +1228,7 @@ static inline void CL_DrawConnectionStatus(void)
 					cltext = M_GetText("Server full, waiting for a slot...");
 				else
 					cltext = M_GetText("Requesting to join...");
-					
+
 				break;
 #ifdef HAVE_CURL
 			case CL_PREPAREHTTPFILES:
@@ -2029,7 +2029,7 @@ void CL_QueryServerList (msg_server_t *server_list)
 
 static void M_ConfirmConnect(event_t *ev)
 {
-#ifndef NONET	
+#ifndef NONET
 	if (ev->type == ev_keydown)
 	{
 		if (ev->data1 == ' ' || ev->data1 == 'y' || ev->data1 == KEY_ENTER || ev->data1 == gamecontrol[gc_accelerate][0] || ev->data1 == gamecontrol[gc_accelerate][1])
@@ -2052,7 +2052,7 @@ static void M_ConfirmConnect(event_t *ev)
 			}
 			else
 				cl_mode = CL_LOADFILES;
-			
+
 			M_ClearMenus(true);
 		}
 		else if (ev->data1 == 'n' || ev->data1 == KEY_ESCAPE|| ev->data1 == gamecontrol[gc_brake][0] || ev->data1 == gamecontrol[gc_brake][1])
@@ -2300,7 +2300,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 {
 	boolean waitmore;
 	INT32 i;
-	
+
 #ifdef NONET
 	(void)tmpsave;
 #endif
@@ -2337,7 +2337,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 					{
 						curl_transfers++;
 					}
-				
+
 				cl_mode = CL_DOWNLOADHTTPFILES;
 			}
 			break;
@@ -5011,7 +5011,7 @@ FILESTAMP
 	{
 		node = (SINT8)doomcom->remotenode;
 
-		if (netbuffer->packettype == PT_CLIENTJOIN && server)
+		if (netbuffer->packettype == PT_CLIENTJOIN && server && !levelloading)
 		{
 			HandleConnect(node);
 			continue;
@@ -5222,7 +5222,7 @@ static void CL_SendClientKeepAlive(void)
 static void SV_SendServerKeepAlive(void)
 {
 	INT32 n;
-	
+
 	for (n = 1; n < MAXNETNODES; n++)
 	{
 		if (nodeingame[n])
@@ -5769,7 +5769,7 @@ FILESTAMP
 	{
 		SV_SendServerKeepAlive();
 	}
-	
+
 	// No else because no tics are being run and we can't resynch during this
 
 	Net_AckTicker();

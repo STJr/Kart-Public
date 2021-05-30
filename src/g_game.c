@@ -1733,20 +1733,6 @@ void G_DoLoadLevel(boolean resetplayer)
 		Y_EndIntermission();
 	if (gamestate == GS_VOTING)
 		Y_EndVote();
-	// Don't allow people to download a partial/corrupted
-	// save while the server's loading the map/during the wipe.
-	// (this addresses "map" command usage, which means
-	// transitions/different gamestates would be skipped.)
-	if (gamestate == GS_LEVEL)
-		gamestate = GS_WAITINGPLAYERS;
-
-	// Setup the level.
-	if (!P_SetupLevel(false))
-	{
-		// fail so reset game stuff
-		Command_ExitGame_f();
-		return;
-	}
 
 	G_SetGamestate(GS_LEVEL);
 
@@ -1754,6 +1740,14 @@ void G_DoLoadLevel(boolean resetplayer)
 	{
 		if (resetplayer || (playeringame[i] && players[i].playerstate == PST_DEAD))
 			players[i].playerstate = PST_REBORN;
+	}
+
+	// Setup the level.
+	if (!P_SetupLevel(false))
+	{
+		// fail so reset game stuff
+		Command_ExitGame_f();
+		return;
 	}
 
 	if (!resetplayer)

@@ -1597,9 +1597,9 @@ void D_SRB2Main(void)
 	{
 		pagename = "TITLESKY";
 		levelstarttic = gametic;
+		G_SetGamestate(GS_LEVEL);
 		if (!P_SetupLevel(false))
 			I_Quit(); // fail so reset game stuff
-		G_SetGamestate(GS_LEVEL);
 	}
 
 #ifdef HAVE_DISCORDRPC
