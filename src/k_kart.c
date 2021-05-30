@@ -952,6 +952,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i] && !players[i].spectator && players[i].mo
+			&& players[i].kartstuff[k_position] != 0
 			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
 			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
 													players[i].mo->y - player->mo->y),
