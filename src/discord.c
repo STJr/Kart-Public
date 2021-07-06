@@ -341,15 +341,14 @@ static void DRPC_GotServerIP(UINT32 address)
 {
 	const unsigned char * p = (const unsigned char *)&address;
 	sprintf(self_ip, "%u.%u.%u.%u:%u", p[0], p[1], p[2], p[3], current_port);
-	DRPC_UpdatePresence();
 }
 
 /*--------------------------------------------------
 	static const char *DRPC_GetServerIP(void)
 
 		Retrieves the IP address of the server that you're
-		connected to. Will attempt to use curl for getting your
-		own IP address, if it's not yours.
+		connected to. Will attempt to use STUN for getting your
+		own IP address.
 --------------------------------------------------*/
 static const char *DRPC_GetServerIP(void)
 {
@@ -362,8 +361,7 @@ static const char *DRPC_GetServerIP(void)
 		{
 			// We're not the server, so we could successfully get the IP!
 			// No need to do anything else :)
-			sprintf(self_ip, "%s:%u", address, current_port);
-			return self_ip;
+			return address;
 		}
 	}
 
@@ -442,25 +440,6 @@ void DRPC_UpdatePresence(void)
 	// Server info
 	if (netgame)
 	{
-		if (DRPC_InvitesAreAllowed() == true)
-		{
-			const char *join;
-
-			// Grab the host's IP for joining.
-			if ((join = DRPC_GetServerIP()) != NULL)
-			{
-				char *xorjoin = DRPC_XORIPString(join);
-				discordPresence.joinSecret = xorjoin;
-				free(xorjoin);
-
-				joinSecretSet = true;
-			}
-			else
-			{
-				return;
-			}
-		}
-
 		if (cv_advertise.value)
 		{
 			discordPresence.state = "Public";
@@ -473,6 +452,18 @@ void DRPC_UpdatePresence(void)
 		discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
 		discordPresence.partySize = D_NumPlayers(); // Players in server
 		discordPresence.partyMax = discordInfo.maxPlayers; // Max players
+
+		if (DRPC_InvitesAreAllowed() == true)
+		{
+			const char *join;
+
+			// Grab the host's IP for joining.
+			if ((join = DRPC_GetServerIP()) != NULL)
+			{
+				discordPresence.joinSecret = DRPC_XORIPString(join);
+				joinSecretSet = true;
+			}
+		}
 	}
 	else
 	{
