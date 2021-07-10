@@ -5062,16 +5062,15 @@ INT32 K_GetKartDriftSparkValue(player_t *player)
 static void K_KartDrift(player_t *player, boolean onground)
 {
 	fixed_t minspeed = (10 * player->mo->scale);
+	INT32 dsone = K_GetKartDriftSparkValue(player);
+	INT32 dstwo = dsone*2;
+	INT32 dsthree = dstwo*2;
 
 	// Grown players taking yellow spring panels will go below minspeed for one tic,
 	// and will then wrongdrift or have their sparks removed because of this.
 	// This fixes this problem.
 	if (player->kartstuff[k_pogospring] == 2 && player->mo->scale > mapobjectscale)
 		minspeed = FixedMul(10<<FRACBITS, mapobjectscale);
-
-	INT32 dsone = K_GetKartDriftSparkValue(player);
-	INT32 dstwo = dsone*2;
-	INT32 dsthree = dstwo*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
