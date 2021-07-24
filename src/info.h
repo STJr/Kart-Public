@@ -4052,7 +4052,6 @@ typedef enum state
 	S_LIONMAN,
 
 	// Opulence
-
 	S_OPULENCE_PALMTREE,
 	S_OPULENCE_FERN,
 

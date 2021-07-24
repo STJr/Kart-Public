@@ -3385,6 +3385,7 @@ state_t states[NUMSTATES] =
 	{SPR_WBLZ, 0, -1, {NULL}, 0, 0, S_NULL}, // S_LIZARDMAN
 	{SPR_WBLN, 0, -1, {NULL}, 0, 0, S_NULL}, // S_LIONMAN
 
+	// Opulence
 	{SPR_OPUL, 0, -1, {NULL}, 0, 0, S_NULL}, // S_OPULENCE_PALMTREE
 	{SPR_OPUL, 1, -1, {NULL}, 0, 0, S_NULL}, // S_OPULENCE_FERN
 
