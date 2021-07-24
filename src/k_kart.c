@@ -3259,7 +3259,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
 				fixed_t HEIGHT = (20 + (dir*10))*mapobjectscale + (player->mo->momz*P_MobjFlip(player->mo));
 
-				P_SetObjectMomZ(mo, HEIGHT, false);
+				mo->momz = HEIGHT*P_MobjFlip(mo);
 				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED*dir);
 				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED*dir);
 
@@ -5062,16 +5062,15 @@ INT32 K_GetKartDriftSparkValue(player_t *player)
 static void K_KartDrift(player_t *player, boolean onground)
 {
 	fixed_t minspeed = (10 * player->mo->scale);
+	INT32 dsone = K_GetKartDriftSparkValue(player);
+	INT32 dstwo = dsone*2;
+	INT32 dsthree = dstwo*2;
 
 	// Grown players taking yellow spring panels will go below minspeed for one tic,
 	// and will then wrongdrift or have their sparks removed because of this.
 	// This fixes this problem.
 	if (player->kartstuff[k_pogospring] == 2 && player->mo->scale > mapobjectscale)
 		minspeed = FixedMul(10<<FRACBITS, mapobjectscale);
-
-	INT32 dsone = K_GetKartDriftSparkValue(player);
-	INT32 dstwo = dsone*2;
-	INT32 dsthree = dstwo*2;
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -6036,7 +6035,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (leveltime < starttime+10)
 	{
 		player->mo->scalespeed = mapobjectscale/12;
-		player->mo->destscale = mapobjectscale + (player->kartstuff[k_boostcharge]*131);
+		player->mo->destscale = mapobjectscale + (FixedMul(mapobjectscale, player->kartstuff[k_boostcharge]*131));
 		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 			player->mo->destscale = (6*player->mo->destscale)/8;
 	}
