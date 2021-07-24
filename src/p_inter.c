@@ -673,6 +673,23 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		case MT_BALLOON: // SRB2kart
 			P_SetObjectMomZ(toucher, 20<<FRACBITS, false);
 			break;
+		case MT_TUMBLEGEM:
+		case MT_TUMBLECOIN:
+			{
+				SINT8 flip = P_MobjFlip(special);
+				if ((toucher->momx || toucher->momy) && (flip * special->momz <= 0))
+				{
+					special->momx = toucher->momx;
+					special->momy = toucher->momy;
+					special->momz = flip * max(P_AproxDistance(toucher->momx, toucher->momy) / 4, FixedMul(special->info->speed, special->scale));
+					if (flip * toucher->momz > 0)
+						special->momz += toucher->momz / 8;
+					if ((statenum_t)(special->state-states) != special->info->seestate)
+						P_SetMobjState(special, special->info->seestate);
+					S_StartSound(special, special->info->activesound);
+				}
+			}
+			return;
 
 // ***************************************** //
 // Rings, coins, spheres, weapon panels, etc //

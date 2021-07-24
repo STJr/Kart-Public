@@ -65,8 +65,8 @@ char sprnames[NUMSPRITES + 1][5] =
 	"FROG","CBRA","HOLE","BBRA","EGFG","SMKP","MTYM","THWP","SNOB","ICEB",
 	"CNDL","DOCH","DUCK","GTRE","CHES","CHIM","DRGN","LZMN","PGSS","ZTCH",
 	"MKMA","MKMP","RTCH","BOWL","BOWH","BRRL","BRRR","HRSE","TOAH","BFRT",
-	"OFRT","RFRT","PFRT","ASPK","HBST","HBSO","HBSF","WBLZ","WBLN","FWRK",
-	"XMS4","XMS5","VIEW"
+	"OFRT","RFRT","PFRT","ASPK","HBST","HBSO","HBSF","WBLZ","WBLN","OPUL",
+	"TGEM","TCOI","FWRK","XMS4","XMS5","VIEW"
 };
 
 // Doesn't work with g++, needs actionf_p1 (don't modify this comment)
@@ -3384,6 +3384,14 @@ state_t states[NUMSTATES] =
 
 	{SPR_WBLZ, 0, -1, {NULL}, 0, 0, S_NULL}, // S_LIZARDMAN
 	{SPR_WBLN, 0, -1, {NULL}, 0, 0, S_NULL}, // S_LIONMAN
+
+	{SPR_OPUL, 0, -1, {NULL}, 0, 0, S_NULL}, // S_OPULENCE_PALMTREE
+	{SPR_OPUL, 1, -1, {NULL}, 0, 0, S_NULL}, // S_OPULENCE_FERN
+
+	{SPR_TGEM,            1, -1, {NULL}, 0, 0, S_NULL}, // S_TUMBLEGEM_IDLE
+	{SPR_TGEM, FF_ANIMATE|0, -1, {NULL}, 7, 2, S_NULL}, // S_TUMBLEGEM_ROLL
+	{SPR_TCOI,            2, -1, {NULL}, 0, 0, S_NULL}, // S_TUMBLECOIN_IDLE
+	{SPR_TCOI, FF_ANIMATE|0, -1, {NULL}, 3, 1, S_NULL}, // S_TUMBLECOIN_FLIP
 
 	{SPR_FWRK,   FF_FULLBRIGHT, 2, {NULL}, 0, 0, S_KARMAFIREWORK2}, // S_KARMAFIREWORK1
 	{SPR_FWRK, 1|FF_FULLBRIGHT, 2, {NULL}, 0, 0, S_KARMAFIREWORK3}, // S_KARMAFIREWORK2
@@ -20026,6 +20034,114 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 	    0,              // damage
 	    sfx_None,       // activesound
 	    MF_SOLID,       // flags
+	    S_NULL          // raisestate
+	},
+
+	{           // MT_OPULENCE_PALMTREE
+	    3795,           // doomednum
+	    S_OPULENCE_PALMTREE, // spawnstate
+	    1000,           // spawnhealth
+	    S_NULL,         // seestate
+	    sfx_None,       // seesound
+	    8,              // reactiontime
+	    sfx_None,       // attacksound
+	    S_NULL,         // painstate
+	    0,              // painchance
+	    sfx_None,       // painsound
+	    S_NULL,         // meleestate
+	    S_NULL,         // missilestate
+	    S_NULL,         // deathstate
+	    S_NULL,         // xdeathstate
+	    sfx_None,       // deathsound
+	    0,              // speed
+	    16<<FRACBITS,   // radius
+	    256<<FRACBITS,  // height
+	    0,              // display offset
+	    100,            // mass
+	    0,              // damage
+	    sfx_None,       // activesound
+	    MF_NOTHINK|MF_SOLID, // flags
+	    S_NULL          // raisestate
+	},
+
+	{           // MT_OPULENCE_FERN
+	    3797,           // doomednum
+	    S_OPULENCE_FERN,// spawnstate
+	    1000,           // spawnhealth
+	    S_NULL,         // seestate
+	    sfx_None,       // seesound
+	    8,              // reactiontime
+	    sfx_None,       // attacksound
+	    S_NULL,         // painstate
+	    0,              // painchance
+	    sfx_None,       // painsound
+	    S_NULL,         // meleestate
+	    S_NULL,         // missilestate
+	    S_NULL,         // deathstate
+	    S_NULL,         // xdeathstate
+	    sfx_None,       // deathsound
+	    0,              // speed
+	    16<<FRACBITS,   // radius
+	    192<<FRACBITS,  // height
+	    0,              // display offset
+	    100,            // mass
+	    0,              // damage
+	    sfx_None,       // activesound
+	    MF_NOTHINK,     // flags
+	    S_NULL          // raisestate
+	},
+
+	{           // MT_TUMBLEGEM
+	    3770,           // doomednum
+	    S_TUMBLEGEM_IDLE, // spawnstate
+	    1000,           // spawnhealth
+	    S_TUMBLEGEM_ROLL, // seestate
+	    sfx_None,       // seesound
+	    8,              // reactiontime
+	    sfx_None,       // attacksound
+	    S_NULL,         // painstate
+	    0,              // painchance
+	    sfx_None,       // painsound
+	    S_NULL,         // meleestate
+	    S_NULL,         // missilestate
+	    S_NULL,         // deathstate
+	    S_NULL,         // xdeathstate
+	    sfx_None,       // deathsound
+	    8<<FRACBITS,    // speed
+	    16<<FRACBITS,   // radius
+	    16<<FRACBITS,   // height
+	    0,              // display offset
+	    100,            // mass
+	    0,              // damage
+	    sfx_gemhit,     // activesound
+	    MF_SPECIAL|MF_BOUNCE, // flags
+	    S_NULL          // raisestate
+	},
+
+	{           // MT_TUMBLECOIN
+	    3771,           // doomednum
+	    S_TUMBLECOIN_IDLE, // spawnstate
+	    1000,           // spawnhealth
+	    S_TUMBLECOIN_FLIP, // seestate
+	    sfx_None,       // seesound
+	    8,              // reactiontime
+	    sfx_None,       // attacksound
+	    S_NULL,         // painstate
+	    0,              // painchance
+	    sfx_None,       // painsound
+	    S_NULL,         // meleestate
+	    S_NULL,         // missilestate
+	    S_NULL,         // deathstate
+	    S_NULL,         // xdeathstate
+	    sfx_None,       // deathsound
+	    8<<FRACBITS,    // speed
+	    16<<FRACBITS,   // radius
+	    16<<FRACBITS,   // height
+	    0,              // display offset
+	    100,            // mass
+	    0,              // damage
+	    sfx_gemhit,     // activesound
+	    MF_SPECIAL|MF_BOUNCE, // flags
 	    S_NULL          // raisestate
 	},
 
