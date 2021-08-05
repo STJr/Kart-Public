@@ -894,7 +894,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 				POWERITEMODDS(newodds);
 			break;
 		case KITEM_THUNDERSHIELD:
-			if (thunderisout)
+			if (thunderisout || COOLDOWNONSTART)
 				newodds = 0;
 			else
 				POWERITEMODDS(newodds);
@@ -952,6 +952,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i] && !players[i].spectator && players[i].mo
+			&& players[i].kartstuff[k_position] != 0
 			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
 			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
 													players[i].mo->y - player->mo->y),
@@ -3258,7 +3259,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
 				fixed_t HEIGHT = (20 + (dir*10))*mapobjectscale + (player->mo->momz*P_MobjFlip(player->mo));
 
-				P_SetObjectMomZ(mo, HEIGHT, false);
+				mo->momz = HEIGHT*P_MobjFlip(mo);
 				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED*dir);
 				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED*dir);
 
@@ -4526,7 +4527,7 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 		volume = FixedDiv(volume * FRACUNIT, volumedampen) / FRACUNIT;
 	}
 
-	if (volume <= 0) 
+	if (volume <= 0)
 	{
 		// Don't need to play the sound at all.
 		return;
@@ -5065,6 +5066,12 @@ static void K_KartDrift(player_t *player, boolean onground)
 	INT32 dstwo = dsone*2;
 	INT32 dsthree = dstwo*2;
 
+	// Grown players taking yellow spring panels will go below minspeed for one tic,
+	// and will then wrongdrift or have their sparks removed because of this.
+	// This fixes this problem.
+	if (player->kartstuff[k_pogospring] == 2 && player->mo->scale > mapobjectscale)
+		minspeed = FixedMul(10<<FRACBITS, mapobjectscale);
+
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
 
@@ -5116,14 +5123,14 @@ static void K_KartDrift(player_t *player, boolean onground)
 	{
 		// Starting left drift
 		player->kartstuff[k_drift] = 1;
-		player->kartstuff[k_driftend] = player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_driftend] = 0;
 	}
 	else if ((player->cmd.driftturn < 0) && player->speed > minspeed && player->kartstuff[k_jmp] == 1
 		&& (player->kartstuff[k_drift] == 0 || player->kartstuff[k_driftend] == 1)) // && player->kartstuff[k_drift] != -1)
 	{
 		// Starting right drift
 		player->kartstuff[k_drift] = -1;
-		player->kartstuff[k_driftend] = player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_driftend] = 0;
 	}
 	else if (player->kartstuff[k_jmp] == 0) // || player->kartstuff[k_turndir] == 0)
 	{
@@ -5968,7 +5975,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		{
 			if (player->kartstuff[k_offroad])
 				player->mo->friction -= 4912;
-			if (player->kartstuff[k_wipeoutslow] == 1)
+			if (player->kartstuff[k_wipeoutslow] == 1 && player->kartstuff[k_pogospring] == 0)
 				player->mo->friction -= 9824;
 		}
 	}
@@ -6028,7 +6035,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (leveltime < starttime+10)
 	{
 		player->mo->scalespeed = mapobjectscale/12;
-		player->mo->destscale = mapobjectscale + (player->kartstuff[k_boostcharge]*131);
+		player->mo->destscale = mapobjectscale + (FixedMul(mapobjectscale, player->kartstuff[k_boostcharge]*131));
 		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 			player->mo->destscale = (6*player->mo->destscale)/8;
 	}

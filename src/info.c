@@ -15757,7 +15757,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		0,              // mass
 		0,              // damage
 		sfx_None,       // activesound
-		MF_NOBLOCKMAP|MF_BOUNCE|MF_SCENERY|MF_DONTENCOREMAP, // flags
+		MF_NOBLOCKMAP|MF_NOCLIP|MF_BOUNCE|MF_SCENERY|MF_DONTENCOREMAP, // flags
 		S_NULL          // raisestate
 	},
 
@@ -15904,7 +15904,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] =
 		sfx_tossed,     // seesound
 		8,              // reactiontime
 		sfx_None,       // attacksound
-		256*FRACUNIT,   // painstate
+		S_NULL,   		// painstate
 		100,            // painchance
 		sfx_None,       // painsound
 		S_NULL,         // meleestate
