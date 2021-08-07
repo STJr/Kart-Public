@@ -8128,7 +8128,6 @@ void P_MobjThinker(mobj_t *mobj)
 			break;
 		case MT_INSTASHIELDB:
 			mobj->flags2 ^= MF2_DONTDRAW;
-			K_MatchGenericExtraFlags(mobj, mobj->target);
 			/* FALLTHRU */
 		case MT_INSTASHIELDA:
 			if (!mobj->target || !mobj->target->health || (mobj->target->player && !mobj->target->player->kartstuff[k_instashield]))
@@ -8136,8 +8135,9 @@ void P_MobjThinker(mobj_t *mobj)
 				P_RemoveMobj(mobj);
 				return;
 			}
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+
 			K_MatchGenericExtraFlags(mobj, mobj->target);
+			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
 		case MT_BATTLEPOINT:
 			if (!mobj->target || P_MobjWasRemoved(mobj->target))
