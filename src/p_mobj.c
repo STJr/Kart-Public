@@ -9878,6 +9878,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 			break;
 		case MT_TUMBLEGEM:
 			mobj->color = P_RandomKey(MAXSKINCOLORS - 1) + 1;
+			break;
 		default:
 			break;
 	}
