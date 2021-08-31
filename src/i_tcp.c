@@ -600,7 +600,8 @@ void Command_Numnodes(void)
 #ifndef NONET
 static boolean hole_punch(ssize_t c)
 {
-	if (c == 10 && holepunchpacket->magic == hole_punch_magic)
+	if (cv_rendezvousserver.string[0] &&
+			c == 10 && holepunchpacket->magic == hole_punch_magic)
 	{
 		mysockaddr_t addr;
 		addr.ip4.sin_family      = AF_INET;

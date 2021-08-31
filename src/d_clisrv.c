@@ -1909,8 +1909,11 @@ static void SendAskInfo(INT32 node)
 	// our address to the host, it'll be able to speak to us.
 	HSendPacket(node, false, 0, sizeof (askinfo_pak));
 
-	if (node != 0 && node != BROADCASTADDR)
+	if (node != 0 && node != BROADCASTADDR &&
+			cv_rendezvousserver.string[0])
+	{
 		I_NetRequestHolePunch();
+	}
 }
 
 serverelem_t serverlist[MAXSERVERLIST];
@@ -5730,14 +5733,17 @@ static void UpdatePingTable(void)
 
 static void RenewHolePunch(void)
 {
-	static time_t past;
-
-	const time_t now = time(NULL);
-
-	if ((now - past) > 20)
+	if (cv_rendezvousserver.string[0])
 	{
-		I_NetRegisterHolePunch();
-		past = now;
+		static time_t past;
+
+		const time_t now = time(NULL);
+
+		if ((now - past) > 20)
+		{
+			I_NetRegisterHolePunch();
+			past = now;
+		}
 	}
 }
 
