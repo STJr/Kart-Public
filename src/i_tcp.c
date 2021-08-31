@@ -599,11 +599,37 @@ void Command_Numnodes(void)
 #endif
 
 #ifndef NONET
+/* not one of the reserved "local" addresses */
+static boolean
+is_external_address (UINT32 p)
+{
+	UINT8 a = (p & 255);
+	UINT8 b = ((p >> 8) & 255);
+
+	if (p == (UINT32)~0)/* 255.255.255.255 */
+		return 0;
+
+	switch (a)
+	{
+		case 0:
+		case 10:
+		case 127:
+			return false;
+		case 172:
+			return (b & ~15) != 16;/* 16 - 31 */
+		case 192:
+			return b != 168;
+		default:
+			return true;
+	}
+}
+
 static boolean hole_punch(ssize_t c)
 {
 	/* See ../doc/Holepunch-Protocol.txt */
 	if (cv_rendezvousserver.string[0] &&
-			c == 10 && holepunchpacket->magic == hole_punch_magic)
+			c == 10 && holepunchpacket->magic == hole_punch_magic &&
+			is_external_address(ntohl(holepunchpacket->addr)))
 	{
 		mysockaddr_t addr;
 		addr.ip4.sin_family      = AF_INET;
