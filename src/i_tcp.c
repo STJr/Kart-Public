@@ -241,6 +241,7 @@ static size_t broadcastaddresses = 0;
 static boolean nodeconnected[MAXNETNODES+1];
 static mysockaddr_t banned[MAXBANS];
 static UINT8 bannedmask[MAXBANS];
+/* See ../doc/Holepunch-Protocol.txt */
 static const INT32 hole_punch_magic = MSBF_LONG (0x52eb11);
 #endif
 
@@ -600,6 +601,7 @@ void Command_Numnodes(void)
 #ifndef NONET
 static boolean hole_punch(ssize_t c)
 {
+	/* See ../doc/Holepunch-Protocol.txt */
 	if (cv_rendezvousserver.string[0] &&
 			c == 10 && holepunchpacket->magic == hole_punch_magic)
 	{
@@ -1407,6 +1409,8 @@ static SINT8 SOCK_NetMakeNodewPort(const char *address, const char *port)
 
 	return newnode;
 }
+
+/* See ../doc/Holepunch-Protocol.txt */
 
 static void rendezvous(int size)
 {
