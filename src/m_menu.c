@@ -1164,6 +1164,8 @@ static menuitem_t OP_Joystick1Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis        , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis         , 80},
 	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis         , 90},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone        , 110},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone        , 120},
 };
 
 static menuitem_t OP_Joystick2Menu[] =
@@ -1176,6 +1178,8 @@ static menuitem_t OP_Joystick2Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis2       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis2        , 80},
 	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis2        , 90},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone2       , 110},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone2       , 120},
 };
 
 static menuitem_t OP_Joystick3Menu[] =
@@ -1188,6 +1192,8 @@ static menuitem_t OP_Joystick3Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis3       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis3        , 80},
 	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis3        , 90},
+	{IT_STRING | IT_CVAR,  NULL, "X DeadZone"         , &cv_xdeadzone3       , 110},
+	{IT_STRING | IT_CVAR,  NULL, "Y DeadZone"         , &cv_ydeadzone3       , 120},
 };
 
 static menuitem_t OP_Joystick4Menu[] =
@@ -1200,6 +1206,8 @@ static menuitem_t OP_Joystick4Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis4       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis4        , 80},
 	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis4        , 90},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone4       , 110},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone4       , 120},
 };
 
 static menuitem_t OP_JoystickSetMenu[] =
