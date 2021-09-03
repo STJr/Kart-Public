@@ -2571,7 +2571,7 @@ boolean M_Responder(event_t *ev)
 	{
 		if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
 		{
-			const INT32 jdeadzone = ((JOYAXISRANGE-1) * max(cv_ydeadzone.value, 3*FRACUNIT/4)) >> FRACBITS;
+			const INT32 jdeadzone = ((JOYAXISRANGE-1) * max(cv_ydeadzone.value, FRACUNIT/2)) >> FRACBITS;
 			if (ev->data3 != INT32_MAX)
 			{
 				if (Joystick.bGamepadStyle || abs(ev->data3) > jdeadzone)
