@@ -2571,10 +2571,11 @@ boolean M_Responder(event_t *ev)
 	{
 		if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
 		{
-			const INT32 jdeadzone = ((JOYAXISRANGE-1) * max(cv_ydeadzone.value, FRACUNIT/2)) >> FRACBITS;
+			const INT32 jxdeadzone = ((JOYAXISRANGE-1) * max(cv_xdeadzone.value, FRACUNIT/2)) >> FRACBITS;
+			const INT32 jydeadzone = ((JOYAXISRANGE-1) * max(cv_ydeadzone.value, FRACUNIT/2)) >> FRACBITS;
 			if (ev->data3 != INT32_MAX)
 			{
-				if (Joystick.bGamepadStyle || abs(ev->data3) > jdeadzone)
+				if (Joystick.bGamepadStyle || abs(ev->data3) > jydeadzone)
 				{
 					if (ev->data3 < 0 && pjoyy >= 0)
 					{
@@ -2594,7 +2595,7 @@ boolean M_Responder(event_t *ev)
 
 			if (ev->data2 != INT32_MAX)
 			{
-				if (Joystick.bGamepadStyle || abs(ev->data2) > jdeadzone)
+				if (Joystick.bGamepadStyle || abs(ev->data2) > jxdeadzone)
 				{
 					if (ev->data2 < 0 && pjoyx >= 0)
 					{
