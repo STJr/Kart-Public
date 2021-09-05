@@ -597,7 +597,6 @@ static void readfreeslots(MYFILE *f)
 	char *word,*type;
 	char *tmp;
 	int i;
-	boolean allocated = false;
 
 	do
 	{
@@ -646,11 +645,9 @@ static void readfreeslots(MYFILE *f)
 					//sprnames[i][4] = 0;
 					CONS_Printf("Sprite SPR_%s allocated.\n",word);
 					used_spr[(i-SPR_FIRSTFREESLOT)/8] |= 1<<(i%8); // Okay, this sprite slot has been named now.
-					allocated = true;
 					break;
 				}
-
-				if (!allocated)
+				if (i > SPR_LASTFREESLOT)
 					I_Error("Out of Sprite Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word);
 			}
 			else if (fastcmp(type, "S"))
@@ -661,11 +658,10 @@ static void readfreeslots(MYFILE *f)
 						FREE_STATES[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_STATES[i],word);
 						freeslotusage[0][0]++;
-						allocated = true;
 						break;
 					}
 
-				if (!allocated)
+				if (i == NUMSTATEFREESLOTS)
 					I_Error("Out of State Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word);
 			}
 			else if (fastcmp(type, "MT"))
@@ -676,11 +672,10 @@ static void readfreeslots(MYFILE *f)
 						FREE_MOBJS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_MOBJS[i],word);
 						freeslotusage[1][0]++;
-						allocated = true;
 						break;
 					}
 
-				if (!allocated)
+				if (i == NUMMOBJFREESLOTS)
 					I_Error("Out of Mobj Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word);
 			}
 			else
@@ -9262,7 +9257,7 @@ static inline int lib_freeslot(lua_State *L)
 				lua_pushinteger(L, sfx);
 				r++;
 			} else
-				return luaL_error(L, "Out of Sfx Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word);
+				I_Error("Out of Sfx Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word); //Should never get here since S_AddSoundFx was changed to throw I_Error when it can't allocate
 		}
 		else if (fastcmp(type, "SPR"))
 		{
