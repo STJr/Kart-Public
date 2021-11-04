@@ -8851,6 +8851,16 @@ void P_MobjThinker(mobj_t *mobj)
 				}
 			}
 			break;
+		case MT_TUMBLEGEM:
+		case MT_TUMBLECOIN:
+			mobj->friction = 95*FRACUNIT/100;
+			if ((((statenum_t)(mobj->state-states)) == mobj->info->seestate)
+				&& abs(mobj->momx) < mobj->scale && abs(mobj->momy) < mobj->scale && P_IsObjectOnGround(mobj))
+			{
+				mobj->momx = mobj->momy = 0;
+				P_SetMobjState(mobj, mobj->info->spawnstate);
+			}
+			break;
 		case MT_KARMAFIREWORK:
 			if (mobj->momz == 0)
 			{
@@ -9865,6 +9875,9 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 					prev = cur;
 				}
 			}
+			break;
+		case MT_TUMBLEGEM:
+			mobj->color = P_RandomKey(MAXSKINCOLORS - 1) + 1;
 			break;
 		default:
 			break;

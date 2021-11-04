@@ -6982,6 +6982,15 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_LIZARDMAN",
 	"S_LIONMAN",
 
+	// Opulence
+	"S_OPULENCE_PALMTREE",
+	"S_OPULENCE_FERN",
+
+	"S_TUMBLEGEM_IDLE",
+	"S_TUMBLEGEM_ROLL",
+	"S_TUMBLECOIN_IDLE",
+	"S_TUMBLECOIN_FLIP",
+
 	"S_KARMAFIREWORK1",
 	"S_KARMAFIREWORK2",
 	"S_KARMAFIREWORK3",
@@ -7779,6 +7788,13 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_ARIDTOAD",
 	"MT_LIZARDMAN",
 	"MT_LIONMAN",
+
+	// Opulence
+	"MT_OPULENCE_PALMTREE",
+	"MT_OPULENCE_FERN",
+
+	"MT_TUMBLEGEM",
+	"MT_TUMBLECOIN",
 
 	"MT_KARMAFIREWORK",
 

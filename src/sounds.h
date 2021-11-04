@@ -890,6 +890,7 @@ typedef enum
 	sfx_chain,
 	sfx_mkuma,
 	sfx_toada,
+	sfx_gemhit,
 	sfx_bsnipe,
 	sfx_join,
 	sfx_leave,
