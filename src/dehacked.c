@@ -591,7 +591,6 @@ void DEH_UpdateMaxFreeslots(void)
 }
 
 // TODO: Figure out how to do undolines for this....
-// TODO: Warnings for running out of freeslots
 static void readfreeslots(MYFILE *f)
 {
 	char *s = Z_Malloc(MAXLINELEN, PU_STATIC, NULL);
@@ -625,10 +624,12 @@ static void readfreeslots(MYFILE *f)
 				break;
 
 			// TODO: Check for existing freeslot mobjs/states/etc. and make errors.
-			// TODO: Out-of-slots warnings/errors.
 			// TODO: Name too long (truncated) warnings.
 			if (fastcmp(type, "SFX"))
+			{
+				CONS_Printf("Sound sfx_%s allocated.\n",word);
 				S_AddSoundFx(word, false, 0, false);
+			}
 			else if (fastcmp(type, "SPR"))
 			{
 				for (i = SPR_FIRSTFREESLOT; i <= SPR_LASTFREESLOT; i++)
@@ -642,29 +643,40 @@ static void readfreeslots(MYFILE *f)
 					// Found a free slot!
 					strncpy(sprnames[i],word,4);
 					//sprnames[i][4] = 0;
+					CONS_Printf("Sprite SPR_%s allocated.\n",word);
 					used_spr[(i-SPR_FIRSTFREESLOT)/8] |= 1<<(i%8); // Okay, this sprite slot has been named now.
 					break;
 				}
+				if (i > SPR_LASTFREESLOT)
+					I_Error("Out of Sprite Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word);
 			}
 			else if (fastcmp(type, "S"))
 			{
 				for (i = 0; i < NUMSTATEFREESLOTS; i++)
 					if (!FREE_STATES[i]) {
+						CONS_Printf("State S_%s allocated.\n",word);
 						FREE_STATES[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_STATES[i],word);
 						freeslotusage[0][0]++;
 						break;
 					}
+
+				if (i == NUMSTATEFREESLOTS)
+					I_Error("Out of State Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word);
 			}
 			else if (fastcmp(type, "MT"))
 			{
 				for (i = 0; i < NUMMOBJFREESLOTS; i++)
 					if (!FREE_MOBJS[i]) {
+						CONS_Printf("MobjType MT_%s allocated.\n",word);
 						FREE_MOBJS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_MOBJS[i],word);
 						freeslotusage[1][0]++;
 						break;
 					}
+
+				if (i == NUMMOBJFREESLOTS)
+					I_Error("Out of Mobj Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word);
 			}
 			else
 				deh_warning("Freeslots: unknown enum class '%s' for '%s_%s'", type, type, word);
@@ -9220,7 +9232,7 @@ void DEH_Check(void)
 static inline int lib_freeslot(lua_State *L)
 {
 	int n = lua_gettop(L);
-  int r = 0; // args returned
+	int r = 0; // args returned
 	char *s, *type,*word;
 
   while (n-- > 0)
@@ -9250,7 +9262,7 @@ static inline int lib_freeslot(lua_State *L)
 				lua_pushinteger(L, sfx);
 				r++;
 			} else
-				return r;
+				I_Error("Out of Sfx Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word); //Should never get here since S_AddSoundFx was changed to throw I_Error when it can't allocate
 		}
 		else if (fastcmp(type, "SPR"))
 		{
@@ -9277,7 +9289,7 @@ static inline int lib_freeslot(lua_State *L)
 				break;
 			}
 			if (j > SPR_LASTFREESLOT)
-				return r;
+				I_Error("Out of Sprite Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word);
 		}
 		else if (fastcmp(type, "S"))
 		{
@@ -9293,7 +9305,7 @@ static inline int lib_freeslot(lua_State *L)
 					break;
 				}
 			if (i == NUMSTATEFREESLOTS)
-				return r;
+				I_Error("Out of State Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word);
 		}
 		else if (fastcmp(type, "MT"))
 		{
@@ -9309,7 +9321,7 @@ static inline int lib_freeslot(lua_State *L)
 					break;
 				}
 			if (i == NUMMOBJFREESLOTS)
-				return r;
+				I_Error("Out of Mobj Freeslots while allocating \"%s\"\nLoad less addons to fix this.", word);
 		}
 		Z_Free(s);
 		lua_remove(L, 1);

@@ -1034,7 +1034,7 @@ sfxenum_t S_AddSoundFx(const char *name, boolean singular, INT32 flags, boolean 
 			return i;
 		}
 	}
-	CONS_Alert(CONS_WARNING, M_GetText("No more free sound slots\n"));
+	I_Error("Out of Sound Freeslots while allocating \"%s\"\nLoad less addons to fix this.", name);
 	return 0;
 }
 
