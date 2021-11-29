@@ -518,6 +518,7 @@ static const char *credits[] = {
 	"Sean \"Sryder\" Ryder",
 	"\"Ryuspark\"",
 	"\"Simsmagic\"",
+	"Ivo Solarin",
 	"\"SP47\"",
 	"\"TG\"",
 	"\"Victor Rush Turbo\"",
