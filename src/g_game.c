@@ -2603,6 +2603,9 @@ void G_PlayerReborn(INT32 player)
 	INT32 wanted;
 	INT32 respawnflip;
 	boolean songcredit = false;
+	tic_t spectatorreentry;
+	tic_t grieftime;
+	UINT8 griefstrikes;
 
 	score = players[player].score;
 	marescore = players[player].marescore;
@@ -2644,7 +2647,7 @@ void G_PlayerReborn(INT32 player)
 	pity = players[player].pity;
 
 	// SRB2kart
-	if (leveltime <= starttime)
+	if (leveltime <= starttime || spectator == true)
 	{
 		itemroulette = 0;
 		roulettetype = 0;
@@ -2655,6 +2658,14 @@ void G_PlayerReborn(INT32 player)
 		comebackpoints = 0;
 		wanted = 0;
 		starpostwp = 0;
+
+		starposttime = 0;
+		starpostx = 0;
+		starposty = 0;
+		starpostz = 0;
+		starpostnum = 0;
+		respawnflip = 0;
+		starpostangle = 0;
 	}
 	else
 	{
@@ -2684,6 +2695,11 @@ void G_PlayerReborn(INT32 player)
 		comebackpoints = players[player].kartstuff[k_comebackpoints];
 		wanted = players[player].kartstuff[k_wanted];
 	}
+
+	spectatorreentry = players[player].spectatorreentry;
+
+	grieftime = players[player].grieftime;
+	griefstrikes = players[player].griefstrikes;
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2737,6 +2753,10 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_wanted] = wanted;
 	p->kartstuff[k_eggmanblame] = -1;
 	p->kartstuff[k_starpostflip] = respawnflip;
+
+	p->spectatorreentry = spectatorreentry;
+	p->grieftime = grieftime;
+	p->griefstrikes = griefstrikes;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;

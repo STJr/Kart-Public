@@ -1471,7 +1471,15 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			{
 				// blatant reuse of a variable that's normally unused in circuit
 				if (!player->tossdelay)
+				{
 					S_StartSound(toucher, sfx_s26d);
+
+					if (netgame && cv_antigrief.value)
+					{
+						player->grieftime += TICRATE;
+					}
+				}
+
 				player->tossdelay = 3;
 				return;
 			}
@@ -1495,6 +1503,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			player->starpostangle = special->angle;
 			player->starpostnum = special->health;
 			player->kartstuff[k_starpostflip] = special->spawnpoint->options & MTF_OBJECTFLIP;	// store flipping
+			player->grieftime = 0;
 
 			//S_StartSound(toucher, special->info->painsound);
 			return;

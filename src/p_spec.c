@@ -4316,12 +4316,21 @@ DoneSection2:
 						nospectategrief = nump;
 
 					thwompsactive = true; // Lap 2 effects
+					player->grieftime = 0;
 				}
 				else if (player->starpostnum)
 				{
 					// blatant reuse of a variable that's normally unused in circuit
 					if (!player->tossdelay)
+					{
 						S_StartSound(player->mo, sfx_s26d);
+
+						if (netgame && cv_antigrief.value)
+						{
+							player->grieftime += TICRATE;
+						}
+					}
+
 					player->tossdelay = 3;
 				}
 
