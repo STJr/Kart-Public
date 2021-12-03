@@ -8511,7 +8511,11 @@ void P_PlayerThink(player_t *player)
 			const tic_t griefval = cv_antigrief.value * TICRATE;
 			const UINT8 n = player - players;
 
-			if (n != serverplayer && !IsPlayerAdmin(n))
+		if (n != serverplayer
+#ifndef DEVELOP
+			&& !IsPlayerAdmin(n)
+#endif
+			)
 			{
 				if (player->grieftime > griefval)
 				{
