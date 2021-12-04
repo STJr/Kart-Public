@@ -3457,7 +3457,7 @@ static void Command_ServerTeamChange_f(void)
 static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 {
 	changeteam_union NetPacket;
-	boolean error = false;
+	boolean error = false, wasspectator = false;
 	NetPacket.value.l = NetPacket.value.b = READINT16(*cp);
 
 	if (!G_GametypeHasTeams() && !G_GametypeHasSpectators()) //Make sure you're in the right gametype.
@@ -3601,6 +3601,8 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		else
 			players[playernum].playerstate = PST_REBORN;
 	}
+	else
+		wasspectator = true;
 
 	players[playernum].pflags &= ~PF_WANTSTOJOIN;
 
@@ -3685,7 +3687,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		else
 			CONS_Printf(M_GetText("%s switched to the %c%s%c.\n"), player_names[playernum], '\x84', M_GetText("Blue Team"), '\x80');
 	}
-	else if (NetPacket.packet.newteam == 0)
+	else if (NetPacket.packet.newteam == 0 && !wasspectator)
 		HU_AddChatText(va("\x82*%s became a spectator.", player_names[playernum]), false); // "entered the game" text was moved to P_SpectatorJoinGame
 
 	//reset view if you are changed, or viewing someone who was changed.
