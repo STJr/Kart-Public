@@ -6316,10 +6316,6 @@ void K_CheckSpectateStatus(void)
 			if (numingame < 2 || leveltime < starttime || mapreset)
 				continue;
 
-			// DON'T allow if the match is 20 seconds in
-			if (leveltime > (starttime + 20*TICRATE)) 
-				return;
-
 			// DON'T allow if the race is on the second lap
 			if (G_RaceGametype() && players[i].laps)
 				return;
@@ -6335,14 +6331,19 @@ void K_CheckSpectateStatus(void)
 		respawnlist[numjoiners++] = i;
 	}
 
+	// 1.4: prevent last lap jerkitude
+	if (gamestate == GS_LEVEL)
+	{
+		if (!numingame) // but allow empty netgames to recover
+			nospectategrief = 0;
+		else if (!nospectategrief && (leveltime > (starttime + 20*TICRATE)))
+			nospectategrief = numingame;
+		if (nospectategrief > 1)
+			return;
+	}
+
 	// literally zero point in going any further if nobody is joining
 	if (!numjoiners)
-		return;
-
-	// 1.4: prevent last lap jerkitude
-	if (!numingame) // but allow empty netgames to recover
-		nospectategrief = 0;
-	if (nospectategrief > 1)
 		return;
 
 	// Organize by spectate wait timer

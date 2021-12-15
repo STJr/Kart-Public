@@ -4311,10 +4311,6 @@ DoneSection2:
 					// Play the starpost sound for 'consistency'
 					// S_StartSound(player->mo, sfx_strpst);
 
-					// Figure out how many are playing on the last lap, to prevent spectate griefing
-					if (!nospectategrief && player->laps >= (UINT8)(cv_numlaps.value - 1))
-						nospectategrief = nump;
-
 					thwompsactive = true; // Lap 2 effects
 					player->grieftime = 0;
 				}
