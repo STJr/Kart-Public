@@ -6339,6 +6339,12 @@ void K_CheckSpectateStatus(void)
 	if (!numjoiners)
 		return;
 
+	// 1.4: prevent last lap jerkitude
+	if (!numingame) // but allow empty netgames to recover
+		nospectategrief = 0;
+	if (nospectategrief > 1)
+		return;
+
 	// Organize by spectate wait timer
 #if 0
 	if (cv_ingamecap.value)

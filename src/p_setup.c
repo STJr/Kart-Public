@@ -2396,6 +2396,8 @@ static void P_LevelInitStuff(void)
 		players[i].exiting = 0;
 		P_ResetPlayer(&players[i]);
 
+		players[i].spectatorreentry = 0; // SRB2Kart 1.4
+
 		players[i].mo = NULL;
 
 		// we must unset axis details too
