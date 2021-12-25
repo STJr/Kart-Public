@@ -4951,6 +4951,9 @@ void K_KartPlayerAfterThink(player_t *player)
 		}
 
 		ret = P_SpawnMobj(targ->mo->x, targ->mo->y, targ->mo->z, MT_PLAYERRETICULE);
+		ret->old_x = targ->mo->old_x;
+		ret->old_y = targ->mo->old_y;
+		ret->old_z = targ->mo->old_z;
 		P_SetTarget(&ret->target, targ->mo);
 		ret->frame |= ((leveltime % 10) / 2);
 		ret->tics = 1;
