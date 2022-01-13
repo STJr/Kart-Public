@@ -261,16 +261,6 @@ void F_IntroDrawer(void)
 	// DRAW A FULL PIC INSTEAD OF FLAT!
 	if (intro_scenenum == 0)
 	{
-		if (finalecount == 8)
-			S_StartSound(NULL, sfx_vroom);
-		else if (finalecount == 47)
-		{
-			// Need to use M_Random otherwise it always uses the same sound
-			INT32 rskin = M_RandomKey(numskins);
-			UINT8 rtaunt = M_RandomKey(2);
-			sfxenum_t rsound = skins[rskin].soundsid[SKSKBST1+rtaunt];
-			S_StartSound(NULL, rsound);
-		}
 		background = W_CachePatchName("KARTKREW", PU_CACHE);
 		highres = true;
 	}
@@ -305,6 +295,20 @@ void F_IntroTicker(void)
 		roidtics--;
 
 	timetonext--;
+
+	if (intro_scenenum == 0)
+	{
+		if (finalecount == 8)
+			S_StartSound(NULL, sfx_vroom);
+		else if (finalecount == 47)
+		{
+			// Need to use M_Random otherwise it always uses the same sound
+			INT32 rskin = M_RandomKey(numskins);
+			UINT8 rtaunt = M_RandomKey(2);
+			sfxenum_t rsound = skins[rskin].soundsid[SKSKBST1+rtaunt];
+			S_StartSound(NULL, rsound);
+		}
+	}
 
 	F_WriteText();
 
