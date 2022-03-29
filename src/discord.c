@@ -156,6 +156,9 @@ static void DRPC_HandleJoin(const char *secret)
 {
 	char *ip = DRPC_XORIPString(secret);
 	CONS_Printf("Connecting to %s via Discord\n", ip);
+	M_ClearMenus(true); //Don't have menus open during connection screen
+	if (demo.playback && demo.title)
+		G_CheckDemoStatus(); //Stop the title demo, so that the connect command doesn't error if a demo is playing
 	COM_BufAddText(va("connect \"%s\"\n", ip));
 	free(ip);
 }
