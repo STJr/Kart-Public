@@ -8504,7 +8504,7 @@ void P_PlayerThink(player_t *player)
 		}
 	}
 
-	if (netgame && cv_antigrief.value != 0)
+	if (netgame && cv_antigrief.value != 0 && G_RaceGametype())
 	{
 		if (!player->spectator && !player->exiting && !(player->pflags & PF_TIMEOVER))
 		{
@@ -8530,7 +8530,7 @@ void P_PlayerThink(player_t *player)
 							XBOXSTATIC UINT8 buf[2];
 
 							buf[0] = n;
-							buf[1] = KICK_MSG_CON_FAIL;
+							buf[1] = KICK_MSG_GRIEF;
 							SendNetXCmd(XD_KICK, &buf, 2);
 						}
 						else

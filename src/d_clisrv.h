@@ -521,17 +521,18 @@ extern consvar_t cv_playbackspeed;
 #define KICK_MSG_TIMEOUT     4
 #define KICK_MSG_BANNED      5
 #define KICK_MSG_PING_HIGH   6
-#define KICK_MSG_CUSTOM_KICK 7
-#define KICK_MSG_CUSTOM_BAN  8
+#define KICK_MSG_GRIEF       7
+#define KICK_MSG_CUSTOM_KICK 8
+#define KICK_MSG_CUSTOM_BAN  9
 
 typedef enum
 {
-	KR_KICK          = 1, //Kicked by server
-	KR_PINGLIMIT     = 2, //Broke Ping Limit
-	KR_SYNCH         = 3, //Synch Failure
-	KR_TIMEOUT       = 4, //Connection Timeout
-	KR_BAN           = 5, //Banned by server
-	KR_LEAVE         = 6, //Quit the game
+	KR_KICK = 1, //Kicked by server
+	KR_PINGLIMIT, //Broke Ping Limit
+	KR_SYNCH, //Synch Failure
+	KR_TIMEOUT, //Connection Timeout
+	KR_BAN, //Banned by server
+	KR_LEAVE, //Quit the game
 
 } kickreason_t;
 

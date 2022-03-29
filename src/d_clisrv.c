@@ -2972,6 +2972,23 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 		K_CheckBumpers();
 	else if (G_RaceGametype())
 		P_CheckRacers();
+
+	// Reset startedInFreePlay
+	{
+		INT32 i;
+
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (playeringame[i] && !players[i].spectator)
+				break;
+		}
+
+		if (i == MAXPLAYERS)
+		{
+			// Server was emptied, consider it FREE PLAY.
+			startedInFreePlay = true;
+		}
+	}
 }
 
 void CL_Reset(void)
@@ -3411,6 +3428,10 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 			if (netgame) // not splitscreen/bots
 				HU_AddChatText(va("\x82*%s left the game", player_names[pnum]), false);
 			kickreason = KR_LEAVE;
+			break;
+		case KICK_MSG_GRIEF:
+			HU_AddChatText(va("\x82*%s has been kicked (Automatic grief detection)", player_names[pnum]), false);
+			kickreason = KR_KICK;
 			break;
 		case KICK_MSG_BANNED:
 			HU_AddChatText(va("\x82*%s has been banned (Don't come back)", player_names[pnum]), false);

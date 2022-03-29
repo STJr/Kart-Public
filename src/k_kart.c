@@ -6316,6 +6316,10 @@ void K_CheckSpectateStatus(void)
 			if (numingame < 2 || leveltime < starttime || mapreset)
 				continue;
 
+			// DON'T allow if the match is 20 seconds in
+			if (leveltime > (starttime + 20*TICRATE))
+				return;
+
 			// DON'T allow if the race is on the second lap
 			if (G_RaceGametype() && players[i].laps)
 				return;
@@ -6331,15 +6335,11 @@ void K_CheckSpectateStatus(void)
 		respawnlist[numjoiners++] = i;
 	}
 
-	// 1.4: prevent last lap jerkitude
-	if (gamestate == GS_LEVEL)
+	// The map started as a legitimate race, but there's still the one player.
+	// Don't allow new joiners, as they're probably a ragespeccer.
+	if (G_RaceGametype() && startedInFreePlay == false && numingame == 1)
 	{
-		if (!numingame) // but allow empty netgames to recover
-			nospectategrief = 0;
-		else if (!nospectategrief && (leveltime > (starttime + 20*TICRATE)))
-			nospectategrief = numingame;
-		if (nospectategrief > 1)
-			return;
+		return;
 	}
 
 	// literally zero point in going any further if nobody is joining
@@ -6391,11 +6391,38 @@ void K_CheckSpectateStatus(void)
 	}
 
 	// Reset the match if you're in an empty server
-	if (!mapreset && gamestate == GS_LEVEL && leveltime >= starttime && (previngame < 2 && numingame >= 2))
+	if (!mapreset && gamestate == GS_LEVEL && (previngame < 2 && numingame >= 2))
 	{
 		S_ChangeMusicInternal("chalng", false); // COME ON
 		mapreset = 3*TICRATE; // Even though only the server uses this for game logic, set for everyone for HUD
 	}
+}
+
+void K_UpdateSpectateGrief(void)
+{
+	UINT8 numingame = 0;
+
+	if (nospectategrief)
+	{
+		return;
+	}
+
+	if (leveltime <= (starttime + 20*TICRATE))
+	{
+		return;
+	}
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+		{
+			continue;
+		}
+
+		numingame++;
+	}
+
+	nospectategrief = numingame;
 }
 
 //}

@@ -3278,6 +3278,7 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT8(save_p, nospectategrief);
 	WRITEUINT8(save_p, thwompsactive);
 	WRITESINT8(save_p, spbplace);
+	WRITEUINT8(save_p, startedInFreePlay);
 
 	// Is it paused?
 	if (paused)
@@ -3387,6 +3388,7 @@ static inline boolean P_NetUnArchiveMisc(void)
 	nospectategrief = READUINT8(save_p);
 	thwompsactive = (boolean)READUINT8(save_p);
 	spbplace = READSINT8(save_p);
+	startedInFreePlay = READUINT8(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)
