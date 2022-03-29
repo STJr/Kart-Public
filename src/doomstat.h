@@ -477,6 +477,7 @@ extern tic_t mapreset;
 extern UINT8 nospectategrief;
 extern boolean thwompsactive;
 extern SINT8 spbplace;
+extern boolean startedInFreePlay;
 
 extern boolean legitimateexit;
 extern boolean comebackshowninfo;

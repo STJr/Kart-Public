@@ -6401,6 +6401,7 @@ void K_CheckSpectateStatus(void)
 void K_UpdateSpectateGrief(void)
 {
 	UINT8 numingame = 0;
+	INT32 i;
 
 	if (nospectategrief)
 	{
