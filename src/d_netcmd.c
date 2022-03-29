@@ -438,9 +438,9 @@ consvar_t cv_killingdead = {"killingdead", "Off", CV_NETVAR|CV_NOSHOWHELP, CV_On
 
 consvar_t cv_netstat = {"netstat", "Off", 0, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL}; // show bandwidth statistics
 static CV_PossibleValue_t nettimeout_cons_t[] = {{TICRATE/7, "MIN"}, {60*TICRATE, "MAX"}, {0, NULL}};
-consvar_t cv_nettimeout = {"nettimeout", "105", CV_CALL|CV_SAVE, nettimeout_cons_t, NetTimeout_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_nettimeout = {"nettimeout", "210", CV_CALL|CV_SAVE, nettimeout_cons_t, NetTimeout_OnChange, 0, NULL, NULL, 0, 0, NULL};
 //static CV_PossibleValue_t jointimeout_cons_t[] = {{5*TICRATE, "MIN"}, {60*TICRATE, "MAX"}, {0, NULL}};
-consvar_t cv_jointimeout = {"jointimeout", "105", CV_CALL|CV_SAVE, nettimeout_cons_t, JoinTimeout_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_jointimeout = {"jointimeout", "210", CV_CALL|CV_SAVE, nettimeout_cons_t, JoinTimeout_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t maxping_cons_t[] = {{0, "MIN"}, {1000, "MAX"}, {0, NULL}};
 consvar_t cv_maxping = {"maxping", "800", CV_SAVE, maxping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 

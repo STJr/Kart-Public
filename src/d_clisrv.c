@@ -3561,17 +3561,17 @@ static CV_PossibleValue_t discordinvites_cons_t[] = {{0, "Admins Only"}, {1, "Ev
 consvar_t cv_discordinvites = {"discordinvites", "Everyone", CV_SAVE|CV_CALL, discordinvites_cons_t, Joinable_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t resynchattempts_cons_t[] = {{0, "MIN"}, {20, "MAX"}, {0, NULL}};
-consvar_t cv_resynchattempts = {"resynchattempts", "5", CV_SAVE, resynchattempts_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL	};
+consvar_t cv_resynchattempts = {"resynchattempts", "2", CV_SAVE, resynchattempts_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL	};
 consvar_t cv_blamecfail = {"blamecfail", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
 
 // max file size to send to a player (in kilobytes)
 static CV_PossibleValue_t maxsend_cons_t[] = {{0, "MIN"}, {51200, "MAX"}, {0, NULL}};
-consvar_t cv_maxsend = {"maxsend", "4096", CV_SAVE, maxsend_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_maxsend = {"maxsend", "MAX", CV_SAVE, maxsend_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_noticedownload = {"noticedownload", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // Speed of file downloading (in packets per tic)
 static CV_PossibleValue_t downloadspeed_cons_t[] = {{0, "MIN"}, {32, "MAX"}, {0, NULL}};
-consvar_t cv_downloadspeed = {"downloadspeed", "16", CV_SAVE, downloadspeed_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_downloadspeed = {"downloadspeed", "MAX", CV_SAVE, downloadspeed_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static void Got_AddPlayer(UINT8 **p, INT32 playernum);
 static void Got_RemovePlayer(UINT8 **p, INT32 playernum);
