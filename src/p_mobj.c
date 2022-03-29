@@ -10663,7 +10663,7 @@ void P_SpawnPlayer(INT32 playernum)
 	else if (netgame && p->jointime <= 1 && pcount)
 	{
 		p->spectator = true;
-		p->spectatorreentry = (cv_spectatorreentry.value * TICRATE);
+		p->spectatorreentry = 0; //(cv_spectatorreentry.value * TICRATE);
 	}
 	else if (multiplayer && !netgame)
 	{
@@ -10677,7 +10677,7 @@ void P_SpawnPlayer(INT32 playernum)
 			// Spawn as a spectator,
 			// yes even in splitscreen mode
 			p->spectator = true;
-			p->spectatorreentry = (cv_spectatorreentry.value * TICRATE);
+			p->spectatorreentry = 0; //(cv_spectatorreentry.value * TICRATE);
 
 			if (playernum&1) p->skincolor = skincolor_redteam;
 			else             p->skincolor = skincolor_blueteam;
@@ -10700,7 +10700,7 @@ void P_SpawnPlayer(INT32 playernum)
 		if (!p->spectator && !p->ctfteam)
 		{
 			p->spectator = true;
-			p->spectatorreentry = (cv_spectatorreentry.value * TICRATE);
+			p->spectatorreentry = 0; //(cv_spectatorreentry.value * TICRATE);
 		}
 
 		// Fix team colors.
