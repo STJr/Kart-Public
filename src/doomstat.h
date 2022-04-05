@@ -482,7 +482,7 @@ extern boolean legitimateexit;
 extern boolean comebackshowninfo;
 extern tic_t curlap, bestlap;
 
-extern INT16 votelevels[5][2];
+extern INT16 votelevels[4][2];
 extern SINT8 votes[MAXPLAYERS];
 extern SINT8 pickedvote;
 
