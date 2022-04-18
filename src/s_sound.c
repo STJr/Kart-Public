@@ -580,11 +580,6 @@ void S_StartSoundAtVolume(const void *origin_p, sfxenum_t sfx_id, INT32 volume)
 			if (listenmobj[i])
 			{
 				audible = S_AdjustSoundParams(listenmobj[i], origin, &volume, &sep, &pitch, sfx);
-
-				if (origin->x == listener[i].x && origin->y == listener[i].y)
-				{
-					sep = NORM_SEP;
-				}
 			}
 
 			if (!audible)
@@ -895,11 +890,6 @@ void S_UpdateSounds(void)
 								&volume, &sep, &pitch,
 								c->sfxinfo
 							);
-
-							if (origin->x == listener[i].x && origin->y == listener[i].y)
-							{
-								sep = NORM_SEP;
-							}
 						}
 
 						if (audible)
@@ -1009,7 +999,6 @@ boolean S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source, INT32 
 	const boolean reverse = (stereoreverse.value ^ encoremode);
 
 	fixed_t approx_dist;
-	angle_t angle;
 
 	listener_t listensource;
 	INT32 i;
@@ -1087,28 +1076,35 @@ boolean S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source, INT32 
 	if (approx_dist > S_CLIPPING_DIST)
 		return false;
 
-	// angle of source to listener
-	angle = R_PointToAngle2(listensource.x, listensource.y, source->x, source->y);
-
-	if (angle > listensource.angle)
-		angle = angle - listensource.angle;
+	if (source->x == listensource.x && source->y == listensource.y)
+	{
+		*sep = NORM_SEP;
+	}
 	else
-		angle = angle + InvAngle(listensource.angle);
+	{
+		// angle of source to listener
+		angle_t angle = R_PointToAngle2(listensource.x, listensource.y, source->x, source->y);
 
-	if (reverse)
-		angle = InvAngle(angle);
+		if (angle > listensource.angle)
+			angle = angle - listensource.angle;
+		else
+			angle = angle + InvAngle(listensource.angle);
+
+		if (reverse)
+			angle = InvAngle(angle);
 
 #ifdef SURROUND
-	// Produce a surround sound for angle from 105 till 255
-	if (surround.value == 1 && (angle > ANG105 && angle < ANG255 ))
-		*sep = SURROUND_SEP;
-	else
+		// Produce a surround sound for angle from 105 till 255
+		if (surround.value == 1 && (angle > ANG105 && angle < ANG255 ))
+			*sep = SURROUND_SEP;
+		else
 #endif
-	{
-		angle >>= ANGLETOFINESHIFT;
+		{
+			angle >>= ANGLETOFINESHIFT;
 
-		// stereo separation
-		*sep = 128 - (FixedMul(S_STEREO_SWING, FINESINE(angle))>>FRACBITS);
+			// stereo separation
+			*sep = 128 - (FixedMul(S_STEREO_SWING, FINESINE(angle))>>FRACBITS);
+		}
 	}
 
 	// volume calculation
