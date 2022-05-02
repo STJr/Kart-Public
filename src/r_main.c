@@ -69,7 +69,7 @@ fixed_t viewx, viewy, viewz;
 angle_t viewangle, aimingangle;
 UINT8 viewssnum;
 fixed_t viewcos, viewsin;
-boolean viewsky, skyVisible;
+boolean skyVisible;
 boolean skyVisiblePerPlayer[MAXSPLITSCREENPLAYERS]; // saved values of skyVisible for each splitscreen player
 sector_t *viewsector;
 player_t *viewplayer;
