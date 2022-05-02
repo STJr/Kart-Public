@@ -2527,7 +2527,6 @@ void HWR_Subsector(size_t num)
 	if (gr_frontsector->ffloors)
 	{
 		/// \todo fix light, xoffs, yoffs, extracolormap ?
-		ffloor_t * rover;
 		for (rover = gr_frontsector->ffloors;
 			rover; rover = rover->next)
 		{
