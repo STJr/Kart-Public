@@ -1688,6 +1688,9 @@ INT32 VID_SetMode(INT32 modeNum)
 		}
 	}
 
+	src_rect.w = vid.width;
+	src_rect.h = vid.height;
+
 	refresh_rate = VID_GetRefreshRate();
 
 	return SDL_TRUE;
