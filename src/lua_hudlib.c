@@ -405,7 +405,7 @@ static int libd_drawOnMinimap(lua_State *L)
 {
 	fixed_t x, y, scale;	// coordinates of the object
 	patch_t *patch;	// patch we want to draw
-	const UINT8 *colormap = NULL;	// do we want to colormap this patch?
+	UINT8 *colormap = NULL;	// do we want to colormap this patch?
 	boolean centered;	// the patch is centered and doesn't need readjusting on x/y coordinates.
 	huddrawlist_h list;
 
@@ -672,39 +672,39 @@ static int libd_drawFill(lua_State *L)
 
 static int libd_fadeScreen(lua_State *L)
 {
-    UINT16 color = luaL_checkinteger(L, 1);
-    UINT8 strength = luaL_checkinteger(L, 2);
-    const UINT8 maxstrength = ((color & 0xFF00) ? 32 : 10);
+	UINT16 color = luaL_checkinteger(L, 1);
+	UINT8 strength = luaL_checkinteger(L, 2);
+	const UINT8 maxstrength = ((color & 0xFF00) ? 32 : 10);
 	huddrawlist_h list;
 
-    HUDONLY
+	HUDONLY
 
-    if (!strength)
-        return 0;
+	if (!strength)
+		return 0;
 
-    if (strength > maxstrength)
-        return luaL_error(L, "%s fade strength %d out of range (0 - %d)", ((color & 0xFF00) ? "COLORMAP" : "TRANSMAP"), strength, maxstrength);
+	if (strength > maxstrength)
+		return luaL_error(L, "%s fade strength %d out of range (0 - %d)", ((color & 0xFF00) ? "COLORMAP" : "TRANSMAP"), strength, maxstrength);
 
 	lua_getfield(L, LUA_REGISTRYINDEX, "HUD_DRAW_LIST");
 	list = (huddrawlist_h) lua_touserdata(L, -1);
 	lua_pop(L, 1);
 
-    if (strength == maxstrength) // Allow as a shortcut for drawfill...
-    {
+	if (strength == maxstrength) // Allow as a shortcut for drawfill...
+	{
 		if (LUA_HUD_IsDrawListValid(list))
 			LUA_HUD_AddDrawFill(list, 0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, ((color & 0xFF00) ? 31 : color));
 		else
 			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, ((color & 0xFF00) ? 31 : color));
 
-        return 0;
-    }
+		return 0;
+	}
 
 	if (LUA_HUD_IsDrawListValid(list))
 		LUA_HUD_AddFadeScreen(list, color, strength);
 	else
 		V_DrawFadeScreen(color, strength);
 
-    return 0;
+	return 0;
 }
 
 static int libd_drawString(lua_State *L)
