@@ -1091,6 +1091,8 @@ void HU_Ticker(void)
 	}
 
 	if (cechotimer > 0) --cechotimer;
+
+	HU_TickSongCredits();
 }
 
 #ifndef NONET
@@ -2270,10 +2272,27 @@ static void HU_DrawDemoInfo(void)
 //
 // Song credits
 //
+void HU_TickSongCredits(void)
+{
+	if (cursongcredit.anim)
+	{
+		if (cursongcredit.trans > 0)
+			cursongcredit.trans--;
+
+		cursongcredit.anim--;
+	}
+	else
+	{
+		if (cursongcredit.trans < NUMTRANSMAPS)
+			cursongcredit.trans++;
+	}
+}
+
 void HU_DrawSongCredits(void)
 {
 	char *str;
-	INT32 len, destx;
+	INT32 len;
+	fixed_t destx;
 	INT32 y = (splitscreen ? (BASEVIDHEIGHT/2)-4 : 32);
 	INT32 bgt;
 
@@ -2282,33 +2301,31 @@ void HU_DrawSongCredits(void)
 
 	str = va("\x1F"" %s", cursongcredit.def->source);
 	len = V_ThinStringWidth(str, V_ALLOWLOWERCASE|V_6WIDTHSPACE);
-	destx = (len+7);
+	destx = (len + 7) * FRACUNIT;
 
 	if (cursongcredit.anim)
 	{
-		if (cursongcredit.trans > 0)
-			cursongcredit.trans--;
 		if (cursongcredit.x < destx)
-			cursongcredit.x += (destx - cursongcredit.x) / 2;
+			cursongcredit.x += FixedMul((destx - cursongcredit.x) / 2, renderdeltatics);
 		if (cursongcredit.x > destx)
 			cursongcredit.x = destx;
-		cursongcredit.anim--;
 	}
 	else
 	{
-		if (cursongcredit.trans < NUMTRANSMAPS)
-			cursongcredit.trans++;
 		if (cursongcredit.x > 0)
-			cursongcredit.x /= 2;
+			cursongcredit.x -= FixedMul(cursongcredit.x / 2, renderdeltatics);
 		if (cursongcredit.x < 0)
 			cursongcredit.x = 0;
 	}
 
-	bgt = (NUMTRANSMAPS/2)+(cursongcredit.trans/2);
+	bgt = (NUMTRANSMAPS/2) + (cursongcredit.trans/2);
+
+	// v1 does not have v2's font revamp, so there is no function for thin string at fixed_t
+	// sooo I'm just killing the precision.
 	if (bgt < NUMTRANSMAPS)
-		V_DrawScaledPatch(cursongcredit.x, y-2, V_SNAPTOLEFT|(bgt<<V_ALPHASHIFT), songcreditbg);
+		V_DrawScaledPatch(cursongcredit.x / FRACUNIT, y-2, V_SNAPTOLEFT|(bgt<<V_ALPHASHIFT), songcreditbg);
 	if (cursongcredit.trans < NUMTRANSMAPS)
-		V_DrawRightAlignedThinString(cursongcredit.x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_SNAPTOLEFT|(cursongcredit.trans<<V_ALPHASHIFT), str);
+		V_DrawRightAlignedThinString(cursongcredit.x / FRACUNIT, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_SNAPTOLEFT|(cursongcredit.trans<<V_ALPHASHIFT), str);
 }
 
 
