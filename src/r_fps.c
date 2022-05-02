@@ -35,7 +35,7 @@ static CV_PossibleValue_t fpscap_cons_t[] = {
 	{0, "Match refresh rate"},
 	{0, NULL}
 };
-consvar_t cv_fpscap = {"fpscap", "300", CV_SAVE, fpscap_cons_t, NULL, -1, NULL, NULL, 0, 0, NULL};
+consvar_t cv_fpscap = {"fpscap", "Match refresh rate", CV_SAVE, fpscap_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 UINT32 R_GetFramerateCap(void)
 {
