@@ -341,6 +341,10 @@ void HU_Init(void)
 	// set shift translation table
 	shiftxform = english_shiftxform;
 
+#ifdef HAVE_BLUA
+	luahuddrawlist_scores = LUA_HUD_CreateDrawList();
+#endif
+
 	HU_LoadGraphics();
 }
 
