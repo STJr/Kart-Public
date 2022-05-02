@@ -162,10 +162,13 @@ static const char *CopyString(huddrawlist_h list, const char* str)
 		else list->strbuf_capacity *= 2;
 		list->strbuf = (char*) Z_ReallocAlign(list->strbuf, sizeof(char) * list->strbuf_capacity, PU_STATIC, NULL, 8);
 	}
-	const char *result = (const char *) &list->strbuf[list->strbuf_len];
-	strncpy(&list->strbuf[list->strbuf_len], str, lenstr + 1);
-	list->strbuf_len += lenstr + 1;
-	return result;
+
+	{
+		const char *result = (const char *) &list->strbuf[list->strbuf_len];
+		strncpy(&list->strbuf[list->strbuf_len], str, lenstr + 1);
+		list->strbuf_len += lenstr + 1;
+		return result;
+	}
 }
 
 void LUA_HUD_AddDraw(
