@@ -1623,6 +1623,27 @@ void VID_PrepareModeList(void)
 #endif
 }
 
+static UINT32 refresh_rate;
+static UINT32 VID_GetRefreshRate(void)
+{
+	int index = SDL_GetWindowDisplayIndex(window);
+	SDL_DisplayMode m;
+
+	if (SDL_WasInit(SDL_INIT_VIDEO) == 0)
+	{
+		// Video not init yet.
+		return 0;
+	}
+
+	if (SDL_GetCurrentDisplayMode(index, &m) != 0)
+	{
+		// Error has occurred.
+		return 0;
+	}
+
+	return m.refresh_rate;
+}
+
 INT32 VID_SetMode(INT32 modeNum)
 {
 	SDLdoUngrabMouse();
@@ -1667,28 +1688,9 @@ INT32 VID_SetMode(INT32 modeNum)
 		}
 	}
 
+	refresh_rate = VID_GetRefreshRate();
+
 	return SDL_TRUE;
-}
-
-static UINT32 refresh_rate;
-static UINT32 VID_GetRefreshRate(void)
-{
-	int index = SDL_GetWindowDisplayIndex(window);
-	SDL_DisplayMode m;
-
-	if (SDL_WasInit(SDL_INIT_VIDEO) == 0)
-	{
-		// Video not init yet.
-		return 0;
-	}
-
-	if (SDL_GetCurrentDisplayMode(index, &m) != 0)
-	{
-		// Error has occurred.
-		return 0;
-	}
-
-	return m.refresh_rate;
 }
 
 static SDL_bool Impl_CreateWindow(SDL_bool fullscreen)
