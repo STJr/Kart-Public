@@ -72,7 +72,7 @@ static viewvars_t skyview_old[MAXSPLITSCREENPLAYERS];
 static viewvars_t skyview_new[MAXSPLITSCREENPLAYERS];
 
 static viewvars_t *oldview = &pview_old[0];
-static int oldview_invalid = 0;
+static int oldview_invalid[MAXSPLITSCREENPLAYERS] = {0, 0, 0, 0};
 viewvars_t *newview = &pview_new[0];
 
 
@@ -141,12 +141,23 @@ void R_InterpolateView(fixed_t frac)
 {
 	viewvars_t* prevview = oldview;
 	boolean skybox = 0;
+	UINT8 i;
+
 	if (FIXED_TO_FLOAT(frac) < 0)
 		frac = 0;
 	if (frac > FRACUNIT)
 		frac = FRACUNIT;
 
-	if (oldview_invalid != 0)
+	if (viewcontext >= VIEWCONTEXT_SKY1)
+	{
+		i = viewcontext - VIEWCONTEXT_SKY1;
+	}
+	else
+	{
+		i = viewcontext - VIEWCONTEXT_PLAYER1;
+	}
+
+	if (oldview_invalid[i] != 0)
 	{
 		// interpolate from newview to newview
 		prevview = newview;
@@ -178,14 +189,25 @@ void R_UpdateViewInterpolation(void)
 	{
 		pview_old[i] = pview_new[i];
 		skyview_old[i] = skyview_new[i];
-	}
 
-	if (oldview_invalid) oldview_invalid--;
+		if (oldview_invalid[i]) oldview_invalid[i]--;
+	}
 }
 
-void R_ResetViewInterpolation(void)
+void R_ResetViewInterpolation(UINT8 p)
 {
-	oldview_invalid++;
+	if (p == 0)
+	{
+		UINT8 i;
+		for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+		{
+			oldview_invalid[i]++;
+		}
+	}
+	else
+	{
+		oldview_invalid[p - 1]++;
+	}
 }
 
 void R_SetViewContext(enum viewcontext_e _viewcontext)

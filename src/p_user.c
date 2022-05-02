@@ -7992,7 +7992,11 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 
 	if (lookbackdown)
+	{
 		P_MoveChaseCamera(player, thiscam, false);
+		R_ResetViewInterpolation(num + 1);
+		R_ResetViewInterpolation(num + 1);
+	}
 
 	return (x == thiscam->x && y == thiscam->y && z == thiscam->z && angle == thiscam->aiming);
 }
