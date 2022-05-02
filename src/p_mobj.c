@@ -5831,8 +5831,8 @@ void P_Attract(mobj_t *source, mobj_t *dest, boolean nightsgrab) // Home in on y
 		source->momx = source->momy = source->momz = 0;
 		P_UnsetThingPosition(source);
 		source->x = source->old_x = tx;
-		source->y = source->old_x = ty;
-		source->z = source->old_x = tz;
+		source->y = source->old_y = ty;
+		source->z = source->old_z = tz;
 		P_SetThingPosition(source);
 	}
 }
@@ -6110,7 +6110,7 @@ void P_RunShadows(void)
 		if (dest->type == MT_THUNDERSHIELD)
 			dest = dest->target;
 
-		P_SetOrigin(mobj, dest->x, dest->y, mobj->target->z);
+		P_MoveOrigin(mobj, dest->x, dest->y, mobj->target->z);
 
 		if (((mobj->eflags & MFE_VERTICALFLIP) && (mobj->ceilingz > mobj->z+mobj->height))
 			|| (!(mobj->eflags & MFE_VERTICALFLIP) && (floorz < mobj->z)))
@@ -6128,7 +6128,7 @@ void P_RunShadows(void)
 				P_SetScale(mobj, FixedDiv(mobj->scale, max(FRACUNIT, ((mobj->target->z-mobj->z)/200)+FRACUNIT)));
 
 				// Check new position to see if you should still be on that ledge
-				P_SetOrigin(mobj, dest->x, dest->y, mobj->z);
+				P_MoveOrigin(mobj, dest->x, dest->y, mobj->z);
 
 				mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : floorz);
 
@@ -10048,6 +10048,8 @@ mobj_t *P_SpawnShadowMobj(mobj_t * caster)
 		P_CheckGravity(mobj, false);
 
 	P_SetTarget(&mobj->target, caster); // set the shadow's caster as the target
+
+	R_AddMobjInterpolator(mobj);
 
 	return mobj;
 }
