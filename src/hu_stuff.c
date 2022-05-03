@@ -1090,6 +1090,27 @@ void HU_Ticker(void)
 			chat_scrolltime--;
 	}
 
+	if (netgame) // would handle that in hu_drawminichat, but it's actually kinda awkward when you're typing a lot of messages. (only handle that in netgames duh)
+	{
+		size_t i = 0;
+
+		// handle spam while we're at it:
+		for(; (i<MAXPLAYERS); i++)
+		{
+			if (stop_spamming[i] > 0)
+				stop_spamming[i]--;
+		}
+
+		// handle chat timers
+		for (i=0; (i<chat_nummsg_min); i++)
+		{
+			if (chat_timers[i] > 0)
+				chat_timers[i]--;
+			else
+				HU_removeChatText_Mini();
+		}
+	}
+
 	if (cechotimer > 0) --cechotimer;
 
 	HU_TickSongCredits();
