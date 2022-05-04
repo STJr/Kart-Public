@@ -4034,10 +4034,6 @@ boolean SV_SpawnServer(void)
 		if (netgame && I_NetOpenSocket)
 		{
 			I_NetOpenSocket();
-#ifdef MASTERSERVER
-			if (cv_advertise.value)
-				RegisterServer();
-#endif
 		}
 
 		// non dedicated server just connect to itself
