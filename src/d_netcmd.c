@@ -2446,6 +2446,7 @@ void D_PickVote(void)
 	SINT8 templevels[MAXPLAYERS];
 	SINT8 votecompare = -1;
 	UINT8 numvotes = 0, key = 0;
+	boolean force = true;
 	INT32 i;
 
 	for (i = 0; i < MAXPLAYERS; i++)
