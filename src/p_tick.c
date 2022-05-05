@@ -869,6 +869,8 @@ void P_PreTicker(INT32 frames)
 		LUAh_PostThinkFrame();
 #endif
 
+		R_UpdateLevelInterpolators();
+
 		P_MapEnd();
 
 		hook_defrosting--;
