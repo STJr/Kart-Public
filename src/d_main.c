@@ -798,6 +798,12 @@ void D_SRB2Loop(void)
 			I_FinishUpdate(); // page flip or blit buffer
 		}
 
+		// Only take screenshots after drawing.
+		if (moviemode)
+			M_SaveFrame();
+		if (takescreenshot)
+			M_DoScreenShot();
+
 		// Fully completed frame made.
 		finishprecise = I_GetPreciseTime();
 		if (!singletics)
@@ -812,12 +818,6 @@ void D_SRB2Loop(void)
 		finishprecise = I_GetPreciseTime();
 		deltasecs = (double)((INT64)(finishprecise - enterprecise)) / I_GetPrecisePrecision();
 		deltatics = deltasecs * NEWTICRATE;
-
-		// Only take screenshots after drawing.
-		if (moviemode)
-			M_SaveFrame();
-		if (takescreenshot)
-			M_DoScreenShot();
 	}
 }
 
