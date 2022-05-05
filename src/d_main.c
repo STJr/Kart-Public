@@ -270,7 +270,7 @@ void D_ProcessEvents(void)
 // added comment : there is a wipe eatch change of the gamestate
 gamestate_t wipegamestate = GS_LEVEL;
 
-static boolean D_Display(void)
+static void D_Display(void)
 {
 	boolean forcerefresh = false;
 	static boolean wipe = false;
@@ -280,7 +280,7 @@ static boolean D_Display(void)
 	if (!dedicated)
 	{
 		if (nodrawers)
-			return false; // for comparative timing/profiling
+			return; // for comparative timing/profiling
 
 		// check for change of screen size (video mode)
 		if (setmodeneeded && !wipe)
@@ -345,7 +345,7 @@ static boolean D_Display(void)
 	}
 
 	if (dedicated) //bail out after wipe logic
-		return false;
+		return;
 
 	// do buffered drawing
 	switch (gamestate)
@@ -613,10 +613,8 @@ static boolean D_Display(void)
 		if (cv_shittyscreen.value)
 			V_DrawVhsEffect(cv_shittyscreen.value == 2);
 
-		return true; // Do I_FinishUpdate in the main loop
+		I_FinishUpdate(); // page flip or blit buffer
 	}
-
-	return false;
 }
 
 // =========================================================================
@@ -633,7 +631,6 @@ void D_SRB2Loop(void)
 
 	boolean interp = false;
 	boolean doDisplay = false;
-	boolean screenUpdate = false;
 
 	if (dedicated)
 		server = true;
@@ -709,7 +706,7 @@ void D_SRB2Loop(void)
 #endif
 
 		interp = R_UsingFrameInterpolation() && !dedicated;
-		doDisplay = screenUpdate = false;
+		doDisplay = false;
 
 #ifdef HW3SOUND
 		HW3S_BeginFrameUpdate();
@@ -767,8 +764,14 @@ void D_SRB2Loop(void)
 
 		if (interp || doDisplay)
 		{
-			screenUpdate = D_Display();
+			D_Display();
 		}
+
+		// Only take screenshots after drawing.
+		if (moviemode)
+			M_SaveFrame();
+		if (takescreenshot)
+			M_DoScreenShot();
 
 		// consoleplayer -> displayplayers (hear sounds from viewpoint)
 		S_UpdateSounds(); // move positional sounds
@@ -790,19 +793,6 @@ void D_SRB2Loop(void)
 			Discord_RunCallbacks();
 		}
 #endif
-
-		// I_FinishUpdate is now here instead of D_Display,
-		// because it synchronizes it more closely with the frame counter.
-		if (screenUpdate == true)
-		{
-			I_FinishUpdate(); // page flip or blit buffer
-		}
-
-		// Only take screenshots after drawing.
-		if (moviemode)
-			M_SaveFrame();
-		if (takescreenshot)
-			M_DoScreenShot();
 
 		// Fully completed frame made.
 		finishprecise = I_GetPreciseTime();
