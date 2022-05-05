@@ -851,6 +851,8 @@ void P_PreTicker(INT32 frames)
 		P_UpdateSpecials();
 		P_RespawnSpecials();
 
+		R_UpdateLevelInterpolators();
+
 		P_MapEnd();
 	}
 }
