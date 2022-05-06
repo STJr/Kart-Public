@@ -3383,9 +3383,6 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	G_AddMapToBuffer(gamemap-1);
 
-	R_ResetViewInterpolation(0);
-	R_ResetViewInterpolation(0);
-
 	return true;
 }
 

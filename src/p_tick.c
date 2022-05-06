@@ -802,6 +802,7 @@ void P_Ticker(boolean run)
 	if (run)
 	{
 		R_UpdateLevelInterpolators();
+		R_UpdateViewInterpolation();
 	}
 
 	P_MapEnd();
@@ -872,6 +873,8 @@ void P_PreTicker(INT32 frames)
 #endif
 
 		R_UpdateLevelInterpolators();
+		R_UpdateViewInterpolation();
+		R_ResetViewInterpolation();
 
 		P_MapEnd();
 
