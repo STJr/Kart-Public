@@ -3385,7 +3385,6 @@ boolean P_SetupLevel(boolean skipprecip)
 
 	R_ResetViewInterpolation(0);
 	R_ResetViewInterpolation(0);
-	R_UpdateMobjInterpolators();
 
 	return true;
 }

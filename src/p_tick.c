@@ -817,6 +817,8 @@ void P_PreTicker(INT32 frames)
 	{
 		P_MapStart();
 
+		R_UpdateMobjInterpolators();
+
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
 			{
