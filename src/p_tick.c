@@ -856,7 +856,7 @@ void P_PreTicker(INT32 frames)
 
 		R_UpdateLevelInterpolators();
 		R_UpdateViewInterpolation();
-		R_ResetViewInterpolation();
+		R_ResetViewInterpolation(0);
 
 		P_MapEnd();
 	}
