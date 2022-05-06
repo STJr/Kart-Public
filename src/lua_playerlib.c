@@ -727,6 +727,14 @@ static int kartstuff_get(lua_State *L)
 	kartstufftype_t ks = luaL_checkinteger(L, 2);
 	if (ks >= NUMKARTSTUFF)
 		return luaL_error(L, LUA_QL("kartstufftype_t") " cannot be %u", ks);
+
+	// V1 COMPATIBILITY THING
+	if (ks == k_lapanimation || ks == k_cardanimation || ks == k_yougotem)
+	{
+		lua_pushinteger(L, kartstuff[ks] / FRACUNIT);
+		return 1;
+	}
+
 	lua_pushinteger(L, kartstuff[ks]);
 	return 1;
 }
@@ -743,6 +751,14 @@ static int kartstuff_set(lua_State *L)
 		return luaL_error(L, "Do not alter player_t in HUD rendering code!");
 	if (hook_cmd_running)
 		return luaL_error(L, "Do not alter player_t in BuildCMD code!");
+
+	// V1 COMPATIBILITY THING
+	if (ks == k_lapanimation || ks == k_cardanimation || ks == k_yougotem)
+	{
+		kartstuff[ks] = i * FRACUNIT;
+		return 0;
+	}
+
 	kartstuff[ks] = i;
 	return 0;
 }
