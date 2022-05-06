@@ -9178,7 +9178,7 @@ void K_drawKartHUD(void)
 	if (modeattacking || freecam) // everything after here is MP and debug only
 		return;
 
-	if (G_BattleGametype() && !splitscreen && FixedRem(stplyr->kartstuff[k_yougotem], 2*FRACUNIT)) // * YOU GOT EM *
+	if (G_BattleGametype() && !splitscreen && ((stplyr->kartstuff[k_yougotem] / FRACUNIT) % 2)) // * YOU GOT EM *
 		V_DrawScaledPatch(BASEVIDWIDTH/2 - (SHORT(kp_yougotem->width)/2), 32, V_HUDTRANS, kp_yougotem);
 
 	// Draw FREE PLAY.

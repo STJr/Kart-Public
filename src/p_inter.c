@@ -494,7 +494,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 					special->target->player->kartstuff[k_comebackpoints] += ptadd;
 
 					if (ptadd > 1)
-						special->target->player->kartstuff[k_yougotem] = 2*TICRATE;
+						special->target->player->kartstuff[k_yougotem] = (2*TICRATE) * FRACUNIT;
 
 					if (special->target->player->kartstuff[k_comebackpoints] >= 2)
 						K_StealBumper(special->target->player, player, true);
@@ -557,7 +557,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 				special->target->player->kartstuff[k_comebackpoints] += ptadd;
 
 				if (ptadd > 1)
-					special->target->player->kartstuff[k_yougotem] = 2*TICRATE;
+					special->target->player->kartstuff[k_yougotem] = (2*TICRATE) * FRACUNIT;
 
 				if (special->target->player->kartstuff[k_comebackpoints] >= 2)
 					K_StealBumper(special->target->player, player, true);
