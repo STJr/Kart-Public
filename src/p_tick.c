@@ -827,6 +827,8 @@ void P_PreTicker(INT32 frames)
 	{
 		P_MapStart();
 
+		R_UpdateMobjInterpolators();
+
 #ifdef HAVE_BLUA
 		LUAh_PreThinkFrame();
 #endif
