@@ -2415,10 +2415,6 @@ void G_Ticker(boolean run)
 				ST_Ticker();
 				AM_Ticker();
 				HU_Ticker();
-				if (run)
-				{
-					R_UpdateViewInterpolation();
-				}
 			}
 			break;
 
