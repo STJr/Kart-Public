@@ -4262,7 +4262,7 @@ DoneSection2:
 					else
 						player->kartstuff[k_laphand] = 0; // No hands in FREE PLAY
 
-					player->kartstuff[k_lapanimation] = 80;
+					player->kartstuff[k_lapanimation] = 80*FRACUNIT;
 
 					if (player->pflags & PF_NIGHTSMODE)
 						player->drillmeter += 48*20;

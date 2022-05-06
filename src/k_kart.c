@@ -4580,42 +4580,72 @@ static void K_UpdateInvincibilitySounds(player_t *player)
 void K_KartPlayerHUDUpdate(player_t *player)
 {
 	if (player->kartstuff[k_lapanimation])
-		player->kartstuff[k_lapanimation]--;
+		player->kartstuff[k_lapanimation] -= renderdeltatics;
 
 	if (player->kartstuff[k_yougotem])
-		player->kartstuff[k_yougotem]--;
+		player->kartstuff[k_yougotem] -= renderdeltatics;
 
 	if (G_BattleGametype() && (player->exiting || player->kartstuff[k_comebacktimer]))
 	{
+		const fixed_t max = 164*FRACUNIT;
+		const fixed_t delta = FixedMul(((max - player->kartstuff[k_cardanimation]) / 8) + FRACUNIT, renderdeltatics);
+
 		if (player->exiting)
 		{
 			if (player->exiting < 6*TICRATE)
-				player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
+				player->kartstuff[k_cardanimation] += delta;
 			else if (player->exiting == 6*TICRATE)
 				player->kartstuff[k_cardanimation] = 0;
-			else if (player->kartstuff[k_cardanimation] < 2*TICRATE)
-				player->kartstuff[k_cardanimation]++;
+			else if (player->kartstuff[k_cardanimation] < (2*TICRATE) * FRACUNIT)
+				player->kartstuff[k_cardanimation] += renderdeltatics;
 		}
 		else
 		{
 			if (player->kartstuff[k_comebacktimer] < 6*TICRATE)
-				player->kartstuff[k_cardanimation] -= ((164-player->kartstuff[k_cardanimation])/8)+1;
+				player->kartstuff[k_cardanimation] -= delta;
 			else if (player->kartstuff[k_comebacktimer] < 9*TICRATE)
-				player->kartstuff[k_cardanimation] += ((164-player->kartstuff[k_cardanimation])/8)+1;
+				player->kartstuff[k_cardanimation] += delta;
 		}
 
-		if (player->kartstuff[k_cardanimation] > 164)
-			player->kartstuff[k_cardanimation] = 164;
+		if (player->kartstuff[k_cardanimation] > max)
+			player->kartstuff[k_cardanimation] = max;
 		if (player->kartstuff[k_cardanimation] < 0)
 			player->kartstuff[k_cardanimation] = 0;
 	}
 	else if (G_RaceGametype() && player->exiting)
 	{
-		if (player->kartstuff[k_cardanimation] < 2*TICRATE)
-			player->kartstuff[k_cardanimation]++;
+		if (player->kartstuff[k_cardanimation] < (2*TICRATE) * FRACUNIT)
+			player->kartstuff[k_cardanimation] += renderdeltatics;
 	}
 	else
 		player->kartstuff[k_cardanimation] = 0;
+}
+
+void K_KartDoPlayerHUDUpdates(void)
+{
+	UINT8 i;
+
+	if (paused || P_AutoPause())
+	{
+		return;
+	}
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		player_t *player = NULL;
+		if (!playeringame[i])
+		{
+			continue;
+		}
+
+		player = &players[i];
+		if (player == NULL)
+		{
+			continue;
+		}
+
+		K_KartPlayerHUDUpdate(player);
+	}
 }
 
 /**	\brief	Decreases various kart timers and powers per frame. Called in P_PlayerThink in p_user.c
@@ -4834,8 +4864,6 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 		player->kartstuff[k_itemblinkmode] = 0;
 		player->kartstuff[k_itemblink] = 0;
 	}
-
-	K_KartPlayerHUDUpdate(player);
 
 	if (player->kartstuff[k_voices])
 		player->kartstuff[k_voices]--;
@@ -8316,10 +8344,10 @@ static void K_drawKartFinish(void)
 {
 	INT32 pnum = 0, splitflags = K_calcSplitFlags(0);
 
-	if (!stplyr->kartstuff[k_cardanimation] || stplyr->kartstuff[k_cardanimation] >= 2*TICRATE)
+	if (!stplyr->kartstuff[k_cardanimation] || stplyr->kartstuff[k_cardanimation] >= (2*TICRATE) * FRACUNIT)
 		return;
 
-	if ((stplyr->kartstuff[k_cardanimation] % (2*5)) / 5) // blink
+	if (((stplyr->kartstuff[k_cardanimation] / FRACUNIT) % (2*5)) / 5) // blink
 		pnum = 1;
 
 	if (splitscreen > 1) // 3/4p, stationary FIN
@@ -8331,32 +8359,38 @@ static void K_drawKartFinish(void)
 
 	//else -- 1/2p, scrolling FINISH
 	{
-		INT32 x, xval;
+		fixed_t x, xval;
 
 		if (splitscreen) // wide splitscreen
 			pnum += 4;
 
-		x = ((vid.width<<FRACBITS)/vid.dupx);
-		xval = (SHORT(kp_racefinish[pnum]->width)<<FRACBITS);
-		x = ((TICRATE - stplyr->kartstuff[k_cardanimation])*(xval > x ? xval : x))/TICRATE;
+		x = ((vid.width << FRACBITS) / vid.dupx);
+		xval = (SHORT(kp_racefinish[pnum]->width) << FRACBITS);
+		x = FixedMul(
+			(TICRATE * FRACUNIT) - stplyr->kartstuff[k_cardanimation],
+			(xval > x) ? xval : x
+		) / TICRATE;
 
 		if (splitscreen && stplyr == &players[displayplayers[1]])
 			x = -x;
 
-		V_DrawFixedPatch(x + (STCD_X<<FRACBITS) - (xval>>1),
-			(STCD_Y<<FRACBITS) - (SHORT(kp_racefinish[pnum]->height)<<(FRACBITS-1)),
+		V_DrawFixedPatch(
+			x + (STCD_X<<FRACBITS) - (xval>>1),
+			(STCD_Y<<FRACBITS) - (SHORT(kp_racefinish[pnum]->height) << (FRACBITS-1)),
 			FRACUNIT,
-			splitflags, kp_racefinish[pnum], NULL);
+			splitflags, kp_racefinish[pnum], NULL
+		);
 	}
 }
 
 static void K_drawBattleFullscreen(void)
 {
-	INT32 x = BASEVIDWIDTH/2;
-	INT32 y = -64+(stplyr->kartstuff[k_cardanimation]); // card animation goes from 0 to 164, 164 is the middle of the screen
+	fixed_t x = (BASEVIDWIDTH/2) * FRACUNIT;
+	fixed_t y = (-64 * FRACUNIT) + stplyr->kartstuff[k_cardanimation]; // card animation goes from 0 to 164, 164 is the middle of the screen
 	INT32 splitflags = V_SNAPTOTOP; // I don't feel like properly supporting non-green resolutions, so you can have a misuse of SNAPTO instead
 	fixed_t scale = FRACUNIT;
 	boolean drawcomebacktimer = true;	// lazy hack because it's cleaner in the long run.
+
 #ifdef HAVE_BLUA
 	if (!LUA_HudEnabled(hud_battlecomebacktimer))
 		drawcomebacktimer = false;
@@ -8368,11 +8402,11 @@ static void K_drawBattleFullscreen(void)
 			|| (splitscreen > 1 && (stplyr == &players[displayplayers[2]]
 			|| (stplyr == &players[displayplayers[3]] && splitscreen > 2))))
 		{
-			y = 232-(stplyr->kartstuff[k_cardanimation]/2);
+			y = (232*FRACUNIT) - (stplyr->kartstuff[k_cardanimation]/2);
 			splitflags = V_SNAPTOBOTTOM;
 		}
 		else
-			y = -32+(stplyr->kartstuff[k_cardanimation]/2);
+			y = (-32*FRACUNIT) + (stplyr->kartstuff[k_cardanimation]/2);
 
 		if (splitscreen > 1)
 		{
@@ -8380,18 +8414,18 @@ static void K_drawBattleFullscreen(void)
 
 			if (stplyr == &players[displayplayers[1]]
 				|| (stplyr == &players[displayplayers[3]] && splitscreen > 2))
-				x = 3*BASEVIDWIDTH/4;
+				x = (3*BASEVIDWIDTH/4) * FRACUNIT;
 			else
-				x = BASEVIDWIDTH/4;
+				x = (BASEVIDWIDTH/4) * FRACUNIT;
 		}
 		else
 		{
 			if (stplyr->exiting)
 			{
 				if (stplyr == &players[displayplayers[1]])
-					x = BASEVIDWIDTH-96;
+					x = (BASEVIDWIDTH-96) * FRACUNIT;
 				else
-					x = 96;
+					x = 96 * FRACUNIT;
 			}
 			else
 				scale /= 2;
@@ -8402,21 +8436,22 @@ static void K_drawBattleFullscreen(void)
 	{
 		if (stplyr == &players[displayplayers[0]])
 			V_DrawFadeScreen(0xFF00, 16);
+
 		if (stplyr->exiting < 6*TICRATE && !stplyr->spectator)
 		{
 			if (stplyr->kartstuff[k_position] == 1)
-				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewin, NULL);
+				V_DrawFixedPatch(x, y, scale, splitflags, kp_battlewin, NULL);
 			else
-				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, (K_IsPlayerLosing(stplyr) ? kp_battlelose : kp_battlecool), NULL);
+				V_DrawFixedPatch(x, y, scale, splitflags, (K_IsPlayerLosing(stplyr) ? kp_battlelose : kp_battlecool), NULL);
 		}
 		else
 			K_drawKartFinish();
 	}
 	else if (stplyr->kartstuff[k_bumper] <= 0 && stplyr->kartstuff[k_comebacktimer] && comeback && !stplyr->spectator && drawcomebacktimer)
 	{
-		UINT16 t = stplyr->kartstuff[k_comebacktimer]/(10*TICRATE);
-		INT32 txoff, adjust = (splitscreen > 1) ? 4 : 6; // normal string is 8, kart string is 12, half of that for ease
-		INT32 ty = (BASEVIDHEIGHT/2)+66;
+		UINT16 t = stplyr->kartstuff[k_comebacktimer] / (10*TICRATE);
+		fixed_t txoff, adjust = (splitscreen > 1) ? 4*FRACUNIT : 6*FRACUNIT; // normal string is 8, kart string is 12, half of that for ease
+		fixed_t ty = (BASEVIDHEIGHT/2)+66;
 
 		txoff = adjust;
 
@@ -8429,26 +8464,26 @@ static void K_drawBattleFullscreen(void)
 		if (splitscreen)
 		{
 			if (splitscreen > 1)
-				ty = (BASEVIDHEIGHT/4)+33;
+				ty = ((BASEVIDHEIGHT/4)+33) * FRACUNIT;
 			if ((splitscreen == 1 && stplyr == &players[displayplayers[1]])
 				|| (stplyr == &players[displayplayers[2]] && splitscreen > 1)
 				|| (stplyr == &players[displayplayers[3]] && splitscreen > 2))
-				ty += (BASEVIDHEIGHT/2);
+				ty += (BASEVIDHEIGHT/2) * FRACUNIT;
 		}
 		else
 			V_DrawFadeScreen(0xFF00, 16);
 
 		if (!comebackshowninfo)
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battleinfo, NULL);
+			V_DrawFixedPatch(x, y, scale, splitflags, kp_battleinfo, NULL);
 		else
-			V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, scale, splitflags, kp_battlewait, NULL);
+			V_DrawFixedPatch(x, y, scale, splitflags, kp_battlewait, NULL);
 
 		if (splitscreen > 1)
-			V_DrawString(x-txoff, ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+			V_DrawString((x-txoff) / FRACUNIT, ty / FRACUNIT, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		else
 		{
-			V_DrawFixedPatch(x<<FRACBITS, ty<<FRACBITS, scale, 0, kp_timeoutsticker, NULL);
-			V_DrawKartString(x-txoff, ty, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
+			V_DrawFixedPatch(x, ty, scale, 0, kp_timeoutsticker, NULL);
+			V_DrawKartString((x-txoff) / FRACUNIT, ty / FRACUNIT, 0, va("%d", stplyr->kartstuff[k_comebacktimer]/TICRATE));
 		}
 	}
 
@@ -8736,58 +8771,95 @@ static void K_drawChallengerScreen(void)
 static void K_drawLapStartAnim(void)
 {
 	// This is an EVEN MORE insanely complicated animation.
-	const UINT8 progress = 80-stplyr->kartstuff[k_lapanimation];
-	UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, GTC_CACHE);
+	const fixed_t halfW = (BASEVIDWIDTH/2 * FRACUNIT);
+	const fixed_t scrollSpeed = 32*FRACUNIT;
 
-	V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
-		(48 - (32*max(0, progress-76)))*FRACUNIT,
+	const fixed_t progress = (80*FRACUNIT) - stplyr->kartstuff[k_lapanimation];
+	const INT32 progressInt = progress / FRACUNIT;
+	const fixed_t invertAnim = max(0, stplyr->kartstuff[k_lapanimation] - 76*FRACUNIT);
+	const fixed_t invertProgress = max(0, progress - 76*FRACUNIT);
+
+	const fixed_t scrollA = FixedMul(scrollSpeed, invertAnim);
+	const fixed_t scrollB = FixedMul(scrollSpeed, invertProgress);
+
+	const fixed_t emblemY = (48*FRACUNIT) - scrollB;
+
+	const fixed_t handBobStrength = 4*FRACUNIT;
+	const fixed_t handBob = handBobStrength - abs(FixedRem(progress, handBobStrength * 2) - handBobStrength);
+
+	const UINT8 *colormap = R_GetTranslationColormap(TC_DEFAULT, stplyr->skincolor, GTC_CACHE);
+
+	V_DrawFixedPatch(
+		halfW + scrollA,
+		emblemY,
 		FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 		(modeattacking ? kp_lapanim_emblem[1] : kp_lapanim_emblem[0]), colormap);
 
 	if (stplyr->kartstuff[k_laphand] >= 1 && stplyr->kartstuff[k_laphand] <= 3)
 	{
-		V_DrawFixedPatch((BASEVIDWIDTH/2 + (32*max(0, stplyr->kartstuff[k_lapanimation]-76)))*FRACUNIT,
-			(48 - (32*max(0, progress-76))
-				+ 4 - abs((signed)((leveltime % 8) - 4)))*FRACUNIT,
+		V_DrawFixedPatch(
+			halfW + scrollA,
+			emblemY + handBob,
 			FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
 			kp_lapanim_hand[stplyr->kartstuff[k_laphand]-1], NULL);
 	}
 
 	if (stplyr->laps == (UINT8)(cv_numlaps.value - 1))
 	{
-		V_DrawFixedPatch((62 - (32*max(0, progress-76)))*FRACUNIT, // 27
-			30*FRACUNIT, // 24
-			FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
-			kp_lapanim_final[min(progress/2, 10)], NULL);
+		const INT32 finalProgress = min(progressInt / 2, 10);
+		const INT32 lapProgress = min(progressInt / 2 - 12, 6);
 
-		if (progress/2-12 >= 0)
+		const fixed_t finalX = (62*FRACUNIT) - scrollB;
+		const fixed_t lapX = (188*FRACUNIT) + scrollB;
+
+		V_DrawFixedPatch(
+			finalX,
+			30*FRACUNIT,
+			FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
+			kp_lapanim_final[finalProgress], NULL);
+
+		if (lapProgress >= 0)
 		{
-			V_DrawFixedPatch((188 + (32*max(0, progress-76)))*FRACUNIT, // 194
-				30*FRACUNIT, // 24
+			V_DrawFixedPatch(
+				lapX,
+				30*FRACUNIT,
 				FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
-				kp_lapanim_lap[min(progress/2-12, 6)], NULL);
+				kp_lapanim_lap[lapProgress], NULL);
 		}
 	}
 	else
 	{
-		V_DrawFixedPatch((82 - (32*max(0, progress-76)))*FRACUNIT, // 61
-			30*FRACUNIT, // 24
+		const INT32 lapProgress = min(progressInt / 2, 6);
+		const INT32 numberAProgress = min(progressInt / 2 - 8, 2);
+		const INT32 numberBProgress = min(progressInt / 2 - 10, 2);
+
+		const UINT32 numberA = ((UINT32)stplyr->laps+1) / 10;
+		const UINT32 numberB = ((UINT32)stplyr->laps+1) % 10;
+
+		const fixed_t lapX = (82*FRACUNIT) - scrollB;
+		const fixed_t numberX = (188*FRACUNIT) + scrollB;
+
+		V_DrawFixedPatch(
+			lapX,
+			30*FRACUNIT,
 			FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
-			kp_lapanim_lap[min(progress/2, 6)], NULL);
+			kp_lapanim_lap[lapProgress], NULL);
 
-		if (progress/2-8 >= 0)
+		if (numberAProgress >= 0)
 		{
-			V_DrawFixedPatch((188 + (32*max(0, progress-76)))*FRACUNIT, // 194
-				30*FRACUNIT, // 24
+			V_DrawFixedPatch(
+				numberX,
+				30*FRACUNIT,
 				FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
-				kp_lapanim_number[(((UINT32)stplyr->laps+1) / 10)][min(progress/2-8, 2)], NULL);
+				kp_lapanim_number[numberA][numberAProgress], NULL);
 
-			if (progress/2-10 >= 0)
+			if (numberBProgress >= 0)
 			{
-				V_DrawFixedPatch((208 + (32*max(0, progress-76)))*FRACUNIT, // 221
-					30*FRACUNIT, // 24
+				V_DrawFixedPatch(
+					numberX + (20*FRACUNIT),
+					30*FRACUNIT,
 					FRACUNIT, V_SNAPTOTOP|V_HUDTRANS,
-					kp_lapanim_number[(((UINT32)stplyr->laps+1) % 10)][min(progress/2-10, 2)], NULL);
+					kp_lapanim_number[numberB][numberBProgress], NULL);
 			}
 		}
 	}
@@ -9106,7 +9178,7 @@ void K_drawKartHUD(void)
 	if (modeattacking || freecam) // everything after here is MP and debug only
 		return;
 
-	if (G_BattleGametype() && !splitscreen && (stplyr->kartstuff[k_yougotem] % 2)) // * YOU GOT EM *
+	if (G_BattleGametype() && !splitscreen && FixedRem(stplyr->kartstuff[k_yougotem], 2*FRACUNIT)) // * YOU GOT EM *
 		V_DrawScaledPatch(BASEVIDWIDTH/2 - (SHORT(kp_yougotem->width)/2), 32, V_HUDTRANS, kp_yougotem);
 
 	// Draw FREE PLAY.

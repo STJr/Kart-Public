@@ -78,6 +78,9 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 #include "keys.h"
 #include "filesrch.h" // refreshdirmenu
 
+// SRB2Kart
+#include "k_kart.h" // K_KartDoPlayerHUDUpdates
+
 #ifdef CMAKECONFIG
 #include "config.h"
 #else
@@ -429,6 +432,12 @@ static void D_Display(void)
 
 	if (gamestate == GS_LEVEL)
 	{
+		// HACK: Make these work in interpolation.
+		// This will also make these variables not netsafe.
+		// (But you shouldn't of been using them
+		// for anything network related anyway.)
+		K_KartDoPlayerHUDUpdates();
+
 		// draw the view directly
 		if (cv_renderview.value && !automapactive)
 		{

@@ -6998,8 +6998,6 @@ static void P_DeathThink(player_t *player)
 	else
 		player->kartstuff[k_timeovercam] = 0;
 
-	K_KartPlayerHUDUpdate(player);
-
 	// Force respawn if idle for more than 30 seconds in shooter modes.
 	if (player->lives > 0 /*&& leveltime >= starttime*/) // *could* you respawn?
 	{
