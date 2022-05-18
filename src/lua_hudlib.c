@@ -885,14 +885,6 @@ static int libd_getlocaltransflag(lua_State *L)
 	return 1;
 }
 
-// Return the time elapsed for the previous frame, in tics.
-static int libd_getDeltaTime(lua_State *L)
-{
-	HUDONLY
-	lua_pushfixed(L, renderdeltatics);
-	return 1;
-}
-
 static luaL_Reg lib_draw[] = {
 	{"patchExists", libd_patchExists},
 	{"cachePatch", libd_cachePatch},
@@ -914,7 +906,6 @@ static luaL_Reg lib_draw[] = {
 	{"renderer", libd_renderer},
 	{"localTransFlag", libd_getlocaltransflag},
 	{"drawOnMinimap", libd_drawOnMinimap},
-	{"getDeltaTime", libd_getDeltaTime},
 	{NULL, NULL}
 };
 
