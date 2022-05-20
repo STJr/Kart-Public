@@ -9141,12 +9141,13 @@ Update the maxplayers label...
 
 			if (itemOn == 2 && i == setupm_pselect)
 			{
-				static UINT8 cursorframe = 0;
-				if (skullAnimCounter % 4 == 0)
-					cursorframe++;
-				if (cursorframe > 7)
-					cursorframe = 0;
-				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, 0, W_CachePatchName(va("K_BHILI%d", cursorframe+1), PU_CACHE), NULL);
+				static fixed_t cursorframe = 0;
+				
+				cursorframe += renderdeltatics / 4;
+				if (cursorframe > 7 * FRACUNIT)
+					cursorframe -= 7 * FRACUNIT;
+
+				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, 0, W_CachePatchName(va("K_BHILI%d", (cursorframe >> FRACBITS) + 1), PU_CACHE), NULL);
 			}
 
 			x += incrwidth;
@@ -9487,16 +9488,15 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		fixed_t scale = FRACUNIT/2;
 		INT32 offx = 8, offy = 8;
 		patch_t *cursor;
-		static UINT8 cursorframe = 0;
+		static fixed_t cursorframe = 0;
 		patch_t *face;
 		UINT8 *colmap;
 
-		if (skullAnimCounter % 4 == 0)
-			cursorframe++;
-		if (cursorframe > 7)
-			cursorframe = 0;
+		cursorframe += renderdeltatics / 4;
+		if (cursorframe > 7 * FRACUNIT)
+			cursorframe -= 7 * FRACUNIT;
 
-		cursor = W_CachePatchName(va("K_BHILI%d", cursorframe+1), PU_CACHE);
+		cursor = W_CachePatchName(va("K_BHILI%d", (cursorframe >> FRACBITS) + 1), PU_CACHE);
 
 		if (col < 0)
 			col += numskins;
