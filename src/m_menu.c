@@ -9144,8 +9144,7 @@ Update the maxplayers label...
 				static fixed_t cursorframe = 0;
 				
 				cursorframe += renderdeltatics / 4;
-				if (cursorframe > 7 * FRACUNIT)
-					cursorframe -= 7 * FRACUNIT;
+				for (; cursorframe > 7 * FRACUNIT; cursorframe -= 7 * FRACUNIT) {}
 
 				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, 0, W_CachePatchName(va("K_BHILI%d", (cursorframe >> FRACBITS) + 1), PU_CACHE), NULL);
 			}
@@ -9493,8 +9492,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		UINT8 *colmap;
 
 		cursorframe += renderdeltatics / 4;
-		if (cursorframe > 7 * FRACUNIT)
-			cursorframe -= 7 * FRACUNIT;
+		for (; cursorframe > 7 * FRACUNIT; cursorframe -= 7 * FRACUNIT) {}
 
 		cursor = W_CachePatchName(va("K_BHILI%d", (cursorframe >> FRACBITS) + 1), PU_CACHE);
 
@@ -9534,9 +9532,11 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		st = multi_state->nextstate;
 		if (st != S_NULL)
 			multi_state = &states[st];
-		multi_tics = multi_state->tics;
-		if (multi_tics <= -1*FRACUNIT)
+
+		if (multi_state->tics <= -1)
 			multi_tics += 15*FRACUNIT;
+		else
+			multi_tics += multi_state->tics * FRACUNIT;
 	}
 
 	// skin 0 is default player sprite
