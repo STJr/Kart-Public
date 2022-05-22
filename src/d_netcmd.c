@@ -16,6 +16,7 @@
 
 #include "console.h"
 #include "command.h"
+#include "i_time.h"
 #include "i_system.h"
 #include "g_game.h"
 #include "hu_stuff.h"
@@ -2445,7 +2446,6 @@ void D_PickVote(void)
 	SINT8 templevels[MAXPLAYERS];
 	SINT8 votecompare = -1;
 	UINT8 numvotes = 0, key = 0;
-	boolean force = true;
 	INT32 i;
 
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -2459,8 +2459,6 @@ void D_PickVote(void)
 			numvotes++;
 			if (votecompare == -1)
 				votecompare = votes[i];
-			else if (votes[i] != votecompare)
-				force = false;
 		}
 	}
 

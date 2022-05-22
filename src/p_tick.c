@@ -23,6 +23,7 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 #include "k_kart.h"
+#include "r_fps.h"
 
 // Object place
 #include "m_cheat.h"
@@ -582,8 +583,10 @@ void P_Ticker(boolean run)
 		if (OP_FreezeObjectplace())
 		{
 			P_MapStart();
+			R_UpdateMobjInterpolators();
 			OP_ObjectplaceMovement(&players[0]);
 			P_MoveChaseCamera(&players[0], &camera[0], false);
+			R_UpdateViewInterpolation();
 			P_MapEnd();
 			return;
 		}
@@ -610,6 +613,8 @@ void P_Ticker(boolean run)
 
 	if (run)
 	{
+		R_UpdateMobjInterpolators();
+
 		if (demo.recording)
 		{
 			G_WriteDemoExtraData();
@@ -796,6 +801,12 @@ void P_Ticker(boolean run)
 			P_MoveChaseCamera(&players[displayplayers[i]], &camera[i], false);
 	}
 
+	if (run)
+	{
+		R_UpdateLevelInterpolators();
+		R_UpdateViewInterpolation();
+	}
+
 	P_MapEnd();
 
 	if (demo.playback)
@@ -818,6 +829,8 @@ void P_PreTicker(INT32 frames)
 	while (hook_defrosting)
 	{
 		P_MapStart();
+
+		R_UpdateMobjInterpolators();
 
 #ifdef HAVE_BLUA
 		LUAh_PreThinkFrame();
@@ -860,6 +873,10 @@ void P_PreTicker(INT32 frames)
 #ifdef HAVE_BLUA
 		LUAh_PostThinkFrame();
 #endif
+
+		R_UpdateLevelInterpolators();
+		R_UpdateViewInterpolation();
+		R_ResetViewInterpolation(0);
 
 		P_MapEnd();
 

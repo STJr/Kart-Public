@@ -22,6 +22,7 @@
 #include "d_main.h"
 #include "d_netcmd.h"
 #include "console.h"
+#include "r_fps.h"
 #include "r_local.h"
 #include "hu_stuff.h"
 #include "g_game.h"
@@ -31,6 +32,7 @@
 // Data.
 #include "sounds.h"
 #include "s_sound.h"
+#include "i_time.h"
 #include "i_system.h"
 #include "i_threads.h"
 
@@ -1255,9 +1257,10 @@ static menuitem_t OP_VideoOptionsMenu[] =
 
 	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			 90},
 	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			100},
+	{IT_STRING | IT_CVAR,   NULL,   "FPS Cap",              &cv_fpscap,             110},
 
 #ifdef HWRENDER
-	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	120},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	130},
 #endif
 };
 
@@ -6912,6 +6915,7 @@ static void M_DrawLoad(void)
 	INT32 ymod = 0, offset = 0;
 
 	M_DrawMenuTitle();
+	fixed_t scrollfrac = FixedDiv(2, 3);
 
 	if (menumovedir != 0) //movement illusion
 	{
@@ -9137,12 +9141,12 @@ Update the maxplayers label...
 
 			if (itemOn == 2 && i == setupm_pselect)
 			{
-				static UINT8 cursorframe = 0;
-				if (skullAnimCounter % 4 == 0)
-					cursorframe++;
-				if (cursorframe > 7)
-					cursorframe = 0;
-				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, 0, W_CachePatchName(va("K_BHILI%d", cursorframe+1), PU_CACHE), NULL);
+				static fixed_t cursorframe = 0;
+				
+				cursorframe += renderdeltatics / 4;
+				for (; cursorframe > 7 * FRACUNIT; cursorframe -= 7 * FRACUNIT) {}
+
+				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, 0, W_CachePatchName(va("K_BHILI%d", (cursorframe >> FRACBITS) + 1), PU_CACHE), NULL);
 			}
 
 			x += incrwidth;
@@ -9337,7 +9341,7 @@ static void M_HandleConnectIP(INT32 choice)
 // ========================
 // Tails 03-02-2002
 
-static INT32      multi_tics;
+static fixed_t    multi_tics;
 static state_t   *multi_state;
 
 // this is set before entering the MultiPlayer setup menu,
@@ -9483,16 +9487,14 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		fixed_t scale = FRACUNIT/2;
 		INT32 offx = 8, offy = 8;
 		patch_t *cursor;
-		static UINT8 cursorframe = 0;
+		static fixed_t cursorframe = 0;
 		patch_t *face;
 		UINT8 *colmap;
 
-		if (skullAnimCounter % 4 == 0)
-			cursorframe++;
-		if (cursorframe > 7)
-			cursorframe = 0;
+		cursorframe += renderdeltatics / 4;
+		for (; cursorframe > 7 * FRACUNIT; cursorframe -= 7 * FRACUNIT) {}
 
-		cursor = W_CachePatchName(va("K_BHILI%d", cursorframe+1), PU_CACHE);
+		cursor = W_CachePatchName(va("K_BHILI%d", (cursorframe >> FRACBITS) + 1), PU_CACHE);
 
 		if (col < 0)
 			col += numskins;
@@ -9524,14 +9526,17 @@ static void M_DrawSetupMultiPlayerMenu(void)
 #undef iconwidth
 
 	// anim the player in the box
-	if (--multi_tics <= 0)
+	multi_tics -= renderdeltatics;
+	while (multi_tics <= 0)
 	{
 		st = multi_state->nextstate;
 		if (st != S_NULL)
 			multi_state = &states[st];
-		multi_tics = multi_state->tics;
-		if (multi_tics == -1)
-			multi_tics = 15;
+
+		if (multi_state->tics <= -1)
+			multi_tics += 15*FRACUNIT;
+		else
+			multi_tics += multi_state->tics * FRACUNIT;
 	}
 
 	// skin 0 is default player sprite
@@ -9692,7 +9697,7 @@ static void M_SetupMultiPlayer(INT32 choice)
 	(void)choice;
 
 	multi_state = &states[mobjinfo[MT_PLAYER].seestate];
-	multi_tics = multi_state->tics;
+	multi_tics = multi_state->tics*FRACUNIT;
 	strcpy(setupm_name, cv_playername.string);
 
 	// set for player 1
@@ -9723,7 +9728,7 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	(void)choice;
 
 	multi_state = &states[mobjinfo[MT_PLAYER].seestate];
-	multi_tics = multi_state->tics;
+	multi_tics = multi_state->tics*FRACUNIT;
 	strcpy (setupm_name, cv_playername2.string);
 
 	// set for splitscreen secondary player
@@ -11226,7 +11231,8 @@ void M_QuitResponse(INT32 ch)
 			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 			V_DrawSmallScaledPatch(0, 0, 0, W_CachePatchName("GAMEQUIT", PU_CACHE)); // Demo 3 Quit Screen Tails 06-16-2001
 			I_FinishUpdate(); // Update the screen with the image Tails 06-19-2001
-			I_Sleep();
+			I_Sleep(cv_sleep.value);
+			I_UpdateTime(cv_timescale.value);
 		}
 	}
 	I_Quit();

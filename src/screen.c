@@ -15,6 +15,7 @@
 #include "screen.h"
 #include "console.h"
 #include "am_map.h"
+#include "i_time.h"
 #include "i_system.h"
 #include "i_video.h"
 #include "r_local.h"
@@ -29,6 +30,8 @@
 #include "d_clisrv.h"
 #include "f_finale.h"
 
+// SRB2Kart
+#include "r_fps.h" // R_GetFramerateCap
 
 #if defined (USEASM) && !defined (NORUSEASM)//&& (!defined (_MSC_VER) || (_MSC_VER <= 1200))
 #define RUSEASM //MSC.NET can't patch itself
@@ -397,46 +400,110 @@ boolean SCR_IsAspectCorrect(INT32 width, INT32 height)
 	 );
 }
 
-// XMOD FPS display
-// moved out of os-specific code for consistency
-static boolean fpsgraph[TICRATE];
-static tic_t lasttic;
+double averageFPS = 0.0f;
+
+#define USE_FPS_SAMPLES
+
+#ifdef USE_FPS_SAMPLES
+#define FPS_SAMPLE_RATE (0.05) // How often to update FPS samples, in seconds
+#define NUM_FPS_SAMPLES (16) // Number of samples to store
+
+static double fps_samples[NUM_FPS_SAMPLES];
+static double updateElapsed = 0.0;
+#endif
+
+static boolean fps_init = false;
+static precise_t fps_enter = 0;
+
+void SCR_CalculateFPS(void)
+{
+	precise_t fps_finish = 0;
+
+	double frameElapsed = 0.0;
+
+	if (fps_init == false)
+	{
+		fps_enter = I_GetPreciseTime();
+		fps_init = true;
+	}
+
+	fps_finish = I_GetPreciseTime();
+	frameElapsed = (double)((INT64)(fps_finish - fps_enter)) / I_GetPrecisePrecision();
+	fps_enter = fps_finish;
+
+#ifdef USE_FPS_SAMPLES
+	updateElapsed += frameElapsed;
+
+	if (updateElapsed >= FPS_SAMPLE_RATE)
+	{
+		static int sampleIndex = 0;
+		int i;
+
+		fps_samples[sampleIndex] = frameElapsed;
+
+		sampleIndex++;
+		if (sampleIndex >= NUM_FPS_SAMPLES)
+			sampleIndex = 0;
+
+		averageFPS = 0.0;
+		for (i = 0; i < NUM_FPS_SAMPLES; i++)
+		{
+			averageFPS += fps_samples[i];
+		}
+
+		if (averageFPS > 0.0)
+		{
+			averageFPS = 1.0 / (averageFPS / NUM_FPS_SAMPLES);
+		}
+	}
+
+	while (updateElapsed >= FPS_SAMPLE_RATE)
+	{
+		updateElapsed -= FPS_SAMPLE_RATE;
+	}
+#else
+	// Direct, unsampled counter.
+	averageFPS = 1.0 / frameElapsed;
+#endif
+}
 
 void SCR_DisplayTicRate(void)
 {
-	tic_t i;
-	tic_t ontic = I_GetTime();
-	tic_t totaltics = 0;
 	const UINT8 *ticcntcolor = NULL;
-
-	for (i = lasttic + 1; i < TICRATE+lasttic && i < ontic; ++i)
-		fpsgraph[i % TICRATE] = false;
-
-	fpsgraph[ontic % TICRATE] = true;
-
-	for (i = 0;i < TICRATE;++i)
-		if (fpsgraph[i])
-			++totaltics;
-
-	if (totaltics <= TICRATE/2) ticcntcolor = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SALMON, GTC_CACHE);
-	else if (totaltics == TICRATE) ticcntcolor = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_MINT, GTC_CACHE);
-
-	/*V_DrawString(vid.width-(24*vid.dupx), vid.height-(16*vid.dupy),
-		V_YELLOWMAP|V_NOSCALESTART, "FPS");
-	V_DrawString(vid.width-(40*vid.dupx), vid.height-( 8*vid.dupy),
-		ticcntcolor|V_NOSCALESTART, va("%02d/%02u", totaltics, TICRATE));*/
+	UINT32 cap = R_GetFramerateCap();
+	UINT32 benchmark = (cap == 0) ? I_GetRefreshRate() : cap;
+	INT32 x = 318;
+	double fps = round(averageFPS);
 
 	// draw "FPS"
 	V_DrawFixedPatch(306<<FRACBITS, 183<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTORIGHT, framecounter, R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_YELLOW, GTC_CACHE));
-	// draw total frame:
-	V_DrawPingNum(318, 190, V_SNAPTOBOTTOM|V_SNAPTORIGHT, TICRATE, ticcntcolor);
-	// draw "/"
-	V_DrawFixedPatch(306<<FRACBITS, 190<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTORIGHT, frameslash, ticcntcolor);
+
+	if (fps > (benchmark - 5))
+		ticcntcolor = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_MINT, GTC_CACHE);
+	else if (fps < 20)
+		ticcntcolor = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_RASPBERRY, GTC_CACHE);
+
+	if (cap != 0)
+	{
+		UINT32 digits = 1;
+		UINT32 c2 = cap;
+
+		while (c2 > 0)
+		{
+			c2 = c2 / 10;
+			digits++;
+		}
+
+		// draw total frame:
+		V_DrawPingNum(x, 190, V_SNAPTOBOTTOM|V_SNAPTORIGHT, cap, ticcntcolor);
+		x -= digits * 4;
+
+		// draw "/"
+		V_DrawFixedPatch(x<<FRACBITS, 190<<FRACBITS, FRACUNIT, V_SNAPTOBOTTOM|V_SNAPTORIGHT, frameslash, ticcntcolor);
+	}
+
 	// draw our actual framerate
-	V_DrawPingNum(306, 190, V_SNAPTOBOTTOM|V_SNAPTORIGHT, totaltics, ticcntcolor);
-
-
-	lasttic = ontic;
+	V_DrawPingNum(x, 190, V_SNAPTOBOTTOM|V_SNAPTORIGHT, fps, ticcntcolor);
 }
 
 // SCR_DisplayLocalPing

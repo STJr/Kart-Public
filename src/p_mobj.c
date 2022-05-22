@@ -18,6 +18,7 @@
 #include "hu_stuff.h"
 #include "p_local.h"
 #include "p_setup.h"
+#include "r_fps.h"
 #include "r_main.h"
 #include "r_things.h"
 #include "r_sky.h"
@@ -3795,15 +3796,22 @@ void P_NullPrecipThinker(precipmobj_t *mobj)
 
 void P_SnowThinker(precipmobj_t *mobj)
 {
+	R_ResetPrecipitationMobjInterpolationState(mobj);
+
 	P_CycleStateAnimation((mobj_t *)mobj);
 
 	// adjust height
 	if ((mobj->z += mobj->momz) <= mobj->floorz)
+	{
 		mobj->z = mobj->ceilingz;
+		R_ResetPrecipitationMobjInterpolationState(mobj);
+	}
 }
 
 void P_RainThinker(precipmobj_t *mobj)
 {
+	R_ResetPrecipitationMobjInterpolationState(mobj);
+
 	P_CycleStateAnimation((mobj_t *)mobj);
 
 	if (mobj->state != &states[S_RAIN1])
@@ -3823,6 +3831,7 @@ void P_RainThinker(precipmobj_t *mobj)
 			return;
 
 		mobj->z = mobj->ceilingz;
+		R_ResetPrecipitationMobjInterpolationState(mobj);
 		P_SetPrecipMobjState(mobj, S_RAIN1);
 
 		return;
@@ -4405,7 +4414,7 @@ static void P_Boss4MoveSpikeballs(mobj_t *mobj, angle_t angle, fixed_t fz)
 	while ((base = base->tracer))
 	{
 		for (seg = base, dist = 172*FRACUNIT, s = 9; seg; seg = seg->hnext, dist += 124*FRACUNIT, --s)
-			P_TeleportMove(seg, mobj->x + P_ReturnThrustX(mobj, angle, dist), mobj->y + P_ReturnThrustY(mobj, angle, dist), bz + FixedMul(fz, FixedDiv(s<<FRACBITS, 9<<FRACBITS)));
+			P_MoveOrigin(seg, mobj->x + P_ReturnThrustX(mobj, angle, dist), mobj->y + P_ReturnThrustY(mobj, angle, dist), bz + FixedMul(fz, FixedDiv(s<<FRACBITS, 9<<FRACBITS)));
 		angle += ANGLE_MAX/3;
 	}
 }
@@ -5151,7 +5160,7 @@ static void P_Boss9Thinker(mobj_t *mobj)
 			if (mobj->health > 3) {
 				mobj->tracer->destscale = FRACUNIT + (4*TICRATE - mobj->fuse)*(FRACUNIT/2)/TICRATE + FixedMul(FINECOSINE(angle>>ANGLETOFINESHIFT),FRACUNIT/2);
 				P_SetScale(mobj->tracer, mobj->tracer->destscale);
-				P_TeleportMove(mobj->tracer, mobj->x, mobj->y, mobj->z + mobj->height/2 - mobj->tracer->height/2);
+				P_SetOrigin(mobj->tracer, mobj->x, mobj->y, mobj->z + mobj->height/2 - mobj->tracer->height/2);
 				mobj->tracer->momx = mobj->momx;
 				mobj->tracer->momy = mobj->momy;
 				mobj->tracer->momz = mobj->momz;
@@ -5821,9 +5830,9 @@ void P_Attract(mobj_t *source, mobj_t *dest, boolean nightsgrab) // Home in on y
 		// place us on top of them then.
 		source->momx = source->momy = source->momz = 0;
 		P_UnsetThingPosition(source);
-		source->x = tx;
-		source->y = ty;
-		source->z = tz;
+		source->x = source->old_x = tx;
+		source->y = source->old_y = ty;
+		source->z = source->old_z = tz;
 		P_SetThingPosition(source);
 	}
 }
@@ -6101,7 +6110,7 @@ void P_RunShadows(void)
 		if (dest->type == MT_THUNDERSHIELD)
 			dest = dest->target;
 
-		P_TeleportMove(mobj, dest->x, dest->y, mobj->target->z);
+		P_MoveOrigin(mobj, dest->x, dest->y, mobj->target->z);
 
 		if (((mobj->eflags & MFE_VERTICALFLIP) && (mobj->ceilingz > mobj->z+mobj->height))
 			|| (!(mobj->eflags & MFE_VERTICALFLIP) && (floorz < mobj->z)))
@@ -6119,7 +6128,7 @@ void P_RunShadows(void)
 				P_SetScale(mobj, FixedDiv(mobj->scale, max(FRACUNIT, ((mobj->target->z-mobj->z)/200)+FRACUNIT)));
 
 				// Check new position to see if you should still be on that ledge
-				P_TeleportMove(mobj, dest->x, dest->y, mobj->z);
+				P_MoveOrigin(mobj, dest->x, dest->y, mobj->z);
 
 				mobj->z = (mobj->eflags & MFE_VERTICALFLIP ? mobj->ceilingz : floorz);
 
@@ -7000,7 +7009,7 @@ void P_MobjThinker(mobj_t *mobj)
 					if (mobj->target->eflags & MFE_VERTICALFLIP)
 						z += mobj->target->height - FixedMul(mobj->target->scale, mobj->height);
 
-					P_TeleportMove(mobj, x, y, z);
+					P_MoveOrigin(mobj, x, y, z);
 				}
 				break;
 			default:
@@ -7400,7 +7409,7 @@ void P_MobjThinker(mobj_t *mobj)
 				P_RemoveMobj(mobj);
 				return;
 			}
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z - mobj->height);
+			P_MoveOrigin(mobj, mobj->target->x, mobj->target->y, mobj->target->z - mobj->height);
 			break;
 		case MT_HAMMER:
 			if (mobj->z <= mobj->floorz)
@@ -8027,7 +8036,7 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 
 			mobj->angle = mobj->target->angle;
-			P_TeleportMove(mobj, mobj->target->x + P_ReturnThrustX(mobj, mobj->angle+ANGLE_180, mobj->target->radius),
+			P_MoveOrigin(mobj, mobj->target->x + P_ReturnThrustX(mobj, mobj->angle+ANGLE_180, mobj->target->radius),
 				mobj->target->y + P_ReturnThrustY(mobj, mobj->angle+ANGLE_180, mobj->target->radius), mobj->target->z);
 			P_SetScale(mobj, mobj->target->scale);
 
@@ -8076,7 +8085,7 @@ void P_MobjThinker(mobj_t *mobj)
 				P_RemoveMobj(mobj);
 				return;
 			}
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			P_SetOrigin(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
 		case MT_BRAKEDRIFT:
 			if ((!mobj->target || !mobj->target->health || !mobj->target->player || !P_IsObjectOnGround(mobj->target))
@@ -8096,7 +8105,7 @@ void P_MobjThinker(mobj_t *mobj)
 
 				newx = mobj->target->x + P_ReturnThrustX(mobj->target, travelangle+ANGLE_180, 24*mobj->target->scale);
 				newy = mobj->target->y + P_ReturnThrustY(mobj->target, travelangle+ANGLE_180, 24*mobj->target->scale);
-				P_TeleportMove(mobj, newx, newy, mobj->target->z);
+				P_MoveOrigin(mobj, newx, newy, mobj->target->z);
 
 				mobj->angle = travelangle - ((ANGLE_90/5)*mobj->target->player->kartstuff[k_drift]);
 				P_SetScale(mobj, (mobj->destscale = mobj->target->scale));
@@ -8124,7 +8133,7 @@ void P_MobjThinker(mobj_t *mobj)
 				P_RemoveMobj(mobj);
 				return;
 			}
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			P_MoveOrigin(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
 		case MT_INSTASHIELDB:
 			mobj->flags2 ^= MF2_DONTDRAW;
@@ -8137,7 +8146,7 @@ void P_MobjThinker(mobj_t *mobj)
 			}
 
 			K_MatchGenericExtraFlags(mobj, mobj->target);
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+			P_MoveOrigin(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 			break;
 		case MT_BATTLEPOINT:
 			if (!mobj->target || P_MobjWasRemoved(mobj->target))
@@ -8159,7 +8168,7 @@ void P_MobjThinker(mobj_t *mobj)
 					mobj->movefactor = mobj->target->height;
 			}
 			K_MatchGenericExtraFlags(mobj, mobj->target);
-			P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z + (mobj->target->height/2) + mobj->movefactor);
+			P_MoveOrigin(mobj, mobj->target->x, mobj->target->y, mobj->target->z + (mobj->target->height/2) + mobj->movefactor);
 			break;
 		case MT_THUNDERSHIELD:
 		{
@@ -8194,7 +8203,7 @@ void P_MobjThinker(mobj_t *mobj)
 				desty = mobj->target->y;
 			}
 
-			P_TeleportMove(mobj, destx, desty, mobj->target->z);
+			P_MoveOrigin(mobj, destx, desty, mobj->target->z);
 			break;
 		}
 		case MT_ROCKETSNEAKER:
@@ -8230,7 +8239,7 @@ void P_MobjThinker(mobj_t *mobj)
 					return;
 				}
 
-				P_TeleportMove(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
+				P_MoveOrigin(mobj, mobj->target->x, mobj->target->y, mobj->target->z);
 				mobj->angle = mobj->target->angle;
 				mobj->scalespeed = mobj->target->scalespeed;
 				mobj->destscale = mobj->target->destscale;
@@ -8291,7 +8300,7 @@ void P_MobjThinker(mobj_t *mobj)
 						if (cur->lastlook == 2 || cur->lastlook == 3)
 							offy *= -1;
 
-						P_TeleportMove(cur, mobj->x + offx, mobj->y + offy, mobj->z);
+						P_MoveOrigin(cur, mobj->x + offx, mobj->y + offy, mobj->z);
 						cur->scalespeed = mobj->target->scalespeed;
 						cur->destscale = mobj->target->destscale;
 						P_SetScale(cur, mobj->target->scale);
@@ -8416,7 +8425,7 @@ void P_MobjThinker(mobj_t *mobj)
 				while (cur && !P_MobjWasRemoved(cur))
 				{
 					cur->angle += FixedAngle(mobj->info->speed);
-					P_TeleportMove(cur, mobj->x + FINECOSINE((cur->angle*8)>>ANGLETOFINESHIFT),
+					P_MoveOrigin(cur, mobj->x + FINECOSINE((cur->angle*8)>>ANGLETOFINESHIFT),
 						mobj->y + FINESINE((cur->angle*8)>>ANGLETOFINESHIFT), mobj->z);
 					//P_SpawnGhostMobj(cur)->tics = 2;
 
@@ -8549,7 +8558,7 @@ void P_MobjThinker(mobj_t *mobj)
 							fixed_t wz = mobj->tracer->z + (joint * ((mobj->z + (mobj->height/2)) - mobj->tracer->z) / (numjoints+1));
 
 							if (cur && !P_MobjWasRemoved(cur))
-								P_TeleportMove(cur, wx, wy, wz);
+								P_MoveOrigin(cur, wx, wy, wz);
 							else
 								cur = P_SpawnMobj(wx, wy, wz, MT_FROGTONGUE_JOINT);
 
@@ -8660,7 +8669,7 @@ void P_MobjThinker(mobj_t *mobj)
 							continue;
 						}
 						else // Move into place
-							P_TeleportMove(cur, mobj->x, mobj->y, segz);
+							P_MoveOrigin(cur, mobj->x, mobj->y, segz);
 					}
 					else
 					{
@@ -8734,7 +8743,7 @@ void P_MobjThinker(mobj_t *mobj)
 				mobj->extravalue1 = 1;
 				player->kartstuff[k_offroad] += 2<<FRACBITS;
 
-				P_TeleportMove(mobj,
+				P_MoveOrigin(mobj,
 					player->mo->x + P_ReturnThrustX(NULL, player->mo->angle, player->mo->radius)
 						+ P_ReturnThrustX(NULL, player->mo->angle+ANGLE_90, (mobj->threshold)<<FRACBITS),
 					player->mo->y + P_ReturnThrustY(NULL, player->mo->angle, player->mo->radius)
@@ -9855,7 +9864,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 					cur = P_SpawnMobj(mobj->x, mobj->y, mobj->z, MT_SMK_ICEBLOCK_SIDE);
 					P_SetTarget(&cur->target, mobj);
 					cur->threshold = i;
-					P_TeleportMove(cur, cur->x + ((cur->radius>>FRACBITS) * FINECOSINE((FixedAngle((90*cur->threshold)<<FRACBITS)>>ANGLETOFINESHIFT) & FINEMASK)),
+					P_MoveOrigin(cur, cur->x + ((cur->radius>>FRACBITS) * FINECOSINE((FixedAngle((90*cur->threshold)<<FRACBITS)>>ANGLETOFINESHIFT) & FINEMASK)),
 						cur->y + ((cur->radius>>FRACBITS) * FINESINE((FixedAngle((90*cur->threshold)<<FRACBITS)>>ANGLETOFINESHIFT) & FINEMASK)), cur->z);
 					cur->angle = ANGLE_90*(cur->threshold+1);
 
@@ -9924,6 +9933,8 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
 	if (CheckForReverseGravity && !(mobj->flags & MF_NOBLOCKMAP))
 		P_CheckGravity(mobj, false);
+
+	R_AddMobjInterpolator(mobj);
 
 	return mobj;
 }
@@ -10038,6 +10049,8 @@ mobj_t *P_SpawnShadowMobj(mobj_t * caster)
 
 	P_SetTarget(&mobj->target, caster); // set the shadow's caster as the target
 
+	R_AddMobjInterpolator(mobj);
+
 	return mobj;
 }
 
@@ -10085,6 +10098,8 @@ static precipmobj_t *P_SpawnPrecipMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype
 	 || GETSECSPECIAL(mobj->subsector->sector->special, 1) == 6
 	 || mobj->subsector->sector->floorpic == skyflatnum)
 		mobj->precipflags |= PCF_PIT;
+
+	R_ResetPrecipitationMobjInterpolationState(mobj);
 
 	return mobj;
 }
@@ -10237,6 +10252,8 @@ void P_RemoveMobj(mobj_t *mobj)
 #endif
 		P_RemoveThinker((thinker_t *)mobj);
 	}
+
+	R_RemoveMobjInterpolator(mobj);
 }
 
 // This does not need to be added to Lua.
