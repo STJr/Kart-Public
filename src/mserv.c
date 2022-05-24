@@ -75,6 +75,8 @@ consvar_t cv_masterserver_update_rate = {"masterserver_update_rate", "15", CV_SA
 
 consvar_t cv_advertise = {"advertise", "No", CV_NETVAR|CV_CALL|CV_NOINIT, CV_YesNo, Advertise_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
+consvar_t cv_masterserver_nagattempts = {"masterserver_nagattempts", "5", CV_SAVE, CV_Unsigned, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 #if defined (MASTERSERVER) && defined (HAVE_THREADS)
 int           ms_QueryId;
 I_mutex       ms_QueryId_mutex;
@@ -98,6 +100,7 @@ void AddMServCommands(void)
 	CV_RegisterVar(&cv_masterserver_timeout);
 	CV_RegisterVar(&cv_masterserver_debug);
 	CV_RegisterVar(&cv_masterserver_token);
+	CV_RegisterVar(&cv_masterserver_nagattempts);
 	CV_RegisterVar(&cv_advertise);
 	CV_RegisterVar(&cv_servername);
 	CV_RegisterVar(&cv_server_contact);

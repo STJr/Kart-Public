@@ -61,6 +61,8 @@ extern consvar_t cv_masterserver_token;
 
 extern consvar_t cv_advertise;
 
+extern consvar_t cv_masterserver_nagattempts;
+
 #ifdef HAVE_THREADS
 extern int           ms_QueryId;
 extern I_mutex       ms_QueryId_mutex;
