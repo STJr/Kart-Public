@@ -8572,8 +8572,8 @@ static void M_DrawConnectMenu(void)
 		mservflags = mservflags|highlightflags|V_30TRANS;
 	else
 		mservflags = mservflags|warningflags;
-	V_DrawRightAlignedThinString(BASEVIDWIDTH - currentMenu->x, currentMenu->y+10 + MP_ConnectMenu[mp_connect_page].alphaKey,
-	                         mservflags, cv_masterserver.string);
+	V_DrawRightAlignedSmallString(BASEVIDWIDTH - currentMenu->x, currentMenu->y+14 + MP_ConnectMenu[mp_connect_page].alphaKey,
+	                         mservflags, va("MS: %s", cv_masterserver.string));
 
 	// Horizontal line!
 	V_DrawFill(1, currentMenu->y+32, 318, 1, 0);
@@ -9096,7 +9096,7 @@ static void M_DrawServerMenu(void)
 			mservflags = mservflags|highlightflags|V_30TRANS;
 		else
 			mservflags = mservflags|warningflags;
-		V_DrawCenteredThinString(BASEVIDWIDTH/2, BASEVIDHEIGHT-12, mservflags, cv_masterserver.string);
+		V_DrawCenteredThinString(BASEVIDWIDTH/2, BASEVIDHEIGHT-12, mservflags, va("Master Server: %s", cv_masterserver.string));
 	}
 	M_DrawGenericMenu();
 }
