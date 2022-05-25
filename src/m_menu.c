@@ -8826,10 +8826,13 @@ static void M_HandleMasterServerResetChoice(event_t *ev)
 			CV_Set(&cv_masterserver, cv_masterserver.defaultvalue);
 			CV_Set(&cv_masterserver_nagattempts, cv_masterserver_nagattempts.defaultvalue);
 			S_StartSound(NULL, sfx_s221);
-		} else 
+		}
+		else 
 		{
-			if (firstDismissedNagThisBoot) {
-				if (cv_masterserver_nagattempts.value > 0) {
+			if (firstDismissedNagThisBoot)
+			{
+				if (cv_masterserver_nagattempts.value > 0)
+				{
 					CV_SetValue(&cv_masterserver_nagattempts, cv_masterserver_nagattempts.value - 1);
 				}
 				firstDismissedNagThisBoot = false;
