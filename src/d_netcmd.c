@@ -370,6 +370,8 @@ consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT|CV_CALL|CV
 consvar_t cv_kartencore = {"kartencore", "Off", CV_NETVAR|CV_CALL|CV_NOINIT, CV_OnOff, KartEncore_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartvoterulechanges_cons_t[] = {{0, "Never"}, {1, "Sometimes"}, {2, "Frequent"}, {3, "Always"}, {0, NULL}};
 consvar_t cv_kartvoterulechanges = {"kartvoterulechanges", "Frequent", CV_NETVAR, kartvoterulechanges_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+static CV_PossibleValue_t kartgametypepreference_cons_t[] = {{-1, "None"}, {GT_RACE, "Race"}, {GT_MATCH, "Battle"}, {0, NULL}};
+consvar_t cv_kartgametypepreference = {"kartgametypepreference", "None", CV_NETVAR, kartgametypepreference_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartspeedometer_cons_t[] = {{0, "Off"}, {1, "Kilometers"}, {2, "Miles"}, {3, "Fracunits"}, {0, NULL}};
 consvar_t cv_kartspeedometer = {"kartdisplayspeed", "Off", CV_SAVE, kartspeedometer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
 static CV_PossibleValue_t kartvoices_cons_t[] = {{0, "Never"}, {1, "Tasteful"}, {2, "Meme"}, {0, NULL}};
@@ -2397,13 +2399,14 @@ void D_SetupVote(void)
 	UINT8 buf[5*2]; // four UINT16 maps (at twice the width of a UINT8), and two gametypes
 	UINT8 *p = buf;
 	INT32 i;
-	UINT8 secondgt = G_SometimesGetDifferentGametype();
+	UINT8 gt = (cv_kartgametypepreference.value == -1) ? gametype : cv_kartgametypepreference.value;
+	UINT8 secondgt = G_SometimesGetDifferentGametype(gt);
 	INT16 votebuffer[4] = {-1,-1,-1,0};
 
-	if (cv_kartencore.value && G_RaceGametype())
-		WRITEUINT8(p, (gametype|0x80));
+	if (cv_kartencore.value && gt == GT_RACE)
+		WRITEUINT8(p, (gt|0x80));
 	else
-		WRITEUINT8(p, gametype);
+		WRITEUINT8(p, gt);
 	WRITEUINT8(p, secondgt);
 	secondgt &= ~0x80;
 
@@ -2413,9 +2416,9 @@ void D_SetupVote(void)
 		if (i == 2) // sometimes a different gametype
 			m = G_RandMap(G_TOLFlag(secondgt), prevmap, false, 0, true, votebuffer);
 		else if (i >= 3) // unknown-random and force-unknown MAP HELL
-			m = G_RandMap(G_TOLFlag(gametype), prevmap, false, (i-2), (i < 4), votebuffer);
+			m = G_RandMap(G_TOLFlag(gt), prevmap, false, (i-2), (i < 4), votebuffer);
 		else
-			m = G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, true, votebuffer);
+			m = G_RandMap(G_TOLFlag(gt), prevmap, false, 0, true, votebuffer);
 		if (i < 3)
 			votebuffer[min(i, 2)] = m; // min() is a dumb workaround for gcc 4.4 array-bounds error
 		WRITEUINT16(p, m);
@@ -5136,9 +5139,17 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
+	// Get gametype data.
 	gt = (UINT8)READUINT8(*cp);
 	secondgt = (UINT8)READUINT8(*cp);
 
+	// Strip illegal Encore flag.
+	if (gt == (GT_MATCH|0x80))
+	{
+		gt &= ~0x80;
+	}
+
+	// Apply most data.
 	for (i = 0; i < 4; i++)
 	{
 		votelevels[i][0] = (UINT16)READUINT16(*cp);
@@ -5147,7 +5158,19 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 			P_AllocMapHeader(votelevels[i][0]);
 	}
 
+	// Correct third entry's gametype/Encore status.
 	votelevels[2][1] = secondgt;
+
+	// If third entry has an illelegal Encore flag...
+	if (secondgt == (GT_MATCH|0x80))
+	{
+		votelevels[2][1] &= ~0x80;
+		// Apply it to the second entry instead, gametype permitting!
+		if (gt != GT_MATCH)
+		{
+			votelevels[1][1] |= 0x80;
+		}
+	}
 
 	G_SetGamestate(GS_VOTING);
 	Y_StartVote();

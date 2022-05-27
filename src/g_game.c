@@ -3401,35 +3401,47 @@ boolean G_BattleGametype(void)
 //
 // Oh, yeah, and we sometimes flip encore mode on here too.
 //
-INT16 G_SometimesGetDifferentGametype(void)
+UINT8 G_SometimesGetDifferentGametype(UINT8 prefgametype)
 {
-	boolean encorepossible = (M_SecretUnlocked(SECRET_ENCORE) && G_RaceGametype());
+	// Most of the gametype references in this condition are intentionally not prefgametype.
+	// This is so a server CAN continue playing a gametype if they like the taste of it.
+	// The encore check needs prefgametype so can't use G_RaceGametype...
+	boolean encorepossible = (M_SecretUnlocked(SECRET_ENCORE)
+		&& (gametype == GT_RACE || prefgametype == GT_RACE));
+	boolean encoreactual = false;
+	UINT8 encoremodifier = 0;
+
+	if (encorepossible)
+	{
+		switch (cv_kartvoterulechanges.value)
+		{
+			case 3: // always
+				encoreactual = true;
+				break;
+			case 2: // frequent
+				encoreactual = M_RandomChance(FRACUNIT>>1);
+				break;
+			case 1: // sometimes
+				encoreactual = M_RandomChance(FRACUNIT>>2);
+				break;
+			default:
+				break;
+		}
+		if (encoreactual != (boolean)cv_kartencore.value)
+			encoremodifier = 0x80;
+	}
 
 	if (!cv_kartvoterulechanges.value) // never
-		return gametype;
+		return (gametype|encoremodifier);
 
 	if (randmapbuffer[NUMMAPS] > 0 && (encorepossible || cv_kartvoterulechanges.value != 3))
 	{
 		randmapbuffer[NUMMAPS]--;
-		if (encorepossible)
+		if (cv_kartvoterulechanges.value == 3) // always
 		{
-			switch (cv_kartvoterulechanges.value)
-			{
-				case 3: // always
-					randmapbuffer[NUMMAPS] = 0; // gotta prep this in case it isn't already set
-					break;
-				case 2: // frequent
-					encorepossible = M_RandomChance(FRACUNIT>>1);
-					break;
-				case 1: // sometimes
-				default:
-					encorepossible = M_RandomChance(FRACUNIT>>2);
-					break;
-			}
-			if (encorepossible != (boolean)cv_kartencore.value)
-				return (gametype|0x80);
+			randmapbuffer[NUMMAPS] = 0; // gotta prep this in case it isn't already set
 		}
-		return gametype;
+		return (gametype|encoremodifier);
 	}
 
 	switch (cv_kartvoterulechanges.value) // okay, we're having a gametype change! when's the next one, luv?
@@ -3447,9 +3459,11 @@ INT16 G_SometimesGetDifferentGametype(void)
 			break;
 	}
 
-	if (gametype == GT_MATCH)
-		return GT_RACE;
-	return GT_MATCH;
+	// Only this response is prefgametype-based.
+	// Also intentionally does not use encoremodifier!
+	if (prefgametype == GT_MATCH)
+		return (GT_RACE);
+	return (GT_MATCH);
 }
 
 //
