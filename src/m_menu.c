@@ -260,6 +260,10 @@ static menu_t SP_TimeAttackDef, SP_ReplayDef, SP_GuestReplayDef, SP_GhostDef;
 
 // Multiplayer
 #ifndef NONET
+static void M_PreStartServerMenu(INT32 choice);
+static void M_PreStartServerMenuChoice(event_t *ev);
+static void M_PreConnectMenu(INT32 choice);
+static void M_PreConnectMenuChoice(event_t *ev);
 static void M_StartServerMenu(INT32 choice);
 static void M_ConnectMenu(INT32 choice);
 static void M_ConnectMenuModChecks(INT32 choice);
@@ -994,7 +998,7 @@ static menuitem_t MP_MainMenu[] =
 
 	{IT_HEADER, NULL, "Host a game", NULL, 100-24},
 #ifndef NONET
-	{IT_STRING|IT_CALL,       NULL, "Internet/LAN...",           M_StartServerMenu,        110-24},
+	{IT_STRING|IT_CALL,       NULL, "Internet/LAN...",           M_PreStartServerMenu,        110-24},
 #else
 	{IT_GRAYEDOUT,            NULL, "Internet/LAN...",           NULL,                     110-24},
 #endif
@@ -1002,7 +1006,7 @@ static menuitem_t MP_MainMenu[] =
 
 	{IT_HEADER, NULL, "Join a game", NULL, 132-24},
 #ifndef NONET
-	{IT_STRING|IT_CALL,       NULL, "Internet server browser...",M_ConnectMenuModChecks,   142-24},
+	{IT_STRING|IT_CALL,       NULL, "Internet server browser...",M_PreConnectMenu,   142-24},
 	{IT_STRING|IT_KEYHANDLER, NULL, "Specify IPv4 address:",     M_HandleConnectIP,        150-24},
 #else
 	{IT_GRAYEDOUT,            NULL, "Internet server browser...",NULL,                     142-24},
@@ -8561,6 +8565,15 @@ static void M_DrawConnectMenu(void)
 	// Page num
 	V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ConnectMenu[mp_connect_page].alphaKey,
 	                         highlightflags, va("%u of %d", serverlistpage+1, numPages));
+	
+	// Did you change the Server Browser address? Have a little reminder.
+	int mservflags = V_ALLOWLOWERCASE;
+	if (CV_IsSetToDefault(&cv_masterserver))
+		mservflags = mservflags|highlightflags|V_30TRANS;
+	else
+		mservflags = mservflags|warningflags;
+	V_DrawRightAlignedSmallString(BASEVIDWIDTH - currentMenu->x, currentMenu->y+14 + MP_ConnectMenu[mp_connect_page].alphaKey,
+	                         mservflags, va("MS: %s", cv_masterserver.string));
 
 	// Horizontal line!
 	V_DrawFill(1, currentMenu->y+32, 318, 1, 0);
@@ -8797,6 +8810,74 @@ static void M_ConnectMenuModChecks(INT32 choice)
 
 	M_ConnectMenu(-1);
 }
+
+boolean firstDismissedNagThisBoot = true;
+
+static void M_HandleMasterServerResetChoice(event_t *ev)
+{
+	INT32 choice = -1;
+
+	choice = ev->data1;
+
+	if (ev->type == ev_keydown)
+	{
+		if (choice == ' ' || choice == 'y' || choice == KEY_ENTER || choice == gamecontrol[gc_accelerate][0] || choice == gamecontrol[gc_accelerate][1])
+		{
+			CV_Set(&cv_masterserver, cv_masterserver.defaultvalue);
+			CV_Set(&cv_masterserver_nagattempts, cv_masterserver_nagattempts.defaultvalue);
+			S_StartSound(NULL, sfx_s221);
+		}
+		else 
+		{
+			if (firstDismissedNagThisBoot)
+			{
+				if (cv_masterserver_nagattempts.value > 0)
+				{
+					CV_SetValue(&cv_masterserver_nagattempts, cv_masterserver_nagattempts.value - 1);
+				}
+				firstDismissedNagThisBoot = false;
+			}
+		}
+	}
+}
+
+static void M_PreStartServerMenu(INT32 choice)
+{
+	(void)choice;
+
+	if (!CV_IsSetToDefault(&cv_masterserver) && cv_masterserver_nagattempts.value > 0)
+	{
+		M_StartMessage(M_GetText("Hey! You've changed the Server Browser address.\n\nYou won't be able to host games on the official Server Browser.\nUnless you're from the future, this probably isn't what you want.\n\n\x83Press Accel\x80 to fix this and continue.\x80\nPress any other key to continue anyway.\n"),M_PreStartServerMenuChoice,MM_EVENTHANDLER);
+		return;
+	}
+
+	M_StartServerMenu(-1);
+}
+
+static void M_PreConnectMenu(INT32 choice)
+{
+	(void)choice;
+
+	if (!CV_IsSetToDefault(&cv_masterserver) && cv_masterserver_nagattempts.value > 0)
+	{
+		M_StartMessage(M_GetText("Hey! You've changed the Server Browser address.\n\nYou won't be able to see games from the official Server Browser.\nUnless you're from the future, this probably isn't what you want.\n\n\x83Press Accel\x80 to fix this and continue.\x80\nPress any other key to continue anyway.\n"),M_PreConnectMenuChoice,MM_EVENTHANDLER);
+		return;
+	}
+
+	M_ConnectMenuModChecks(-1);
+}
+
+static void M_PreStartServerMenuChoice(event_t *ev)
+{
+	M_HandleMasterServerResetChoice(ev);
+	M_StartServerMenu(-1);
+}
+
+static void M_PreConnectMenuChoice(event_t *ev)
+{
+	M_HandleMasterServerResetChoice(ev);
+	M_ConnectMenuModChecks(-1);
+}
 #endif //NONET
 
 //===========================================================================
@@ -9011,6 +9092,15 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 static void M_DrawServerMenu(void)
 {
 	M_DrawLevelSelectOnly(false, false);
+	if (currentMenu == &MP_ServerDef && cv_advertise.value) // Remind players where they're hosting.
+	{
+		int mservflags = V_ALLOWLOWERCASE;
+		if (CV_IsSetToDefault(&cv_masterserver))
+			mservflags = mservflags|highlightflags|V_30TRANS;
+		else
+			mservflags = mservflags|warningflags;
+		V_DrawCenteredThinString(BASEVIDWIDTH/2, BASEVIDHEIGHT-12, mservflags, va("Master Server: %s", cv_masterserver.string));
+	}
 	M_DrawGenericMenu();
 }
 
