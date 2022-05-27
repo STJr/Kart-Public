@@ -1178,7 +1178,7 @@ static inline void CL_DrawConnectionStatus(void)
 	// Draw background fade
 	V_DrawFadeScreen(0xFF00, 16);
 
-	if (cl_mode != CL_DOWNLOADFILES && cl_mode != CL_LOADFILES
+	if (cl_mode != CL_DOWNLOADFILES && cl_mode != CL_LOADFILES && cl_mode != CL_CHECKFILES
 #ifdef HAVE_CURL
 	&& cl_mode != CL_DOWNLOADHTTPFILES
 #endif
@@ -1214,14 +1214,8 @@ static inline void CL_DrawConnectionStatus(void)
 				break;
 #endif
 			case CL_ASKFULLFILELIST:
-			case CL_CHECKFILES:
-				cltext = M_GetText("Checking server addon list ...");
-				break;
 			case CL_CONFIRMCONNECT:
 				cltext = "";
-				break;
-			case CL_LOADFILES:
-				cltext = M_GetText("Loading server addons...");
 				break;
 			case CL_ASKJOIN:
 			case CL_WAITJOINRESPONSE:
@@ -1244,7 +1238,29 @@ static inline void CL_DrawConnectionStatus(void)
 	}
 	else
 	{
-		if (cl_mode == CL_LOADFILES)
+		if (cl_mode == CL_CHECKFILES)
+		{
+			INT32 totalfileslength;
+			INT32 checkednum = 0;
+			INT32 i;
+
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
+
+			//ima just count files here
+			for (i = 0; i < fileneedednum; i++)
+				if (fileneeded[i].status != FS_NOTCHECKED)
+					checkednum++;
+
+			// Loading progress
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP, "Checking server addons...");
+			totalfileslength = (INT32)((checkednum/(double)(fileneedednum)) * 256);
+			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
+			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, totalfileslength, 8, 160);
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+				va(" %2u/%2u Files",checkednum,fileneedednum));
+		}
+		else if (cl_mode == CL_LOADFILES)
 		{
 			INT32 totalfileslength;
 			INT32 loadcompletednum = 0;
@@ -1322,7 +1338,7 @@ static inline void CL_DrawConnectionStatus(void)
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, totalfileslength, 8, 160);
 
-			if (totalfilesrequestedsize>>20 >= 100) //display in MB if over 100MB
+			if (totalfilesrequestedsize>>20 >= 10) //display in MB if over 10MB
 				V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
 					va(" %4uM/%4uM",totaldldsize>>20,totalfilesrequestedsize>>20));
 			else
@@ -2168,7 +2184,7 @@ static boolean CL_FinishedFileList(void)
 				}
 
 #ifndef NONET
-			if (totalfilesrequestedsize>>20 >= 100)
+			if (totalfilesrequestedsize>>20 >= 10)
 				downloadsize = Z_StrDup(va("%uM",totalfilesrequestedsize>>20));
 			else
 				downloadsize = Z_StrDup(va("%uK",totalfilesrequestedsize>>10));
@@ -3565,17 +3581,17 @@ static CV_PossibleValue_t discordinvites_cons_t[] = {{0, "Admins Only"}, {1, "Ev
 consvar_t cv_discordinvites = {"discordinvites", "Everyone", CV_SAVE|CV_CALL, discordinvites_cons_t, Joinable_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t resynchattempts_cons_t[] = {{0, "MIN"}, {20, "MAX"}, {0, NULL}};
-consvar_t cv_resynchattempts = {"resynchattempts", "5", CV_SAVE, resynchattempts_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL	};
+consvar_t cv_resynchattempts = {"resynchattempts", "2", CV_SAVE, resynchattempts_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL	};
 consvar_t cv_blamecfail = {"blamecfail", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL	};
 
 // max file size to send to a player (in kilobytes)
 static CV_PossibleValue_t maxsend_cons_t[] = {{0, "MIN"}, {51200, "MAX"}, {0, NULL}};
-consvar_t cv_maxsend = {"maxsend", "4096", CV_SAVE, maxsend_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_maxsend = {"maxsend", "MAX", CV_SAVE, maxsend_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_noticedownload = {"noticedownload", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // Speed of file downloading (in packets per tic)
 static CV_PossibleValue_t downloadspeed_cons_t[] = {{0, "MIN"}, {32, "MAX"}, {0, NULL}};
-consvar_t cv_downloadspeed = {"downloadspeed", "16", CV_SAVE, downloadspeed_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_downloadspeed = {"downloadspeed", "MAX", CV_SAVE, downloadspeed_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static void Got_AddPlayer(UINT8 **p, INT32 playernum);
 static void Got_RemovePlayer(UINT8 **p, INT32 playernum);
