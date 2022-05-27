@@ -759,7 +759,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		char *tempchar = NULL;
 
 		// player is a spectator?
-        if (players[playernum].spectator)
+		if (players[playernum].spectator)
 		{
 			cstart = "\x86";    // grey name
 			textcolor = "\x86";

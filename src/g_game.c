@@ -275,6 +275,7 @@ tic_t mapreset; // Map reset delay when enough players have joined an empty game
 UINT8 nospectategrief; // How many players need to be in-game to eliminate last; for preventing spectate griefing
 boolean thwompsactive; // Thwomps activate on lap 2
 SINT8 spbplace; // SPB exists, give the person behind better items
+boolean startedInFreePlay; // Map was started in free play
 
 // Client-sided, unsynched variables (NEVER use in anything that needs to be synced with other players)
 boolean legitimateexit; // Did this client actually finish the match?
@@ -2482,7 +2483,9 @@ void G_Ticker(boolean run)
 		if (G_GametypeHasSpectators()
 			&& (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING // definitely good
 			|| gamestate == GS_WAITINGPLAYERS)) // definitely a problem if we don't do it at all in this gamestate, but might need more protection?
+		{
 			K_CheckSpectateStatus();
+		}
 
 		if (pausedelay)
 			pausedelay--;
@@ -2603,6 +2606,9 @@ void G_PlayerReborn(INT32 player)
 	INT32 wanted;
 	INT32 respawnflip;
 	boolean songcredit = false;
+	tic_t spectatorreentry;
+	tic_t grieftime;
+	UINT8 griefstrikes;
 
 	score = players[player].score;
 	marescore = players[player].marescore;
@@ -2644,7 +2650,7 @@ void G_PlayerReborn(INT32 player)
 	pity = players[player].pity;
 
 	// SRB2kart
-	if (leveltime <= starttime)
+	if (leveltime <= starttime || spectator == true)
 	{
 		itemroulette = 0;
 		roulettetype = 0;
@@ -2655,6 +2661,14 @@ void G_PlayerReborn(INT32 player)
 		comebackpoints = 0;
 		wanted = 0;
 		starpostwp = 0;
+
+		starposttime = 0;
+		starpostx = 0;
+		starposty = 0;
+		starpostz = 0;
+		starpostnum = 0;
+		respawnflip = 0;
+		starpostangle = 0;
 	}
 	else
 	{
@@ -2684,6 +2698,11 @@ void G_PlayerReborn(INT32 player)
 		comebackpoints = players[player].kartstuff[k_comebackpoints];
 		wanted = players[player].kartstuff[k_wanted];
 	}
+
+	spectatorreentry = players[player].spectatorreentry;
+
+	grieftime = players[player].grieftime;
+	griefstrikes = players[player].griefstrikes;
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2737,6 +2756,10 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_wanted] = wanted;
 	p->kartstuff[k_eggmanblame] = -1;
 	p->kartstuff[k_starpostflip] = respawnflip;
+
+	p->spectatorreentry = spectatorreentry;
+	p->grieftime = grieftime;
+	p->griefstrikes = griefstrikes;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;

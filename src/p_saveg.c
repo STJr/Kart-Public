@@ -246,6 +246,10 @@ static void P_NetArchivePlayers(void)
 		WRITEINT32(save_p, players[i].onconveyor);
 
 		WRITEUINT32(save_p, players[i].jointime);
+		WRITEUINT32(save_p, players[i].spectatorreentry);
+
+		WRITEUINT32(save_p, players[i].grieftime);
+		WRITEUINT8(save_p, players[i].griefstrikes);
 
 		WRITEUINT8(save_p, players[i].splitscreenindex);
 
@@ -411,6 +415,10 @@ static void P_NetUnArchivePlayers(void)
 		players[i].onconveyor = READINT32(save_p);
 
 		players[i].jointime = READUINT32(save_p);
+		players[i].spectatorreentry = READUINT32(save_p);
+
+		players[i].grieftime = READUINT32(save_p);
+		players[i].griefstrikes = READUINT8(save_p);
 
 		players[i].splitscreenindex = READUINT8(save_p);
 
@@ -3270,6 +3278,7 @@ static void P_NetArchiveMisc(void)
 	WRITEUINT8(save_p, nospectategrief);
 	WRITEUINT8(save_p, thwompsactive);
 	WRITESINT8(save_p, spbplace);
+	WRITEUINT8(save_p, startedInFreePlay);
 
 	// Is it paused?
 	if (paused)
@@ -3379,6 +3388,7 @@ static inline boolean P_NetUnArchiveMisc(void)
 	nospectategrief = READUINT8(save_p);
 	thwompsactive = (boolean)READUINT8(save_p);
 	spbplace = READSINT8(save_p);
+	startedInFreePlay = READUINT8(save_p);
 
 	// Is it paused?
 	if (READUINT8(save_p) == 0x2f)

@@ -8392,7 +8392,7 @@ void A_SPBChase(mobj_t *actor)
 
 	if (actor->extravalue1 == 1) // MODE: TARGETING
 	{
-		if (actor->tracer && actor->tracer->health)
+		if (actor->tracer && actor->tracer->health && !(actor->tracer->player && actor->tracer->player->spectator))
 		{
 
 			fixed_t defspeed = wspeed;

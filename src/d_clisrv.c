@@ -644,6 +644,10 @@ static inline void resynch_write_player(resynch_pak *rsp, const size_t i)
 	rsp->onconveyor = LONG(players[i].onconveyor);
 
 	rsp->jointime = (tic_t)LONG(players[i].jointime);
+	rsp->spectatorreentry = (tic_t)LONG(players[i].spectatorreentry);
+
+	rsp->grieftime = (tic_t)LONG(players[i].grieftime);
+	rsp->griefstrikes = players[i].griefstrikes;
 
 	rsp->splitscreenindex = players[i].splitscreenindex;
 
@@ -767,6 +771,10 @@ static void resynch_read_player(resynch_pak *rsp)
 	players[i].onconveyor = LONG(rsp->onconveyor);
 
 	players[i].jointime = (tic_t)LONG(rsp->jointime);
+	players[i].spectatorreentry = (tic_t)LONG(rsp->spectatorreentry);
+
+	players[i].grieftime = (tic_t)LONG(rsp->grieftime);
+	players[i].griefstrikes = rsp->griefstrikes;
 
 	players[i].splitscreenindex = rsp->splitscreenindex;
 
@@ -2964,6 +2972,23 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 		K_CheckBumpers();
 	else if (G_RaceGametype())
 		P_CheckRacers();
+
+	// Reset startedInFreePlay
+	{
+		INT32 i;
+
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (playeringame[i] && !players[i].spectator)
+				break;
+		}
+
+		if (i == MAXPLAYERS)
+		{
+			// Server was emptied, consider it FREE PLAY.
+			startedInFreePlay = true;
+		}
+	}
 }
 
 void CL_Reset(void)
@@ -3403,6 +3428,10 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 			if (netgame) // not splitscreen/bots
 				HU_AddChatText(va("\x82*%s left the game", player_names[pnum]), false);
 			kickreason = KR_LEAVE;
+			break;
+		case KICK_MSG_GRIEF:
+			HU_AddChatText(va("\x82*%s has been kicked (Automatic grief detection)", player_names[pnum]), false);
+			kickreason = KR_KICK;
 			break;
 		case KICK_MSG_BANNED:
 			HU_AddChatText(va("\x82*%s has been banned (Don't come back)", player_names[pnum]), false);

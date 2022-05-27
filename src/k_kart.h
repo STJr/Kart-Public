@@ -68,6 +68,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground);
 void K_CalculateBattleWanted(void);
 void K_CheckBumpers(void);
 void K_CheckSpectateStatus(void);
+void K_UpdateSpectateGrief(void);
 
 // sound stuff for lua
 void K_PlayAttackTaunt(mobj_t *source);

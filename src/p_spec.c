@@ -4311,17 +4311,22 @@ DoneSection2:
 					// Play the starpost sound for 'consistency'
 					// S_StartSound(player->mo, sfx_strpst);
 
-					// Figure out how many are playing on the last lap, to prevent spectate griefing
-					if (!nospectategrief && player->laps >= (UINT8)(cv_numlaps.value - 1))
-						nospectategrief = nump;
-
 					thwompsactive = true; // Lap 2 effects
+					player->grieftime = 0;
 				}
 				else if (player->starpostnum)
 				{
 					// blatant reuse of a variable that's normally unused in circuit
 					if (!player->tossdelay)
+					{
 						S_StartSound(player->mo, sfx_s26d);
+
+						if (netgame && cv_antigrief.value)
+						{
+							player->grieftime += TICRATE;
+						}
+					}
+
 					player->tossdelay = 3;
 				}
 

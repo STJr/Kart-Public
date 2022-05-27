@@ -2396,6 +2396,8 @@ static void P_LevelInitStuff(void)
 		players[i].exiting = 0;
 		P_ResetPlayer(&players[i]);
 
+		players[i].spectatorreentry = 0; // SRB2Kart 1.4
+
 		players[i].mo = NULL;
 
 		// we must unset axis details too
@@ -3227,6 +3229,37 @@ boolean P_SetupLevel(boolean skipprecip)
 		G_RecordDemo(buf);
 	}
 
+	wantedcalcdelay = wantedfrequency*2;
+	indirectitemcooldown = 0;
+	hyubgone = 0;
+	mapreset = 0;
+	nospectategrief = 0;
+	thwompsactive = false;
+	spbplace = -1;
+
+	startedInFreePlay = false;
+	{
+		UINT8 nump = 0;
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || players[i].spectator)
+			{
+				continue;
+			}
+
+			nump++;
+			if (nump == 2)
+			{
+				break;
+			}
+		}
+
+		if (nump <= 1)
+		{
+			startedInFreePlay = true;
+		}
+	}
+
 	// ===========
 	// landing point for netgames.
 	netgameskip:
@@ -3298,14 +3331,6 @@ boolean P_SetupLevel(boolean skipprecip)
 		CV_SetValue(&cv_analog2, false);
 		CV_SetValue(&cv_analog, false);
 	}*/
-
-	wantedcalcdelay = wantedfrequency*2;
-	indirectitemcooldown = 0;
-	hyubgone = 0;
-	mapreset = 0;
-	nospectategrief = 0;
-	thwompsactive = false;
-	spbplace = -1;
 
 	// clear special respawning que
 	iquehead = iquetail = 0;

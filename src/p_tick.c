@@ -735,6 +735,11 @@ void P_Ticker(boolean run)
 		if (hyubgone > 0)
 			hyubgone--;
 
+		if (G_RaceGametype())
+		{
+			K_UpdateSpectateGrief();
+		}
+
 		if (G_BattleGametype())
 		{
 			if (wantedcalcdelay && --wantedcalcdelay <= 0)
