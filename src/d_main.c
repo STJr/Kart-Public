@@ -999,7 +999,6 @@ void D_SRB2Main(void)
 	lumpinfo_t *lumpinfo;
 	UINT16 wadnum;
 	char *name;
-	FILE *tmpfile;
 
 	INT32 pstartmap = 1;
 	boolean autostart = false;
@@ -1129,8 +1128,14 @@ void D_SRB2Main(void)
 
 		// If config isn't writable, tons of behavior will be broken.
 		// Fail loudly before things get confusing!
-		tmpfile = fopen(configfile, "w");
-		if (!tmpfile)
+		FILE *tmpfile;
+		char testfile[MAX_WADPATH];
+
+		snprintf(testfile, sizeof testfile, "%s" PATHSEP "file.tmp", srb2home);
+		testfile[sizeof testfile - 1] = '\0';
+
+		tmpfile = fopen(testfile, "w");
+		if (tmpfile == NULL)
 		{
 #if defined (_WIN32)
 			I_Error("Couldn't write game config.\nMake sure the game is installed somewhere it has write permissions.\n\n(Don't use the Downloads folder, Program Files, or your desktop!\nIf unsure, we recommend making a subfolder in your Documents folder.)");
@@ -1138,7 +1143,11 @@ void D_SRB2Main(void)
 			I_Error("Couldn't write game config.\nMake sure you've installed the game somewhere it has write permissions.");
 #endif
 		}
-		fclose(tmpfile);
+		else
+		{
+			fclose(tmpfile);
+			remove(testfile);
+		}
 
 #ifdef _arch_dreamcast
 	strcpy(downloaddir, "/ram"); // the dreamcast's TMP
