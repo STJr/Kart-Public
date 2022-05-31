@@ -84,7 +84,7 @@ patch_t *frameslash;	// framerate stuff. Used in screen.c
 
 static player_t *plr;
 boolean chat_on; // entering a chat message?
-static char w_chat[HU_MAXMSGLEN];
+static char w_chat[HU_MAXMSGLEN + 1];
 static size_t c_input = 0; // let's try to make the chat input less shitty.
 static boolean headsupactive = false;
 boolean hu_showscores; // draw rankings
@@ -463,7 +463,7 @@ void HU_AddChatText(const char *text, boolean playsound)
 
 static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 {
-	XBOXSTATIC char buf[254];
+	XBOXSTATIC char buf[2 + HU_MAXMSGLEN + 1];
 	size_t numwords, ix;
 	char *msg = &buf[2];
 	const size_t msgspace = sizeof buf - 2;
@@ -544,7 +544,7 @@ static void DoSayCommand(SINT8 target, size_t usedargs, UINT8 flags)
 		}
 		buf[0] = target;
 		newmsg = msg+5+spc;
-		strlcpy(msg, newmsg, 252);
+		strlcpy(msg, newmsg, HU_MAXMSGLEN + 1);
 	}
 
 	SendNetXCmd(XD_SAY, buf, strlen(msg) + 1 + msg-buf);
@@ -654,7 +654,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	target = READSINT8(*p);
 	flags = READUINT8(*p);
 	msg = (char *)*p;
-	SKIPSTRING(*p);
+	SKIPSTRINGL(*p, HU_MAXMSGLEN + 1);
 
 	if ((cv_mute.value || flags & (HU_CSAY|HU_SERVER_SAY)) && playernum != serverplayer && !(IsPlayerAdmin(playernum)))
 	{
@@ -1108,7 +1108,7 @@ static void HU_queueChatChar(INT32 c)
 	// send automaticly the message (no more chat char)
 	if (c == KEY_ENTER)
 	{
-		char buf[2+256];
+		char buf[2 + HU_MAXMSGLEN + 1];
 		char *msg = &buf[2];
 		size_t i;
 		size_t ci = 2;
@@ -1198,7 +1198,7 @@ static void HU_queueChatChar(INT32 c)
 
 			// we need to get rid of the /pm<node>
 			newmsg = msg+5+spc;
-			strlcpy(msg, newmsg, 255);
+			strlcpy(msg, newmsg, HU_MAXMSGLEN + 1);
 		}
 		if (ci > 3) // don't send target+flags+empty message.
 		{
