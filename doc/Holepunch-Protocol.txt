@@ -1,0 +1,34 @@
+             Bird's Hole Punching Protocol
+
+
+Hole punch - a mechanism to bypass a firewall
+Server     - a third party which is not behind a firewall
+Client     - anything contacting the server
+Magic      - the four bytes 00 52 EB 11
+Address    - an IPv4 address
+
+
+                  0 1 2 3 4 5 6 7 8  9
+                 +-------+-------+----+
+                 | Magic |Address|Port|
+                 +-------+-------+----+
+                      Relay Packet
+
+
+A client that expects to be the target of a hole punch
+must contact the server frequently, to keep a UDP
+"connection" open, so that the server may relay hole
+punching requests to them.
+
+A client makes a hole punching request to another client
+by sending a Relay Packet to the server. The server then
+sends another Relay Packet to the client described by the
+first packet. The second packet is filled with the source
+address and port of the first packet.
+
+Once a client receives a Relay Packet, this protocol's
+purpose is fulfilled and the client is aware that another
+client requests a hole punch.
+
+
+vim: noai

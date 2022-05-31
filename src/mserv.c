@@ -68,6 +68,7 @@ static CV_PossibleValue_t masterserver_update_rate_cons_t[] = {
 };
 
 consvar_t cv_masterserver = {"masterserver", "https://ms.kartkrew.org/ms/api", CV_SAVE|CV_CALL, NULL, MasterServer_OnChange, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_rendezvousserver = {"rendezvousserver", "relay.kartkrew.org", CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_servername = {"servername", "SRB2Kart server", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Update_parameters, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_server_contact = {"server_contact", "", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Update_parameters, 0, NULL, NULL, 0, 0, NULL};
 
@@ -99,6 +100,7 @@ void AddMServCommands(void)
 	CV_RegisterVar(&cv_masterserver_debug);
 	CV_RegisterVar(&cv_masterserver_token);
 	CV_RegisterVar(&cv_advertise);
+	CV_RegisterVar(&cv_rendezvousserver);
 	CV_RegisterVar(&cv_servername);
 	CV_RegisterVar(&cv_server_contact);
 #ifdef MASTERSERVER
