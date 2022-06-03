@@ -5032,8 +5032,9 @@ static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
 
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 {
-	fixed_t p_curspeed = min(player->speed, K_GetKartSpeed(player, false) * 2);
-	fixed_t p_maxspeed = K_GetKartSpeed(player, false) * 3;
+	fixed_t p_topspeed = K_GetKartSpeed(player, false);
+	fixed_t p_curspeed = min(player->speed, p_topspeed * 2);
+	fixed_t p_maxspeed = p_topspeed * 3;
 	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (p_curspeed>>16), (p_maxspeed>>16) + player->kartweight);
 
 	if (player->spectator)
