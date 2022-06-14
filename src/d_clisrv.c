@@ -2673,14 +2673,24 @@ static void Command_ShowBan(void) //Print out ban list
 		CONS_Printf(M_GetText("(empty)\n"));
 }
 
+static boolean bansLoaded = false;
+
 void D_SaveBan(void)
 {
 	FILE *f;
 	size_t i;
-	const char *address, *mask, *reason;
+	const char *address, *mask;
+	const char *username, *reason;
 	const time_t curTime = time(NULL);
 	time_t unbanTime = NO_BAN_TIME;
 	const char *path = va("%s"PATHSEP"%s", srb2home, "ban.txt");
+
+	if (bansLoaded != true)
+	{
+		// You didn't even get to ATTEMPT to load bans.txt.
+		// Don't immediately save nothing over it.
+		return;
+	}
 
 	f = fopen(path, "w");
 
@@ -2696,24 +2706,37 @@ void D_SaveBan(void)
 		{
 			unbanTime = I_GetUnbanTime(i);
 		}
+		else
+		{
+			unbanTime = NO_BAN_TIME;
+		}
 
 		if (unbanTime != NO_BAN_TIME && curTime >= unbanTime)
 		{
-			// Don't need to save this one anymore.
+			// This one has served their sentence.
+			// We don't need to save them in the file anymore.
 			continue;
 		}
 
+		mask = NULL;
 		if (!I_GetBanMask || (mask = I_GetBanMask(i)) == NULL)
-			fprintf(f, "%s 0", address);
+			fprintf(f, "%s/0", address);
 		else
-			fprintf(f, "%s %s", address, mask);
+			fprintf(f, "%s/%s", address, mask);
 
 		fprintf(f, " %ld", (long)unbanTime);
 
-		if (I_GetBanReason && (reason = I_GetBanReason(i)) != NULL)
-			fprintf(f, " %s\n", reason);
+		username = NULL;
+		if (I_GetBanUsername && (username = I_GetBanUsername(i)) != NULL)
+			fprintf(f, " \"%s\"", username);
 		else
-			fprintf(f, " %s\n", "No reason given");
+			fprintf(f, " \"%s\"", "Direct IP ban");
+
+		reason = NULL;
+		if (I_GetBanReason && (reason = I_GetBanReason(i)) != NULL)
+			fprintf(f, " \"%s\"\n", reason);
+		else
+			fprintf(f, " \"%s\"\n", "No reason given");
 	}
 
 	fclose(f);
@@ -2728,13 +2751,20 @@ static void Command_ClearBans(void)
 	D_SaveBan();
 }
 
-static void Ban_Load_File(boolean warning)
+void D_LoadBan(boolean warning)
 {
 	FILE *f;
 	size_t i;
-	const char *address, *mask, *reason;
+	const char *address, *mask;
+	const char *username, *reason;
 	time_t unbanTime = NO_BAN_TIME;
 	char buffer[MAX_WADPATH];
+
+	if (!I_ClearBans)
+		return;
+
+	// We at least attempted loading bans.txt
+	bansLoaded = true;
 
 	f = fopen(va("%s"PATHSEP"%s", srb2home, "ban.txt"), "r");
 
@@ -2747,16 +2777,26 @@ static void Ban_Load_File(boolean warning)
 
 	I_ClearBans();
 
-	for (i=0; fgets(buffer, (int)sizeof(buffer), f); i++)
+	for (i = 0; fgets(buffer, (int)sizeof(buffer), f); i++)
 	{
-		address = strtok(buffer, " \t\r\n");
+		address = strtok(buffer, "/\t\r\n");
 		mask = strtok(NULL, " \t\r\n");
-		unbanTime = atoi(strtok(NULL, " \t\r\n"));
-		reason = strtok(NULL, "\r\n");
+
+		unbanTime = atoi(strtok(NULL, " \"\t\r\n"));
+
+		username = strtok(NULL, "\"\t\r\n"); // go until next "
+
+		strtok(NULL, "\"\t\r\n"); // remove first "
+		reason = strtok(NULL, "\"\r\n"); // go until next "
 
 		I_SetBanAddress(address, mask);
+
 		if (I_SetUnbanTime)
 			I_SetUnbanTime(unbanTime);
+
+		if (I_SetBanUsername)
+			I_SetBanUsername(username);
+
 		if (I_SetBanReason)
 			I_SetBanReason(reason);
 	}
@@ -2766,7 +2806,7 @@ static void Ban_Load_File(boolean warning)
 
 static void Command_ReloadBan(void)  //recheck ban.txt
 {
-	Ban_Load_File(true);
+	D_LoadBan(true);
 }
 
 static void Command_connect(void)
@@ -3152,31 +3192,60 @@ static void Command_Ban(void)
 
 static void Command_BanIP(void)
 {
-	if (COM_Argc() < 2)
+	size_t ac = COM_Argc();
+
+	if (ac < 2)
 	{
-		CONS_Printf(M_GetText("banip <ip> <reason>: ban an ip address\n"));
+		CONS_Printf(M_GetText("banip <ip> [<reason>]: ban an ip address\n"));
 		return;
 	}
 
 	if (server) // Only the server can use this, otherwise does nothing.
 	{
-		const char *address = (COM_Argv(1));
-		const char *reason;
+		char *addressInput = Z_StrDup(COM_Argv(1));
 
-		if (COM_Argc() == 2)
-			reason = NULL;
-		else
+		const char *address = NULL;
+		const char *mask = NULL;
+
+		const char *reason = NULL;
+
+		address = strtok(addressInput, "/");
+		mask = strtok(NULL, "");
+
+		if (ac > 2)
+		{
 			reason = COM_Argv(2);
+		}
 
-		if (I_SetBanAddress && I_SetBanAddress(address, NULL))
+		if (I_SetBanAddress && I_SetBanAddress(address, mask))
 		{
 			if (reason)
-				CONS_Printf("Banned IP address %s for: %s\n", address, reason);
+			{
+				CONS_Printf(
+					"Banned IP address %s%s for: %s\n",
+					address,
+					(mask && (strlen(mask) > 0)) ? va("/%s", mask) : "",
+					reason
+				);
+			}
 			else
-				CONS_Printf("Banned IP address %s\n", address);
+			{
+				CONS_Printf(
+					"Banned IP address %s%s\n",
+					address,
+					(mask && (strlen(mask) > 0)) ? va("/%s", mask) : ""
+				);
+			}
+
+			if (I_SetUnbanTime)
+				I_SetUnbanTime(NO_BAN_TIME);
+
+			if (I_SetBanUsername)
+				I_SetBanUsername(NULL);
 
 			if (I_SetBanReason)
 				I_SetBanReason(reason);
+
 			D_SaveBan();
 		}
 		else
@@ -3337,6 +3406,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 			}
 			else
 			{
+				if (I_SetBanUsername)
+					I_SetBanUsername(player_names[pnum]);
+
 				if (I_SetBanReason)
 					I_SetBanReason(reason);
 
@@ -3645,7 +3717,7 @@ void D_ClientServerInit(void)
 #ifdef DUMPCONSISTENCY
 	CV_RegisterVar(&cv_dumpconsistency);
 #endif
-	Ban_Load_File(false);
+	D_LoadBan(false);
 #endif
 
 	gametic = 0;
