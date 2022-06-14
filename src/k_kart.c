@@ -5947,7 +5947,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 	}
 
-	if (onground)
+	// JugadorXEI: Do *not* calculate friction when a player is pogo'd
+	// because they'll be in the air and friction will not reset!
+	if (onground && !player->kartstuff[k_pogospring]) 
 	{
 		// Friction
 		if (!player->kartstuff[k_offroad])
@@ -5981,11 +5983,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 
 		// Wipeout slowdown
-		if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
+		if (player->speed > 0 && player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
 		{
 			if (player->kartstuff[k_offroad])
 				player->mo->friction -= 4912;
-			if (player->kartstuff[k_wipeoutslow] == 1 && player->kartstuff[k_pogospring] == 0)
+			if (player->kartstuff[k_wipeoutslow] == 1)
 				player->mo->friction -= 9824;
 		}
 	}
