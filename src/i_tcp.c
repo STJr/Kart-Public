@@ -236,7 +236,7 @@ typedef struct
 	mysockaddr_t address;
 	UINT8 mask;
 	char *reason;
-	// TODO: timestamp, for tempbans!
+	time_t timestamp;
 } banned_t;
 
 static SOCKET_TYPE mysockets[MAXNETNODES+1] = {ERRSOCKET};
@@ -254,6 +254,7 @@ static size_t numbans = 0;
 static size_t banned_size = 0;
 
 static boolean SOCK_bannednode[MAXNETNODES+1]; /// \note do we really need the +1?
+static time_t SOCK_bannednodetimeleft[MAXNETNODES+1];
 static boolean init_tcp_driver = false;
 
 static const char *serverport_name = DEFAULTPORT;
@@ -505,7 +506,21 @@ static const char *SOCK_GetBanReason(size_t ban)
 	(void)ban;
 	return NULL;
 #else
+	if (ban >= numbans)
+		return NULL;
 	return banned[ban].reason;
+#endif
+}
+
+static time_t SOCK_GetUnbanTime(size_t ban)
+{
+#ifdef NONET
+	(void)ban;
+	return NO_BAN_TIME;
+#else
+	if (ban >= numbans)
+		return NO_BAN_TIME;
+	return banned[ban].timestamp;
 #endif
 }
 
@@ -656,6 +671,8 @@ static boolean SOCK_Get(void)
 			j = getfreenode();
 			if (j > 0)
 			{
+				const time_t curTime = time(NULL);
+
 				M_Memcpy(&clientaddress[j], &fromaddress, fromlen);
 				nodesocket[j] = mysockets[n];
 				DEBFILE(va("New node detected: node:%d address:%s\n", j,
@@ -668,13 +685,37 @@ static boolean SOCK_Get(void)
 				{
 					if (SOCK_cmpaddr(&fromaddress, &banned[i].address, banned[i].mask))
 					{
-						SOCK_bannednode[j] = true;
-						DEBFILE("This dude has been banned\n");
-						break;
+						if (banned[i].timestamp != NO_BAN_TIME)
+						{
+							if (curTime >= banned[i].timestamp)
+							{
+								SOCK_bannednodetimeleft[j] = NO_BAN_TIME;
+								SOCK_bannednode[j] = false;
+								DEBFILE("This dude was banned, but enough time has passed\n");
+								break;
+							}
+
+							SOCK_bannednodetimeleft[j] = banned[i].timestamp - curTime;
+							SOCK_bannednode[j] = true;
+							DEBFILE("This dude has been temporarily banned\n");
+							break;
+						}
+						else
+						{
+							SOCK_bannednodetimeleft[j] = NO_BAN_TIME;
+							SOCK_bannednode[j] = true;
+							DEBFILE("This dude has been banned\n");
+							break;
+						}
 					}
 				}
+
 				if (i == numbans)
+				{
+					SOCK_bannednodetimeleft[j] = NO_BAN_TIME;
 					SOCK_bannednode[j] = false;
+				}
+
 				return true;
 			}
 			else
@@ -1538,13 +1579,23 @@ static boolean SOCK_SetBanReason(const char *reason)
 	(void)reason;
 	return false;
 #else
-
 	if (!reason)
 	{
 		reason = "No reason given";
 	}
 
 	banned[numbans - 1].reason = Z_StrDup(reason);
+	return true;
+#endif
+}
+
+static boolean SOCK_SetUnbanTime(time_t timestamp)
+{
+#ifdef NONET
+	(void)reason;
+	return false;
+#else
+	banned[numbans - 1].timestamp = timestamp;
 	return true;
 #endif
 }
@@ -1646,9 +1697,12 @@ boolean I_InitTcpNetwork(void)
 	I_GetBanAddress = SOCK_GetBanAddress;
 	I_GetBanMask = SOCK_GetBanMask;
 	I_GetBanReason = SOCK_GetBanReason;
+	I_GetUnbanTime = SOCK_GetUnbanTime;
 	I_SetBanAddress = SOCK_SetBanAddress;
 	I_SetBanReason = SOCK_SetBanReason;
+	I_SetUnbanTime = SOCK_SetUnbanTime;
 	bannednode = SOCK_bannednode;
+	bannednodetimeleft = SOCK_bannednodetimeleft;
 
 	return ret;
 }

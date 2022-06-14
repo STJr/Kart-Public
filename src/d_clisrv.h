@@ -504,6 +504,8 @@ extern INT32 mapchangepending;
 extern doomdata_t *netbuffer;
 extern consvar_t cv_stunserver;
 extern consvar_t cv_httpsource;
+extern consvar_t cv_kicktime;
+
 extern consvar_t cv_showjoinaddress;
 extern consvar_t cv_playbackspeed;
 
