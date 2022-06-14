@@ -174,8 +174,6 @@ static UINT8 UPNP_support = TRUE;
 
 #endif // !NONET
 
-#define MAXBANS 100
-
 #include "i_system.h"
 #include "i_net.h"
 #include "d_net.h"
@@ -183,6 +181,7 @@ static UINT8 UPNP_support = TRUE;
 #include "i_tcp.h"
 #include "m_argv.h"
 #include "stun.h"
+#include "z_zone.h"
 
 #include "doomstat.h"
 
@@ -239,11 +238,13 @@ static mysockaddr_t clientaddress[MAXNETNODES+1];
 static mysockaddr_t broadcastaddress[MAXNETNODES+1];
 static size_t broadcastaddresses = 0;
 static boolean nodeconnected[MAXNETNODES+1];
-static mysockaddr_t banned[MAXBANS];
-static UINT8 bannedmask[MAXBANS];
+static mysockaddr_t *banned;
+static UINT8 *bannedmask;
 #endif
 
 static size_t numbans = 0;
+static size_t banned_size = 0;
+
 static boolean SOCK_bannednode[MAXNETNODES+1]; /// \note do we really need the +1?
 static boolean init_tcp_driver = false;
 
@@ -1395,6 +1396,39 @@ static boolean SOCK_OpenSocket(void)
 #endif
 }
 
+static void AddBannedIndex(void)
+{
+	if (numbans >= banned_size)
+	{
+		if (banned_size == 0)
+		{
+			banned_size = 8;
+		}
+		else
+		{
+			banned_size *= 2;
+		}
+
+		banned = Z_ReallocAlign(
+			(void*) banned,
+			sizeof(mysockaddr_t) * banned_size,
+			PU_STATIC,
+			NULL,
+			sizeof(mysockaddr_t) * 8
+		);
+
+		bannedmask = Z_ReallocAlign(
+			(void*) banned,
+			sizeof(UINT8) * banned_size,
+			PU_STATIC,
+			NULL,
+			sizeof(UINT8) * 8
+		);
+	}
+
+	numbans++;
+}
+
 static boolean SOCK_Ban(INT32 node)
 {
 	if (node > MAXNETNODES)
@@ -1402,23 +1436,23 @@ static boolean SOCK_Ban(INT32 node)
 #ifdef NONET
 	return false;
 #else
-	if (numbans == MAXBANS)
-		return false;
 
-	M_Memcpy(&banned[numbans], &clientaddress[node], sizeof (mysockaddr_t));
-	if (banned[numbans].any.sa_family == AF_INET)
+	AddBannedIndex();
+
+	M_Memcpy(&banned[numbans-1], &clientaddress[node], sizeof (mysockaddr_t));
+	if (banned[numbans-1].any.sa_family == AF_INET)
 	{
-		banned[numbans].ip4.sin_port = 0;
-		bannedmask[numbans] = 32;
+		banned[numbans-1].ip4.sin_port = 0;
+		bannedmask[numbans-1] = 32;
 	}
 #ifdef HAVE_IPV6
-	else if (banned[numbans].any.sa_family == AF_INET6)
+	else if (banned[numbans-1].any.sa_family == AF_INET6)
 	{
-		banned[numbans].ip6.sin6_port = 0;
-		bannedmask[numbans] = 128;
+		banned[numbans-1].ip6.sin6_port = 0;
+		bannedmask[numbans-1] = 128;
 	}
 #endif
-	numbans++;
+
 	return true;
 #endif
 }
@@ -1433,7 +1467,7 @@ static boolean SOCK_SetBanAddress(const char *address, const char *mask)
 	struct my_addrinfo *ai, *runp, hints;
 	int gaie;
 
-	if (numbans == MAXBANS || !address)
+	if (!address)
 		return false;
 
 	memset(&hints, 0x00, sizeof(hints));
@@ -1448,26 +1482,27 @@ static boolean SOCK_SetBanAddress(const char *address, const char *mask)
 
 	runp = ai;
 
-	while(runp != NULL && numbans != MAXBANS)
+	while (runp != NULL)
 	{
-		memcpy(&banned[numbans], runp->ai_addr, runp->ai_addrlen);
+		AddBannedIndex();
+
+		memcpy(&banned[numbans-1], runp->ai_addr, runp->ai_addrlen);
 
 		if (mask)
-			bannedmask[numbans] = (UINT8)atoi(mask);
+			bannedmask[numbans-1] = (UINT8)atoi(mask);
 #ifdef HAVE_IPV6
 		else if (runp->ai_family == AF_INET6)
-			bannedmask[numbans] = 128;
+			bannedmask[numbans-1] = 128;
 #endif
 		else
-			bannedmask[numbans] = 32;
+			bannedmask[numbans-1] = 32;
 
-		if (bannedmask[numbans] > 32 && runp->ai_family == AF_INET)
-			bannedmask[numbans] = 32;
+		if (bannedmask[numbans-1] > 32 && runp->ai_family == AF_INET)
+			bannedmask[numbans-1] = 32;
 #ifdef HAVE_IPV6
-		else if (bannedmask[numbans] > 128 && runp->ai_family == AF_INET6)
-			bannedmask[numbans] = 128;
+		else if (bannedmask[numbans-1] > 128 && runp->ai_family == AF_INET6)
+			bannedmask[numbans-1] = 128;
 #endif
-		numbans++;
 		runp = runp->ai_next;
 	}
 
@@ -1480,6 +1515,9 @@ static boolean SOCK_SetBanAddress(const char *address, const char *mask)
 static void SOCK_ClearBans(void)
 {
 	numbans = 0;
+	banned_size = 0;
+	banned = NULL;
+	bannedmask = NULL;
 }
 
 boolean I_InitTcpNetwork(void)

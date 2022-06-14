@@ -3125,7 +3125,7 @@ static void Command_Ban(void)
 {
 	if (COM_Argc() < 2)
 	{
-		CONS_Printf(M_GetText("Ban <playername/playernum> <reason>: ban and kick a player\n"));
+		CONS_Printf(M_GetText("ban <playername/playernum> <reason>: ban and kick a player\n"));
 		return;
 	}
 
@@ -3149,7 +3149,7 @@ static void Command_Ban(void)
 
 		if (server && I_Ban && !I_Ban(node)) // only the server is allowed to do this right now
 		{
-			CONS_Alert(CONS_WARNING, M_GetText("Too many bans! Geez, that's a lot of people you're excluding...\n"));
+			CONS_Alert(CONS_WARNING, M_GetText("Ban failed. Invalid node?\n"));
 			WRITEUINT8(p, KICK_MSG_GO_AWAY);
 			SendNetXCmd(XD_KICK, &buf, 2);
 		}
