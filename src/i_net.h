@@ -154,8 +154,13 @@ extern boolean (*I_SetBanAddress) (const char *address,const char *mask);
 extern boolean (*I_SetBanUsername) (const char *username);
 extern boolean (*I_SetBanReason) (const char *reason);
 extern boolean (*I_SetUnbanTime) (time_t timestamp);
-extern boolean *bannednode;
-extern time_t *bannednodetimeleft;
+
+typedef struct
+{
+	size_t banid;
+	time_t timeleft;
+} bannednode_t;
+extern bannednode_t *bannednode;
 
 /// \brief Called by D_SRB2Main to be defined by extern network driver
 boolean I_InitNetwork(void);

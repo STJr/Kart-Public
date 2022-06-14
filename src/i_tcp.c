@@ -254,8 +254,7 @@ static banned_t *banned;
 static size_t numbans = 0;
 static size_t banned_size = 0;
 
-static boolean SOCK_bannednode[MAXNETNODES+1]; /// \note do we really need the +1?
-static time_t SOCK_bannednodetimeleft[MAXNETNODES+1];
+static bannednode_t SOCK_bannednode[MAXNETNODES+1]; /// \note do we really need the +1?
 static boolean init_tcp_driver = false;
 
 static const char *serverport_name = DEFAULTPORT;
@@ -702,21 +701,21 @@ static boolean SOCK_Get(void)
 						{
 							if (curTime >= banned[i].timestamp)
 							{
-								SOCK_bannednodetimeleft[j] = NO_BAN_TIME;
-								SOCK_bannednode[j] = false;
+								SOCK_bannednode[j].timeleft = NO_BAN_TIME;
+								SOCK_bannednode[j].banid = SIZE_MAX;
 								DEBFILE("This dude was banned, but enough time has passed\n");
 								break;
 							}
 
-							SOCK_bannednodetimeleft[j] = banned[i].timestamp - curTime;
-							SOCK_bannednode[j] = true;
+							SOCK_bannednode[j].timeleft = banned[i].timestamp - curTime;
+							SOCK_bannednode[j].banid = i;
 							DEBFILE("This dude has been temporarily banned\n");
 							break;
 						}
 						else
 						{
-							SOCK_bannednodetimeleft[j] = NO_BAN_TIME;
-							SOCK_bannednode[j] = true;
+							SOCK_bannednode[j].timeleft = NO_BAN_TIME;
+							SOCK_bannednode[j].banid = i;
 							DEBFILE("This dude has been banned\n");
 							break;
 						}
@@ -725,8 +724,8 @@ static boolean SOCK_Get(void)
 
 				if (i == numbans)
 				{
-					SOCK_bannednodetimeleft[j] = NO_BAN_TIME;
-					SOCK_bannednode[j] = false;
+					SOCK_bannednode[j].timeleft = NO_BAN_TIME;
+					SOCK_bannednode[j].banid = SIZE_MAX;
 				}
 
 				return true;
@@ -1756,7 +1755,6 @@ boolean I_InitTcpNetwork(void)
 	I_SetBanReason = SOCK_SetBanReason;
 	I_SetUnbanTime = SOCK_SetUnbanTime;
 	bannednode = SOCK_bannednode;
-	bannednodetimeleft = SOCK_bannednodetimeleft;
 
 	return ret;
 }

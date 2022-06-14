@@ -4229,11 +4229,11 @@ static void HandleConnect(SINT8 node)
 	// It's too much effort to legimately fix right now. Just prevent it from reaching that state.
 	UINT8 maxplayers = min((dedicated ? MAXPLAYERS-1 : MAXPLAYERS), cv_maxplayers.value);
 
-	if (bannednode && bannednode[node])
+	if (bannednode && bannednode[node].banid != SIZE_MAX)
 	{
-		if (bannednodetimeleft && bannednodetimeleft[node] != NO_BAN_TIME)
+		if (bannednode[node].timeleft != NO_BAN_TIME)
 		{
-			int minutes = bannednodetimeleft[node] / 60;
+			int minutes = bannednode[node].timeleft / 60;
 			int hours = minutes / 60;
 
 			if (hours)
