@@ -145,7 +145,9 @@ extern void (*I_ClearBans)(void);
 extern const char *(*I_GetNodeAddress) (INT32 node);
 extern const char *(*I_GetBanAddress) (size_t ban);
 extern const char *(*I_GetBanMask) (size_t ban);
+extern const char *(*I_GetBanReason) (size_t ban);
 extern boolean (*I_SetBanAddress) (const char *address,const char *mask);
+extern boolean (*I_SetBanReason) (const char *reason);
 extern boolean *bannednode;
 
 /// \brief Called by D_SRB2Main to be defined by extern network driver
