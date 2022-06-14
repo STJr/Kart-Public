@@ -1527,70 +1527,6 @@ static boolean SOCK_Ban(INT32 node)
 #endif
 }
 
-static boolean SOCK_SetBanAddress(const char *address, const char *mask)
-{
-#ifdef NONET
-	(void)address;
-	(void)mask;
-	return false;
-#else
-	struct my_addrinfo *ai, *runp, hints;
-	int gaie;
-
-	if (!address)
-		return false;
-
-	memset(&hints, 0x00, sizeof(hints));
-	hints.ai_flags = 0;
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_protocol = IPPROTO_UDP;
-
-	gaie = I_getaddrinfo(address, "0", &hints, &ai);
-	if (gaie != 0)
-		return false;
-
-	runp = ai;
-
-	while (runp != NULL)
-	{
-		INT32 ban;
-
-		ban = numbans;
-		AddBannedIndex();
-
-		memcpy(&banned[ban].address, runp->ai_addr, runp->ai_addrlen);
-
-		if (mask)
-			banned[ban].mask = (UINT8)atoi(mask);
-#ifdef HAVE_IPV6
-		else if (runp->ai_family == AF_INET6)
-			banned[ban].mask = 128;
-#endif
-		else
-			banned[ban].mask = 32;
-
-		if (banned[ban].mask > 32 && runp->ai_family == AF_INET)
-			banned[ban].mask = 32;
-#ifdef HAVE_IPV6
-		else if (banned[ban].mask > 128 && runp->ai_family == AF_INET6)
-			banned[ban].mask = 128;
-#endif
-
-		// Set defaults, in case anything funny happens.
-		SOCK_SetBanUsername(NULL);
-		SOCK_SetBanReason(NULL);
-		SOCK_SetUnbanTime(NO_BAN_TIME);
-
-		runp = runp->ai_next;
-	}
-
-	I_freeaddrinfo(ai);
-
-	return true;
-#endif
-}
-
 static boolean SOCK_SetBanUsername(const char *username)
 {
 #ifdef NONET
@@ -1642,6 +1578,76 @@ static boolean SOCK_SetUnbanTime(time_t timestamp)
 	return false;
 #else
 	banned[numbans - 1].timestamp = timestamp;
+	return true;
+#endif
+}
+
+static boolean SOCK_SetBanAddress(const char *address, const char *mask)
+{
+#ifdef NONET
+	(void)address;
+	(void)mask;
+	return false;
+#else
+	struct my_addrinfo *ai, *runp, hints;
+	int gaie;
+
+	if (!address)
+		return false;
+
+	memset(&hints, 0x00, sizeof(hints));
+	hints.ai_flags = 0;
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_protocol = IPPROTO_UDP;
+
+	gaie = I_getaddrinfo(address, "0", &hints, &ai);
+	if (gaie != 0)
+		return false;
+
+	runp = ai;
+
+	while (runp != NULL)
+	{
+		INT32 ban;
+		UINT8 numericalmask;
+
+		ban = numbans;
+		AddBannedIndex();
+
+		memcpy(&banned[ban].address, runp->ai_addr, runp->ai_addrlen);
+
+#ifdef HAVE_IPV6
+		if (runp->ai_family == AF_INET6)
+			banned[ban].mask = 128;
+		else
+#endif
+			banned[ban].mask = 32;
+
+		if (mask)
+		{
+			numericalmask = (UINT8)atoi(mask);
+		}
+		else
+		{
+			numericalmask = 0;
+		}
+
+		if (numericalmask > 0 && numericalmask < banned[ban].mask)
+		{
+			banned[ban].mask = numericalmask;
+		}
+
+		// Set defaults, in case anything funny happens.
+		SOCK_SetBanUsername(NULL);
+		SOCK_SetBanReason(NULL);
+		SOCK_SetUnbanTime(NO_BAN_TIME);
+
+		runp = runp->ai_next;
+	}
+
+	I_freeaddrinfo(ai);
+
 	return true;
 #endif
 }

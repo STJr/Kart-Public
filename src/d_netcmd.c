@@ -1085,14 +1085,14 @@ boolean EnsurePlayerNameIsGood(char *name, INT32 playernum)
 			if (len > 1)
 			{
 				name[len-1] = '\0';
-				if (!IsNameGood (name, playernum))
+				if (!EnsurePlayerNameIsGood(name, playernum))
 					return false;
 			}
 			else if (len == 1) // Agh!
 			{
 				// Last ditch effort...
 				sprintf(name, "%d", M_RandomKey(10));
-				if (!IsNameGood (name, playernum))
+				if (!EnsurePlayerNameIsGood(name, playernum))
 					return false;
 			}
 			else
@@ -1232,12 +1232,12 @@ static void CleanupPlayerName(INT32 playernum, const char *newname)
   * \param newname   New name for that player. Should be good, but won't
   *                  necessarily be if the client is maliciously modified or
   *                  buggy.
-  * \sa CleanupPlayerName, IsNameGood
+  * \sa CleanupPlayerName, EnsurePlayerNameIsGood
   * \author Graue <graue@oceanbase.org>
   */
 static void SetPlayerName(INT32 playernum, char *newname)
 {
-	if (IsNameGood(newname, playernum))
+	if (EnsurePlayerNameIsGood(newname, playernum))
 	{
 		if (strcasecmp(newname, player_names[playernum]) != 0)
 		{

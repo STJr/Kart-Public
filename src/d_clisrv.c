@@ -180,7 +180,7 @@ consvar_t cv_playbackspeed = {"playbackspeed", "1", 0, playbackspeed_cons_t, NUL
 
 consvar_t cv_httpsource = {"http_source", "", CV_SAVE, NULL, NULL, 0, NULL, NULL, 0, 0, NULL};
 
-consvar_t cv_kicktime = CVAR_INIT ("kicktime", "10", CV_SAVE, CV_Unsigned, NULL);
+consvar_t cv_kicktime = {"kicktime", "10", CV_SAVE, CV_Unsigned, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static inline void *G_DcpyTiccmd(void* dest, const ticcmd_t* src, const size_t n)
 {
@@ -2674,6 +2674,10 @@ static void Command_ShowBan(void) //Print out ban list
 }
 
 static boolean bansLoaded = false;
+// If you're a community contributor looking to improve how bans are written, please
+// offer your changes back to our Git repository. Kart Krew reserve the right to
+// utilise format numbers in use by community builds for different layouts.
+#define BANFORMAT 1
 
 void D_SaveBan(void)
 {
@@ -2699,6 +2703,9 @@ void D_SaveBan(void)
 		CONS_Alert(CONS_WARNING, M_GetText("Could not save ban list into ban.txt\n"));
 		return;
 	}
+
+	// Add header.
+	fprintf(f, "BANFORMAT %d\n", BANFORMAT);
 
 	for (i = 0; (address = I_GetBanAddress(i)) != NULL; i++)
 	{
@@ -2759,6 +2766,7 @@ void D_LoadBan(boolean warning)
 	const char *username, *reason;
 	time_t unbanTime = NO_BAN_TIME;
 	char buffer[MAX_WADPATH];
+	boolean banmode = 0;
 
 	if (!I_ClearBans)
 		return;
@@ -2779,15 +2787,35 @@ void D_LoadBan(boolean warning)
 
 	for (i = 0; fgets(buffer, (int)sizeof(buffer), f); i++)
 	{
-		address = strtok(buffer, "/\t\r\n");
+		address = strtok(buffer, " /\t\r\n");
 		mask = strtok(NULL, " \t\r\n");
 
-		unbanTime = atoi(strtok(NULL, " \"\t\r\n"));
+		if (i == 0 && !strncmp(address, "BANFORMAT", 9))
+		{
+			banmode = atoi(mask);
+			continue;
+		}
 
-		username = strtok(NULL, "\"\t\r\n"); // go until next "
+		// One-way legacy format conversion -- the game will crash otherwise
+		if (banmode == 0)
+		{
+			unbanTime = NO_BAN_TIME;
+			username = NULL; // not guaranteed to be accurate, but only sane substitute
+			reason = strtok(NULL, "\r\n");
+			if (reason[0] == 'N' && reason[1] == 'A' && reason[2] == '\0')
+			{
+				reason = NULL;
+			}
+		}
+		else
+		{
+			unbanTime = atoi(strtok(NULL, " \"\t\r\n"));
 
-		strtok(NULL, "\"\t\r\n"); // remove first "
-		reason = strtok(NULL, "\"\r\n"); // go until next "
+			username = strtok(NULL, "\"\t\r\n"); // go until next "
+
+			strtok(NULL, "\"\t\r\n"); // remove first "
+			reason = strtok(NULL, "\"\r\n"); // go until next "
+		}
 
 		I_SetBanAddress(address, mask);
 
@@ -2803,6 +2831,8 @@ void D_LoadBan(boolean warning)
 
 	fclose(f);
 }
+
+#undef BANFORMAT
 
 static void Command_ReloadBan(void)  //recheck ban.txt
 {
@@ -3507,9 +3537,6 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 #ifdef DUMPCONSISTENCY
 		if (msg == KICK_MSG_CON_FAIL) SV_SavedGame();
 #endif
-
-		LUAh_GameQuit(false);
-
 		D_QuitNetGame();
 		CL_Reset();
 		D_StartTitle();
