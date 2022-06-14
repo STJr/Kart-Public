@@ -2761,9 +2761,9 @@ static void Command_ClearBans(void)
 void D_LoadBan(boolean warning)
 {
 	FILE *f;
-	size_t i;
-	const char *address, *mask;
-	const char *username, *reason;
+	size_t i, j;
+	char *address, *mask;
+	char *username, *reason;
 	time_t unbanTime = NO_BAN_TIME;
 	char buffer[MAX_WADPATH];
 	boolean banmode = 0;
@@ -2815,6 +2815,19 @@ void D_LoadBan(boolean warning)
 
 			strtok(NULL, "\"\t\r\n"); // remove first "
 			reason = strtok(NULL, "\"\r\n"); // go until next "
+		}
+
+		// Enforce MAX_REASONLENGTH.
+		if (reason)
+		{
+			j = 0;
+			while (reason[j] != '\0')
+			{
+				if ((j++) < MAX_REASONLENGTH)
+					continue;
+				reason[j] = '\0';
+				break;
+			}
 		}
 
 		I_SetBanAddress(address, mask);
