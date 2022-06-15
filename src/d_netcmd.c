@@ -1044,7 +1044,7 @@ static boolean AllowedPlayerNameChar(char ch)
 	return true;
 }
 
-boolean EnsurePlayerNameIsGood(char *name, INT32 playernum)
+static boolean EnsurePlayerNameIsGood(char *name, INT32 playernum)
 {
 	INT32 ix;
 
