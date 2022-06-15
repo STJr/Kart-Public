@@ -2642,7 +2642,9 @@ static void CL_ConnectToServer(void)
 static void Command_ShowBan(void) //Print out ban list
 {
 	size_t i;
-	const char *address, *mask, *reason;
+	const char *address, *mask, *reason, *username;
+	time_t unbanTime = NO_BAN_TIME;
+	const time_t curTime = time(NULL);
 
 	if (I_GetBanAddress)
 		CONS_Printf(M_GetText("Ban List:\n"));
@@ -2651,22 +2653,43 @@ static void Command_ShowBan(void) //Print out ban list
 
 	for (i = 0; (address = I_GetBanAddress(i)) != NULL; i++)
 	{
-		if (!I_GetBanMask || (mask = I_GetBanMask(i)) == NULL)
-			CONS_Printf("%s: %s ", sizeu1(i+1), address);
-		else
-			CONS_Printf("%s: %s/%s ", sizeu1(i+1), address, mask);
+		unbanTime = NO_BAN_TIME;
+		if (I_GetUnbanTime)
+			unbanTime = I_GetUnbanTime(i);
 
-		if (I_GetUnbanTime && I_GetUnbanTime(i) != NO_BAN_TIME)
-		{
-			// todo: maybe try to actually print out the time remaining,
-			// and/or the datetime of the unbanning?
-			CONS_Printf("(temporary) ");
-		}
+		if (unbanTime != NO_BAN_TIME && curTime >= unbanTime)
+			continue;
+
+		CONS_Printf("%s: ", sizeu1(i+1));
+
+		if (I_GetBanUsername && (username = I_GetBanUsername(i)) != NULL)
+			CONS_Printf("%s - ", username);
+
+		if (!I_GetBanMask || (mask = I_GetBanMask(i)) == NULL)
+			CONS_Printf("%s", address);
+		else
+			CONS_Printf("%s/%s", address, mask);
 
 		if (I_GetBanReason && (reason = I_GetBanReason(i)) != NULL)
-			CONS_Printf("(%s)\n", reason);
-		else
-			CONS_Printf("\n");
+			CONS_Printf(" - %s", reason);
+
+		if (unbanTime != NO_BAN_TIME)
+		{
+			 // these are fudged a little to match what a joiner sees
+			int minutes = ((unbanTime - curTime) + 30) / 60;
+			int hours = (minutes + 1) / 60;
+			int days = (hours + 1) / 24;
+			if (days)
+				CONS_Printf(" (%d day%s)", days, days > 1 ? "s" : "");
+			else if (hours)
+				CONS_Printf(" (%d hour%s)", hours, hours > 1 ? "s" : "");
+			else if (minutes)
+				CONS_Printf(" (%d minute%s)", minutes, minutes > 1 ? "s" : "");
+			else
+				CONS_Printf(" (<1 minute)");
+		}
+
+		CONS_Printf("\n");
 	}
 
 	if (i == 0 && !address)
@@ -3428,6 +3451,11 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 		msg = KICK_MSG_CON_FAIL;
 	}
 
+	if (msg == KICK_MSG_CUSTOM_BAN || msg == KICK_MSG_CUSTOM_KICK)
+	{
+		READSTRINGN(*p, reason, MAX_REASONLENGTH+1);
+	}
+
 	//CONS_Printf("\x82%s ", player_names[pnum]);
 
 	// Save bans here. Used to be split between here and the actual command, depending on
@@ -3534,12 +3562,10 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 			kickreason = KR_BAN;
 			break;
 		case KICK_MSG_CUSTOM_KICK:
-			READSTRINGN(*p, reason, MAX_REASONLENGTH+1);
 			HU_AddChatText(va("\x82*%s has been kicked (%s)", player_names[pnum], reason), false);
 			kickreason = KR_KICK;
 			break;
 		case KICK_MSG_CUSTOM_BAN:
-			READSTRINGN(*p, reason, MAX_REASONLENGTH+1);
 			HU_AddChatText(va("\x82*%s has been banned (%s)", player_names[pnum], reason), false);
 			kickreason = KR_BAN;
 			break;
@@ -3561,9 +3587,9 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 		else if (msg == KICK_MSG_BANNED)
 			M_StartMessage(M_GetText("You have been banned by the server\n\nPress ESC\n"), NULL, MM_NOTHING);
 		else if (msg == KICK_MSG_CUSTOM_KICK)
-			M_StartMessage(va(M_GetText("You have been kicked\n(%s)\nPress ESC\n"), reason), NULL, MM_NOTHING);
+			M_StartMessage(va(M_GetText("You have been kicked\n(%s)\n\nPress ESC\n"), reason), NULL, MM_NOTHING);
 		else if (msg == KICK_MSG_CUSTOM_BAN)
-			M_StartMessage(va(M_GetText("You have been banned\n(%s)\nPress ESC\n"), reason), NULL, MM_NOTHING);
+			M_StartMessage(va(M_GetText("You have been banned\n(%s)\n\nPress ESC\n"), reason), NULL, MM_NOTHING);
 		else
 			M_StartMessage(M_GetText("You have been kicked by the server\n\nPress ESC\n"), NULL, MM_NOTHING);
 	}
@@ -3782,6 +3808,8 @@ static void ResetNode(INT32 node)
 	nodewaiting[node] = 0;
 	playerpernode[node] = 0;
 	sendingsavegame[node] = false;
+	bannednode[node].banid = SIZE_MAX;
+	bannednode[node].timeleft = NO_BAN_TIME;
 }
 
 void SV_ResetServer(void)
@@ -4231,27 +4259,39 @@ static void HandleConnect(SINT8 node)
 
 	if (bannednode && bannednode[node].banid != SIZE_MAX)
 	{
+		const char *reason = NULL;
+
+		// Get the reason...
+		if (!I_GetBanReason || (reason = I_GetBanReason(bannednode[node].banid)) == NULL)
+			reason = "No reason given";
+
 		if (bannednode[node].timeleft != NO_BAN_TIME)
 		{
-			int minutes = bannednode[node].timeleft / 60;
-			int hours = minutes / 60;
+			 // these are fudged a little to allow it to sink in for impatient rejoiners
+			int minutes = (bannednode[node].timeleft + 30) / 60;
+			int hours = (minutes + 1) / 60;
+			int days = (hours + 1) / 24;
 
-			if (hours)
+			if (days)
 			{
-				SV_SendRefuse(node, va(M_GetText("You have been temporarily\nkicked from the server.\n(Time remaining: %d hour%s)"), hours, hours > 1 ? "s" : ""));
+				SV_SendRefuse(node, va("K|%s\n(Time remaining: %d day%s)", reason, days, days > 1 ? "s" : ""));
+			}
+			else if (hours)
+			{
+				SV_SendRefuse(node, va("K|%s\n(Time remaining: %d hour%s)", reason, hours, hours > 1 ? "s" : ""));
 			}
 			else if (minutes)
 			{
-				SV_SendRefuse(node, va(M_GetText("You have been temporarily\nkicked from the server.\n(Time remaining: %d minute%s)"), minutes, minutes > 1 ? "s" : ""));
+				SV_SendRefuse(node, va("K|%s\n(Time remaining: %d minute%s)", reason, minutes, minutes > 1 ? "s" : ""));
 			}
 			else
 			{
-				SV_SendRefuse(node, M_GetText("You have been temporarily\nkicked from the server.\n(Time remaining: <1 minute)"));
+				SV_SendRefuse(node, va("K|%s\n(Time remaining: <1 minute)", reason));
 			}
 		}
 		else
 		{
-			SV_SendRefuse(node, M_GetText("You have been banned\nfrom the server."));
+			SV_SendRefuse(node, va("B|%s", reason));
 		}
 	}
 	else if (netbuffer->u.clientcfg._255 != 255 ||
@@ -4526,8 +4566,17 @@ static void HandlePacketFromAwayNode(SINT8 node)
 				CL_Reset();
 				D_StartTitle();
 
-				M_StartMessage(va(M_GetText("Server refuses connection\n\nReason:\n%s"),
-					reason), NULL, MM_NOTHING);
+				if (reason[1] == '|')
+				{
+					M_StartMessage(va("You have been %sfrom the server\n\nReason:\n%s",
+						(reason[0] == 'B') ? "banned\n" : "temporarily\nkicked ",
+						reason+2), NULL, MM_NOTHING);
+				}
+				else
+				{
+					M_StartMessage(va(M_GetText("Server refuses connection\n\nReason:\n%s"),
+						reason), NULL, MM_NOTHING);
+				}
 
 				free(reason);
 
