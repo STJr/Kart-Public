@@ -2789,7 +2789,7 @@ void D_LoadBan(boolean warning)
 	char *username, *reason;
 	time_t unbanTime = NO_BAN_TIME;
 	char buffer[MAX_WADPATH];
-	boolean banmode = 0;
+	UINT8 banmode = 0;
 
 	if (!I_ClearBans)
 		return;
@@ -2816,6 +2816,18 @@ void D_LoadBan(boolean warning)
 		if (i == 0 && !strncmp(address, "BANFORMAT", 9))
 		{
 			banmode = atoi(mask);
+			switch (banmode)
+			{
+				case BANFORMAT: // currently supported format
+				//case 0: -- permitted only when BANFORMAT string not present
+					break;
+				default:
+				{
+					fclose(f);
+					CONS_Alert(CONS_WARNING, "Could not load unknown ban.txt for ban list (BANFORMAT %d, expected %d)\n", banmode, BANFORMAT);
+					return;
+				}
+			}
 			continue;
 		}
 
