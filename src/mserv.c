@@ -38,6 +38,8 @@ static boolean MSUpdateAgain;
 
 static time_t  MSLastPing;
 
+static char *MSRules;
+
 #ifdef HAVE_THREADS
 static I_mutex MSMutex;
 static I_cond  MSCond;
@@ -193,8 +195,15 @@ static void
 Finish_registration (void)
 {
 	int registered;
+	char *rules = GetMasterServerRules();
 
 	CONS_Printf("Registering this server on the master server...\n");
+
+	if (rules)
+	{
+		CONS_Printf("\n");
+		CONS_Alert(CONS_NOTICE, "%s\n", rules);
+	}
 
 	registered = HMS_register();
 
@@ -286,6 +295,22 @@ Finish_unlist (void)
 #ifdef HAVE_THREADS
 		I_wake_all_cond(&MSCond);
 #endif
+	}
+}
+
+static void
+Finish_masterserver_change (char *api)
+{
+	char rules[256];
+
+	HMS_set_api(api);
+
+	if (HMS_fetch_rules(rules, sizeof rules))
+	{
+		Lock_state();
+		Z_Free(MSRules);
+		MSRules = Z_StrDup(rules);
+		Unlock_state();
 	}
 }
 
@@ -382,7 +407,7 @@ Change_masterserver_thread (char *api)
 	}
 	Unlock_state();
 
-	HMS_set_api(api);
+	Finish_masterserver_change(api);
 }
 #endif/*HAVE_THREADS*/
 
@@ -427,6 +452,17 @@ void UnregisterServer(void)
 	Finish_unlist();
 #endif
 #endif/*MASTERSERVER*/
+}
+
+char *GetMasterServerRules(void)
+{
+	char *rules;
+
+	Lock_state();
+	rules = MSRules ? Z_StrDup(MSRules) : NULL;
+	Unlock_state();
+
+	return rules;
 }
 
 static boolean
@@ -479,7 +515,7 @@ Set_api (const char *api)
 			strdup(api)
 	);
 #else
-	HMS_set_api(strdup(api));
+	Finish_masterserver_change(strdup(api));
 #endif
 }
 
@@ -563,4 +599,6 @@ Advertise_OnChange(void)
 #ifdef HAVE_DISCORDRPC
 	DRPC_UpdatePresence();
 #endif
+
+	M_PopupMasterServerRules();
 }

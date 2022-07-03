@@ -6330,6 +6330,20 @@ void M_RefreshPauseMenu(void)
 #endif
 }
 
+void M_PopupMasterServerRules(void)
+{
+#ifdef MASTERSERVER
+	if (cv_advertise.value && (serverrunning || currentMenu == &MP_ServerDef))
+	{
+		char *rules = GetMasterServerRules();
+
+		M_StartMessage(va("%s\n(press any key)", rules), NULL, MM_NOTHING);
+
+		Z_Free(rules);
+	}
+#endif
+}
+
 // ======
 // CHEATS
 // ======
@@ -9136,7 +9150,7 @@ static void M_StartServerMenu(INT32 choice)
 	levellistmode = LLM_CREATESERVER;
 	M_PrepareLevelSelect();
 	M_SetupNextMenu(&MP_ServerDef);
-
+	M_PopupMasterServerRules();
 }
 
 // ==============
