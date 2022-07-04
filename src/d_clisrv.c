@@ -2790,6 +2790,7 @@ void D_LoadBan(boolean warning)
 	time_t unbanTime = NO_BAN_TIME;
 	char buffer[MAX_WADPATH];
 	UINT8 banmode = 0;
+	boolean malformed = false;
 
 	if (!I_ClearBans)
 		return;
@@ -2815,7 +2816,10 @@ void D_LoadBan(boolean warning)
 
 		if (i == 0 && !strncmp(address, "BANFORMAT", 9))
 		{
-			banmode = atoi(mask);
+			if (mask)
+			{
+				banmode = atoi(mask);
+			}
 			switch (banmode)
 			{
 				case BANFORMAT: // currently supported format
@@ -2824,10 +2828,16 @@ void D_LoadBan(boolean warning)
 				default:
 				{
 					fclose(f);
-					CONS_Alert(CONS_WARNING, "Could not load unknown ban.txt for ban list (BANFORMAT %d, expected %d)\n", banmode, BANFORMAT);
+					CONS_Alert(CONS_WARNING, "Could not load unknown ban.txt for ban list (BANFORMAT %s, expected %d)\n", mask, BANFORMAT);
 					return;
 				}
 			}
+			continue;
+		}
+
+		if (I_SetBanAddress(address, mask) == false) // invalid IP input?
+		{
+			CONS_Alert(CONS_WARNING, "\"%s/%s\" is not a valid IP address, discarding...\n", address, mask);
 			continue;
 		}
 
@@ -2837,19 +2847,37 @@ void D_LoadBan(boolean warning)
 			unbanTime = NO_BAN_TIME;
 			username = NULL; // not guaranteed to be accurate, but only sane substitute
 			reason = strtok(NULL, "\r\n");
-			if (reason[0] == 'N' && reason[1] == 'A' && reason[2] == '\0')
+			if (reason && reason[0] == 'N' && reason[1] == 'A' && reason[2] == '\0')
 			{
 				reason = NULL;
 			}
 		}
 		else
 		{
-			unbanTime = atoi(strtok(NULL, " \"\t\r\n"));
+			reason = strtok(NULL, " \"\t\r\n");
+			if (reason)
+			{
+				unbanTime = atoi(reason);
+				reason = NULL;
+			}
+			else
+			{
+				unbanTime = NO_BAN_TIME;
+				malformed = true;
+			}
 
 			username = strtok(NULL, "\"\t\r\n"); // go until next "
+			if (!username)
+			{
+				malformed = true;
+			}
 
 			strtok(NULL, "\"\t\r\n"); // remove first "
 			reason = strtok(NULL, "\"\r\n"); // go until next "
+			if (!reason)
+			{
+				malformed = true;
+			}
 		}
 
 		// Enforce MAX_REASONLENGTH.
@@ -2865,8 +2893,6 @@ void D_LoadBan(boolean warning)
 			}
 		}
 
-		I_SetBanAddress(address, mask);
-
 		if (I_SetUnbanTime)
 			I_SetUnbanTime(unbanTime);
 
@@ -2875,6 +2901,11 @@ void D_LoadBan(boolean warning)
 
 		if (I_SetBanReason)
 			I_SetBanReason(reason);
+	}
+
+	if (malformed)
+	{
+		CONS_Alert(CONS_WARNING, "One or more lines of ban.txt are malformed. The game can correct for this, but some data may be lost.\n");
 	}
 
 	fclose(f);
