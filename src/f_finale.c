@@ -277,9 +277,6 @@ void F_IntroDrawer(void)
 
 	W_UnlockCachedPatch(background);
 
-	if (animtimer)
-		animtimer--;
-
 	V_DrawString(cx, cy, 0, cutscene_disptext);
 }
 
@@ -298,6 +295,31 @@ void F_IntroTicker(void)
 
 	if (intro_scenenum == 0)
 	{
+		if (timetonext <= 0)
+		{
+			intro_scenenum++;
+			if (rendermode != render_none)
+			{
+				F_WipeStartScreen();
+				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+				F_WipeEndScreen();
+				F_RunWipe(99,true);
+			}
+
+			// Stay on black for a bit. =)
+			{
+				tic_t quittime;
+				quittime = I_GetTime() + NEWTICRATE*2; // Shortened the quit time, used to be 2 seconds
+				while (quittime > I_GetTime())
+				{
+					I_Sleep(cv_sleep.value);
+					I_UpdateTime(cv_timescale.value);
+				}
+			}
+
+			D_StartTitle();
+			return;
+		}
 		if (finalecount == 8)
 			S_StartSound(NULL, sfx_vroom);
 		else if (finalecount == 47)
