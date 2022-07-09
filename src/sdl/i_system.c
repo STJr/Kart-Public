@@ -160,6 +160,7 @@ static char returnWadPath[256];
 
 #include "../doomdef.h"
 #include "../m_misc.h"
+#include "../i_time.h"
 #include "../i_video.h"
 #include "../i_sound.h"
 #include "../i_system.h"
@@ -174,6 +175,9 @@ static char returnWadPath[256];
 #include "../i_joy.h"
 
 #include "../m_argv.h"
+
+#include "../r_main.h" // Frame interpolation/uncapped
+#include "../r_fps.h"
 
 #ifdef MAC_ALERT
 #include "macosx/mac_alert.h"
@@ -2927,122 +2931,80 @@ ticcmd_t *I_BaseTiccmd4(void)
 	return &emptycmd4;
 }
 
-#if defined (_WIN32)
-static HMODULE winmm = NULL;
-static DWORD starttickcount = 0; // hack for win2k time bug
-static p_timeGetTime pfntimeGetTime = NULL;
+static Uint64 timer_frequency;
 
-// ---------
-// I_GetTime
-// Use the High Resolution Timer if available,
-// else use the multimedia timer which has 1 millisecond precision on Windowz 95,
-// but lower precision on Windows NT
-// ---------
-
-tic_t I_GetTime(void)
+precise_t I_GetPreciseTime(void)
 {
-	tic_t newtics = 0;
+	return SDL_GetPerformanceCounter();
+}
 
-	if (!starttickcount) // high precision timer
+UINT64 I_GetPrecisePrecision(void)
+{
+	return SDL_GetPerformanceFrequency();
+}
+
+static UINT32 frame_rate;
+
+static double frame_frequency;
+static UINT64 frame_epoch;
+static double elapsed_frames;
+
+static void I_InitFrameTime(const UINT64 now, const UINT32 cap)
+{
+	frame_rate = cap;
+	frame_epoch = now;
+
+	//elapsed_frames = 0.0;
+
+	if (frame_rate == 0)
 	{
-		LARGE_INTEGER currtime; // use only LowPart if high resolution counter is not available
-		static LARGE_INTEGER basetime = {{0, 0}};
+		// Shouldn't be used, but just in case...?
+		frame_frequency = 1.0;
+		return;
+	}
 
-		// use this if High Resolution timer is found
-		static LARGE_INTEGER frequency;
+	frame_frequency = timer_frequency / (double)frame_rate;
+}
 
-		if (!basetime.LowPart)
-		{
-			if (!QueryPerformanceFrequency(&frequency))
-				frequency.QuadPart = 0;
-			else
-				QueryPerformanceCounter(&basetime);
-		}
+double I_GetFrameTime(void)
+{
+	const UINT64 now = SDL_GetPerformanceCounter();
+	const UINT32 cap = R_GetFramerateCap();
 
-		if (frequency.LowPart && QueryPerformanceCounter(&currtime))
-		{
-			newtics = (INT32)((currtime.QuadPart - basetime.QuadPart) * NEWTICRATE
-				/ frequency.QuadPart);
-		}
-		else if (pfntimeGetTime)
-		{
-			currtime.LowPart = pfntimeGetTime();
-			if (!basetime.LowPart)
-				basetime.LowPart = currtime.LowPart;
-			newtics = ((currtime.LowPart - basetime.LowPart)/(1000/NEWTICRATE));
-		}
+	if (cap != frame_rate)
+	{
+		// Maybe do this in a OnChange function for cv_fpscap?
+		I_InitFrameTime(now, cap);
+	}
+
+	if (frame_rate == 0)
+	{
+		// Always advance a frame.
+		elapsed_frames += 1.0;
 	}
 	else
-		newtics = (GetTickCount() - starttickcount)/(1000/NEWTICRATE);
-
-	return newtics;
-}
-
-static void I_ShutdownTimer(void)
-{
-	pfntimeGetTime = NULL;
-	if (winmm)
 	{
-		p_timeEndPeriod pfntimeEndPeriod = (p_timeEndPeriod)(LPVOID)GetProcAddress(winmm, "timeEndPeriod");
-		if (pfntimeEndPeriod)
-			pfntimeEndPeriod(1);
-		FreeLibrary(winmm);
-		winmm = NULL;
+		elapsed_frames += (now - frame_epoch) / frame_frequency;
 	}
+
+	frame_epoch = now; // moving epoch
+	return elapsed_frames;
 }
-#else
-//
-// I_GetTime
-// returns time in 1/TICRATE second tics
-//
-tic_t I_GetTime (void)
-{
-	static Uint64 basetime = 0;
-		   Uint64 ticks = SDL_GetTicks();
-
-	if (!basetime)
-		basetime = ticks;
-
-	ticks -= basetime;
-
-	ticks = (ticks*TICRATE);
-
-	ticks = (ticks/1000);
-
-	return (tic_t)ticks;
-}
-#endif
 
 //
-//I_StartupTimer
+// I_StartupTimer
 //
 void I_StartupTimer(void)
 {
-#ifdef _WIN32
-	// for win2k time bug
-	if (M_CheckParm("-gettickcount"))
-	{
-		starttickcount = GetTickCount();
-		CONS_Printf("%s", M_GetText("Using GetTickCount()\n"));
-	}
-	winmm = LoadLibraryA("winmm.dll");
-	if (winmm)
-	{
-		p_timeEndPeriod pfntimeBeginPeriod = (p_timeEndPeriod)(LPVOID)GetProcAddress(winmm, "timeBeginPeriod");
-		if (pfntimeBeginPeriod)
-			pfntimeBeginPeriod(1);
-		pfntimeGetTime = (p_timeGetTime)(LPVOID)GetProcAddress(winmm, "timeGetTime");
-	}
-	I_AddExitFunc(I_ShutdownTimer);
-#endif
+	timer_frequency = SDL_GetPerformanceFrequency();
+
+	I_InitFrameTime(0, R_GetFramerateCap());
+	elapsed_frames  = 0.0;
 }
 
-
-
-void I_Sleep(void)
+void I_Sleep(UINT32 ms)
 {
-	if (cv_sleep.value > 0)
-		SDL_Delay(cv_sleep.value);
+	SDL_Delay(ms);
 }
 
 #ifdef NEWSIGNALHANDLER

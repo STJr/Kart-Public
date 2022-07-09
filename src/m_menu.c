@@ -22,6 +22,7 @@
 #include "d_main.h"
 #include "d_netcmd.h"
 #include "console.h"
+#include "r_fps.h"
 #include "r_local.h"
 #include "hu_stuff.h"
 #include "g_game.h"
@@ -31,6 +32,7 @@
 // Data.
 #include "sounds.h"
 #include "s_sound.h"
+#include "i_time.h"
 #include "i_system.h"
 #include "i_threads.h"
 
@@ -260,6 +262,10 @@ static menu_t SP_TimeAttackDef, SP_ReplayDef, SP_GuestReplayDef, SP_GhostDef;
 
 // Multiplayer
 #ifndef NONET
+static void M_PreStartServerMenu(INT32 choice);
+static void M_PreStartServerMenuChoice(event_t *ev);
+static void M_PreConnectMenu(INT32 choice);
+static void M_PreConnectMenuChoice(event_t *ev);
 static void M_StartServerMenu(INT32 choice);
 static void M_ConnectMenu(INT32 choice);
 static void M_ConnectMenuModChecks(INT32 choice);
@@ -994,7 +1000,7 @@ static menuitem_t MP_MainMenu[] =
 
 	{IT_HEADER, NULL, "Host a game", NULL, 100-24},
 #ifndef NONET
-	{IT_STRING|IT_CALL,       NULL, "Internet/LAN...",           M_StartServerMenu,        110-24},
+	{IT_STRING|IT_CALL,       NULL, "Internet/LAN...",           M_PreStartServerMenu,        110-24},
 #else
 	{IT_GRAYEDOUT,            NULL, "Internet/LAN...",           NULL,                     110-24},
 #endif
@@ -1002,7 +1008,7 @@ static menuitem_t MP_MainMenu[] =
 
 	{IT_HEADER, NULL, "Join a game", NULL, 132-24},
 #ifndef NONET
-	{IT_STRING|IT_CALL,       NULL, "Internet server browser...",M_ConnectMenuModChecks,   142-24},
+	{IT_STRING|IT_CALL,       NULL, "Internet server browser...",M_PreConnectMenu,   142-24},
 	{IT_STRING|IT_KEYHANDLER, NULL, "Specify IPv4 address:",     M_HandleConnectIP,        150-24},
 #else
 	{IT_GRAYEDOUT,            NULL, "Internet server browser...",NULL,                     142-24},
@@ -1255,9 +1261,10 @@ static menuitem_t OP_VideoOptionsMenu[] =
 
 	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			 90},
 	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			100},
+	{IT_STRING | IT_CVAR,   NULL,   "FPS Cap",              &cv_fpscap,             110},
 
 #ifdef HWRENDER
-	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	120},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	130},
 #endif
 };
 
@@ -4560,7 +4567,11 @@ void M_StartMessage(const char *string, void *routine,
 		}
 
 		if (i == strlen(message+start))
+		{
 			start += i;
+			if (i > max)
+				max = i;
+		}
 	}
 
 	MessageDef.x = (INT16)((BASEVIDWIDTH  - 8*max-16)/2);
@@ -6323,6 +6334,20 @@ void M_RefreshPauseMenu(void)
 #endif
 }
 
+void M_PopupMasterServerRules(void)
+{
+#ifdef MASTERSERVER
+	if (cv_advertise.value && (serverrunning || currentMenu == &MP_ServerDef))
+	{
+		char *rules = GetMasterServerRules();
+
+		M_StartMessage(va("%s\n(press any key)", rules), NULL, MM_NOTHING);
+
+		Z_Free(rules);
+	}
+#endif
+}
+
 // ======
 // CHEATS
 // ======
@@ -6912,6 +6937,7 @@ static void M_DrawLoad(void)
 	INT32 ymod = 0, offset = 0;
 
 	M_DrawMenuTitle();
+	fixed_t scrollfrac = FixedDiv(2, 3);
 
 	if (menumovedir != 0) //movement illusion
 	{
@@ -8561,6 +8587,15 @@ static void M_DrawConnectMenu(void)
 	// Page num
 	V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ConnectMenu[mp_connect_page].alphaKey,
 	                         highlightflags, va("%u of %d", serverlistpage+1, numPages));
+	
+	// Did you change the Server Browser address? Have a little reminder.
+	int mservflags = V_ALLOWLOWERCASE;
+	if (CV_IsSetToDefault(&cv_masterserver))
+		mservflags = mservflags|highlightflags|V_30TRANS;
+	else
+		mservflags = mservflags|warningflags;
+	V_DrawRightAlignedSmallString(BASEVIDWIDTH - currentMenu->x, currentMenu->y+14 + MP_ConnectMenu[mp_connect_page].alphaKey,
+	                         mservflags, va("MS: %s", cv_masterserver.string));
 
 	// Horizontal line!
 	V_DrawFill(1, currentMenu->y+32, 318, 1, 0);
@@ -8797,6 +8832,74 @@ static void M_ConnectMenuModChecks(INT32 choice)
 
 	M_ConnectMenu(-1);
 }
+
+boolean firstDismissedNagThisBoot = true;
+
+static void M_HandleMasterServerResetChoice(event_t *ev)
+{
+	INT32 choice = -1;
+
+	choice = ev->data1;
+
+	if (ev->type == ev_keydown)
+	{
+		if (choice == ' ' || choice == 'y' || choice == KEY_ENTER || choice == gamecontrol[gc_accelerate][0] || choice == gamecontrol[gc_accelerate][1])
+		{
+			CV_Set(&cv_masterserver, cv_masterserver.defaultvalue);
+			CV_Set(&cv_masterserver_nagattempts, cv_masterserver_nagattempts.defaultvalue);
+			S_StartSound(NULL, sfx_s221);
+		}
+		else 
+		{
+			if (firstDismissedNagThisBoot)
+			{
+				if (cv_masterserver_nagattempts.value > 0)
+				{
+					CV_SetValue(&cv_masterserver_nagattempts, cv_masterserver_nagattempts.value - 1);
+				}
+				firstDismissedNagThisBoot = false;
+			}
+		}
+	}
+}
+
+static void M_PreStartServerMenu(INT32 choice)
+{
+	(void)choice;
+
+	if (!CV_IsSetToDefault(&cv_masterserver) && cv_masterserver_nagattempts.value > 0)
+	{
+		M_StartMessage(M_GetText("Hey! You've changed the Server Browser address.\n\nYou won't be able to host games on the official Server Browser.\nUnless you're from the future, this probably isn't what you want.\n\n\x83Press Accel\x80 to fix this and continue.\x80\nPress any other key to continue anyway.\n"),M_PreStartServerMenuChoice,MM_EVENTHANDLER);
+		return;
+	}
+
+	M_StartServerMenu(-1);
+}
+
+static void M_PreConnectMenu(INT32 choice)
+{
+	(void)choice;
+
+	if (!CV_IsSetToDefault(&cv_masterserver) && cv_masterserver_nagattempts.value > 0)
+	{
+		M_StartMessage(M_GetText("Hey! You've changed the Server Browser address.\n\nYou won't be able to see games from the official Server Browser.\nUnless you're from the future, this probably isn't what you want.\n\n\x83Press Accel\x80 to fix this and continue.\x80\nPress any other key to continue anyway.\n"),M_PreConnectMenuChoice,MM_EVENTHANDLER);
+		return;
+	}
+
+	M_ConnectMenuModChecks(-1);
+}
+
+static void M_PreStartServerMenuChoice(event_t *ev)
+{
+	M_HandleMasterServerResetChoice(ev);
+	M_StartServerMenu(-1);
+}
+
+static void M_PreConnectMenuChoice(event_t *ev)
+{
+	M_HandleMasterServerResetChoice(ev);
+	M_ConnectMenuModChecks(-1);
+}
 #endif //NONET
 
 //===========================================================================
@@ -9011,6 +9114,15 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 static void M_DrawServerMenu(void)
 {
 	M_DrawLevelSelectOnly(false, false);
+	if (currentMenu == &MP_ServerDef && cv_advertise.value) // Remind players where they're hosting.
+	{
+		int mservflags = V_ALLOWLOWERCASE;
+		if (CV_IsSetToDefault(&cv_masterserver))
+			mservflags = mservflags|highlightflags|V_30TRANS;
+		else
+			mservflags = mservflags|warningflags;
+		V_DrawCenteredThinString(BASEVIDWIDTH/2, BASEVIDHEIGHT-12, mservflags, va("Master Server: %s", cv_masterserver.string));
+	}
 	M_DrawGenericMenu();
 }
 
@@ -9042,7 +9154,7 @@ static void M_StartServerMenu(INT32 choice)
 	levellistmode = LLM_CREATESERVER;
 	M_PrepareLevelSelect();
 	M_SetupNextMenu(&MP_ServerDef);
-
+	M_PopupMasterServerRules();
 }
 
 // ==============
@@ -9137,12 +9249,12 @@ Update the maxplayers label...
 
 			if (itemOn == 2 && i == setupm_pselect)
 			{
-				static UINT8 cursorframe = 0;
-				if (skullAnimCounter % 4 == 0)
-					cursorframe++;
-				if (cursorframe > 7)
-					cursorframe = 0;
-				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, 0, W_CachePatchName(va("K_BHILI%d", cursorframe+1), PU_CACHE), NULL);
+				static fixed_t cursorframe = 0;
+				
+				cursorframe += renderdeltatics / 4;
+				for (; cursorframe > 7 * FRACUNIT; cursorframe -= 7 * FRACUNIT) {}
+
+				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, 0, W_CachePatchName(va("K_BHILI%d", (cursorframe >> FRACBITS) + 1), PU_CACHE), NULL);
 			}
 
 			x += incrwidth;
@@ -9337,7 +9449,7 @@ static void M_HandleConnectIP(INT32 choice)
 // ========================
 // Tails 03-02-2002
 
-static INT32      multi_tics;
+static fixed_t    multi_tics;
 static state_t   *multi_state;
 
 // this is set before entering the MultiPlayer setup menu,
@@ -9483,16 +9595,14 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		fixed_t scale = FRACUNIT/2;
 		INT32 offx = 8, offy = 8;
 		patch_t *cursor;
-		static UINT8 cursorframe = 0;
+		static fixed_t cursorframe = 0;
 		patch_t *face;
 		UINT8 *colmap;
 
-		if (skullAnimCounter % 4 == 0)
-			cursorframe++;
-		if (cursorframe > 7)
-			cursorframe = 0;
+		cursorframe += renderdeltatics / 4;
+		for (; cursorframe > 7 * FRACUNIT; cursorframe -= 7 * FRACUNIT) {}
 
-		cursor = W_CachePatchName(va("K_BHILI%d", cursorframe+1), PU_CACHE);
+		cursor = W_CachePatchName(va("K_BHILI%d", (cursorframe >> FRACBITS) + 1), PU_CACHE);
 
 		if (col < 0)
 			col += numskins;
@@ -9524,14 +9634,17 @@ static void M_DrawSetupMultiPlayerMenu(void)
 #undef iconwidth
 
 	// anim the player in the box
-	if (--multi_tics <= 0)
+	multi_tics -= renderdeltatics;
+	while (multi_tics <= 0)
 	{
 		st = multi_state->nextstate;
 		if (st != S_NULL)
 			multi_state = &states[st];
-		multi_tics = multi_state->tics;
-		if (multi_tics == -1)
-			multi_tics = 15;
+
+		if (multi_state->tics <= -1)
+			multi_tics += 15*FRACUNIT;
+		else
+			multi_tics += multi_state->tics * FRACUNIT;
 	}
 
 	// skin 0 is default player sprite
@@ -9692,7 +9805,7 @@ static void M_SetupMultiPlayer(INT32 choice)
 	(void)choice;
 
 	multi_state = &states[mobjinfo[MT_PLAYER].seestate];
-	multi_tics = multi_state->tics;
+	multi_tics = multi_state->tics*FRACUNIT;
 	strcpy(setupm_name, cv_playername.string);
 
 	// set for player 1
@@ -9723,7 +9836,7 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	(void)choice;
 
 	multi_state = &states[mobjinfo[MT_PLAYER].seestate];
-	multi_tics = multi_state->tics;
+	multi_tics = multi_state->tics*FRACUNIT;
 	strcpy (setupm_name, cv_playername2.string);
 
 	// set for splitscreen secondary player
@@ -11226,7 +11339,8 @@ void M_QuitResponse(INT32 ch)
 			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 			V_DrawSmallScaledPatch(0, 0, 0, W_CachePatchName("GAMEQUIT", PU_CACHE)); // Demo 3 Quit Screen Tails 06-16-2001
 			I_FinishUpdate(); // Update the screen with the image Tails 06-19-2001
-			I_Sleep();
+			I_Sleep(cv_sleep.value);
+			I_UpdateTime(cv_timescale.value);
 		}
 	}
 	I_Quit();

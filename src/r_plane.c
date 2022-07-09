@@ -27,6 +27,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "p_tick.h"
+#include "r_fps.h"
 
 #ifdef TIMING
 #include "p5prof.h"
@@ -678,8 +679,6 @@ void R_MakeSpans(INT32 x, INT32 t1, INT32 b1, INT32 t2, INT32 b2)
 void R_DrawPlanes(void)
 {
 	visplane_t *pl;
-	INT32 x;
-	INT32 angle;
 	INT32 i;
 
 	spanfunc = basespanfunc;
@@ -689,50 +688,7 @@ void R_DrawPlanes(void)
 	{
 		for (pl = visplanes[i]; pl; pl = pl->next)
 		{
-			// sky flat
-			if (pl->picnum == skyflatnum)
-			{
-				if (!viewsky)
-				{
-					skyVisible = true;
-					continue;
-				}
-
-				// use correct aspect ratio scale
-				dc_iscale = skyscale;
-
-				// Sky is always drawn full bright,
-				//  i.e. colormaps[0] is used.
-				// Because of this hack, sky is not affected
-				//  by INVUL inverse mapping.
-				dc_colormap = colormaps;
-				if (encoremap)
-					dc_colormap += (256*32);
-				dc_texturemid = skytexturemid;
-				dc_texheight = textureheight[skytexture]
-					>>FRACBITS;
-				for (x = pl->minx; x <= pl->maxx; x++)
-				{
-					dc_yl = pl->top[x];
-					dc_yh = pl->bottom[x];
-
-					if (dc_yl <= dc_yh)
-					{
-						angle = (pl->viewangle + xtoviewangle[x])>>ANGLETOSKYSHIFT;
-						dc_iscale = FixedMul(skyscale, FINECOSINE(xtoviewangle[x]>>ANGLETOFINESHIFT));
-						dc_x = x;
-						dc_source =
-							R_GetColumn(texturetranslation[skytexture],
-								angle);
-						wallcolfunc();
-					}
-				}
-				continue;
-			}
-
-			if (pl->ffloor != NULL
-			|| pl->polyobj != NULL
-			)
+			if (pl->ffloor != NULL || pl->polyobj != NULL)
 				continue;
 
 			R_DrawSinglePlane(pl);
@@ -742,6 +698,48 @@ void R_DrawPlanes(void)
 	waterofs = (leveltime & 1)*16384;
 	wtofs = leveltime * 140;
 #endif
+}
+
+static void R_DrawSkyPlane(visplane_t *pl)
+{
+	INT32 x;
+	INT32 angle;
+
+	if (!newview->sky)
+	{
+		skyVisible = true;
+		return;
+	}
+
+	wallcolfunc = walldrawerfunc;
+
+	// use correct aspect ratio scale
+	dc_iscale = skyscale;
+	// Sky is always drawn full bright,
+	//  i.e. colormaps[0] is used.
+	// Because of this hack, sky is not affected
+	//  by INVUL inverse mapping.
+	dc_colormap = colormaps;
+	if (encoremap)
+		dc_colormap += (256*32);
+	dc_texturemid = skytexturemid;
+	dc_texheight = textureheight[skytexture]
+		>>FRACBITS;
+	for (x = pl->minx; x <= pl->maxx; x++)
+	{
+		dc_yl = pl->top[x];
+		dc_yh = pl->bottom[x];
+		if (dc_yl <= dc_yh)
+		{
+			angle = (pl->viewangle + xtoviewangle[x])>>ANGLETOSKYSHIFT;
+			dc_iscale = FixedMul(skyscale, FINECOSINE(xtoviewangle[x]>>ANGLETOFINESHIFT));
+			dc_x = x;
+			dc_source =
+				R_GetColumn(texturetranslation[skytexture],
+					angle);
+			wallcolfunc();
+		}
+	}
 }
 
 void R_DrawSinglePlane(visplane_t *pl)
@@ -754,6 +752,13 @@ void R_DrawSinglePlane(visplane_t *pl)
 
 	if (!(pl->minx <= pl->maxx))
 		return;
+
+	// sky flat
+	if (pl->picnum == skyflatnum)
+	{
+		R_DrawSkyPlane(pl);
+		return;
+	}
 
 #ifndef NOWATER
 	itswater = false;

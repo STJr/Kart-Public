@@ -388,6 +388,7 @@ typedef struct player_s
 	// SRB2kart stuff
 	INT32 kartstuff[NUMKARTSTUFF];
 	angle_t frameangle; // for the player add the ability to have the sprite only face other angles
+	angle_t old_frameangle, old_frameangle2;
 	INT16 lturn_max[MAXPREDICTTICS]; // What's the expected turn value for full-left for a number of frames back (to account for netgame latency)?
 	INT16 rturn_max[MAXPREDICTTICS]; // Ditto but for full-right
 

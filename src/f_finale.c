@@ -19,6 +19,7 @@
 #include "hu_stuff.h"
 #include "r_local.h"
 #include "s_sound.h"
+#include "i_time.h"
 #include "i_video.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -77,7 +78,6 @@ static INT32 cutscene_textcount = 0;
 static INT32 cutscene_textspeed = 0;
 static UINT8 cutscene_boostspeed = 0;
 static tic_t cutscene_lasttextwrite = 0;
-
 //
 // This alters the text string cutscene_disptext.
 // Use the typical string drawing functions to display it.
@@ -249,9 +249,9 @@ void F_StartIntro(void)
 }
 
 //
-// F_IntroDrawScene
+// F_IntroDrawer
 //
-static void F_IntroDrawScene(void)
+void F_IntroDrawer(void)
 {
 	boolean highres = false;
 	INT32 cx = 8, cy = 128;
@@ -261,16 +261,6 @@ static void F_IntroDrawScene(void)
 	// DRAW A FULL PIC INSTEAD OF FLAT!
 	if (intro_scenenum == 0)
 	{
-		if (finalecount == 8)
-			S_StartSound(NULL, sfx_vroom);
-		else if (finalecount == 47)
-		{
-			// Need to use M_Random otherwise it always uses the same sound
-			INT32 rskin = M_RandomKey(numskins);
-			UINT8 rtaunt = M_RandomKey(2);
-			sfxenum_t rsound = skins[rskin].soundsid[SKSKBST1+rtaunt];
-			S_StartSound(NULL, rsound);
-		}
 		background = W_CachePatchName("KARTKREW", PU_CACHE);
 		highres = true;
 	}
@@ -294,64 +284,6 @@ static void F_IntroDrawScene(void)
 }
 
 //
-// F_IntroDrawer
-//
-void F_IntroDrawer(void)
-{
-	if (timetonext <= 0)
-	{
-		if (intro_scenenum == 0)
-		{
-			if (rendermode != render_none)
-			{
-				F_WipeStartScreen();
-				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
-				F_WipeEndScreen();
-				F_RunWipe(99,true);
-			}
-
-			// Stay on black for a bit. =)
-			{
-				tic_t quittime;
-				quittime = I_GetTime() + NEWTICRATE*2; // Shortened the quit time, used to be 2 seconds
-				while (quittime > I_GetTime())
-				{
-					I_OsPolling();
-					I_UpdateNoBlit();
-#ifdef HAVE_THREADS
-					I_lock_mutex(&m_menu_mutex);
-#endif
-					M_Drawer(); // menu is drawn even on top of wipes
-#ifdef HAVE_THREADS
-					I_unlock_mutex(m_menu_mutex);
-#endif
-					I_FinishUpdate(); // Update the screen with the image Tails 06-19-2001
-				}
-			}
-
-			D_StartTitle();
-			// Yes, this is a weird hack, we need to force a wipe for this because the game state has changed in the middle of where it would normally wipe
-			// Need to set the wipe start and then draw the first frame of the title screen to get it working
-			F_WipeStartScreen();
-			F_TitleScreenDrawer();
-			wipegamestate = -1; // force a wipe
-			return;
-		}
-
-		F_NewCutscene(introtext[++intro_scenenum]);
-		timetonext = introscenetime[intro_scenenum];
-
-		F_WipeStartScreen();
-		wipegamestate = -1;
-		animtimer = stoptimer = 0;
-	}
-
-	intro_curtime = introscenetime[intro_scenenum] - timetonext;
-
-	F_IntroDrawScene();
-}
-
-//
 // F_IntroTicker
 //
 void F_IntroTicker(void)
@@ -363,6 +295,20 @@ void F_IntroTicker(void)
 		roidtics--;
 
 	timetonext--;
+
+	if (intro_scenenum == 0)
+	{
+		if (finalecount == 8)
+			S_StartSound(NULL, sfx_vroom);
+		else if (finalecount == 47)
+		{
+			// Need to use M_Random otherwise it always uses the same sound
+			INT32 rskin = M_RandomKey(numskins);
+			UINT8 rtaunt = M_RandomKey(2);
+			sfxenum_t rsound = skins[rskin].soundsid[SKSKBST1+rtaunt];
+			S_StartSound(NULL, rsound);
+		}
+	}
 
 	F_WriteText();
 
@@ -1317,6 +1263,22 @@ static boolean runningprecutscene = false, precutresetplayer = false;
 
 static void F_AdvanceToNextScene(void)
 {
+	if (rendermode != render_none)
+	{
+		F_WipeStartScreen();
+
+		// Fade to any palette color you want.
+		if (cutscenes[cutnum]->scene[scenenum].fadecolor)
+		{
+			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,cutscenes[cutnum]->scene[scenenum].fadecolor);
+
+			F_WipeEndScreen();
+			F_RunWipe(cutscenes[cutnum]->scene[scenenum].fadeinid, true);
+
+			F_WipeStartScreen();
+		}
+	}
+
 	// Don't increment until after endcutscene check
 	// (possible overflow / bad patch names from the one tic drawn before the fade)
 	if (scenenum+1 >= cutscenes[cutnum]->numscenes)
@@ -1324,6 +1286,7 @@ static void F_AdvanceToNextScene(void)
 		F_EndCutScene();
 		return;
 	}
+
 	++scenenum;
 
 	timetonext = 0;
@@ -1339,7 +1302,6 @@ static void F_AdvanceToNextScene(void)
 			cutscenes[cutnum]->scene[scenenum].musswitchposition, 0, 0);
 
 	// Fade to the next
-	dofadenow = true;
 	F_NewCutscene(cutscenes[cutnum]->scene[scenenum].text);
 
 	picnum = 0;
@@ -1349,6 +1311,14 @@ static void F_AdvanceToNextScene(void)
 	textypos = cutscenes[cutnum]->scene[scenenum].textypos;
 
 	animtimer = pictime = cutscenes[cutnum]->scene[scenenum].picduration[picnum];
+
+	if (rendermode != render_none)
+	{
+		F_CutsceneDrawer();
+
+		F_WipeEndScreen();
+		F_RunWipe(cutscenes[cutnum]->scene[scenenum].fadeoutid, true);
+	}
 }
 
 void F_EndCutScene(void)
@@ -1466,8 +1436,6 @@ void F_CutsceneTicker(void)
 	// advance animation
 	finalecount++;
 	cutscene_boostspeed = 0;
-
-	dofadenow = false;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{

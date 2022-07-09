@@ -38,6 +38,8 @@ static boolean MSUpdateAgain;
 
 static time_t  MSLastPing;
 
+static char *MSRules;
+
 #ifdef HAVE_THREADS
 static I_mutex MSMutex;
 static I_cond  MSCond;
@@ -76,6 +78,8 @@ consvar_t cv_masterserver_update_rate = {"masterserver_update_rate", "15", CV_SA
 
 consvar_t cv_advertise = {"advertise", "No", CV_NETVAR|CV_CALL|CV_NOINIT, CV_YesNo, Advertise_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
+consvar_t cv_masterserver_nagattempts = {"masterserver_nagattempts", "5", CV_SAVE, CV_Unsigned, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 #if defined (MASTERSERVER) && defined (HAVE_THREADS)
 int           ms_QueryId;
 I_mutex       ms_QueryId_mutex;
@@ -99,6 +103,7 @@ void AddMServCommands(void)
 	CV_RegisterVar(&cv_masterserver_timeout);
 	CV_RegisterVar(&cv_masterserver_debug);
 	CV_RegisterVar(&cv_masterserver_token);
+	CV_RegisterVar(&cv_masterserver_nagattempts);
 	CV_RegisterVar(&cv_advertise);
 	CV_RegisterVar(&cv_rendezvousserver);
 	CV_RegisterVar(&cv_servername);
@@ -192,8 +197,15 @@ static void
 Finish_registration (void)
 {
 	int registered;
+	char *rules = GetMasterServerRules();
 
 	CONS_Printf("Registering this server on the master server...\n");
+
+	if (rules)
+	{
+		CONS_Printf("\n");
+		CONS_Alert(CONS_NOTICE, "%s\n", rules);
+	}
 
 	registered = HMS_register();
 
@@ -285,6 +297,22 @@ Finish_unlist (void)
 #ifdef HAVE_THREADS
 		I_wake_all_cond(&MSCond);
 #endif
+	}
+}
+
+static void
+Finish_masterserver_change (char *api)
+{
+	char rules[256];
+
+	HMS_set_api(api);
+
+	if (HMS_fetch_rules(rules, sizeof rules))
+	{
+		Lock_state();
+		Z_Free(MSRules);
+		MSRules = Z_StrDup(rules);
+		Unlock_state();
 	}
 }
 
@@ -381,7 +409,7 @@ Change_masterserver_thread (char *api)
 	}
 	Unlock_state();
 
-	HMS_set_api(api);
+	Finish_masterserver_change(api);
 }
 #endif/*HAVE_THREADS*/
 
@@ -426,6 +454,17 @@ void UnregisterServer(void)
 	Finish_unlist();
 #endif
 #endif/*MASTERSERVER*/
+}
+
+char *GetMasterServerRules(void)
+{
+	char *rules;
+
+	Lock_state();
+	rules = MSRules ? Z_StrDup(MSRules) : NULL;
+	Unlock_state();
+
+	return rules;
 }
 
 static boolean
@@ -478,7 +517,7 @@ Set_api (const char *api)
 			strdup(api)
 	);
 #else
-	HMS_set_api(strdup(api));
+	Finish_masterserver_change(strdup(api));
 #endif
 }
 
@@ -562,4 +601,6 @@ Advertise_OnChange(void)
 #ifdef HAVE_DISCORDRPC
 	DRPC_UpdatePresence();
 #endif
+
+	M_PopupMasterServerRules();
 }

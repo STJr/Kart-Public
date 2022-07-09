@@ -11,12 +11,15 @@ UINT32 I_GetFreeMem(UINT32 *total)
 	return 0;
 }
 
-tic_t I_GetTime(void)
-{
+void I_Sleep(UINT32 ms){}
+
+precise_t I_GetPreciseTime(void) {
 	return 0;
 }
 
-void I_Sleep(void){}
+UINT64 I_GetPrecisePrecision(void) {
+	return 1000000;
+}
 
 void I_GetEvent(void){}
 

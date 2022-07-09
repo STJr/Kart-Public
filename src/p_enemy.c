@@ -8282,6 +8282,9 @@ void A_JawzChase(mobj_t *actor)
 
 			ret = P_SpawnMobj(actor->tracer->x, actor->tracer->y, actor->tracer->z, MT_PLAYERRETICULE);
 			P_SetTarget(&ret->target, actor->tracer);
+			ret->old_x = actor->tracer->old_x;
+			ret->old_y = actor->tracer->old_y;
+			ret->old_z = actor->tracer->old_z;
 			ret->frame |= ((leveltime % 10) / 2) + 5;
 			ret->color = actor->cvmem;
 
@@ -8660,10 +8663,10 @@ void A_LightningFollowPlayer(mobj_t *actor)
 		{
 			sx = actor->target->x + FixedMul((actor->target->scale*actor->extravalue1), FINECOSINE((actor->angle)>>ANGLETOFINESHIFT));
 			sy = actor->target->y + FixedMul((actor->target->scale*actor->extravalue1), FINESINE((actor->angle)>>ANGLETOFINESHIFT));
-			P_TeleportMove(actor, sx, sy, actor->target->z);
+			P_MoveOrigin(actor, sx, sy, actor->target->z);
 		}
 		else	// else just teleport to player directly
-			P_TeleportMove(actor, actor->target->x, actor->target->y, actor->target->z);
+			P_MoveOrigin(actor, actor->target->x, actor->target->y, actor->target->z);
 
 		K_MatchGenericExtraFlags(actor, actor->target);	// copy our target for graviflip
 		actor->momx = actor->target->momx;
@@ -10731,7 +10734,7 @@ void A_VileAttack(mobj_t *actor)
 		// move the fire between the vile and the player
 		//fire->x = actor->target->x - FixedMul (24*FRACUNIT, finecosine[an]);
 		//fire->y = actor->target->y - FixedMul (24*FRACUNIT, finesine[an]);
-		P_TeleportMove(fire,
+		P_MoveOrigin(fire,
 						actor->target->x - P_ReturnThrustX(fire, actor->angle, FixedMul(24*FRACUNIT, fire->scale)),
 						actor->target->y - P_ReturnThrustY(fire, actor->angle, FixedMul(24*FRACUNIT, fire->scale)),
 						fire->z);
@@ -10776,7 +10779,7 @@ void A_VileAttack(mobj_t *actor)
 			// move the fire between the vile and the player
 			//fire->x = actor->target->x - FixedMul (24*FRACUNIT, finecosine[an]);
 			//fire->y = actor->target->y - FixedMul (24*FRACUNIT, finesine[an]);
-			P_TeleportMove(fire,
+			P_MoveOrigin(fire,
 							actor->target->x - P_ReturnThrustX(fire, actor->angle, FixedMul(24*FRACUNIT, fire->scale)),
 							actor->target->y - P_ReturnThrustY(fire, actor->angle, FixedMul(24*FRACUNIT, fire->scale)),
 							fire->z);

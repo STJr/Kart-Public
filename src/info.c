@@ -182,10 +182,10 @@ state_t states[NUMSTATES] =
 
 	// 1-Up Box Sprites (uses player sprite)
 	// Kart: hide for now, fix for R2
-	{SPR_NULL,  0,  2, {NULL}, 0, 16, S_PLAY_BOX2},  // S_PLAY_BOX1
-	{SPR_NULL,  0,  1, {NULL}, 0,  0, S_PLAY_BOX1},  // S_PLAY_BOX2
+	{SPR_NULL,  0,  2, {NULL}, 0, 18, S_PLAY_BOX2},  // S_PLAY_BOX1
+	{SPR_NULL,  0,  1, {NULL}, 0, 18, S_PLAY_BOX1},  // S_PLAY_BOX2
 	{SPR_NULL,  0,  4, {NULL}, 0,  4, S_PLAY_ICON2}, // S_PLAY_ICON1
-	{SPR_NULL,  0, 12, {NULL}, 0,  0, S_PLAY_ICON3}, // S_PLAY_ICON2
+	{SPR_NULL,  0, 12, {NULL}, 0,  4, S_PLAY_ICON3}, // S_PLAY_ICON2
 	{SPR_NULL,  0, 18, {NULL}, 0,  4, S_NULL},       // S_PLAY_ICON3
 
 	// Level end sign (uses player sprite)
@@ -20214,7 +20214,7 @@ void P_PatchInfoTables(void)
 	INT32 i;
 	char *tempname;
 
-#if NUMSPRITEFREESLOTS > 1000
+#if NUMSPRITEFREESLOTS > 9999 //tempname numbering actually starts at SPR_FIRSTFREESLOT, so the limit is actually 9999 + SPR_FIRSTFREESLOT-1, but the preprocessor doesn't understand enums, so its left at 9999 for safety
 #error "Update P_PatchInfoTables, you big dumb head"
 #endif
 
@@ -20222,8 +20222,8 @@ void P_PatchInfoTables(void)
 	for (i = SPR_FIRSTFREESLOT; i <= SPR_LASTFREESLOT; i++)
 	{
 		tempname = sprnames[i];
-		tempname[0] = 'F';
-		tempname[1] = (char)('0' + (char)((i-SPR_FIRSTFREESLOT+1)/100));
+		tempname[0] = (char)('0' + (char)((i-SPR_FIRSTFREESLOT+1)/1000));
+		tempname[1] = (char)('0' + (char)(((i-SPR_FIRSTFREESLOT+1)/100)%10));
 		tempname[2] = (char)('0' + (char)(((i-SPR_FIRSTFREESLOT+1)/10)%10));
 		tempname[3] = (char)('0' + (char)((i-SPR_FIRSTFREESLOT+1)%10));
 		tempname[4] = '\0';

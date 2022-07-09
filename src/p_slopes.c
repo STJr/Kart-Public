@@ -746,6 +746,30 @@ fixed_t P_GetZAt(pslope_t *slope, fixed_t x, fixed_t y)
    return slope->o.z + FixedMul(dist, slope->zdelta);
 }
 
+// Returns the height of the sector floor at (x, y)
+fixed_t P_GetSectorFloorZAt(const sector_t *sector, fixed_t x, fixed_t y)
+{
+	return sector->f_slope ? P_GetZAt(sector->f_slope, x, y) : sector->floorheight;
+}
+
+// Returns the height of the sector ceiling at (x, y)
+fixed_t P_GetSectorCeilingZAt(const sector_t *sector, fixed_t x, fixed_t y)
+{
+	return sector->c_slope ? P_GetZAt(sector->c_slope, x, y) : sector->ceilingheight;
+}
+
+// Returns the height of the FOF top at (x, y)
+fixed_t P_GetFFloorTopZAt(const ffloor_t *ffloor, fixed_t x, fixed_t y)
+{
+	return *ffloor->t_slope ? P_GetZAt(*ffloor->t_slope, x, y) : *ffloor->topheight;
+}
+
+// Returns the height of the FOF bottom  at (x, y)
+fixed_t P_GetFFloorBottomZAt(const ffloor_t *ffloor, fixed_t x, fixed_t y)
+{
+	return *ffloor->b_slope ? P_GetZAt(*ffloor->b_slope, x, y) : *ffloor->bottomheight;
+}
+
 
 //
 // P_QuantizeMomentumToSlope

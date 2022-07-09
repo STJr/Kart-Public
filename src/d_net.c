@@ -18,6 +18,7 @@
 
 #include "doomdef.h"
 #include "g_game.h"
+#include "i_time.h"
 #include "i_net.h"
 #include "i_system.h"
 #include "m_argv.h"
@@ -82,8 +83,14 @@ void (*I_ClearBans)(void) = NULL;
 const char *(*I_GetNodeAddress) (INT32 node) = NULL;
 const char *(*I_GetBanAddress) (size_t ban) = NULL;
 const char *(*I_GetBanMask) (size_t ban) = NULL;
+const char *(*I_GetBanUsername) (size_t ban) = NULL;
+const char *(*I_GetBanReason) (size_t ban) = NULL;
+time_t (*I_GetUnbanTime) (size_t ban) = NULL;
 boolean (*I_SetBanAddress) (const char *address, const char *mask) = NULL;
-boolean *bannednode = NULL;
+boolean (*I_SetBanUsername) (const char *username) = NULL;
+boolean (*I_SetBanReason) (const char *reason) = NULL;
+boolean (*I_SetUnbanTime) (time_t timestamp) = NULL;
+bannednode_t *bannednode = NULL;
 
 
 // network stats
@@ -618,7 +625,10 @@ void Net_WaitAllAckReceived(UINT32 timeout)
 	while (timeout > I_GetTime() && !Net_AllAcksReceived())
 	{
 		while (tictac == I_GetTime())
-			I_Sleep();
+		{
+			I_Sleep(cv_sleep.value);
+			I_UpdateTime(cv_timescale.value);
+		}
 		tictac = I_GetTime();
 		HGetPacket();
 		Net_AckTicker();

@@ -20,6 +20,7 @@
 #include "p_local.h"
 #include "p_setup.h" // levelflats for flat animation
 #include "r_data.h"
+#include "r_fps.h"
 #include "m_random.h"
 #include "p_mobj.h"
 #include "i_system.h"
@@ -2384,7 +2385,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 						UINT8 i;
 
 						if (bot) // This might put poor Tails in a wall if he's too far behind! D: But okay, whatever! >:3
-							P_TeleportMove(bot, bot->x + x, bot->y + y, bot->z + z);
+							P_SetOrigin(bot, bot->x + x, bot->y + y, bot->z + z);
 
 						for (i = 0; i <= splitscreen; i++)
 						{
@@ -2846,7 +2847,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 				// Reset bot too.
 				if (bot) {
 					if (line->flags & ML_NOCLIMB)
-						P_TeleportMove(bot, mo->x, mo->y, mo->z);
+						P_SetOrigin(bot, mo->x, mo->y, mo->z);
 					bot->momx = bot->momy = bot->momz = 1;
 					bot->pmomz = 0;
 					bot->player->rmomx = bot->player->rmomy = 1;
@@ -2890,7 +2891,7 @@ static void P_ProcessLineSpecial(line_t *line, mobj_t *mo, sector_t *callsec)
 				// (Teleport them to you so they don't break it.)
 				if (bot && (bot->flags2 & MF2_TWOD) != (mo->flags2 & MF2_TWOD)) {
 					bot->flags2 = (bot->flags2 & ~MF2_TWOD) | (mo->flags2 & MF2_TWOD);
-					P_TeleportMove(bot, mo->x, mo->y, mo->z);
+					P_SetOrigin(bot, mo->x, mo->y, mo->z);
 				}
 			}
 			break;
@@ -5282,6 +5283,10 @@ static void P_AddFloatThinker(sector_t *sec, INT32 tag, line_t *sourceline)
 	floater->sector = sec;
 	floater->vars[0] = tag;
 	floater->sourceline = sourceline;
+
+	// interpolation
+	R_CreateInterpolator_SectorPlane(&floater->thinker, sec, false);
+	R_CreateInterpolator_SectorPlane(&floater->thinker, sec, true);
 }
 
 /** Adds a bridge thinker.
@@ -5314,6 +5319,9 @@ static inline void P_AddBridgeThinker(line_t *sourceline, sector_t *sec)
 	// Control sector tags should be End_Tag + (End_Tag - Start_Tag)
 	bridge->vars[4] = sourceline->tag; // Start tag
 	bridge->vars[5] = (sides[sourceline->sidenum[0]].textureoffset>>FRACBITS); // End tag
+
+	// interpolation
+	R_CreateInterpolator_SectorPlane(&bridge->thinker, &sectors[affectee], false);
 }
 */
 
@@ -5393,6 +5401,10 @@ static void P_AddRaiseThinker(sector_t *sec, line_t *sourceline)
 		- (sec->ceilingheight - sec->floorheight);
 
 	raise->sourceline = sourceline;
+
+	// interpolation
+	R_CreateInterpolator_SectorPlane(&raise->thinker, sec, false);
+	R_CreateInterpolator_SectorPlane(&raise->thinker, sec, true);
 }
 
 // Function to maintain backwards compatibility
@@ -5435,6 +5447,10 @@ static void P_AddOldAirbob(sector_t *sec, line_t *sourceline, boolean noadjust)
 			- (sec->ceilingheight - sec->floorheight);
 
 	airbob->sourceline = sourceline;
+
+	// interpolation
+	R_CreateInterpolator_SectorPlane(&airbob->thinker, sec, false);
+	R_CreateInterpolator_SectorPlane(&airbob->thinker, sec, true);
 }
 
 /** Adds a thwomp thinker.
@@ -5476,6 +5492,11 @@ static inline void P_AddThwompThinker(sector_t *sec, sector_t *actionsector, lin
 	thwomp->sourceline = sourceline;
 	thwomp->sector->floordata = thwomp;
 	thwomp->sector->ceilingdata = thwomp;
+
+	// interpolation
+	R_CreateInterpolator_SectorPlane(&thwomp->thinker, sec, false);
+	R_CreateInterpolator_SectorPlane(&thwomp->thinker, sec, true);
+
 	return;
 #undef speed
 #undef direction
@@ -7041,6 +7062,22 @@ static void Add_Scroller(INT32 type, fixed_t dx, fixed_t dy, INT32 control, INT3
 		s->last_height = sectors[control].floorheight + sectors[control].ceilingheight;
 	s->affectee = affectee;
 	P_AddThinker(&s->thinker);
+
+	// interpolation
+	switch (type)
+	{
+		case sc_side:
+			R_CreateInterpolator_SideScroll(&s->thinker, &sides[affectee]);
+			break;
+		case sc_floor:
+			R_CreateInterpolator_SectorScroll(&s->thinker, &sectors[affectee], false);
+			break;
+		case sc_ceiling:
+			R_CreateInterpolator_SectorScroll(&s->thinker, &sectors[affectee], true);
+			break;
+		default:
+			break;
+	}
 }
 
 /** Adds a wall scroller.

@@ -13,6 +13,7 @@
 
 #include "doomdef.h"
 #include "p_local.h"
+#include "r_fps.h"
 #include "r_main.h"
 #include "s_sound.h"
 #include "z_zone.h"
@@ -600,6 +601,9 @@ INT32 EV_DoCeiling(line_t *line, ceiling_e type)
 		ceiling->tag = sec->tag;
 		ceiling->type = type;
 		firstone = 0;
+
+		// interpolation
+		R_CreateInterpolator_SectorPlane(&ceiling->thinker, sec, true);
 	}
 	return rtn;
 }
@@ -676,6 +680,10 @@ INT32 EV_DoCrush(line_t *line, ceiling_e type)
 
 		ceiling->tag = sec->tag;
 		ceiling->type = type;
+
+		// interpolation
+		R_CreateInterpolator_SectorPlane(&ceiling->thinker, sec, false);
+		R_CreateInterpolator_SectorPlane(&ceiling->thinker, sec, true);
 	}
 	return rtn;
 }

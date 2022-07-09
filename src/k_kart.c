@@ -575,6 +575,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartcomeback);
 	CV_RegisterVar(&cv_kartencore);
 	CV_RegisterVar(&cv_kartvoterulechanges);
+	CV_RegisterVar(&cv_kartgametypepreference);
 	CV_RegisterVar(&cv_kartspeedometer);
 	CV_RegisterVar(&cv_kartvoices);
 	CV_RegisterVar(&cv_karteliminatelast);
@@ -2027,9 +2028,15 @@ void K_DoInstashield(player_t *player)
 	S_StartSound(player->mo, sfx_cdpcm9);
 
 	layera = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_INSTASHIELDA);
+	layera->old_x = player->mo->old_x;
+	layera->old_y = player->mo->old_y;
+	layera->old_z = player->mo->old_z;
 	P_SetTarget(&layera->target, player->mo);
 
 	layerb = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_INSTASHIELDB);
+	layerb->old_x = player->mo->old_x;
+	layerb->old_y = player->mo->old_y;
+	layerb->old_z = player->mo->old_z;
 	P_SetTarget(&layerb->target, player->mo);
 }
 
@@ -2731,7 +2738,7 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t an, I
 	{
 		// floorz and ceilingz aren't properly set to account for FOFs and Polyobjects on spawn
 		// This should set it for FOFs
-		P_TeleportMove(th, th->x, th->y, th->z);
+		P_SetOrigin(th, th->x, th->y, th->z);
 		// spawn on the ground if the player is on the ground
 		if (P_MobjFlip(source) < 0)
 		{
@@ -3314,7 +3321,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			{
 				// floorz and ceilingz aren't properly set to account for FOFs and Polyobjects on spawn
 				// This should set it for FOFs
-				P_TeleportMove(mo, mo->x, mo->y, mo->z); // however, THIS can fuck up your day. just absolutely ruin you.
+				P_SetOrigin(mo, mo->x, mo->y, mo->z); // however, THIS can fuck up your day. just absolutely ruin you.
 				if (P_MobjWasRemoved(mo))
 					return NULL;
 
@@ -3827,7 +3834,7 @@ void K_DropHnextList(player_t *player)
 		{
 			// floorz and ceilingz aren't properly set to account for FOFs and Polyobjects on spawn
 			// This should set it for FOFs
-			//P_TeleportMove(dropwork, dropwork->x, dropwork->y, dropwork->z); -- handled better by above floorz/ceilingz passing
+			//P_SetOrigin(dropwork, dropwork->x, dropwork->y, dropwork->z); -- handled better by above floorz/ceilingz passing
 
 			if (flip == 1)
 			{
@@ -4101,7 +4108,7 @@ static void K_MoveHeldObjects(player_t *player)
 						z = player->mo->z + player->mo->height - cur->height;
 
 					cur->flags |= MF_NOCLIPTHING; // temporarily make them noclip other objects so they can't hit anyone while in the player
-					P_TeleportMove(cur, player->mo->x, player->mo->y, z);
+					P_MoveOrigin(cur, player->mo->x, player->mo->y, z);
 					cur->momx = FixedMul(FINECOSINE(cur->angle>>ANGLETOFINESHIFT), cur->extravalue1);
 					cur->momy = FixedMul(FINESINE(cur->angle>>ANGLETOFINESHIFT), cur->extravalue1);
 					cur->flags &= ~MF_NOCLIPTHING;
@@ -4203,7 +4210,7 @@ static void K_MoveHeldObjects(player_t *player)
 					P_SetObjectMomZ(cur, FixedMul(targz - cur->z, 7*FRACUNIT/8) - gravity, false);
 
 					if (R_PointToDist2(cur->x, cur->y, targx, targy) > 768*FRACUNIT)
-						P_TeleportMove(cur, targx, targy, cur->z);
+						P_MoveOrigin(cur, targx, targy, cur->z);
 
 					cur = cur->hnext;
 				}
@@ -4287,12 +4294,12 @@ static void K_MoveHeldObjects(player_t *player)
 						diffy = targy - cur->y;
 						diffz = targz - cur->z;
 
-						P_TeleportMove(cur->tracer, cur->tracer->x + diffx + P_ReturnThrustX(cur, cur->angle + angoffset, 6*cur->scale),
+						P_MoveOrigin(cur->tracer, cur->tracer->x + diffx + P_ReturnThrustX(cur, cur->angle + angoffset, 6*cur->scale),
 							cur->tracer->y + diffy + P_ReturnThrustY(cur, cur->angle + angoffset, 6*cur->scale), cur->tracer->z + diffz);
 						P_SetScale(cur->tracer, (cur->tracer->destscale = 3*cur->scale/4));
 					}
 
-					P_TeleportMove(cur, targx, targy, targz);
+					P_MoveOrigin(cur, targx, targy, targz);
 					K_FlipFromObject(cur, player->mo);	// Update graviflip in real time thanks.
 					num = (num+1) % 2;
 					cur = cur->hnext;
@@ -4951,6 +4958,9 @@ void K_KartPlayerAfterThink(player_t *player)
 		}
 
 		ret = P_SpawnMobj(targ->mo->x, targ->mo->y, targ->mo->z, MT_PLAYERRETICULE);
+		ret->old_x = targ->mo->old_x;
+		ret->old_y = targ->mo->old_y;
+		ret->old_z = targ->mo->old_z;
 		P_SetTarget(&ret->target, targ->mo);
 		ret->frame |= ((leveltime % 10) / 2);
 		ret->tics = 1;
@@ -5022,8 +5032,10 @@ static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
 
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 {
-	fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
-	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
+	fixed_t p_topspeed = K_GetKartSpeed(player, false);
+	fixed_t p_curspeed = min(player->speed, p_topspeed * 2);
+	fixed_t p_maxspeed = p_topspeed * 3;
+	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (p_curspeed>>16), (p_maxspeed>>16) + player->kartweight);
 
 	if (player->spectator)
 		return turnvalue;
@@ -5937,7 +5949,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 	}
 
-	if (onground)
+	// JugadorXEI: Do *not* calculate friction when a player is pogo'd
+	// because they'll be in the air and friction will not reset!
+	if (onground && !player->kartstuff[k_pogospring]) 
 	{
 		// Friction
 		if (!player->kartstuff[k_offroad])
@@ -5971,11 +5985,11 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 
 		// Wipeout slowdown
-		if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
+		if (player->speed > 0 && player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
 		{
 			if (player->kartstuff[k_offroad])
 				player->mo->friction -= 4912;
-			if (player->kartstuff[k_wipeoutslow] == 1 && player->kartstuff[k_pogospring] == 0)
+			if (player->kartstuff[k_wipeoutslow] == 1)
 				player->mo->friction -= 9824;
 		}
 	}
