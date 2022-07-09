@@ -6341,9 +6341,11 @@ void M_PopupMasterServerRules(void)
 	{
 		char *rules = GetMasterServerRules();
 
-		M_StartMessage(va("%s\n(press any key)", rules), NULL, MM_NOTHING);
-
-		Z_Free(rules);
+		if (rules)
+		{
+			M_StartMessage(va("%s\n(press any key)", rules), NULL, MM_NOTHING);
+			Z_Free(rules);
+		}
 	}
 #endif
 }
