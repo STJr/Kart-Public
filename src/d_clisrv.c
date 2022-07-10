@@ -3834,7 +3834,6 @@ void D_ClientServerInit(void)
 #ifndef NONET
 	COM_AddCommand("getplayernum", Command_GetPlayerNum);
 	COM_AddCommand("kick", Command_Kick);
-	CV_RegisterVar(&cv_kicktime);
 	COM_AddCommand("ban", Command_Ban);
 	COM_AddCommand("banip", Command_BanIP);
 	COM_AddCommand("clearbans", Command_ClearBans);
