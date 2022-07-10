@@ -976,8 +976,9 @@ void Y_VoteDrawer(void)
 		return;
 
 	{
-		angle_t rubyfloattime = (ANGLE_MAX/NEWTICRATE)*(votetic % NEWTICRATE);
+		static angle_t rubyfloattime = 0;
 		rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
+		rubyfloattime += FixedMul(ANGLE_MAX/NEWTICRATE, renderdeltatics);
 	}
 
 	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);

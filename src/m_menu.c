@@ -165,7 +165,6 @@ INT16 startmap; // Mario, NiGHTS, or just a plain old normal game?
 
 static INT16 itemOn = 1; // menu item skull is on, Hack by Tails 09-18-2002
 static INT16 skullAnimCounter = 10; // skull animation counter
-static angle_t rubyfloattime = 0;
 
 static  UINT8 setupcontrolplayer;
 static  INT32   (*setupcontrols)[2];  // pointer to the gamecontrols of the player being edited
@@ -3406,8 +3405,6 @@ void M_Ticker(void)
 	if (--skullAnimCounter <= 0)
 		skullAnimCounter = 8;
 
-	rubyfloattime += (ANGLE_MAX/NEWTICRATE);
-
 	if (currentMenu == &PlaybackMenuDef)
 	{
 		if (playback_enterheld > 0)
@@ -5520,8 +5517,10 @@ static void DrawReplayHutReplayInfo(void)
 			V_DrawSmallScaledPatch(x+(w>>1), y, V_SNAPTOTOP|V_FLIP, patch);
 
 			{
+				static angle_t rubyfloattime = 0;
 				const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
 				V_DrawFixedPatch((x+(w>>2))<<FRACBITS, ((y+(h>>2))<<FRACBITS) - (rubyheight<<1), FRACUNIT, V_SNAPTOTOP, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
+				rubyfloattime += FixedMul(ANGLE_MAX/NEWTICRATE, renderdeltatics);
 			}
 		}
 
@@ -9028,7 +9027,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 			static angle_t rubyfloattime = 0;
 			const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
 			V_DrawFixedPatch((x+w/2)<<FRACBITS, ((y+i/2)<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
-			rubyfloattime += (ANGLE_MAX/NEWTICRATE);
+			rubyfloattime += FixedMul(ANGLE_MAX/NEWTICRATE, renderdeltatics);
 		}
 	}
 	/*V_DrawDiag(x, y, 12, 31);
