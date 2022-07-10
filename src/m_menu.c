@@ -1282,6 +1282,7 @@ enum
 	op_video_fov,
 	op_video_fps,
 	op_video_vsync,
+	op_video_fpscap,
 #ifdef HWRENDER
 	op_video_ogl,
 #endif
