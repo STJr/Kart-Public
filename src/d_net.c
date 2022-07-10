@@ -1386,6 +1386,7 @@ struct pingcell
 {
 	INT32 num;
 	INT32 ms;
+	INT32 f;
 };
 
 static int pingcellcmp(const void *va, const void *vb)
@@ -1409,6 +1410,7 @@ void Command_Ping_f(void)
 	INT32           pingc;
 
 	int name_width = 0;
+	int    f_width = 0;
 	int   ms_width = 0;
 
 	int n;
@@ -1416,20 +1418,34 @@ void Command_Ping_f(void)
 
 	pingc = 0;
 	for (i = 1; i < MAXPLAYERS; ++i)
-		if (playeringame[i])
 	{
-		n = strlen(player_names[i]);
-		if (n > name_width)
-			name_width = n;
+		if (playeringame[i])
+		{
+			INT32 ms;
 
-		n = playerpingtable[i];
-		if (n > ms_width)
-			ms_width = n;
+			n = strlen(player_names[i]);
+			if (n > name_width)
+				name_width = n;
 
-		pingv[pingc].num = i;
-		pingv[pingc].ms  = playerpingtable[i];
-		pingc++;
+			n = playerpingtable[i];
+			if (n > f_width)
+				f_width = n;
+
+			ms = (INT32)(playerpingtable[i] * (1000.00f / TICRATE));
+			n = ms;
+			if (n > ms_width)
+				ms_width = n;
+
+			pingv[pingc].num = i;
+			pingv[pingc].f   = playerpingtable[i];
+			pingv[pingc].ms  = ms;
+			pingc++;
+		}
 	}
+
+	     if (f_width < 10)  f_width = 1;
+	else if (f_width < 100) f_width = 2;
+	else                    f_width = 3;
 
 	     if (ms_width < 10)  ms_width = 1;
 	else if (ms_width < 100) ms_width = 2;
@@ -1439,15 +1455,16 @@ void Command_Ping_f(void)
 
 	for (i = 0; i < pingc; ++i)
 	{
-		CONS_Printf("%02d : %-*s %*d ms\n",
+		CONS_Printf("%02d : %-*s %*d frames (%*d ms)\n",
 				pingv[i].num,
 				name_width, player_names[pingv[i].num],
+				f_width,    pingv[i].f,
 				ms_width,   pingv[i].ms);
 	}
 
 	if (!server && playeringame[consoleplayer])
 	{
-		CONS_Printf("\nYour ping is %d ms\n", playerpingtable[consoleplayer]);
+		CONS_Printf("\nYour ping is %d frames (%d ms)\n", playerpingtable[consoleplayer], (INT32)(playerpingtable[i] * (1000.00f / TICRATE)));
 	}
 }
 

@@ -79,6 +79,7 @@ patch_t *cred_font[CRED_FONTSIZE];
 // Note: I'd like to adress that at this point we might *REALLY* want to work towards a common drawString function that can take any font we want because this is really turning into a MESS. :V -Lat'
 patch_t *pingnum[10];
 patch_t *pinggfx[5];	// small ping graphic
+patch_t *pingmeasure[2]; // ping measurement graphic
 
 patch_t *framecounter;
 patch_t *frameslash;	// framerate stuff. Used in screen.c
@@ -319,6 +320,9 @@ void HU_LoadGraphics(void)
 		sprintf(buffer, "PINGGFX%d", i+1);
 		pinggfx[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
+
+	pingmeasure[0] = W_CachePatchName("PINGF", PU_HUDGFX);
+	pingmeasure[1] = W_CachePatchName("PINGMS", PU_HUDGFX);
 
 	// fps stuff
 	framecounter = W_CachePatchName("FRAMER", PU_HUDGFX);
@@ -2521,383 +2525,49 @@ void HU_Erase(void)
 //                   IN-LEVEL MULTIPLAYER RANKINGS
 //======================================================================
 
+static int
+Ping_gfx_num (int lag)
+{
+	if (lag < 2)
+		return 0;
+	else if (lag < 4)
+		return 1;
+	else if (lag < 7)
+		return 2;
+	else if (lag < 10)
+		return 3;
+	else
+		return 4;
+}
+
 //
 // HU_drawPing
 //
-void HU_drawPing(INT32 x, INT32 y, UINT32 ping, INT32 flags)
+
+void HU_drawPing(INT32 x, INT32 y, UINT32 lag, INT32 flags)
 {
-	INT32 gfxnum = 4;	// gfx to draw
-	UINT8 const *colormap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_SALMON, GTC_CACHE);
+	UINT8 *colormap = NULL;
+	INT32 measureid = cv_pingmeasurement.value ? 1 : 0;
+	INT32 gfxnum; // gfx to draw
 
-	if (ping < 76)
-		gfxnum = 0;
-	else if (ping < 137)
-		gfxnum = 1;
-	else if (ping < 256)
-		gfxnum = 2;
-	else if (ping < 500)
-		gfxnum = 3;
+	gfxnum = Ping_gfx_num(lag);
 
-	V_DrawScaledPatch(x, y, flags, pinggfx[gfxnum]);
-	if (servermaxping && ping > servermaxping && hu_tick < 4)		// flash ping red if too high
-		V_DrawPingNum(x, y+9, flags, ping, colormap);
-	else
-		V_DrawPingNum(x, y+9, flags, ping, NULL);
+	V_DrawScaledPatch(x+11 - pingmeasure[measureid]->width, y+9, flags, pingmeasure[measureid]);
+	V_DrawScaledPatch(x+2, y, flags, pinggfx[gfxnum]);
+
+	if (servermaxping && lag > servermaxping && hu_tick < 4)
+	{
+		// flash ping red if too high
+		colormap = R_GetTranslationColormap(TC_RAINBOW, SKINCOLOR_RASPBERRY, GTC_CACHE);
+	}
+
+	if (cv_pingmeasurement.value)
+	{
+		lag = (INT32)(lag * (1000.00f / TICRATE));
+	}
+
+	V_DrawPingNum(x+11 - pingmeasure[measureid]->width, y+9, flags, lag, colormap);
 }
-
-//
-// HU_DrawTabRankings -- moved to k_kart.c
-//
-
-//
-// HU_DrawTeamTabRankings
-//
-/*void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer)
-{
-	INT32 i,x,y;
-	INT32 redplayers = 0, blueplayers = 0;
-	boolean smol = false;
-	const UINT8 *colormap;
-	char name[MAXPLAYERNAME+1];
-
-	// before we draw, we must count how many players are in each team. It makes an additional loop, but we need to know if we have to draw a big or a small ranking.
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (players[tab[i].num].spectator)
-			continue; //ignore them.
-
-		if (tab[i].color == skincolor_redteam) //red
-		{
-			if (redplayers++ > 8)
-			{
-				smol = true;
-				break; // don't make more loops than we need to.
-			}
-		}
-		else if (tab[i].color == skincolor_blueteam) //blue
-		{
-			if (blueplayers++ > 8)
-			{
-				smol = true;
-				break;
-			}
-		}
-		else //er?  not on red or blue, so ignore them
-			continue;
-
-	}
-
-	// I'll be blunt with you, this may add more lines, but I'm not adding weird cases for this, so we're executing a separate function.
-	if (smol == true || cv_compactscoreboard.value)
-	{
-		HU_Draw32TeamTabRankings(tab, whiteplayer);
-		return;
-	}
-
-	V_DrawFill(160, 26, 1, 154, 0); //Draw a vertical line to separate the two teams.
-	V_DrawFill(1, 26, 318, 1, 0); //And a horizontal line to make a T.
-	V_DrawFill(1, 180, 318, 1, 0); //And a horizontal line near the bottom.
-
-	i=0, redplayers=0, blueplayers=0;
-
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (players[tab[i].num].spectator)
-			continue; //ignore them.
-
-		if (tab[i].color == skincolor_redteam) //red
-		{
-			if (redplayers++ > 8)
-				continue;
-			x = 32 + (BASEVIDWIDTH/2);
-			y = (redplayers * 16) + 16;
-		}
-		else if (tab[i].color == skincolor_blueteam) //blue
-		{
-			if (blueplayers++ > 8)
-				continue;
-			x = 32;
-			y = (blueplayers * 16) + 16;
-		}
-		else //er?  not on red or blue, so ignore them
-			continue;
-
-		strlcpy(name, tab[i].name, 7);
-		V_DrawString(x + 20, y,
-		             ((tab[i].num == whiteplayer) ? V_YELLOWMAP : 0)
-		             | ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT)
-		             | V_ALLOWLOWERCASE, name);
-
-		if (gametype == GT_CTF)
-		{
-			if (players[tab[i].num].gotflag & GF_REDFLAG) // Red
-				V_DrawSmallScaledPatch(x-28, y-4, 0, rflagico);
-			else if (players[tab[i].num].gotflag & GF_BLUEFLAG) // Blue
-				V_DrawSmallScaledPatch(x-28, y-4, 0, bflagico);
-		}
-
-		// Draw emeralds
-		if (!players[tab[i].num].powers[pw_super]
-			|| ((leveltime/7) & 1))
-		{
-			HU_DrawEmeralds(x-12,y+2,tab[i].emeralds);
-		}
-
-		if (players[tab[i].num].powers[pw_super])
-		{
-			colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo ? players[tab[i].num].mo->color : tab[i].color, GTC_CACHE);
-			V_DrawSmallMappedPatch (x, y-4, 0, facewantprefix[players[tab[i].num].skin], colormap);
-		}
-		else
-		{
-			colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo ? players[tab[i].num].mo->color : tab[i].color, GTC_CACHE);
-			if (players[tab[i].num].health <= 0)
-				V_DrawSmallTranslucentMappedPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
-			else
-				V_DrawSmallMappedPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
-		}
-		V_DrawRightAlignedThinString(x+120, y-1, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
-		if (!splitscreen)
-		{
-			if (!(tab[i].num == serverplayer))
-				HU_drawPing(x+ 113, y+2, playerpingtable[tab[i].num], false);
-		}
-		V_DrawRightAlignedThinString(x+100, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
-		if (!splitscreen)
-		{
-			if (!(tab[i].num == serverplayer))
-				HU_drawPing(x+ 113, y+2, playerpingtable[tab[i].num], false);
-		//else
-		//	V_DrawSmallString(x+ 94, y+4, V_YELLOWMAP, "SERVER");
-		}
-	}
-}
-
-//
-// HU_DrawDualTabRankings
-//
-void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer)
-{
-	INT32 i;
-	const UINT8 *colormap;
-	char name[MAXPLAYERNAME+1];
-
-	V_DrawFill(160, 26, 1, 154, 0); //Draw a vertical line to separate the two sides.
-	V_DrawFill(1, 26, 318, 1, 0); //And a horizontal line to make a T.
-	V_DrawFill(1, 180, 318, 1, 0); //And a horizontal line near the bottom.
-
-	for (i = 0; i < scorelines; i++)
-	{
-		if (players[tab[i].num].spectator)
-			continue; //ignore them.
-
-		strlcpy(name, tab[i].name, 7);
-		if (!(tab[i].num == serverplayer))
-			HU_drawPing(x+ 113, y+2, playerpingtable[tab[i].num], false);
-		//else
-		//	V_DrawSmallString(x+ 94, y+4, V_YELLOWMAP, "SERVER");
-
-		V_DrawString(x + 20, y,
-		             ((tab[i].num == whiteplayer) ? V_YELLOWMAP : 0)
-		             | ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT)
-		             | V_ALLOWLOWERCASE, name);
-
-		if (G_GametypeUsesLives()) //show lives
-			V_DrawRightAlignedString(x, y+4, V_ALLOWLOWERCASE, va("%dx", players[tab[i].num].lives));
-		else if (G_TagGametype() && players[tab[i].num].pflags & PF_TAGIT)
-			V_DrawSmallScaledPatch(x-28, y-4, 0, tagico);
-
-		// Draw emeralds
-		if (!players[tab[i].num].powers[pw_super]
-			|| ((leveltime/7) & 1))
-		{
-			HU_DrawEmeralds(x-12,y+2,tab[i].emeralds);
-		}
-
-		//V_DrawSmallScaledPatch (x, y-4, 0, livesback);
-		if (tab[i].color == 0)
-		{
-			colormap = colormaps;
-			if (players[tab[i].num].powers[pw_super])
-				V_DrawSmallScaledPatch (x, y-4, 0, facewantprefix[players[tab[i].num].skin]);
-			else
-			{
-				if (players[tab[i].num].health <= 0)
-					V_DrawSmallTranslucentPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin]);
-				else
-					V_DrawSmallScaledPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin]);
-			}
-		}
-		else
-		{
-			if (players[tab[i].num].powers[pw_super])
-			{
-				colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo ? players[tab[i].num].mo->color : tab[i].color, GTC_CACHE);
-				V_DrawSmallMappedPatch (x, y-4, 0, facewantprefix[players[tab[i].num].skin], colormap);
-			}
-			else
-			{
-				colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo ? players[tab[i].num].mo->color : tab[i].color, GTC_CACHE);
-				if (players[tab[i].num].health <= 0)
-					V_DrawSmallTranslucentMappedPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
-				else
-					V_DrawSmallMappedPatch (x, y-4, 0, facerankprefix[players[tab[i].num].skin], colormap);
-			}
-		}
-
-		// All data drawn with thin string for space.
-		if (G_RaceGametype())
-		{
-			if (circuitmap)
-			{
-				if (players[tab[i].num].exiting)
-					V_DrawRightAlignedThinString(x+146, y, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
-				else
-					V_DrawRightAlignedThinString(x+146, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
-			}
-			else
-				V_DrawRightAlignedThinString(x+146, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%i:%02i.%02i", G_TicsToMinutes(tab[i].count,true), G_TicsToSeconds(tab[i].count), G_TicsToCentiseconds(tab[i].count)));
-		}
-		else
-			V_DrawRightAlignedThinString(x+100, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
-
-		y += 16;
-		if (y > 160)
-		{
-			y = 32;
-			x += BASEVIDWIDTH/2;
-		}
-	}
-}
-
-//
-// HU_Draw32TabRankings
-//
-static void HU_Draw32TabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer)
-{
-	INT32 i;
-	const UINT8 *colormap;
-	char name[MAXPLAYERNAME+1];
-
-	V_DrawFill(160, 26, 1, 154, 0); //Draw a vertical line to separate the two sides.
-	V_DrawFill(1, 26, 318, 1, 0); //And a horizontal line to make a T.
-	V_DrawFill(1, 180, 318, 1, 0); //And a horizontal line near the bottom.
-
-	for (i = 0; i < scorelines; i++)
-	{
-		if (players[tab[i].num].spectator)
-			continue; //ignore them.
-
-		strlcpy(name, tab[i].name, 7);
-		if (!splitscreen) // don't draw it on splitscreen,
-		{
-			if (!(tab[i].num == serverplayer))
-				HU_drawPing(x+ 135, y+3, playerpingtable[tab[i].num], true);
-		//else
-		//	V_DrawSmallString(x+ 129, y+4, V_YELLOWMAP, "HOST");
-		}
-
-		V_DrawString(x + 10, y,
-		             ((tab[i].num == whiteplayer) ? V_YELLOWMAP : 0)
-		             | ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT)
-		             | V_ALLOWLOWERCASE, name);
-
-		if (G_GametypeUsesLives()) //show lives
-			V_DrawRightAlignedThinString(x-1, y, V_ALLOWLOWERCASE, va("%d", players[tab[i].num].lives));
-		else if (G_TagGametype() && players[tab[i].num].pflags & PF_TAGIT)
-			V_DrawFixedPatch((x-10)*FRACUNIT, (y)*FRACUNIT, FRACUNIT/4, 0, tagico, 0);
-
-		// Draw emeralds
-		if (!players[tab[i].num].powers[pw_super]
-			|| ((leveltime/7) & 1))
-		{
-			HU_Draw32Emeralds(x+60, y+2, tab[i].emeralds);
-			//HU_DrawEmeralds(x-12,y+2,tab[i].emeralds);
-		}
-
-		//V_DrawSmallScaledPatch (x, y-4, 0, livesback);
-		if (tab[i].color == 0)
-		{
-			colormap = colormaps;
-			if (players[tab[i].num].powers[pw_super])
-				V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, FRACUNIT/4, 0, superprefix[players[tab[i].num].skin], 0);
-			else
-			{
-				if (players[tab[i].num].health <= 0)
-					V_DrawFixedPatch(x*FRACUNIT, (y)*FRACUNIT, FRACUNIT/4, V_HUDTRANSHALF, faceprefix[players[tab[i].num].skin], 0);
-				else
-					V_DrawFixedPatch(x*FRACUNIT, (y)*FRACUNIT, FRACUNIT/4, 0, faceprefix[players[tab[i].num].skin], 0);
-			}
-		}
-		else
-		{
-			if (players[tab[i].num].powers[pw_super])
-			{
-				colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo ? players[tab[i].num].mo->color : tab[i].color, GTC_CACHE);
-				V_DrawFixedPatch(x*FRACUNIT, y*FRACUNIT, FRACUNIT/4, 0, superprefix[players[tab[i].num].skin], colormap);
-			}
-			else
-			{
-				colormap = R_GetTranslationColormap(players[tab[i].num].skin, players[tab[i].num].mo ? players[tab[i].num].mo->color : tab[i].color, GTC_CACHE);
-				if (players[tab[i].num].health <= 0)
-					V_DrawFixedPatch(x*FRACUNIT, (y)*FRACUNIT, FRACUNIT/4, V_HUDTRANSHALF, faceprefix[players[tab[i].num].skin], colormap);
-				else
-					V_DrawFixedPatch(x*FRACUNIT, (y)*FRACUNIT, FRACUNIT/4, 0, faceprefix[players[tab[i].num].skin], colormap);
-			}
-		}
-
-		// All data drawn with thin string for space.
-		if (gametype == GT_RACE)
-		{
-			if (circuitmap)
-			{
-				if (players[tab[i].num].exiting)
-					V_DrawRightAlignedThinString(x+128, y, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
-				else
-					V_DrawRightAlignedThinString(x+128, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
-			}
-			else
-				V_DrawRightAlignedThinString(x+128, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%i:%02i.%02i", G_TicsToMinutes(tab[i].count,true), G_TicsToSeconds(tab[i].count), G_TicsToCentiseconds(tab[i].count)));
-		}
-		else
-			V_DrawRightAlignedThinString(x+128, y, ((players[tab[i].num].health > 0) ? 0 : V_TRANSLUCENT), va("%u", tab[i].count));
-
-		y += 9;
-		if (i == 16)
-		{
-			y = 32;
-			x += BASEVIDWIDTH/2;
-		}
-	}
-}
-
-//
-// HU_DrawEmeralds
-//
-void HU_DrawEmeralds(INT32 x, INT32 y, INT32 pemeralds)
-{
-	//Draw the emeralds, in the CORRECT order, using tiny emerald sprites.
-	if (pemeralds & EMERALD1)
-		V_DrawSmallScaledPatch(x  , y-6, 0, tinyemeraldpics[0]);
-
-	if (pemeralds & EMERALD2)
-		V_DrawSmallScaledPatch(x+4, y-3, 0, tinyemeraldpics[1]);
-
-	if (pemeralds & EMERALD3)
-		V_DrawSmallScaledPatch(x+4, y+3, 0, tinyemeraldpics[2]);
-
-	if (pemeralds & EMERALD4)
-		V_DrawSmallScaledPatch(x  , y+6, 0, tinyemeraldpics[3]);
-
-	if (pemeralds & EMERALD5)
-		V_DrawSmallScaledPatch(x-4, y+3, 0, tinyemeraldpics[4]);
-
-	if (pemeralds & EMERALD6)
-		V_DrawSmallScaledPatch(x-4, y-3, 0, tinyemeraldpics[5]);
-
-	if (pemeralds & EMERALD7)
-		V_DrawSmallScaledPatch(x,   y,   0, tinyemeraldpics[6]);
-}*/
 
 //
 // HU_DrawSpectatorTicker
