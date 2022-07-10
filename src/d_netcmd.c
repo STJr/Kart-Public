@@ -714,7 +714,7 @@ void D_RegisterServerCommands(void)
 	COM_AddCommand("ping", Command_Ping_f);
 	CV_RegisterVar(&cv_nettimeout);
 	CV_RegisterVar(&cv_jointimeout);
-
+	CV_RegisterVar(&cv_kicktime);
 	CV_RegisterVar(&cv_skipmapcheck);
 	CV_RegisterVar(&cv_sleep);
 	CV_RegisterVar(&cv_maxping);
