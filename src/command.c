@@ -1533,6 +1533,15 @@ static void CV_SetCVar(consvar_t *var, const char *value, boolean stealth)
 			return;
 		}
 
+		if (var == &cv_kartspeed && !M_SecretUnlocked(SECRET_HARDSPEED))
+		{
+			if (!stricmp(value, "Hard") || atoi(value) == 2)
+			{
+				CONS_Printf(M_GetText("You haven't unlocked this yet!\n"));
+				return;
+			}
+		}
+
 		// Only add to netcmd buffer if in a netgame, otherwise, just change it.
 		if (netgame || multiplayer)
 		{
