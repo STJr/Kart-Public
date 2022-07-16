@@ -611,8 +611,6 @@ static lumpinfo_t* ResGetLumpsZip (FILE* handle, UINT16* nlmp)
 		lump_p->name2 = Z_Calloc(zentry->namelen + 1, PU_STATIC, NULL);
 		strncpy(lump_p->name2, fullname, zentry->namelen);
 
-		free(fullname);
-
 		switch(zentry->compression)
 		{
 		case 0:
@@ -631,6 +629,8 @@ static lumpinfo_t* ResGetLumpsZip (FILE* handle, UINT16* nlmp)
 			lump_p->compression = CM_UNSUPPORTED;
 			break;
 		}
+
+		free(fullname);
 	}
 
 	*nlmp = numlumps;
