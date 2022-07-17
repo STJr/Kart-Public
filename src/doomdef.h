@@ -152,6 +152,7 @@ extern char  logfilename[1024];
 #define VERSIONSTRING "v1.4"
 #define VERSIONSTRINGW L"v1.4"
 // Hey! If you change this, add 1 to the MODVERSION below! Otherwise we can't force updates!
+// And change CMakeLists.txt (not src/, but in root), for CMake users!
 // AND appveyor.yml, for the build bots!
 #endif
 
