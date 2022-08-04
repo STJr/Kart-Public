@@ -1683,7 +1683,7 @@ static int W_VerifyFile(const char *filename, lumpchecklist_t *checklist,
 				continue;
 
 			for (j = 0; j < NUMSPRITES; j++)
-				if (sprnames[j] && !strncmp(lumpinfo.name, sprnames[j], 4)) // Sprites
+				if (sprnames[j][0] && !strncmp(lumpinfo.name, sprnames[j], 4)) // Sprites
 					continue;
 
 			goodfile = false;

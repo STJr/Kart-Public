@@ -6300,7 +6300,7 @@ static void M_RetryResponse(INT32 ch)
 	if (ch != 'y' && ch != KEY_ENTER)
 		return;
 
-	if (!&players[consoleplayer] || netgame || multiplayer) // Should never happen!
+	if (netgame || multiplayer) // Should never happen!
 		return;
 
 	M_ClearMenus(true);
