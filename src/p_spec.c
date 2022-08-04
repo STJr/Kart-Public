@@ -3261,7 +3261,7 @@ void P_SetupSignExit(player_t *player)
 
 		// SRB2Kart: Set sign spinning variables
 		thing->movefactor = thing->z;
-		thing->z += (768*thing->scale) * P_MobjFlip(thing);
+		thing->z = thing->old_z = thing->z + (768*thing->scale) * P_MobjFlip(thing);
 		thing->movecount = 1;
 
 		++numfound;
@@ -3289,7 +3289,7 @@ void P_SetupSignExit(player_t *player)
 
 		// SRB2Kart: Set sign spinning variables
 		thing->movefactor = thing->z;
-		thing->z += (768*thing->scale) * P_MobjFlip(thing);
+		thing->z = thing->old_z = thing->z + (768*thing->scale) * P_MobjFlip(thing);
 		thing->movecount = 1;
 
 		++numfound;
