@@ -165,6 +165,7 @@ INT16 startmap; // Mario, NiGHTS, or just a plain old normal game?
 
 static INT16 itemOn = 1; // menu item skull is on, Hack by Tails 09-18-2002
 static INT16 skullAnimCounter = 10; // skull animation counter
+static boolean interpTimerHackAllow = 0;
 
 static  UINT8 setupcontrolplayer;
 static  INT32   (*setupcontrols)[2];  // pointer to the gamecontrols of the player being edited
@@ -3133,6 +3134,8 @@ void M_Drawer(void)
 		else
 			V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2) - (4), highlightflags, "Focus Lost");
 	}
+
+	interpTimerHackAllow = false;
 }
 
 //
@@ -3412,6 +3415,8 @@ void M_Ticker(void)
 	}
 	else
 		playback_enterheld = 0;
+
+	interpTimerHackAllow = true;
 
 	//added : 30-01-98 : test mode for five seconds
 	if (vidm_testingmode > 0)
@@ -5684,7 +5689,9 @@ static void M_DrawReplayHut(void)
 		{
 			cursory = localy;
 
-			if (replayScrollDelay)
+			if (!interpTimerHackAllow)
+				;
+			else if (replayScrollDelay)
 				replayScrollDelay--;
 			else if (replayScrollDir > 0)
 			{
@@ -5786,7 +5793,9 @@ static void M_DrawReplayStartMenu(void)
 #undef STARTY
 
 	// Handle scrolling rankings
-	if (replayScrollDelay)
+	if (!interpTimerHackAllow)
+		;
+	else if (replayScrollDelay)
 		replayScrollDelay--;
 	else if (replayScrollDir > 0)
 	{
@@ -11180,7 +11189,7 @@ static void M_DrawMonitorToggles(void)
 		}
 	}
 
-	if (shitsfree)
+	if (shitsfree && interpTimerHackAllow)
 		shitsfree--;
 
 	V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y, highlightflags, va("* %s *", currentMenu->menuitems[itemOn].text));
