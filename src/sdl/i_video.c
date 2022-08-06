@@ -1749,6 +1749,13 @@ static SDL_bool Impl_CreateWindow(SDL_bool fullscreen)
 		else if (cv_vidwait.value)
 			flags |= SDL_RENDERER_PRESENTVSYNC;
 
+		// 3 August 2022
+		// Possibly a Windows 11 issue; the default
+		// "direct3d" driver (D3D9) causes Drmingw exchndl
+		// to not write RPT files. Every other driver
+		// seems fine.
+		SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
+
 		renderer = SDL_CreateRenderer(window, -1, flags);
 		if (renderer == NULL)
 		{

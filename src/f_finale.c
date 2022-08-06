@@ -277,9 +277,6 @@ void F_IntroDrawer(void)
 
 	W_UnlockCachedPatch(background);
 
-	if (animtimer)
-		animtimer--;
-
 	V_DrawString(cx, cy, 0, cutscene_disptext);
 }
 
@@ -298,6 +295,31 @@ void F_IntroTicker(void)
 
 	if (intro_scenenum == 0)
 	{
+		if (timetonext <= 0)
+		{
+			intro_scenenum++;
+			if (rendermode != render_none)
+			{
+				F_WipeStartScreen();
+				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+				F_WipeEndScreen();
+				F_RunWipe(99,true);
+			}
+
+			// Stay on black for a bit. =)
+			{
+				tic_t quittime;
+				quittime = I_GetTime() + NEWTICRATE*2; // Shortened the quit time, used to be 2 seconds
+				while (quittime > I_GetTime())
+				{
+					I_Sleep(cv_sleep.value);
+					I_UpdateTime(cv_timescale.value);
+				}
+			}
+
+			D_StartTitle();
+			return;
+		}
 		if (finalecount == 8)
 			S_StartSound(NULL, sfx_vroom);
 		else if (finalecount == 47)
@@ -391,6 +413,7 @@ static const char *credits[] = {
 	"",
 	"\1Support Programming",
 	"\"Lat\'\"",
+	"AJ \"Tyron\" Martinez",
 	"\"Monster Iestyn\"",
 	"James Robert Roman",
 	"\"Shuffle\"",
@@ -402,25 +425,25 @@ static const char *credits[] = {
 	"",
 	"\1Support Artists",
 	"Sally \"TehRealSalt\" Cochenour",
+	"\"Chengi\"",
+	"\"Chrispy\"",
 	"Sherman \"CoatRack\" DesJardins",
 	"\"DrTapeworm\"",
 	"Jesse \"Jeck Jims\" Emerick",
 	"Wesley \"Charyb\" Gillebaard",
+	"\"Nev3r\"",
 	"Vivian \"toaster\" Grannell",
 	"James \"SeventhSentinel\" Hall",
 	"\"Lat\'\"",
+	"\"rairai104n\"",
 	"\"Tyrannosaur Chao\"",
 	"\"ZarroTsu\"",
 	"",
 	"\1External Artists",
 	"\"1-Up Mason\"",
-	"\"Chengi\"",
-	"\"Chrispy\"",
 	"\"DirkTheHusky\"",
 	"\"LJSTAR\"",
 	"\"MotorRoach\"",
-	"\"Nev3r\"",
-	"\"rairai104n\"",
 	"\"Ritz\"",
 	"\"Rob\"",
 	"\"SmithyGNC\"",
@@ -471,18 +494,18 @@ static const char *credits[] = {
 	"\"ZarroTsu\"",
 	"",
 	"\1Testing",
+	"RKH License holders",
 	"\"CyberIF\"",
 	"\"Dani\"",
 	"Karol \"Fooruman\" D""\x1E""browski", // Dąbrowski, <Sryder> accents in srb2 :ytho:
-	"\"VirtAnderson\"",
+	"\"Virt\"",
 	"",
 	"\1Special Thanks",
 	"SEGA",
 	"Sonic Team",
 	"SRB2 & Sonic Team Jr. (www.srb2.org)",
-	"\"blazethecat\"",
+	"Community contributors",
 	"\"Chaos Zero 64\"",
-	"\"Rob\"",
 	"",
 	"\1Produced By",
 	"Kart Krew",
@@ -520,7 +543,7 @@ static struct {
 	// This Tyler52 gag is troublesome
 	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
 	// Current max image spacing: (200*17)
-	{112, (15*100)+(17*38)+(88*15), "TYLER52", SKINCOLOR_NONE},
+	{112, (15*100)+(17*38)+(86*15), "TYLER52", SKINCOLOR_NONE},
 	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
@@ -559,7 +582,7 @@ void F_CreditDrawer(void)
 	UINT16 i;
 	fixed_t y = (80<<FRACBITS) - 5*(animtimer<<FRACBITS)/8;
 
-	//V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 	// Draw background
 	V_DrawSciencePatch(0, 0 - FixedMul(32<<FRACBITS, FixedDiv(credbgtimer%TICRATE, TICRATE)), V_SNAPTOTOP, W_CachePatchName("CREDTILE", PU_CACHE), FRACUNIT);

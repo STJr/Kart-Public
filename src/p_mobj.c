@@ -8883,6 +8883,7 @@ void P_MobjThinker(mobj_t *mobj)
 				P_SetScale(trail, mobj->scale);
 				trail->destscale = 1;
 				trail->scalespeed = mobj->scale/12;
+				trail->fuse = 11;
 				trail->color = mobj->color;
 			}
 			break;

@@ -165,6 +165,7 @@ INT16 startmap; // Mario, NiGHTS, or just a plain old normal game?
 
 static INT16 itemOn = 1; // menu item skull is on, Hack by Tails 09-18-2002
 static INT16 skullAnimCounter = 10; // skull animation counter
+static boolean interpTimerHackAllow = 0;
 
 static  UINT8 setupcontrolplayer;
 static  INT32   (*setupcontrols)[2];  // pointer to the gamecontrols of the player being edited
@@ -1282,6 +1283,7 @@ enum
 	op_video_fov,
 	op_video_fps,
 	op_video_vsync,
+	op_video_fpscap,
 #ifdef HWRENDER
 	op_video_ogl,
 #endif
@@ -1528,8 +1530,8 @@ static menuitem_t OP_AdvServerOptionsMenu[] =
 	                         NULL, "Server Browser Address",		&cv_masterserver,		 10},
 
 	{IT_STRING | IT_CVAR,    NULL, "Attempts to resynchronise",		&cv_resynchattempts,	 40},
-	{IT_STRING | IT_CVAR,    NULL, "Ping limit (ms)",				&cv_maxping,			 50},
-	{IT_STRING | IT_CVAR,    NULL, "Ping timeout (s)",				&cv_pingtimeout,		 60},
+	{IT_STRING | IT_CVAR,    NULL, "Delay limit (frames)",			&cv_maxping,			 50},
+	{IT_STRING | IT_CVAR,    NULL, "Delay timeout (s)",				&cv_pingtimeout,		 60},
 	{IT_STRING | IT_CVAR,    NULL, "Connection timeout (tics)",		&cv_nettimeout,			 70},
 	{IT_STRING | IT_CVAR,    NULL, "Join timeout (tics)",			&cv_jointimeout,		 80},
 
@@ -2409,8 +2411,6 @@ static void M_ChangeCvar(INT32 choice)
 			choice *= (TICRATE/7);
 		else if (cv == &cv_maxsend)
 			choice *= 512;
-		else if (cv == &cv_maxping)
-			choice *= 50;
 #endif
 		CV_AddValue(cv,choice);
 	}
@@ -3134,6 +3134,8 @@ void M_Drawer(void)
 		else
 			V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2) - (4), highlightflags, "Focus Lost");
 	}
+
+	interpTimerHackAllow = false;
 }
 
 //
@@ -3413,6 +3415,8 @@ void M_Ticker(void)
 	}
 	else
 		playback_enterheld = 0;
+
+	interpTimerHackAllow = true;
 
 	//added : 30-01-98 : test mode for five seconds
 	if (vidm_testingmode > 0)
@@ -5521,7 +5525,7 @@ static void DrawReplayHutReplayInfo(void)
 				static angle_t rubyfloattime = 0;
 				const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
 				V_DrawFixedPatch((x+(w>>2))<<FRACBITS, ((y+(h>>2))<<FRACBITS) - (rubyheight<<1), FRACUNIT, V_SNAPTOTOP, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
-				rubyfloattime += (ANGLE_MAX/NEWTICRATE);
+				rubyfloattime += FixedMul(ANGLE_MAX/NEWTICRATE, renderdeltatics);
 			}
 		}
 
@@ -5685,7 +5689,9 @@ static void M_DrawReplayHut(void)
 		{
 			cursory = localy;
 
-			if (replayScrollDelay)
+			if (!interpTimerHackAllow)
+				;
+			else if (replayScrollDelay)
 				replayScrollDelay--;
 			else if (replayScrollDir > 0)
 			{
@@ -5787,7 +5793,9 @@ static void M_DrawReplayStartMenu(void)
 #undef STARTY
 
 	// Handle scrolling rankings
-	if (replayScrollDelay)
+	if (!interpTimerHackAllow)
+		;
+	else if (replayScrollDelay)
 		replayScrollDelay--;
 	else if (replayScrollDir > 0)
 	{
@@ -6301,7 +6309,7 @@ static void M_RetryResponse(INT32 ch)
 	if (ch != 'y' && ch != KEY_ENTER)
 		return;
 
-	if (!&players[consoleplayer] || netgame || multiplayer) // Should never happen!
+	if (netgame || multiplayer) // Should never happen!
 		return;
 
 	M_ClearMenus(true);
@@ -6341,9 +6349,11 @@ void M_PopupMasterServerRules(void)
 	{
 		char *rules = GetMasterServerRules();
 
-		M_StartMessage(va("%s\n(press any key)", rules), NULL, MM_NOTHING);
-
-		Z_Free(rules);
+		if (rules)
+		{
+			M_StartMessage(va("%s\n(press any key)", rules), NULL, MM_NOTHING);
+			Z_Free(rules);
+		}
 	}
 #endif
 }
@@ -9026,7 +9036,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 			static angle_t rubyfloattime = 0;
 			const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
 			V_DrawFixedPatch((x+w/2)<<FRACBITS, ((y+i/2)<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
-			rubyfloattime += (ANGLE_MAX/NEWTICRATE);
+			rubyfloattime += FixedMul(ANGLE_MAX/NEWTICRATE, renderdeltatics);
 		}
 	}
 	/*V_DrawDiag(x, y, 12, 31);
@@ -11179,7 +11189,7 @@ static void M_DrawMonitorToggles(void)
 		}
 	}
 
-	if (shitsfree)
+	if (shitsfree && interpTimerHackAllow)
 		shitsfree--;
 
 	V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y, highlightflags, va("* %s *", currentMenu->menuitems[itemOn].text));
