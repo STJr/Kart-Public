@@ -38,7 +38,7 @@
  * Last updated 2018 / 12 / 23 - SRB2 v2.1.22 - patch.dta
  * Last updated 2019 / 01 / 18 - Kart v1.0.2 - Main assets
  * Last updated 2020 / 08 / 30 - Kart v1.3 - patch.kart
- * Last updated 2022 / 07 / 23 - Kart v1.4 - Main assets
+ * Last updated 2022 / 08 / 08 - Kart v1.4 - Main assets
  */
 
 // Base SRB2 hashes
@@ -51,7 +51,7 @@
 #define ASSET_HASH_GFX_KART      "d25790c21cfcb6c3c02c05ba3eb7f820"
 #define ASSET_HASH_TEXTURES_KART "abb53d56aba47c3a8cb0f764da1c8b80"
 #define ASSET_HASH_CHARS_KART    "e2c428347dde52858a3dacd29fc5b964"
-#define ASSET_HASH_MAPS_KART     "807597214f748f6d39aaf192ad321d56"
+#define ASSET_HASH_MAPS_KART     "9eae3f7472a8fce00250be849fb79a7b"
 #ifdef USE_PATCH_KART
 #define ASSET_HASH_PATCH_KART    "00000000000000000000000000000000"
 #endif
