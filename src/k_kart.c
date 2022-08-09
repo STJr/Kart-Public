@@ -2005,10 +2005,10 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 	finalspeed *= forwardmove/25;
 	finalspeed /= 2;
 
-	if (forwardmove < 0 && finalspeed > FRACUNIT*2)
+	if (forwardmove < 0 && finalspeed > mapobjectscale*2)
 		return finalspeed/2;
 	else if (forwardmove < 0)
-		return -FRACUNIT/2;
+		return -mapobjectscale/2;
 
 	if (finalspeed < 0)
 		finalspeed = 0;
