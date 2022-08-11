@@ -805,7 +805,7 @@ void R_SkyboxFrame(player_t *player)
 
 	if (splitscreen)
 	{
-		for (i = 1; i <= splitscreen; i++)
+		for (i = 0; i <= splitscreen; i++)
 		{
 			if (player == &players[displayplayers[i]])
 			{
