@@ -6405,7 +6405,7 @@ void K_CheckSpectateStatus(void)
 	}
 
 	// Reset the match if you're in an empty server
-	if (!mapreset && gamestate == GS_LEVEL && (previngame < 2 && numingame >= 2))
+	if (!mapreset && gamestate == GS_LEVEL && (leveltime > introtime) && (previngame < 2 && numingame >= 2))
 	{
 		S_ChangeMusicInternal("chalng", false); // COME ON
 		mapreset = 3*TICRATE; // Even though only the server uses this for game logic, set for everyone for HUD
