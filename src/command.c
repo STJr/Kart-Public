@@ -1884,6 +1884,13 @@ static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr)
 	if (!(v->flags & CV_SAVE))
 		return true;
 
+	if (GETMAJOREXECVERSION(cv_execversion.value) < 8) // 8 = 1.4
+	{
+		if (!stricmp(v->name, "masterserver") // Replaces a hack in MasterServer_OnChange for the original SRB2 MS.
+			|| !stricmp(v->name, "gamma")) // Too easy to accidentially change in prior versions.
+			return false;
+	}
+
 	if (GETMAJOREXECVERSION(cv_execversion.value) < 2) // 2 = 1.0.2
 	{
 #if 0
