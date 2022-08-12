@@ -2766,7 +2766,11 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 					return false; // mobj must lower itself to fit
 				}
 			}
-			else if (maxstep > 0) // Step down
+			else if (maxstep > 0 && !(
+				thing->player && (
+				P_PlayerTouchingSectorSpecial(thing->player, 1, 14)
+				|| GETSECSPECIAL(R_PointInSubsector(x, y)->sector->special, 1) == 14)
+				)) // Step down
 			{
 				// If the floor difference is MAXSTEPMOVE or less, and the sector isn't Section1:14, ALWAYS
 				// step down! Formerly required a Section1:13 sector for the full MAXSTEPMOVE, but no more.
