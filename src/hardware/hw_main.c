@@ -2468,7 +2468,23 @@ void HWR_Subsector(size_t num)
 
 	if (gr_frontsector->ffloors)
 	{
-		if (gr_frontsector->moved)
+		boolean anyMoved = gr_frontsector->moved;
+
+		if (anyMoved == false)
+		{
+			for (rover = gr_frontsector->ffloors; rover; rover = rover->next)
+			{
+				sector_t *controlSec = &sectors[rover->secnum];
+
+				if (controlSec->moved == true)
+				{
+					anyMoved = true;
+					break;
+				}
+			}
+		}
+
+		if (anyMoved == true)
 		{
 			gr_frontsector->numlights = sub->sector->numlights = 0;
 			R_Prep3DFloors(gr_frontsector);
