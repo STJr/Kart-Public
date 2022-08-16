@@ -1176,8 +1176,8 @@ void V_DrawVhsEffect(boolean rewind)
 	if (rewind)
 		V_DrawVhsEffect(false); // experimentation
 
-	upbary -= vid.dupy * (rewind ? 3 : 1.8f);
-	downbary += vid.dupy * (rewind ? 2 : 1);
+	upbary -= FixedMul(vid.dupy * (rewind ? 3 : 1.8f), renderdeltatics);
+	downbary += FixedMul(vid.dupy * (rewind ? 2 : 1), renderdeltatics);
 	if (upbary < -barsize) upbary = vid.height;
 	if (downbary > vid.height) downbary = -barsize;
 
