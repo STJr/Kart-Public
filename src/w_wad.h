@@ -66,8 +66,9 @@ typedef struct
 {
 	unsigned long position; // filelump_t filepos
 	unsigned long disksize; // filelump_t size
-	char name[9]; // filelump_t name[]
-	char *name2; // Used by PK3s. Dynamically allocated name.
+	char name[9];           // filelump_t name[] e.g. "LongEntr"
+	char *longname;         //                   e.g. "LongEntryName"
+	char *fullname;         //                   e.g. "Folder/Subfolder/LongEntryName.extension"
 	size_t size; // real (uncompressed) size
 	compmethod compression; // lump compression method
 } lumpinfo_t;
@@ -80,6 +81,7 @@ typedef struct
 #define MAX_WADFILES 127 // maximum of wad files used at the same time
 // Replay code relies on it being an UINT8 and, just to be safe, in case some wad counter somewhere is a SINT8, you should NOT go above 127 here if you're lazy like me.
 // Besides, are there truly 127 wads worth your interrest?
+// (2022 editor's note: yes, in Kart. And as of 2022-08-07, no WAD indices are SINT8. And SRB2 does not impose a limit.)
 
 #define lumpcache_t void *
 
@@ -136,6 +138,8 @@ void W_UnloadWadFile(UINT16 num);
 // so that it stops with a message if a file was not found, but not if all is okay.
 INT32 W_InitMultipleFiles(char **filenames, boolean addons);
 
+#define W_FileHasFolders(wadfile) ((wadfile)->type == RET_PK3)
+
 const char *W_CheckNameForNumPwad(UINT16 wad, UINT16 lump);
 const char *W_CheckNameForNum(lumpnum_t lumpnum);
 
@@ -155,6 +159,7 @@ size_t W_LumpLengthPwad(UINT16 wad, UINT16 lump);
 size_t W_LumpLength(lumpnum_t lumpnum);
 
 boolean W_IsLumpWad(lumpnum_t lumpnum); // for loading maps from WADs in PK3s
+boolean W_IsLumpFolder(UINT16 wad, UINT16 lump); // for detecting folder "lumps"
 
 #ifdef HAVE_ZLIB
 void zerr(int ret); // zlib error checking
