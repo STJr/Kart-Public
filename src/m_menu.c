@@ -6342,15 +6342,18 @@ void M_RefreshPauseMenu(void)
 #endif
 }
 
+boolean firstDismissedRulesThisBoot = true;
+
 void M_PopupMasterServerRules(void)
 {
 #ifdef MASTERSERVER
-	if (cv_advertise.value && (serverrunning || currentMenu == &MP_ServerDef))
+	if (cv_advertise.value && (serverrunning || currentMenu == &MP_ServerDef) && firstDismissedRulesThisBoot)
 	{
 		char *rules = GetMasterServerRules();
 
 		if (rules)
 		{
+			firstDismissedRulesThisBoot = false;
 			M_StartMessage(va("%s\n(press any key)", rules), NULL, MM_NOTHING);
 			Z_Free(rules);
 		}
