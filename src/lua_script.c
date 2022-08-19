@@ -369,14 +369,6 @@ void LUA_PushUserdata(lua_State *L, void *data, const char *meta)
 	lua_remove(L, -2); // remove LREG_VALID
 }
 
-int LUA_PushServerPlayer(lua_State *L)
-{
-	if ((!multiplayer || !(netgame || demo.playback)) && !playeringame[serverplayer])
-		return 0;
-	LUA_PushUserdata(L, &players[serverplayer], META_PLAYER);
-	return 1;
-}
-
 // When userdata is freed, use this function to remove it from Lua.
 void LUA_InvalidateUserdata(void *data)
 {
