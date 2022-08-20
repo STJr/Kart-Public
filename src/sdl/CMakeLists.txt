@@ -36,6 +36,7 @@ set(SRB2_SDL2_SOURCES
 	i_system.c
 	i_ttf.c
 	i_video.c
+	i_threads.c
 	#IMG_xpm.c
 	ogl_sdl.c
 
@@ -261,6 +262,7 @@ if(${SDL2_FOUND})
 
 	target_compile_definitions(SRB2SDL2 PRIVATE
 		-DHAVE_SDL
+		-DHAVE_THREADS
 	)
 
 	## strip debug symbols into separate file when using gcc
