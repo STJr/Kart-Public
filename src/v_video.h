@@ -205,7 +205,7 @@ void V_DrawPaddedTallNum(INT32 x, INT32 y, INT32 flags, INT32 num, INT32 digits)
 
 // Draw ping numbers. Used by the scoreboard and that one ping option. :P
 // This is a separate function because IMO lua should have access to it as well.
-void V_DrawPingNum(INT32 x, INT32 y, INT32 flags, INT32 num, const UINT8 *colormap);
+INT32 V_DrawPingNum(INT32 x, INT32 y, INT32 flags, INT32 num, const UINT8 *colormap);
 
 // Find string width from lt_font chars
 INT32 V_LevelNameWidth(const char *string);
