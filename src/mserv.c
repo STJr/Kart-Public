@@ -591,5 +591,8 @@ Advertise_OnChange(void)
 	DRPC_UpdatePresence();
 #endif
 
-	M_PopupMasterServerRules();
+	if (!dedicated)
+	{
+		M_PopupMasterServerRules();
+	}
 }
