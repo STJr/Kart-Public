@@ -14,7 +14,6 @@ set(SRB2_ASSET_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/installer"
 
 set(SRB2_ASSET_HASHED
 "srb2.srb;\
-patch.kart;\
 gfx.kart;\
 textures.kart;\
 chars.kart;\
