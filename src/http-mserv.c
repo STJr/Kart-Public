@@ -21,6 +21,7 @@ Documentation available here.
 #include "doomdef.h"
 #include "d_clisrv.h"
 #include "command.h"
+#include "console.h"
 #include "m_argv.h"
 #include "m_menu.h"
 #include "mserv.h"
@@ -76,6 +77,19 @@ Contact_error (void)
 	CONS_Alert(CONS_ERROR,
 			"There was a problem contacting the master server...\n"
 	);
+}
+
+static void
+Printf_url (const char *url)
+{
+	boolean startup;
+
+	I_lock_mutex(&con_mutex);
+	startup = con_startup;
+	I_unlock_mutex(con_mutex);
+
+	(startup ? I_OutputMsg : CONS_Printf)(
+			"HMS: connecting '%s'...\n", url);
 }
 
 static size_t
@@ -177,7 +191,7 @@ HMS_connect (const char *format, ...)
 	if (quack_token)
 		sprintf(&url[seek], "&token=%s", quack_token);
 
-	CONS_Printf("HMS: connecting '%s'...\n", url);
+	Printf_url(url);
 
 	buffer = malloc(sizeof *buffer);
 	buffer->curl = curl;
