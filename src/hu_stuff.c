@@ -321,7 +321,7 @@ void HU_LoadGraphics(void)
 		pinggfx[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
-	pingmeasure[0] = W_CachePatchName("PINGF", PU_HUDGFX);
+	pingmeasure[0] = W_CachePatchName("PINGD", PU_HUDGFX);
 	pingmeasure[1] = W_CachePatchName("PINGMS", PU_HUDGFX);
 
 	// fps stuff
