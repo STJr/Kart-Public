@@ -276,6 +276,10 @@ typedef struct
 	INT32 onconveyor;
 
 	tic_t jointime;
+	tic_t spectatorreentry;
+
+	tic_t grieftime;
+	UINT8 griefstrikes;
 
 	UINT8 splitscreenindex;
 
@@ -504,6 +508,8 @@ extern INT32 mapchangepending;
 extern doomdata_t *netbuffer;
 extern consvar_t cv_stunserver;
 extern consvar_t cv_httpsource;
+extern consvar_t cv_kicktime;
+
 extern consvar_t cv_showjoinaddress;
 extern consvar_t cv_playbackspeed;
 
@@ -517,17 +523,18 @@ extern consvar_t cv_playbackspeed;
 #define KICK_MSG_TIMEOUT     4
 #define KICK_MSG_BANNED      5
 #define KICK_MSG_PING_HIGH   6
-#define KICK_MSG_CUSTOM_KICK 7
-#define KICK_MSG_CUSTOM_BAN  8
+#define KICK_MSG_GRIEF       7
+#define KICK_MSG_CUSTOM_KICK 8
+#define KICK_MSG_CUSTOM_BAN  9
 
 typedef enum
 {
-	KR_KICK          = 1, //Kicked by server
-	KR_PINGLIMIT     = 2, //Broke Ping Limit
-	KR_SYNCH         = 3, //Synch Failure
-	KR_TIMEOUT       = 4, //Connection Timeout
-	KR_BAN           = 5, //Banned by server
-	KR_LEAVE         = 6, //Quit the game
+	KR_KICK = 1, //Kicked by server
+	KR_PINGLIMIT, //Broke Ping Limit
+	KR_SYNCH, //Synch Failure
+	KR_TIMEOUT, //Connection Timeout
+	KR_BAN, //Banned by server
+	KR_LEAVE, //Quit the game
 
 } kickreason_t;
 
@@ -595,7 +602,7 @@ boolean Playing(void);
 void D_QuitNetGame(void);
 
 //? How many ticks to run?
-void TryRunTics(tic_t realtic);
+boolean TryRunTics(tic_t realtic);
 
 // extra data for lmps
 // these functions scare me. they contain magic.

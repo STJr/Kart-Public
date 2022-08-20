@@ -94,6 +94,7 @@ extern consvar_t cv_killingdead;
 extern consvar_t cv_pause;
 
 extern consvar_t cv_restrictskinchange, cv_allowteamchange, cv_ingamecap, cv_respawntime;
+extern consvar_t cv_spectatorreentry, cv_antigrief;
 
 /*extern consvar_t cv_teleporters, cv_superring, cv_supersneakers, cv_invincibility;
 extern consvar_t cv_jumpshield, cv_watershield, cv_ringshield, cv_forceshield, cv_bombshield;
@@ -118,6 +119,7 @@ extern consvar_t cv_kartfrantic;
 extern consvar_t cv_kartcomeback;
 extern consvar_t cv_kartencore;
 extern consvar_t cv_kartvoterulechanges;
+extern consvar_t cv_kartgametypepreference;
 extern consvar_t cv_kartspeedometer;
 extern consvar_t cv_kartvoices;
 
@@ -146,6 +148,7 @@ extern consvar_t cv_specialrings, cv_powerstones, cv_matchboxes, cv_competitionb
 extern consvar_t cv_maxping;
 extern consvar_t cv_pingtimeout;
 extern consvar_t cv_showping;
+extern consvar_t cv_pingmeasurement;
 
 extern consvar_t cv_skipmapcheck;
 

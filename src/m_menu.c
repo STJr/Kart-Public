@@ -22,6 +22,7 @@
 #include "d_main.h"
 #include "d_netcmd.h"
 #include "console.h"
+#include "r_fps.h"
 #include "r_local.h"
 #include "hu_stuff.h"
 #include "g_game.h"
@@ -31,6 +32,7 @@
 // Data.
 #include "sounds.h"
 #include "s_sound.h"
+#include "i_time.h"
 #include "i_system.h"
 #include "i_threads.h"
 
@@ -163,6 +165,7 @@ INT16 startmap; // Mario, NiGHTS, or just a plain old normal game?
 
 static INT16 itemOn = 1; // menu item skull is on, Hack by Tails 09-18-2002
 static INT16 skullAnimCounter = 10; // skull animation counter
+static boolean interpTimerHackAllow = 0;
 
 static  UINT8 setupcontrolplayer;
 static  INT32   (*setupcontrols)[2];  // pointer to the gamecontrols of the player being edited
@@ -1259,9 +1262,10 @@ static menuitem_t OP_VideoOptionsMenu[] =
 
 	{IT_STRING | IT_CVAR,	NULL,	"Show FPS",				&cv_ticrate,			 90},
 	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			100},
+	{IT_STRING | IT_CVAR,   NULL,   "FPS Cap",              &cv_fpscap,             110},
 
 #ifdef HWRENDER
-	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	120},
+	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	130},
 #endif
 };
 
@@ -1279,6 +1283,7 @@ enum
 	op_video_fov,
 	op_video_fps,
 	op_video_vsync,
+	op_video_fpscap,
 #ifdef HWRENDER
 	op_video_ogl,
 #endif
@@ -1525,8 +1530,8 @@ static menuitem_t OP_AdvServerOptionsMenu[] =
 	                         NULL, "Server Browser Address",		&cv_masterserver,		 10},
 
 	{IT_STRING | IT_CVAR,    NULL, "Attempts to resynchronise",		&cv_resynchattempts,	 40},
-	{IT_STRING | IT_CVAR,    NULL, "Ping limit (ms)",				&cv_maxping,			 50},
-	{IT_STRING | IT_CVAR,    NULL, "Ping timeout (s)",				&cv_pingtimeout,		 60},
+	{IT_STRING | IT_CVAR,    NULL, "Delay limit (frames)",			&cv_maxping,			 50},
+	{IT_STRING | IT_CVAR,    NULL, "Delay timeout (s)",				&cv_pingtimeout,		 60},
 	{IT_STRING | IT_CVAR,    NULL, "Connection timeout (tics)",		&cv_nettimeout,			 70},
 	{IT_STRING | IT_CVAR,    NULL, "Join timeout (tics)",			&cv_jointimeout,		 80},
 
@@ -2406,8 +2411,6 @@ static void M_ChangeCvar(INT32 choice)
 			choice *= (TICRATE/7);
 		else if (cv == &cv_maxsend)
 			choice *= 512;
-		else if (cv == &cv_maxping)
-			choice *= 50;
 #endif
 		CV_AddValue(cv,choice);
 	}
@@ -3131,6 +3134,8 @@ void M_Drawer(void)
 		else
 			V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2) - (4), highlightflags, "Focus Lost");
 	}
+
+	interpTimerHackAllow = false;
 }
 
 //
@@ -3410,6 +3415,8 @@ void M_Ticker(void)
 	}
 	else
 		playback_enterheld = 0;
+
+	interpTimerHackAllow = true;
 
 	//added : 30-01-98 : test mode for five seconds
 	if (vidm_testingmode > 0)
@@ -4564,7 +4571,11 @@ void M_StartMessage(const char *string, void *routine,
 		}
 
 		if (i == strlen(message+start))
+		{
 			start += i;
+			if (i > max)
+				max = i;
+		}
 	}
 
 	MessageDef.x = (INT16)((BASEVIDWIDTH  - 8*max-16)/2);
@@ -5514,7 +5525,7 @@ static void DrawReplayHutReplayInfo(void)
 				static angle_t rubyfloattime = 0;
 				const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
 				V_DrawFixedPatch((x+(w>>2))<<FRACBITS, ((y+(h>>2))<<FRACBITS) - (rubyheight<<1), FRACUNIT, V_SNAPTOTOP, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
-				rubyfloattime += (ANGLE_MAX/NEWTICRATE);
+				rubyfloattime += FixedMul(ANGLE_MAX/NEWTICRATE, renderdeltatics);
 			}
 		}
 
@@ -5678,7 +5689,9 @@ static void M_DrawReplayHut(void)
 		{
 			cursory = localy;
 
-			if (replayScrollDelay)
+			if (!interpTimerHackAllow)
+				;
+			else if (replayScrollDelay)
 				replayScrollDelay--;
 			else if (replayScrollDir > 0)
 			{
@@ -5780,7 +5793,9 @@ static void M_DrawReplayStartMenu(void)
 #undef STARTY
 
 	// Handle scrolling rankings
-	if (replayScrollDelay)
+	if (!interpTimerHackAllow)
+		;
+	else if (replayScrollDelay)
 		replayScrollDelay--;
 	else if (replayScrollDir > 0)
 	{
@@ -6294,7 +6309,7 @@ static void M_RetryResponse(INT32 ch)
 	if (ch != 'y' && ch != KEY_ENTER)
 		return;
 
-	if (!&players[consoleplayer] || netgame || multiplayer) // Should never happen!
+	if (netgame || multiplayer) // Should never happen!
 		return;
 
 	M_ClearMenus(true);
@@ -6323,6 +6338,25 @@ void M_RefreshPauseMenu(void)
 	else
 	{
 		MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
+	}
+#endif
+}
+
+boolean firstDismissedRulesThisBoot = true;
+
+void M_PopupMasterServerRules(void)
+{
+#ifdef MASTERSERVER
+	if (cv_advertise.value && (serverrunning || currentMenu == &MP_ServerDef) && firstDismissedRulesThisBoot)
+	{
+		char *rules = GetMasterServerRules();
+
+		if (rules)
+		{
+			firstDismissedRulesThisBoot = false;
+			M_StartMessage(va("%s\n(press any key)", rules), NULL, MM_NOTHING);
+			Z_Free(rules);
+		}
 	}
 #endif
 }
@@ -6916,6 +6950,7 @@ static void M_DrawLoad(void)
 	INT32 ymod = 0, offset = 0;
 
 	M_DrawMenuTitle();
+	fixed_t scrollfrac = FixedDiv(2, 3);
 
 	if (menumovedir != 0) //movement illusion
 	{
@@ -9004,7 +9039,7 @@ static void M_DrawLevelSelectOnly(boolean leftfade, boolean rightfade)
 			static angle_t rubyfloattime = 0;
 			const fixed_t rubyheight = FINESINE(rubyfloattime>>ANGLETOFINESHIFT);
 			V_DrawFixedPatch((x+w/2)<<FRACBITS, ((y+i/2)<<FRACBITS) - (rubyheight<<1), FRACUNIT, 0, W_CachePatchName("RUBYICON", PU_CACHE), NULL);
-			rubyfloattime += (ANGLE_MAX/NEWTICRATE);
+			rubyfloattime += FixedMul(ANGLE_MAX/NEWTICRATE, renderdeltatics);
 		}
 	}
 	/*V_DrawDiag(x, y, 12, 31);
@@ -9132,7 +9167,7 @@ static void M_StartServerMenu(INT32 choice)
 	levellistmode = LLM_CREATESERVER;
 	M_PrepareLevelSelect();
 	M_SetupNextMenu(&MP_ServerDef);
-
+	M_PopupMasterServerRules();
 }
 
 // ==============
@@ -9227,12 +9262,12 @@ Update the maxplayers label...
 
 			if (itemOn == 2 && i == setupm_pselect)
 			{
-				static UINT8 cursorframe = 0;
-				if (skullAnimCounter % 4 == 0)
-					cursorframe++;
-				if (cursorframe > 7)
-					cursorframe = 0;
-				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, 0, W_CachePatchName(va("K_BHILI%d", cursorframe+1), PU_CACHE), NULL);
+				static fixed_t cursorframe = 0;
+				
+				cursorframe += renderdeltatics / 4;
+				for (; cursorframe > 7 * FRACUNIT; cursorframe -= 7 * FRACUNIT) {}
+
+				V_DrawFixedPatch(x<<FRACBITS, y<<FRACBITS, FRACUNIT, 0, W_CachePatchName(va("K_BHILI%d", (cursorframe >> FRACBITS) + 1), PU_CACHE), NULL);
 			}
 
 			x += incrwidth;
@@ -9427,7 +9462,7 @@ static void M_HandleConnectIP(INT32 choice)
 // ========================
 // Tails 03-02-2002
 
-static INT32      multi_tics;
+static fixed_t    multi_tics;
 static state_t   *multi_state;
 
 // this is set before entering the MultiPlayer setup menu,
@@ -9573,16 +9608,14 @@ static void M_DrawSetupMultiPlayerMenu(void)
 		fixed_t scale = FRACUNIT/2;
 		INT32 offx = 8, offy = 8;
 		patch_t *cursor;
-		static UINT8 cursorframe = 0;
+		static fixed_t cursorframe = 0;
 		patch_t *face;
 		UINT8 *colmap;
 
-		if (skullAnimCounter % 4 == 0)
-			cursorframe++;
-		if (cursorframe > 7)
-			cursorframe = 0;
+		cursorframe += renderdeltatics / 4;
+		for (; cursorframe > 7 * FRACUNIT; cursorframe -= 7 * FRACUNIT) {}
 
-		cursor = W_CachePatchName(va("K_BHILI%d", cursorframe+1), PU_CACHE);
+		cursor = W_CachePatchName(va("K_BHILI%d", (cursorframe >> FRACBITS) + 1), PU_CACHE);
 
 		if (col < 0)
 			col += numskins;
@@ -9614,14 +9647,17 @@ static void M_DrawSetupMultiPlayerMenu(void)
 #undef iconwidth
 
 	// anim the player in the box
-	if (--multi_tics <= 0)
+	multi_tics -= renderdeltatics;
+	while (multi_tics <= 0)
 	{
 		st = multi_state->nextstate;
 		if (st != S_NULL)
 			multi_state = &states[st];
-		multi_tics = multi_state->tics;
-		if (multi_tics == -1)
-			multi_tics = 15;
+
+		if (multi_state->tics <= -1)
+			multi_tics += 15*FRACUNIT;
+		else
+			multi_tics += multi_state->tics * FRACUNIT;
 	}
 
 	// skin 0 is default player sprite
@@ -9782,7 +9818,7 @@ static void M_SetupMultiPlayer(INT32 choice)
 	(void)choice;
 
 	multi_state = &states[mobjinfo[MT_PLAYER].seestate];
-	multi_tics = multi_state->tics;
+	multi_tics = multi_state->tics*FRACUNIT;
 	strcpy(setupm_name, cv_playername.string);
 
 	// set for player 1
@@ -9813,7 +9849,7 @@ static void M_SetupMultiPlayer2(INT32 choice)
 	(void)choice;
 
 	multi_state = &states[mobjinfo[MT_PLAYER].seestate];
-	multi_tics = multi_state->tics;
+	multi_tics = multi_state->tics*FRACUNIT;
 	strcpy (setupm_name, cv_playername2.string);
 
 	// set for splitscreen secondary player
@@ -11156,7 +11192,7 @@ static void M_DrawMonitorToggles(void)
 		}
 	}
 
-	if (shitsfree)
+	if (shitsfree && interpTimerHackAllow)
 		shitsfree--;
 
 	V_DrawCenteredString(BASEVIDWIDTH/2, currentMenu->y, highlightflags, va("* %s *", currentMenu->menuitems[itemOn].text));
@@ -11316,7 +11352,8 @@ void M_QuitResponse(INT32 ch)
 			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 			V_DrawSmallScaledPatch(0, 0, 0, W_CachePatchName("GAMEQUIT", PU_CACHE)); // Demo 3 Quit Screen Tails 06-16-2001
 			I_FinishUpdate(); // Update the screen with the image Tails 06-19-2001
-			I_Sleep();
+			I_Sleep(cv_sleep.value);
+			I_UpdateTime(cv_timescale.value);
 		}
 	}
 	I_Quit();

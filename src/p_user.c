@@ -20,6 +20,7 @@
 #include "d_net.h"
 #include "g_game.h"
 #include "p_local.h"
+#include "r_fps.h"
 #include "r_main.h"
 #include "s_sound.h"
 #include "r_things.h"
@@ -1683,6 +1684,12 @@ mobj_t *P_SpawnGhostMobj(mobj_t *mobj)
 	if (!(mobj->flags & MF_DONTENCOREMAP))
 		mobj->flags &= ~MF_DONTENCOREMAP;
 
+	// Copy interpolation data :)
+	ghost->old_x = mobj->old_x2;
+	ghost->old_y = mobj->old_y2;
+	ghost->old_z = mobj->old_z2;
+	ghost->old_angle = (mobj->player ? mobj->player->old_frameangle2 : mobj->old_angle2);
+
 	return ghost;
 }
 
@@ -1697,6 +1704,9 @@ void P_DoPlayerExit(player_t *player)
 
 	if (P_IsLocalPlayer(player) && (!player->spectator && !demo.playback))
 		legitimateexit = true;
+
+	if (player->griefstrikes > 0)
+		player->griefstrikes--; // Remove a strike for finishing a race normally
 
 	if (G_RaceGametype()) // If in Race Mode, allow
 	{
@@ -7985,7 +7995,11 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	}
 
 	if (lookbackdown)
+	{
 		P_MoveChaseCamera(player, thiscam, false);
+		R_ResetViewInterpolation(num + 1);
+		R_ResetViewInterpolation(num + 1);
+	}
 
 	return (x == thiscam->x && y == thiscam->y && z == thiscam->z && angle == thiscam->aiming);
 }
@@ -8244,7 +8258,12 @@ void P_PlayerThink(player_t *player)
 				player->playerstate = PST_REBORN;
 		}
 		if (player->playerstate == PST_REBORN)
+		{
+#ifdef HAVE_BLUA
+			LUAh_PlayerThink(player);
+#endif
 			return;
+		}
 	}
 
 #ifdef SEENAMES
@@ -8368,7 +8387,12 @@ void P_PlayerThink(player_t *player)
 				P_DoTimeOver(player);
 
 				if (player->playerstate == PST_DEAD)
+				{
+#ifdef HAVE_BLUA
+					LUAh_PlayerThink(player);
+#endif
 					return;
+				}
 			}
 		}
 
@@ -8432,7 +8456,9 @@ void P_PlayerThink(player_t *player)
 		else
 			player->mo->flags2 &= ~MF2_SHADOW;
 		P_DeathThink(player);
-
+#ifdef HAVE_BLUA
+		LUAh_PlayerThink(player);
+#endif
 		return;
 	}
 
@@ -8486,6 +8512,59 @@ void P_PlayerThink(player_t *player)
 			player->realtime = 0;
 			if (player == &players[consoleplayer])
 				curlap = 0;
+		}
+	}
+
+	if (netgame && cv_antigrief.value != 0 && G_RaceGametype())
+	{
+		if (!player->spectator && !player->exiting && !(player->pflags & PF_TIMEOVER))
+		{
+			const tic_t griefval = cv_antigrief.value * TICRATE;
+			const UINT8 n = player - players;
+
+		if (n != serverplayer
+#ifndef DEVELOP
+			&& !IsPlayerAdmin(n)
+#endif
+			)
+			{
+				if (player->grieftime > griefval)
+				{
+					player->griefstrikes++;
+					player->grieftime = 0;
+
+					if (server)
+					{
+						if (player->griefstrikes > 2)
+						{
+							// Send kick
+							XBOXSTATIC UINT8 buf[2];
+
+							buf[0] = n;
+							buf[1] = KICK_MSG_GRIEF;
+							SendNetXCmd(XD_KICK, &buf, 2);
+						}
+						else
+						{
+							// Send spectate
+							changeteam_union NetPacket;
+							UINT16 usvalue;
+
+							NetPacket.value.l = NetPacket.value.b = 0;
+							NetPacket.packet.newteam = 0;
+							NetPacket.packet.playernum = n;
+							NetPacket.packet.verification = true;
+
+							usvalue = SHORT(NetPacket.value.l|NetPacket.value.b);
+							SendNetXCmd(XD_TEAMCHANGE, &usvalue, sizeof(usvalue));
+						}
+					}
+				}
+				else if (player->powers[pw_flashing] == 0)
+				{
+					player->grieftime++;
+				}
+			}
 		}
 	}
 
@@ -8568,7 +8647,12 @@ void P_PlayerThink(player_t *player)
 		P_MovePlayer(player);
 
 	if (!player->mo)
+	{
+#ifdef HAVE_BLUA
+		LUAh_PlayerThink(player);
+#endif
 		return; // P_MovePlayer removed player->mo.
+	}
 
 	// Unset statis flags after moving.
 	// In other words, if you manually set stasis via code,
@@ -8763,6 +8847,10 @@ void P_PlayerThink(player_t *player)
 	player->pflags &= ~PF_SLIDING;
 
 	K_KartPlayerThink(player, cmd); // SRB2kart
+
+#ifdef HAVE_BLUA
+	LUAh_PlayerThink(player);
+#endif
 
 /*
 //	Colormap verification
@@ -9081,7 +9169,7 @@ void P_PlayerAfterThink(player_t *player)
 		player->mo->momx = (player->mo->tracer->x - player->mo->x)*2;
 		player->mo->momy = (player->mo->tracer->y - player->mo->y)*2;
 		player->mo->momz = (player->mo->tracer->z - (player->mo->height-player->mo->tracer->height/2) - player->mo->z)*2;
-		P_TeleportMove(player->mo, player->mo->tracer->x, player->mo->tracer->y, player->mo->tracer->z - (player->mo->height-player->mo->tracer->height/2));
+		P_MoveOrigin(player->mo, player->mo->tracer->x, player->mo->tracer->y, player->mo->tracer->z - (player->mo->height-player->mo->tracer->height/2));
 		player->pflags |= PF_JUMPED;
 		player->secondjump = 0;
 		player->pflags &= ~PF_THOKKED;

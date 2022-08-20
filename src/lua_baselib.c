@@ -238,7 +238,8 @@ static int lib_pAproxDistance(lua_State *L)
 	fixed_t dx = luaL_checkfixed(L, 1);
 	fixed_t dy = luaL_checkfixed(L, 2);
 	//HUDSAFE
-	lua_pushfixed(L, P_AproxDistance(dx, dy));
+	LUA_Deprecated(L, "P_AproxDistance", "FixedHypot");
+	lua_pushfixed(L, FixedHypot(dx, dy));
 	return 1;
 }
 
@@ -1025,7 +1026,40 @@ static int lib_pTeleportMove(lua_State *L)
 	NOHUD
 	if (!thing)
 		return LUA_ErrInvalid(L, "mobj_t");
-	lua_pushboolean(L, P_TeleportMove(thing, x, y, z));
+	LUA_Deprecated(L, "P_TeleportMove", "P_SetOrigin\" or \"P_MoveOrigin");
+	lua_pushboolean(L, P_MoveOrigin(thing, x, y, z));
+	LUA_PushUserdata(L, tmthing, META_MOBJ);
+	P_SetTarget(&tmthing, ptmthing);
+	return 2;
+}
+
+static int lib_pSetOrigin(lua_State *L)
+{
+	mobj_t *ptmthing = tmthing;
+	mobj_t *thing = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	fixed_t x = luaL_checkfixed(L, 2);
+	fixed_t y = luaL_checkfixed(L, 3);
+	fixed_t z = luaL_checkfixed(L, 4);
+	NOHUD
+	if (!thing)
+		return LUA_ErrInvalid(L, "mobj_t");
+	lua_pushboolean(L, P_SetOrigin(thing, x, y, z));
+	LUA_PushUserdata(L, tmthing, META_MOBJ);
+	P_SetTarget(&tmthing, ptmthing);
+	return 2;
+}
+
+static int lib_pMoveOrigin(lua_State *L)
+{
+	mobj_t *ptmthing = tmthing;
+	mobj_t *thing = *((mobj_t **)luaL_checkudata(L, 1, META_MOBJ));
+	fixed_t x = luaL_checkfixed(L, 2);
+	fixed_t y = luaL_checkfixed(L, 3);
+	fixed_t z = luaL_checkfixed(L, 4);
+	NOHUD
+	if (!thing)
+		return LUA_ErrInvalid(L, "mobj_t");
+	lua_pushboolean(L, P_MoveOrigin(thing, x, y, z));
 	LUA_PushUserdata(L, tmthing, META_MOBJ);
 	P_SetTarget(&tmthing, ptmthing);
 	return 2;
@@ -3037,6 +3071,8 @@ static luaL_Reg lib[] = {
 	{"P_TryMove",lib_pTryMove},
 	{"P_Move",lib_pMove},
 	{"P_TeleportMove",lib_pTeleportMove},
+	{"P_SetOrigin",lib_pSetOrigin},
+	{"P_MoveOrigin",lib_pMoveOrigin},
 	{"P_SlideMove",lib_pSlideMove},
 	{"P_BounceMove",lib_pBounceMove},
 	{"P_CheckSight", lib_pCheckSight},

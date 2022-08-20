@@ -14,6 +14,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "p_local.h"
+#include "r_fps.h"
 #include "r_state.h"
 #include "s_sound.h"
 #include "z_zone.h"
@@ -705,6 +706,7 @@ void T_ContinuousFalling(levelspecthink_t *faller)
 		{
 			faller->sector->ceilingheight = faller->ceilingwasheight;
 			faller->sector->floorheight = faller->floorwasheight;
+			R_ClearLevelInterpolatorState(&faller->thinker);
 		}
 	}
 	else // Up
@@ -713,6 +715,7 @@ void T_ContinuousFalling(levelspecthink_t *faller)
 		{
 			faller->sector->ceilingheight = faller->ceilingwasheight;
 			faller->sector->floorheight = faller->floorwasheight;
+			R_ClearLevelInterpolatorState(&faller->thinker);
 		}
 	}
 
@@ -2862,6 +2865,9 @@ INT32 EV_DoFloor(line_t *line, floor_e floortype)
 		}
 
 		firstone = 0;
+
+		// interpolation
+		R_CreateInterpolator_SectorPlane(&dofloor->thinker, sec, false);
 	}
 
 	return rtn;
@@ -2995,6 +3001,10 @@ INT32 EV_DoElevator(line_t *line, elevator_e elevtype, boolean customspeed)
 			default:
 				break;
 		}
+
+		// interpolation
+		R_CreateInterpolator_SectorPlane(&elevator->thinker, sec, false);
+		R_CreateInterpolator_SectorPlane(&elevator->thinker, sec, true);
 	}
 	return rtn;
 }
@@ -3089,6 +3099,10 @@ INT32 EV_BounceSector(sector_t *sec, fixed_t momz, line_t *sourceline)
 	bouncer->distance = FRACUNIT;
 	bouncer->low = 1;
 
+	// interpolation
+	R_CreateInterpolator_SectorPlane(&bouncer->thinker, sec, false);
+	R_CreateInterpolator_SectorPlane(&bouncer->thinker, sec, true);
+
 	return 1;
 #undef speed
 #undef distance
@@ -3134,6 +3148,10 @@ INT32 EV_DoContinuousFall(sector_t *sec, sector_t *backsector, fixed_t spd, bool
 		faller->ceilingdestheight = faller->floordestheight;
 		faller->direction = -1;
 	}
+
+	// interpolation
+	R_CreateInterpolator_SectorPlane(&faller->thinker, sec, false);
+	R_CreateInterpolator_SectorPlane(&faller->thinker, sec, true);
 
 	return 1;
 #undef speed
@@ -3210,6 +3228,10 @@ INT32 EV_StartCrumble(sector_t *sec, ffloor_t *rover, boolean floating,
 		P_SpawnMobj(foundsec->soundorg.x, foundsec->soundorg.y, elevator->direction == 1 ? elevator->sector->floorheight : elevator->sector->ceilingheight, MT_CRUMBLEOBJ);
 	}
 
+	// interpolation
+	R_CreateInterpolator_SectorPlane(&elevator->thinker, sec, false);
+	R_CreateInterpolator_SectorPlane(&elevator->thinker, sec, true);
+
 	return 1;
 }
 
@@ -3250,6 +3272,10 @@ INT32 EV_MarioBlock(sector_t *sec, sector_t *roversector, fixed_t topheight, mob
 		block->vars[5] = FRACUNIT; // distance
 		block->vars[6] = 1; // low
 
+		// interpolation
+		R_CreateInterpolator_SectorPlane(&block->thinker, roversector, false);
+		R_CreateInterpolator_SectorPlane(&block->thinker, roversector, true);
+
 		if (itsamonitor)
 		{
 			oldx = thing->x;
@@ -3258,9 +3284,9 @@ INT32 EV_MarioBlock(sector_t *sec, sector_t *roversector, fixed_t topheight, mob
 		}
 
 		P_UnsetThingPosition(thing);
-		thing->x = roversector->soundorg.x;
-		thing->y = roversector->soundorg.y;
-		thing->z = topheight;
+		thing->x = thing->old_x = roversector->soundorg.x;
+		thing->y = thing->old_y = roversector->soundorg.y;
+		thing->z = thing->old_z = topheight;
 		thing->momz = FixedMul(6*FRACUNIT, thing->scale);
 		P_SetThingPosition(thing);
 		if (thing->flags & MF_SHOOTABLE)
@@ -3289,9 +3315,9 @@ INT32 EV_MarioBlock(sector_t *sec, sector_t *roversector, fixed_t topheight, mob
 		if (itsamonitor)
 		{
 			P_UnsetThingPosition(tmthing);
-			tmthing->x = oldx;
-			tmthing->y = oldy;
-			tmthing->z = oldz;
+			tmthing->x = thing->old_x = oldx;
+			tmthing->y = thing->old_y = oldy;
+			tmthing->z = thing->old_z = oldz;
 			tmthing->momx = 1;
 			tmthing->momy = 1;
 			P_SetThingPosition(tmthing);

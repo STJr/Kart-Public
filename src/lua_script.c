@@ -35,6 +35,8 @@
 
 lua_State *gL = NULL;
 
+int hook_defrosting;
+
 // List of internal libraries to load from SRB2
 static lua_CFunction liblist[] = {
 	LUA_EnumLib, // global metatable for enums

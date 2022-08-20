@@ -815,6 +815,8 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"chain",  false, 255,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Mementos Reaper
   {"mkuma",  false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Trigger Happy Havoc Monokuma
   {"toada",  false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Arid Sands Toad scream
+  {"gemhit", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Opulence gem/coin tumbling
+  {"wrink", false,  64,  0, -1, NULL, 0,         -1,  -1, LUMPERROR}, // Some sort of ghoulie?
   {"bsnipe", false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Banana sniping
   {"join",   false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Player joined server
   {"leave",  false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Player left server

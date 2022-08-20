@@ -11,7 +11,7 @@
 /*
 Documentation available here.
 
-                     <https://ms.kartkrew.org/tools/api/2/>
+                     <https://ms.kartkrew.org/tools/api/2.2/>
 */
 
 #ifdef HAVE_CURL
@@ -138,7 +138,7 @@ HMS_connect (const char *format, ...)
 		return NULL;
 	}
 
-	if (cv_masterserver_token.string[0])
+	if (cv_masterserver_token.string && cv_masterserver_token.string[0])
 	{
 		quack_token = curl_easy_escape(curl, cv_masterserver_token.string, 0);
 		token_length = ( sizeof "&token="-1 )+ strlen(quack_token);
@@ -171,8 +171,8 @@ HMS_connect (const char *format, ...)
 	seek += vsprintf(&url[seek], format, ap);
 	va_end (ap);
 
-	strcpy(&url[seek], "?v=2");
-	seek += sizeof "?v=2" - 1;
+	strcpy(&url[seek], "?v=2.2");
+	seek += sizeof "?v=2.2" - 1;
 
 	if (quack_token)
 		sprintf(&url[seek], "&token=%s", quack_token);
@@ -497,6 +497,35 @@ HMS_compare_mod_version (char *buffer, size_t buffer_size)
 	HMS_end(hms);
 
 	return ok;
+}
+
+const char *
+HMS_fetch_rules (char *buffer, size_t buffer_size)
+{
+	struct HMS_buffer *hms;
+
+	hms = HMS_connect("rules");
+
+	if (! hms)
+		return NULL;
+
+	if (HMS_do(hms))
+	{
+		char *p = strstr(hms->buffer, "\n\n");
+
+		if (p)
+		{
+			p[1] = '\0';
+
+			strlcpy(buffer, hms->buffer, buffer_size);
+		}
+		else
+			buffer = NULL;
+	}
+
+	HMS_end(hms);
+
+	return buffer;
 }
 
 static char *

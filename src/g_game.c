@@ -20,6 +20,7 @@
 #include "filesrch.h" // for refreshdirmenu
 #include "p_setup.h"
 #include "p_saveg.h"
+#include "i_time.h"
 #include "i_system.h"
 #include "am_map.h"
 #include "m_random.h"
@@ -50,6 +51,7 @@
 #include "m_cond.h" // condition sets
 #include "md5.h" // demo checksums
 #include "k_kart.h" // SRB2kart
+#include "r_fps.h" // frame interpolation/uncapped
 
 #ifdef HAVE_DISCORDRPC
 #include "discord.h"
@@ -262,7 +264,7 @@ boolean franticitems; // Frantic items currently enabled?
 boolean comeback; // Battle Mode's karma comeback is on/off
 
 // Voting system
-INT16 votelevels[5][2]; // Levels that were rolled by the host
+INT16 votelevels[4][2]; // Levels that were rolled by the host
 SINT8 votes[MAXPLAYERS]; // Each player's vote
 SINT8 pickedvote; // What vote the host rolls
 
@@ -275,6 +277,7 @@ tic_t mapreset; // Map reset delay when enough players have joined an empty game
 UINT8 nospectategrief; // How many players need to be in-game to eliminate last; for preventing spectate griefing
 boolean thwompsactive; // Thwomps activate on lap 2
 SINT8 spbplace; // SPB exists, give the person behind better items
+boolean startedInFreePlay; // Map was started in free play
 
 // Client-sided, unsynched variables (NEVER use in anything that needs to be synced with other players)
 boolean legitimateexit; // Did this client actually finish the match?
@@ -2482,7 +2485,9 @@ void G_Ticker(boolean run)
 		if (G_GametypeHasSpectators()
 			&& (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_VOTING // definitely good
 			|| gamestate == GS_WAITINGPLAYERS)) // definitely a problem if we don't do it at all in this gamestate, but might need more protection?
+		{
 			K_CheckSpectateStatus();
+		}
 
 		if (pausedelay)
 			pausedelay--;
@@ -2603,6 +2608,9 @@ void G_PlayerReborn(INT32 player)
 	INT32 wanted;
 	INT32 respawnflip;
 	boolean songcredit = false;
+	tic_t spectatorreentry;
+	tic_t grieftime;
+	UINT8 griefstrikes;
 
 	score = players[player].score;
 	marescore = players[player].marescore;
@@ -2644,7 +2652,7 @@ void G_PlayerReborn(INT32 player)
 	pity = players[player].pity;
 
 	// SRB2kart
-	if (leveltime <= starttime)
+	if (leveltime <= starttime || spectator == true)
 	{
 		itemroulette = 0;
 		roulettetype = 0;
@@ -2655,6 +2663,14 @@ void G_PlayerReborn(INT32 player)
 		comebackpoints = 0;
 		wanted = 0;
 		starpostwp = 0;
+
+		starposttime = 0;
+		starpostx = 0;
+		starposty = 0;
+		starpostz = 0;
+		starpostnum = 0;
+		respawnflip = 0;
+		starpostangle = 0;
 	}
 	else
 	{
@@ -2684,6 +2700,11 @@ void G_PlayerReborn(INT32 player)
 		comebackpoints = players[player].kartstuff[k_comebackpoints];
 		wanted = players[player].kartstuff[k_wanted];
 	}
+
+	spectatorreentry = players[player].spectatorreentry;
+
+	grieftime = players[player].grieftime;
+	griefstrikes = players[player].griefstrikes;
 
 	p = &players[player];
 	memset(p, 0, sizeof (*p));
@@ -2737,6 +2758,10 @@ void G_PlayerReborn(INT32 player)
 	p->kartstuff[k_wanted] = wanted;
 	p->kartstuff[k_eggmanblame] = -1;
 	p->kartstuff[k_starpostflip] = respawnflip;
+
+	p->spectatorreentry = spectatorreentry;
+	p->grieftime = grieftime;
+	p->griefstrikes = griefstrikes;
 
 	// Don't do anything immediately
 	p->pflags |= PF_USEDOWN;
@@ -3399,35 +3424,47 @@ boolean G_BattleGametype(void)
 //
 // Oh, yeah, and we sometimes flip encore mode on here too.
 //
-INT16 G_SometimesGetDifferentGametype(void)
+UINT8 G_SometimesGetDifferentGametype(UINT8 prefgametype)
 {
-	boolean encorepossible = (M_SecretUnlocked(SECRET_ENCORE) && G_RaceGametype());
+	// Most of the gametype references in this condition are intentionally not prefgametype.
+	// This is so a server CAN continue playing a gametype if they like the taste of it.
+	// The encore check needs prefgametype so can't use G_RaceGametype...
+	boolean encorepossible = (M_SecretUnlocked(SECRET_ENCORE)
+		&& (gametype == GT_RACE || prefgametype == GT_RACE));
+	boolean encoreactual = false;
+	UINT8 encoremodifier = 0;
+
+	if (encorepossible)
+	{
+		switch (cv_kartvoterulechanges.value)
+		{
+			case 3: // always
+				encoreactual = true;
+				break;
+			case 2: // frequent
+				encoreactual = M_RandomChance(FRACUNIT>>1);
+				break;
+			case 1: // sometimes
+				encoreactual = M_RandomChance(FRACUNIT>>2);
+				break;
+			default:
+				break;
+		}
+		if (encoreactual != (boolean)cv_kartencore.value)
+			encoremodifier = 0x80;
+	}
 
 	if (!cv_kartvoterulechanges.value) // never
-		return gametype;
+		return (gametype|encoremodifier);
 
 	if (randmapbuffer[NUMMAPS] > 0 && (encorepossible || cv_kartvoterulechanges.value != 3))
 	{
 		randmapbuffer[NUMMAPS]--;
-		if (encorepossible)
+		if (cv_kartvoterulechanges.value == 3) // always
 		{
-			switch (cv_kartvoterulechanges.value)
-			{
-				case 3: // always
-					randmapbuffer[NUMMAPS] = 0; // gotta prep this in case it isn't already set
-					break;
-				case 2: // frequent
-					encorepossible = M_RandomChance(FRACUNIT>>1);
-					break;
-				case 1: // sometimes
-				default:
-					encorepossible = M_RandomChance(FRACUNIT>>2);
-					break;
-			}
-			if (encorepossible != (boolean)cv_kartencore.value)
-				return (gametype|0x80);
+			randmapbuffer[NUMMAPS] = 0; // gotta prep this in case it isn't already set
 		}
-		return gametype;
+		return (gametype|encoremodifier);
 	}
 
 	switch (cv_kartvoterulechanges.value) // okay, we're having a gametype change! when's the next one, luv?
@@ -3445,9 +3482,11 @@ INT16 G_SometimesGetDifferentGametype(void)
 			break;
 	}
 
-	if (gametype == GT_MATCH)
-		return GT_RACE;
-	return GT_MATCH;
+	// Only this response is prefgametype-based.
+	// Also intentionally does not use encoremodifier!
+	if (prefgametype == GT_MATCH)
+		return (GT_RACE);
+	return (GT_MATCH);
 }
 
 //
@@ -4713,6 +4752,9 @@ char *G_BuildMapTitle(INT32 mapnum)
 
 	if (mapnum == 0)
 		return Z_StrDup("Random");
+
+	if (!mapheaderinfo[mapnum-1])
+		P_AllocMapHeader(mapnum-1);
 
 	if (strcmp(mapheaderinfo[mapnum-1]->lvlttl, ""))
 	{
@@ -6128,7 +6170,7 @@ void G_ReadMetalTic(mobj_t *metal)
 	// Read changes from the tic
 	if (ziptic & GZT_XYZ)
 	{
-		P_TeleportMove(metal, READFIXED(metal_p), READFIXED(metal_p), READFIXED(metal_p));
+		P_MoveOrigin(metal, READFIXED(metal_p), READFIXED(metal_p), READFIXED(metal_p));
 		oldmetal.x = metal->x;
 		oldmetal.y = metal->y;
 		oldmetal.z = metal->z;

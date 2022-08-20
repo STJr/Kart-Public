@@ -23,6 +23,7 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 #include "k_kart.h"
+#include "r_fps.h"
 
 // Object place
 #include "m_cheat.h"
@@ -582,8 +583,10 @@ void P_Ticker(boolean run)
 		if (OP_FreezeObjectplace())
 		{
 			P_MapStart();
+			R_UpdateMobjInterpolators();
 			OP_ObjectplaceMovement(&players[0]);
 			P_MoveChaseCamera(&players[0], &camera[0], false);
+			R_UpdateViewInterpolation();
 			P_MapEnd();
 			return;
 		}
@@ -610,6 +613,8 @@ void P_Ticker(boolean run)
 
 	if (run)
 	{
+		R_UpdateMobjInterpolators();
+
 		if (demo.recording)
 		{
 			G_WriteDemoExtraData();
@@ -647,6 +652,10 @@ void P_Ticker(boolean run)
 			}
 #endif
 		}
+
+#ifdef HAVE_BLUA
+		LUAh_PreThinkFrame();
+#endif
 
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
@@ -731,6 +740,11 @@ void P_Ticker(boolean run)
 		if (hyubgone > 0)
 			hyubgone--;
 
+		if (G_RaceGametype())
+		{
+			K_UpdateSpectateGrief();
+		}
+
 		if (G_BattleGametype())
 		{
 			if (wantedcalcdelay && --wantedcalcdelay <= 0)
@@ -779,6 +793,10 @@ void P_Ticker(boolean run)
 			&& --mapreset <= 1
 			&& server) // Remember: server uses it for mapchange, but EVERYONE ticks down for the animation
 				D_MapChange(gamemap, gametype, encoremode, true, 0, false, false);
+
+#ifdef HAVE_BLUA
+		LUAh_PostThinkFrame();
+#endif
 	}
 
 	// Always move the camera.
@@ -786,6 +804,12 @@ void P_Ticker(boolean run)
 	{
 		if (camera[i].chase)
 			P_MoveChaseCamera(&players[displayplayers[i]], &camera[i], false);
+	}
+
+	if (run)
+	{
+		R_UpdateLevelInterpolators();
+		R_UpdateViewInterpolation();
 	}
 
 	P_MapEnd();
@@ -799,15 +823,23 @@ void P_Ticker(boolean run)
 // Abbreviated ticker for pre-loading, calls thinkers and assorted things
 void P_PreTicker(INT32 frames)
 {
-	INT32 i,framecnt;
+	INT32 i;
 	ticcmd_t temptic;
 
 	for (i = 0; i <= splitscreen; i++)
 		postimgtype[i] = postimg_none;
 
-	for (framecnt = 0; framecnt < frames; ++framecnt)
+	hook_defrosting = frames;
+
+	while (hook_defrosting)
 	{
 		P_MapStart();
+
+		R_UpdateMobjInterpolators();
+
+#ifdef HAVE_BLUA
+		LUAh_PreThinkFrame();
+#endif
 
 		for (i = 0; i < MAXPLAYERS; i++)
 			if (playeringame[i] && players[i].mo && !P_MobjWasRemoved(players[i].mo))
@@ -843,6 +875,16 @@ void P_PreTicker(INT32 frames)
 		P_UpdateSpecials();
 		P_RespawnSpecials();
 
+#ifdef HAVE_BLUA
+		LUAh_PostThinkFrame();
+#endif
+
+		R_UpdateLevelInterpolators();
+		R_UpdateViewInterpolation();
+		R_ResetViewInterpolation(0);
+
 		P_MapEnd();
+
+		hook_defrosting--;
 	}
 }

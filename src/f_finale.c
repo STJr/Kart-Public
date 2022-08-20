@@ -19,6 +19,7 @@
 #include "hu_stuff.h"
 #include "r_local.h"
 #include "s_sound.h"
+#include "i_time.h"
 #include "i_video.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -77,7 +78,6 @@ static INT32 cutscene_textcount = 0;
 static INT32 cutscene_textspeed = 0;
 static UINT8 cutscene_boostspeed = 0;
 static tic_t cutscene_lasttextwrite = 0;
-
 //
 // This alters the text string cutscene_disptext.
 // Use the typical string drawing functions to display it.
@@ -249,9 +249,9 @@ void F_StartIntro(void)
 }
 
 //
-// F_IntroDrawScene
+// F_IntroDrawer
 //
-static void F_IntroDrawScene(void)
+void F_IntroDrawer(void)
 {
 	boolean highres = false;
 	INT32 cx = 8, cy = 128;
@@ -261,16 +261,6 @@ static void F_IntroDrawScene(void)
 	// DRAW A FULL PIC INSTEAD OF FLAT!
 	if (intro_scenenum == 0)
 	{
-		if (finalecount == 8)
-			S_StartSound(NULL, sfx_vroom);
-		else if (finalecount == 47)
-		{
-			// Need to use M_Random otherwise it always uses the same sound
-			INT32 rskin = M_RandomKey(numskins);
-			UINT8 rtaunt = M_RandomKey(2);
-			sfxenum_t rsound = skins[rskin].soundsid[SKSKBST1+rtaunt];
-			S_StartSound(NULL, rsound);
-		}
 		background = W_CachePatchName("KARTKREW", PU_CACHE);
 		highres = true;
 	}
@@ -287,68 +277,7 @@ static void F_IntroDrawScene(void)
 
 	W_UnlockCachedPatch(background);
 
-	if (animtimer)
-		animtimer--;
-
 	V_DrawString(cx, cy, 0, cutscene_disptext);
-}
-
-//
-// F_IntroDrawer
-//
-void F_IntroDrawer(void)
-{
-	if (timetonext <= 0)
-	{
-		if (intro_scenenum == 0)
-		{
-			if (rendermode != render_none)
-			{
-				F_WipeStartScreen();
-				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
-				F_WipeEndScreen();
-				F_RunWipe(99,true);
-			}
-
-			// Stay on black for a bit. =)
-			{
-				tic_t quittime;
-				quittime = I_GetTime() + NEWTICRATE*2; // Shortened the quit time, used to be 2 seconds
-				while (quittime > I_GetTime())
-				{
-					I_OsPolling();
-					I_UpdateNoBlit();
-#ifdef HAVE_THREADS
-					I_lock_mutex(&m_menu_mutex);
-#endif
-					M_Drawer(); // menu is drawn even on top of wipes
-#ifdef HAVE_THREADS
-					I_unlock_mutex(m_menu_mutex);
-#endif
-					I_FinishUpdate(); // Update the screen with the image Tails 06-19-2001
-				}
-			}
-
-			D_StartTitle();
-			// Yes, this is a weird hack, we need to force a wipe for this because the game state has changed in the middle of where it would normally wipe
-			// Need to set the wipe start and then draw the first frame of the title screen to get it working
-			F_WipeStartScreen();
-			F_TitleScreenDrawer();
-			wipegamestate = -1; // force a wipe
-			return;
-		}
-
-		F_NewCutscene(introtext[++intro_scenenum]);
-		timetonext = introscenetime[intro_scenenum];
-
-		F_WipeStartScreen();
-		wipegamestate = -1;
-		animtimer = stoptimer = 0;
-	}
-
-	intro_curtime = introscenetime[intro_scenenum] - timetonext;
-
-	F_IntroDrawScene();
 }
 
 //
@@ -363,6 +292,45 @@ void F_IntroTicker(void)
 		roidtics--;
 
 	timetonext--;
+
+	if (intro_scenenum == 0)
+	{
+		if (timetonext <= 0)
+		{
+			intro_scenenum++;
+			if (rendermode != render_none)
+			{
+				F_WipeStartScreen();
+				V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+				F_WipeEndScreen();
+				F_RunWipe(99,true);
+			}
+
+			// Stay on black for a bit. =)
+			{
+				tic_t quittime;
+				quittime = I_GetTime() + NEWTICRATE*2; // Shortened the quit time, used to be 2 seconds
+				while (quittime > I_GetTime())
+				{
+					I_Sleep(cv_sleep.value);
+					I_UpdateTime(cv_timescale.value);
+				}
+			}
+
+			D_StartTitle();
+			return;
+		}
+		if (finalecount == 8)
+			S_StartSound(NULL, sfx_vroom);
+		else if (finalecount == 47)
+		{
+			// Need to use M_Random otherwise it always uses the same sound
+			INT32 rskin = M_RandomKey(numskins);
+			UINT8 rtaunt = M_RandomKey(2);
+			sfxenum_t rsound = skins[rskin].soundsid[SKSKBST1+rtaunt];
+			S_StartSound(NULL, rsound);
+		}
+	}
 
 	F_WriteText();
 
@@ -439,17 +407,34 @@ static const char *credits[] = {
 	"\1Lead Programming",
 	"Sally \"TehRealSalt\" Cochenour",
 	"Vivian \"toaster\" Grannell",
+	"Ronald \"Eidolon\" Kinard",
+	"James Robert Roman",
 	"Sean \"Sryder\" Ryder",
 	"Ehab \"wolfs\" Saeed",
 	"\"ZarroTsu\"",
 	"",
 	"\1Support Programming",
-	"Colette \"fickleheart\" Bordelon",
+	"\"Lach\"",
 	"\"Lat\'\"",
+	"AJ \"Tyron\" Martinez",
 	"\"Monster Iestyn\"",
-	"James Robert Roman",
-	"\"Shuffle\"",
 	"\"SteelT\"",
+	"",
+	"\1External Programming",
+	"Alam Ed Arias",
+	"\"alphaRexJames\"",
+	"\"Ashnal\"",
+	"\"filpAM\"",
+	"\"FlykeSpice\"",
+	"\"Hannu Hanhi\"",
+	"\"himie\"",
+	"\"JugadorXEI\"",
+	"\"Kimberly\"",
+	"\"Lighto97\"",
+	"\"mazmazz\"",
+	"\"minenice\"",
+	"\"Shuffle\"",
+	"\"Snu\"",
 	"",
 	"\1Lead Artists",
 	"Desmond \"Blade\" DesJardins",
@@ -457,25 +442,25 @@ static const char *credits[] = {
 	"",
 	"\1Support Artists",
 	"Sally \"TehRealSalt\" Cochenour",
+	"\"Chengi\"",
+	"\"Chrispy\"",
 	"Sherman \"CoatRack\" DesJardins",
 	"\"DrTapeworm\"",
 	"Jesse \"Jeck Jims\" Emerick",
 	"Wesley \"Charyb\" Gillebaard",
+	"\"Nev3r\"",
 	"Vivian \"toaster\" Grannell",
 	"James \"SeventhSentinel\" Hall",
 	"\"Lat\'\"",
+	"\"rairai104n\"",
 	"\"Tyrannosaur Chao\"",
 	"\"ZarroTsu\"",
 	"",
 	"\1External Artists",
 	"\"1-Up Mason\"",
-	"\"Chengi\"",
-	"\"Chrispy\"",
 	"\"DirkTheHusky\"",
 	"\"LJSTAR\"",
 	"\"MotorRoach\"",
-	"\"Nev3r\"",
-	"\"rairai104n\"",
 	"\"Ritz\"",
 	"\"Rob\"",
 	"\"SmithyGNC\"",
@@ -492,7 +477,7 @@ static const char *credits[] = {
 	"\"VAdaPEGA\"",
 	"\"VelocitOni\"",
 	"",
-	"\1Music",
+	"\1Original Music",
 	"\"DrTapeworm\"",
 	"Wesley \"Charyb\" Gillebaard",
 	"James \"SeventhSentinel\" Hall",
@@ -510,7 +495,6 @@ static const char *credits[] = {
 	"\"DrTapeworm\"",
 	"Paul \"Boinciel\" Clempson",
 	"Sherman \"CoatRack\" DesJardins",
-	"Colette \"fickleheart\" Bordelon",
 	"Vivian \"toaster\" Grannell",
 	"\"Gunla\"",
 	"James \"SeventhSentinel\" Hall",
@@ -520,24 +504,24 @@ static const char *credits[] = {
 	"Sean \"Sryder\" Ryder",
 	"\"Ryuspark\"",
 	"\"Simsmagic\"",
+	"Ivo Solarin",
 	"\"SP47\"",
 	"\"TG\"",
 	"\"Victor Rush Turbo\"",
 	"\"ZarroTsu\"",
 	"",
 	"\1Testing",
+	"RKH License holders",
 	"\"CyberIF\"",
 	"\"Dani\"",
 	"Karol \"Fooruman\" D""\x1E""browski", // Dąbrowski, <Sryder> accents in srb2 :ytho:
-	"\"VirtAnderson\"",
+	"\"Virt\"",
 	"",
 	"\1Special Thanks",
 	"SEGA",
 	"Sonic Team",
 	"SRB2 & Sonic Team Jr. (www.srb2.org)",
-	"\"blazethecat\"",
 	"\"Chaos Zero 64\"",
-	"\"Rob\"",
 	"",
 	"\1Produced By",
 	"Kart Krew",
@@ -557,25 +541,25 @@ static struct {
 	UINT8 colorize;
 } credits_pics[] = {
 	// We don't have time to be fancy, let's just colorize some item sprites :V
-	{224, 80+(200* 1), "K_ITJAWZ", SKINCOLOR_CREAMSICLE},
-	{224, 80+(200* 2), "K_ITSPB",  SKINCOLOR_GARDEN},
-	{224, 80+(200* 3), "K_ITBANA", SKINCOLOR_LILAC},
-	{224, 80+(200* 4), "K_ITHYUD", SKINCOLOR_DREAM},
-	{224, 80+(200* 5), "K_ITBHOG", SKINCOLOR_TANGERINE},
-	{224, 80+(200* 6), "K_ITSHRK", SKINCOLOR_JAWZ},
-	{224, 80+(200* 7), "K_ITSHOE", SKINCOLOR_MINT},
-	{224, 80+(200* 8), "K_ITGROW", SKINCOLOR_RUBY},
-	{224, 80+(200* 9), "K_ITPOGO", SKINCOLOR_SAPPHIRE},
-	{224, 80+(200*10), "K_ITRSHE", SKINCOLOR_YELLOW},
-	{224, 80+(200*11), "K_ITORB4", SKINCOLOR_DUSK},
-	{224, 80+(200*12), "K_ITEGGM", SKINCOLOR_GREEN},
-	{224, 80+(200*13), "K_ITMINE", SKINCOLOR_BRONZE},
-	{224, 80+(200*14), "K_ITTHNS", SKINCOLOR_RASPBERRY},
-	{224, 80+(200*15), "K_ITINV1", SKINCOLOR_GREY},
+	{224, 80+(216* 1), "K_ITJAWZ", SKINCOLOR_CREAMSICLE},
+	{224, 80+(216* 2), "K_ITSPB",  SKINCOLOR_GARDEN},
+	{224, 80+(216* 3), "K_ITBANA", SKINCOLOR_LILAC},
+	{224, 80+(216* 4), "K_ITHYUD", SKINCOLOR_DREAM},
+	{224, 80+(216* 5), "K_ITBHOG", SKINCOLOR_TANGERINE},
+	{224, 80+(216* 6), "K_ITSHRK", SKINCOLOR_JAWZ},
+	{224, 80+(216* 7), "K_ITSHOE", SKINCOLOR_MINT},
+	{224, 80+(216* 8), "K_ITGROW", SKINCOLOR_RUBY},
+	{224, 80+(216* 9), "K_ITPOGO", SKINCOLOR_SAPPHIRE},
+	{224, 80+(216*10), "K_ITRSHE", SKINCOLOR_YELLOW},
+	{224, 80+(216*11), "K_ITORB4", SKINCOLOR_DUSK},
+	{224, 80+(216*12), "K_ITEGGM", SKINCOLOR_GREEN},
+	{224, 80+(216*13), "K_ITMINE", SKINCOLOR_BRONZE},
+	{224, 80+(216*14), "K_ITTHNS", SKINCOLOR_RASPBERRY},
+	{224, 80+(216*15), "K_ITINV1", SKINCOLOR_GREY},
 	// This Tyler52 gag is troublesome
 	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
-	// Current max image spacing: (200*17)
-	{112, (15*100)+(17*38)+(88*15), "TYLER52", SKINCOLOR_NONE},
+	// Current max image spacing: (216*17)
+	{112, (16*100)+(19*38)+(100*15), "TYLER52", SKINCOLOR_NONE},
 	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
@@ -614,7 +598,7 @@ void F_CreditDrawer(void)
 	UINT16 i;
 	fixed_t y = (80<<FRACBITS) - 5*(animtimer<<FRACBITS)/8;
 
-	//V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
+	V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 31);
 
 	// Draw background
 	V_DrawSciencePatch(0, 0 - FixedMul(32<<FRACBITS, FixedDiv(credbgtimer%TICRATE, TICRATE)), V_SNAPTOTOP, W_CachePatchName("CREDTILE", PU_CACHE), FRACUNIT);
@@ -661,6 +645,16 @@ void F_CreditDrawer(void)
 		}
 		if (((y>>FRACBITS) * vid.dupy) > vid.height)
 			break;
+	}
+
+	// RR isn't any time soon as of writing, but v1.4 is expected to be the last v1 release. Let's give it a proper send off.
+	if (finalecount)
+	{
+		const char *goodbyefornow = "See you in ""\x82""Dr. Robotnik's Ring Racers""\x80""!";
+		fixed_t lpad = ((vid.width/vid.dupx) - BASEVIDWIDTH)<<FRACBITS;
+		fixed_t w = V_StringWidth(goodbyefornow, V_ALLOWLOWERCASE)<<FRACBITS;
+		fixed_t x = FixedMul(((BASEVIDWIDTH<<FRACBITS)+w+lpad), ((finalecount-1)<<FRACBITS)/(5*TICRATE)) - w - (lpad/2);
+		V_DrawString(x>>FRACBITS, y>>FRACBITS, V_ALLOWLOWERCASE, goodbyefornow); // for some reason DrawStringAtFixed can't tolerate colour codes
 	}
 }
 
@@ -1318,6 +1312,22 @@ static boolean runningprecutscene = false, precutresetplayer = false;
 
 static void F_AdvanceToNextScene(void)
 {
+	if (rendermode != render_none)
+	{
+		F_WipeStartScreen();
+
+		// Fade to any palette color you want.
+		if (cutscenes[cutnum]->scene[scenenum].fadecolor)
+		{
+			V_DrawFill(0,0,BASEVIDWIDTH,BASEVIDHEIGHT,cutscenes[cutnum]->scene[scenenum].fadecolor);
+
+			F_WipeEndScreen();
+			F_RunWipe(cutscenes[cutnum]->scene[scenenum].fadeinid, true);
+
+			F_WipeStartScreen();
+		}
+	}
+
 	// Don't increment until after endcutscene check
 	// (possible overflow / bad patch names from the one tic drawn before the fade)
 	if (scenenum+1 >= cutscenes[cutnum]->numscenes)
@@ -1325,6 +1335,7 @@ static void F_AdvanceToNextScene(void)
 		F_EndCutScene();
 		return;
 	}
+
 	++scenenum;
 
 	timetonext = 0;
@@ -1340,7 +1351,6 @@ static void F_AdvanceToNextScene(void)
 			cutscenes[cutnum]->scene[scenenum].musswitchposition, 0, 0);
 
 	// Fade to the next
-	dofadenow = true;
 	F_NewCutscene(cutscenes[cutnum]->scene[scenenum].text);
 
 	picnum = 0;
@@ -1350,6 +1360,14 @@ static void F_AdvanceToNextScene(void)
 	textypos = cutscenes[cutnum]->scene[scenenum].textypos;
 
 	animtimer = pictime = cutscenes[cutnum]->scene[scenenum].picduration[picnum];
+
+	if (rendermode != render_none)
+	{
+		F_CutsceneDrawer();
+
+		F_WipeEndScreen();
+		F_RunWipe(cutscenes[cutnum]->scene[scenenum].fadeoutid, true);
+	}
 }
 
 void F_EndCutScene(void)
@@ -1467,8 +1485,6 @@ void F_CutsceneTicker(void)
 	// advance animation
 	finalecount++;
 	cutscene_boostspeed = 0;
-
-	dofadenow = false;
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{

@@ -226,7 +226,7 @@ void A_NapalmScatter();
 void A_SpawnFreshCopy();
 
 // ratio of states to sprites to mobj types is roughly 6 : 1 : 1
-#define NUMMOBJFREESLOTS 512
+#define NUMMOBJFREESLOTS 1024
 #define NUMSPRITEFREESLOTS NUMMOBJFREESLOTS
 #define NUMSTATEFREESLOTS (NUMMOBJFREESLOTS*8)
 
@@ -773,6 +773,11 @@ typedef enum sprite
 	SPR_HBSF,
 	SPR_WBLZ,
 	SPR_WBLN,
+
+	// Opulence
+	SPR_OPUL,
+	SPR_TGEM,
+	SPR_TCOI,
 
 	SPR_FWRK,
 
@@ -4046,6 +4051,15 @@ typedef enum state
 	S_LIZARDMAN,
 	S_LIONMAN,
 
+	// Opulence
+	S_OPULENCE_PALMTREE,
+	S_OPULENCE_FERN,
+
+	S_TUMBLEGEM_IDLE,
+	S_TUMBLEGEM_ROLL,
+	S_TUMBLECOIN_IDLE,
+	S_TUMBLECOIN_FLIP,
+
 	S_KARMAFIREWORK1,
 	S_KARMAFIREWORK2,
 	S_KARMAFIREWORK3,
@@ -4859,6 +4873,13 @@ typedef enum mobj_type
 	MT_BOOSTON,
 	MT_LIZARDMAN,
 	MT_LIONMAN,
+
+	// Opulence
+	MT_OPULENCE_PALMTREE,
+	MT_OPULENCE_FERN,
+
+	MT_TUMBLEGEM,
+	MT_TUMBLECOIN,
 
 	MT_KARMAFIREWORK,
 

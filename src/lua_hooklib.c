@@ -31,7 +31,9 @@ const char *const hookNames[hook_MAX+1] = {
 	"MapChange",
 	"MapLoad",
 	"PlayerJoin",
+	"PreThinkFrame",
 	"ThinkFrame",
+	"PostThinkFrame",
 	"MobjSpawn",
 	"MobjCollide",
 	"MobjMoveCollide",
@@ -55,6 +57,7 @@ const char *const hookNames[hook_MAX+1] = {
 	"HurtMsg",
 	"PlayerSpawn",
 	"PlayerQuit",
+	"PlayerThink",
 	"MusicChange",
 	"ShouldSpin",
 	"ShouldExplode",
@@ -206,6 +209,7 @@ static int lib_addHook(lua_State *L)
 	case hook_SpinSpecial:
 	case hook_JumpSpinSpecial:
 	case hook_PlayerSpawn:
+	case hook_PlayerThink:
 		lastp = &playerhooks;
 		break;
 	case hook_LinedefExecute:
@@ -402,6 +406,29 @@ void LUAh_PlayerJoin(int playernum)
 	lua_settop(gL, 0);
 }
 
+// Hook for frame (before mobj and player thinkers)
+void LUAh_PreThinkFrame(void)
+{
+	hook_p hookp;
+	if (!gL || !(hooksAvailable[hook_PreThinkFrame/8] & (1<<(hook_PreThinkFrame%8))))
+		return;
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+	{
+		if (hookp->type != hook_PreThinkFrame)
+			continue;
+
+		lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+		lua_gettable(gL, LUA_REGISTRYINDEX);
+		if (lua_pcall(gL, 0, 0, 0)) {
+			if (!hookp->error || cv_debug & DBG_LUA)
+				CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+			lua_pop(gL, 1);
+			hookp->error = true;
+		}
+	}
+}
+
 // Hook for frame (after mobj and player thinkers)
 void LUAh_ThinkFrame(void)
 {
@@ -421,6 +448,29 @@ void LUAh_ThinkFrame(void)
 				hookp->error = true;
 			}
 		}
+}
+
+// Hook for frame (at end of tick, ie after overlays, precipitation, specials)
+void LUAh_PostThinkFrame(void)
+{
+	hook_p hookp;
+	if (!gL || !(hooksAvailable[hook_PostThinkFrame/8] & (1<<(hook_PostThinkFrame%8))))
+		return;
+
+	for (hookp = roothook; hookp; hookp = hookp->next)
+	{
+		if (hookp->type != hook_PostThinkFrame)
+			continue;
+
+		lua_pushfstring(gL, FMT_HOOKID, hookp->id);
+		lua_gettable(gL, LUA_REGISTRYINDEX);
+		if (lua_pcall(gL, 0, 0, 0)) {
+			if (!hookp->error || cv_debug & DBG_LUA)
+				CONS_Alert(CONS_WARNING,"%s\n",lua_tostring(gL, -1));
+			lua_pop(gL, 1);
+			hookp->error = true;
+		}
+	}
 }
 
 // Hook for Y_Ticker
@@ -1256,13 +1306,13 @@ boolean LUAh_MusicChange(const char *oldname, char *newname, UINT16 *mflags, boo
 			if (lua_isboolean(gL, -4))
 				*looping = lua_toboolean(gL, -4);
 			// output 4: position override
-			if (lua_isboolean(gL, -3))
+			if (lua_isnumber(gL, -3))
 				*position = lua_tonumber(gL, -3);
 			// output 5: prefadems override
-			if (lua_isboolean(gL, -2))
+			if (lua_isnumber(gL, -2))
 				*prefadems = lua_tonumber(gL, -2);
 			// output 6: fadeinms override
-			if (lua_isboolean(gL, -1))
+			if (lua_isnumber(gL, -1))
 				*fadeinms = lua_tonumber(gL, -1);
 
 			lua_pop(gL, 6);

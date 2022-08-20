@@ -267,6 +267,8 @@ void M_RefreshPauseMenu(void);
 
 INT32 HU_GetHighlightColor(void);
 
+void M_PopupMasterServerRules(void);
+
 // These defines make it a little easier to make menus
 #define DEFAULTMENUSTYLE(header, source, prev, x, y)\
 {\

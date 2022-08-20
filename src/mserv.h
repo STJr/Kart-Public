@@ -58,6 +58,7 @@ extern consvar_t cv_masterserver_update_rate;
 extern consvar_t cv_masterserver_timeout;
 extern consvar_t cv_masterserver_debug;
 extern consvar_t cv_masterserver_token;
+extern consvar_t cv_rendezvousserver;
 
 extern consvar_t cv_advertise;
 
@@ -81,6 +82,8 @@ msg_server_t *GetShortServersList(int id);
 char *GetMODVersion(int id);
 #endif
 
+char *GetMasterServerRules(void);
+
 void AddMServCommands(void);
 
 /* HTTP */
@@ -91,5 +94,6 @@ int  HMS_update (void);
 void HMS_list_servers (void);
 msg_server_t * HMS_fetch_servers (msg_server_t *list, int id);
 int  HMS_compare_mod_version (char *buffer, size_t size_of_buffer);
+const char * HMS_fetch_rules (char *buffer, size_t size_of_buffer);
 
 #endif

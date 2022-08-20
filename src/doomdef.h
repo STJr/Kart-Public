@@ -148,11 +148,11 @@ extern char  logfilename[1024];
 // we use comprevision and compbranch instead.
 #else
 #define VERSION    1 // Game version
-#define SUBVERSION 3 // more precise version number
-#define VERSIONSTRING "v1.3"
-#define VERSIONSTRINGW L"v1.3"
+#define SUBVERSION 4 // more precise version number
+#define VERSIONSTRING "v1.4"
+#define VERSIONSTRINGW L"v1.4"
 // Hey! If you change this, add 1 to the MODVERSION below! Otherwise we can't force updates!
-// And change CMakeLists.txt, for CMake users!
+// And change CMakeLists.txt (not src/, but in root), for CMake users!
 // AND appveyor.yml, for the build bots!
 #endif
 
@@ -164,7 +164,7 @@ extern char  logfilename[1024];
 //#define USE_PATCH_DTA
 
 // Kart has it's own, as well.
-#define USE_PATCH_KART
+//#define USE_PATCH_KART
 
 // Use .kart extension addons
 #define USE_KART
@@ -204,7 +204,7 @@ extern char  logfilename[1024];
 // it's only for detection of the version the player is using so the MS can alert them of an update.
 // Only set it higher, not lower, obviously.
 // Note that we use this to help keep internal testing in check; this is why v2.1.0 is not version "1".
-#define MODVERSION 7
+#define MODVERSION 8
 
 // Filter consvars by version
 // To version config.cfg, MAJOREXECVERSION is set equal to MODVERSION automatically.

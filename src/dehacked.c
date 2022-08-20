@@ -6994,6 +6994,15 @@ static const char *const STATE_LIST[] = { // array length left dynamic for sanit
 	"S_LIZARDMAN",
 	"S_LIONMAN",
 
+	// Opulence
+	"S_OPULENCE_PALMTREE",
+	"S_OPULENCE_FERN",
+
+	"S_TUMBLEGEM_IDLE",
+	"S_TUMBLEGEM_ROLL",
+	"S_TUMBLECOIN_IDLE",
+	"S_TUMBLECOIN_FLIP",
+
 	"S_KARMAFIREWORK1",
 	"S_KARMAFIREWORK2",
 	"S_KARMAFIREWORK3",
@@ -7791,6 +7800,13 @@ static const char *const MOBJTYPE_LIST[] = {  // array length left dynamic for s
 	"MT_ARIDTOAD",
 	"MT_LIZARDMAN",
 	"MT_LIONMAN",
+
+	// Opulence
+	"MT_OPULENCE_PALMTREE",
+	"MT_OPULENCE_FERN",
+
+	"MT_TUMBLEGEM",
+	"MT_TUMBLECOIN",
 
 	"MT_KARMAFIREWORK",
 
@@ -8696,6 +8712,11 @@ struct {
 	{"BT_CUSTOM1",BT_CUSTOM1}, // Lua customizable
 	{"BT_CUSTOM2",BT_CUSTOM2}, // Lua customizable
 	{"BT_CUSTOM3",BT_CUSTOM3}, // Lua customizable
+
+	// Lua command registration flags
+	{"COM_ADMIN",COM_ADMIN},
+	{"COM_SPLITSCREEN",COM_SPLITSCREEN},
+	{"COM_LOCAL",COM_LOCAL},
 
 	// cvflags_t
 	{"CV_SAVE",CV_SAVE},
@@ -9694,6 +9715,9 @@ static inline int lib_getenum(lua_State *L)
 	} else if (fastcmp(word,"leveltime")) {
 		lua_pushinteger(L, leveltime);
 		return 1;
+	} else if (fastcmp(word,"defrosting")) {
+		lua_pushinteger(L, hook_defrosting);
+		return 1;
 	} else if (fastcmp(word,"curWeather")) {
 		lua_pushinteger(L, curWeather);
 		return 1;
@@ -9725,12 +9749,12 @@ static inline int lib_getenum(lua_State *L)
 			return 0;
 		LUA_PushUserdata(L, &players[consoleplayer], META_PLAYER);
 		return 1;
-	/*} else if (fastcmp(word,"admin")) {
-		LUA_Deprecated(L, "admin", "IsPlayerAdmin(player)");
-		if (!playeringame[adminplayers[0]] || IsPlayerAdmin(serverplayer))
-			return 0;
-		LUA_PushUserdata(L, &players[adminplayers[0]], META_PLAYER);
-		return 1;*/
+	} else if (fastcmp(word,"isserver")) {
+		lua_pushboolean(L, server);
+		return 1;
+	} else if (fastcmp(word, "isdedicatedserver")) {
+		lua_pushboolean(L, dedicated);
+		return 1;
 	} else if (fastcmp(word,"gravity")) {
 		lua_pushinteger(L, gravity);
 		return 1;

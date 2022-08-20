@@ -348,7 +348,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			if (!special->target)
 				return;	// foolproof crash prevention check!!!!!
 
-			P_TeleportMove(player->mo, special->target->x, special->target->y, special->target->z + (48<<FRACBITS));
+			P_SetOrigin(player->mo, special->target->x, special->target->y, special->target->z + (48<<FRACBITS));
 			player->mo->angle = special->target->angle;
 			P_SetObjectMomZ(player->mo, 12<<FRACBITS, false);
 			P_InstaThrust(player->mo, player->mo->angle, 20<<FRACBITS);
@@ -673,6 +673,23 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 		case MT_BALLOON: // SRB2kart
 			P_SetObjectMomZ(toucher, 20<<FRACBITS, false);
 			break;
+		case MT_TUMBLEGEM:
+		case MT_TUMBLECOIN:
+			{
+				SINT8 flip = P_MobjFlip(special);
+				if ((toucher->momx || toucher->momy) && (flip * special->momz <= 0))
+				{
+					special->momx = toucher->momx;
+					special->momy = toucher->momy;
+					special->momz = flip * max(P_AproxDistance(toucher->momx, toucher->momy) / 4, FixedMul(special->info->speed, special->scale));
+					if (flip * toucher->momz > 0)
+						special->momz += toucher->momz / 8;
+					if ((statenum_t)(special->state-states) != special->info->seestate)
+						P_SetMobjState(special, special->info->seestate);
+					S_StartSound(special, special->info->activesound);
+				}
+			}
+			return;
 
 // ***************************************** //
 // Rings, coins, spheres, weapon panels, etc //
@@ -1454,7 +1471,15 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			{
 				// blatant reuse of a variable that's normally unused in circuit
 				if (!player->tossdelay)
+				{
 					S_StartSound(toucher, sfx_s26d);
+
+					if (netgame && cv_antigrief.value)
+					{
+						player->grieftime += TICRATE;
+					}
+				}
+
 				player->tossdelay = 3;
 				return;
 			}
@@ -1478,6 +1503,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 			player->starpostangle = special->angle;
 			player->starpostnum = special->health;
 			player->kartstuff[k_starpostflip] = special->spawnpoint->options & MTF_OBJECTFLIP;	// store flipping
+			player->grieftime = 0;
 
 			//S_StartSound(toucher, special->info->painsound);
 			return;
@@ -2183,7 +2209,9 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 				P_SetTarget(&target->target->hnext, NULL);
 		}
 	}
-	//
+	// Above block does not clean up rocket sneakers when a player dies, so we need to do it here target->target is null when using rocket sneakers
+	if (target->player)
+		K_DropRocketSneaker(target->player);
 
 	// Let EVERYONE know what happened to a player! 01-29-2002 Tails
 	if (target->player && !target->player->spectator)

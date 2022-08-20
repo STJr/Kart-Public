@@ -16,6 +16,7 @@
 
 #include "console.h"
 #include "command.h"
+#include "i_time.h"
 #include "i_system.h"
 #include "g_game.h"
 #include "hu_stuff.h"
@@ -247,6 +248,12 @@ consvar_t cv_allowteamchange = {"allowteamchange", "Yes", CV_NETVAR, CV_YesNo, N
 static CV_PossibleValue_t ingamecap_cons_t[] = {{0, "MIN"}, {MAXPLAYERS-1, "MAX"}, {0, NULL}};
 consvar_t cv_ingamecap = {"ingamecap", "0", CV_NETVAR, ingamecap_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
+static CV_PossibleValue_t spectatorreentry_cons_t[] = {{0, "MIN"}, {10*60, "MAX"}, {0, NULL}};
+consvar_t cv_spectatorreentry = {"spectatorreentry", "30", CV_NETVAR, spectatorreentry_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+static CV_PossibleValue_t antigrief_cons_t[] = {{20, "MIN"}, {60, "MAX"}, {0, "Off"}, {0, NULL}};
+consvar_t cv_antigrief = {"antigrief", "30", CV_NETVAR, antigrief_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
 consvar_t cv_startinglives = {"startinglives", "3", CV_NETVAR|CV_CHEAT|CV_NOSHOWHELP, startingliveslimit_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t respawntime_cons_t[] = {{0, "MIN"}, {30, "MAX"}, {0, NULL}};
@@ -369,6 +376,8 @@ consvar_t cv_kartcomeback = {"kartcomeback", "On", CV_NETVAR|CV_CHEAT|CV_CALL|CV
 consvar_t cv_kartencore = {"kartencore", "Off", CV_NETVAR|CV_CALL|CV_NOINIT, CV_OnOff, KartEncore_OnChange, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartvoterulechanges_cons_t[] = {{0, "Never"}, {1, "Sometimes"}, {2, "Frequent"}, {3, "Always"}, {0, NULL}};
 consvar_t cv_kartvoterulechanges = {"kartvoterulechanges", "Frequent", CV_NETVAR, kartvoterulechanges_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+static CV_PossibleValue_t kartgametypepreference_cons_t[] = {{-1, "None"}, {GT_RACE, "Race"}, {GT_MATCH, "Battle"}, {0, NULL}};
+consvar_t cv_kartgametypepreference = {"kartgametypepreference", "None", CV_NETVAR, kartgametypepreference_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 static CV_PossibleValue_t kartspeedometer_cons_t[] = {{0, "Off"}, {1, "Kilometers"}, {2, "Miles"}, {3, "Fracunits"}, {0, NULL}};
 consvar_t cv_kartspeedometer = {"kartdisplayspeed", "Off", CV_SAVE, kartspeedometer_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL}; // use tics in display
 static CV_PossibleValue_t kartvoices_cons_t[] = {{0, "Never"}, {1, "Tasteful"}, {2, "Meme"}, {0, NULL}};
@@ -441,15 +450,17 @@ static CV_PossibleValue_t nettimeout_cons_t[] = {{TICRATE/7, "MIN"}, {60*TICRATE
 consvar_t cv_nettimeout = {"nettimeout", "210", CV_CALL|CV_SAVE, nettimeout_cons_t, NetTimeout_OnChange, 0, NULL, NULL, 0, 0, NULL};
 //static CV_PossibleValue_t jointimeout_cons_t[] = {{5*TICRATE, "MIN"}, {60*TICRATE, "MAX"}, {0, NULL}};
 consvar_t cv_jointimeout = {"jointimeout", "210", CV_CALL|CV_SAVE, nettimeout_cons_t, JoinTimeout_OnChange, 0, NULL, NULL, 0, 0, NULL};
-static CV_PossibleValue_t maxping_cons_t[] = {{0, "MIN"}, {1000, "MAX"}, {0, NULL}};
-consvar_t cv_maxping = {"maxping", "800", CV_SAVE, maxping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_maxping = {"maxdelay", "20", CV_SAVE, CV_Unsigned, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 static CV_PossibleValue_t pingtimeout_cons_t[] = {{8, "MIN"}, {120, "MAX"}, {0, NULL}};
-consvar_t cv_pingtimeout = {"pingtimeout", "10", CV_SAVE, pingtimeout_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_pingtimeout = {"maxdelaytimeout", "10", CV_SAVE, pingtimeout_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // show your ping on the HUD next to framerate. Defaults to warning only (shows up if your ping is > maxping)
 static CV_PossibleValue_t showping_cons_t[] = {{0, "Off"}, {1, "Always"}, {2, "Warning"}, {0, NULL}};
 consvar_t cv_showping = {"showping", "Always", CV_SAVE, showping_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+
+static CV_PossibleValue_t pingmeasurement_cons_t[] = {{0, "Frames"}, {1, "Milliseconds"}, {0, NULL}};
+consvar_t cv_pingmeasurement = {"pingmeasurement", "Frames", CV_SAVE, pingmeasurement_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 // Intermission time Tails 04-19-2002
 static CV_PossibleValue_t inttime_cons_t[] = {{0, "MIN"}, {3600, "MAX"}, {0, NULL}};
@@ -679,6 +690,8 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_restrictskinchange);
 	CV_RegisterVar(&cv_allowteamchange);
 	CV_RegisterVar(&cv_ingamecap);
+	CV_RegisterVar(&cv_spectatorreentry);
+	CV_RegisterVar(&cv_antigrief);
 	CV_RegisterVar(&cv_respawntime);
 	CV_RegisterVar(&cv_killingdead);
 
@@ -701,12 +714,13 @@ void D_RegisterServerCommands(void)
 	COM_AddCommand("ping", Command_Ping_f);
 	CV_RegisterVar(&cv_nettimeout);
 	CV_RegisterVar(&cv_jointimeout);
-
+	CV_RegisterVar(&cv_kicktime);
 	CV_RegisterVar(&cv_skipmapcheck);
 	CV_RegisterVar(&cv_sleep);
 	CV_RegisterVar(&cv_maxping);
 	CV_RegisterVar(&cv_pingtimeout);
 	CV_RegisterVar(&cv_showping);
+	CV_RegisterVar(&cv_pingmeasurement);
 
 #ifdef SEENAMES
 	CV_RegisterVar(&cv_allowseenames);
@@ -1032,7 +1046,16 @@ void D_RegisterClientCommands(void)
   * \sa CleanupPlayerName, SetPlayerName, Got_NameAndColor
   * \author Graue <graue@oceanbase.org>
   */
-static boolean IsNameGood(char *name, INT32 playernum)
+
+static boolean AllowedPlayerNameChar(char ch)
+{
+	if (!isprint(ch) || ch == ';' || ch == '"' || (UINT8)(ch) >= 0x80)
+		return false;
+
+	return true;
+}
+
+static boolean EnsurePlayerNameIsGood(char *name, INT32 playernum)
 {
 	INT32 ix;
 
@@ -1053,7 +1076,7 @@ static boolean IsNameGood(char *name, INT32 playernum)
 	// Also, anything over 0x80 is disallowed too, since compilers love to
 	// differ on whether they're printable characters or not.
 	for (ix = 0; name[ix] != '\0'; ix++)
-		if (!isprint(name[ix]) || name[ix] == ';' || (UINT8)(name[ix]) >= 0x80)
+		if (!AllowedPlayerNameChar(name[ix]))
 			return false;
 
 	// Check if a player is currently using the name, case-insensitively.
@@ -1073,14 +1096,14 @@ static boolean IsNameGood(char *name, INT32 playernum)
 			if (len > 1)
 			{
 				name[len-1] = '\0';
-				if (!IsNameGood (name, playernum))
+				if (!EnsurePlayerNameIsGood(name, playernum))
 					return false;
 			}
 			else if (len == 1) // Agh!
 			{
 				// Last ditch effort...
 				sprintf(name, "%d", M_RandomKey(10));
-				if (!IsNameGood (name, playernum))
+				if (!EnsurePlayerNameIsGood(name, playernum))
 					return false;
 			}
 			else
@@ -1138,6 +1161,16 @@ static void CleanupPlayerName(INT32 playernum, const char *newname)
 			break; // names that start with @ or ~ (admin symbols) not allowed
 
 		tmpname = p;
+
+		do
+		{
+			if (!AllowedPlayerNameChar(*p))
+				break;
+		}
+		while (*++p) ;
+
+		if (*p)/* bad char found */
+			break;
 
 		// Remove trailing spaces.
 		p = &tmpname[strlen(tmpname)-1]; // last character
@@ -1210,12 +1243,12 @@ static void CleanupPlayerName(INT32 playernum, const char *newname)
   * \param newname   New name for that player. Should be good, but won't
   *                  necessarily be if the client is maliciously modified or
   *                  buggy.
-  * \sa CleanupPlayerName, IsNameGood
+  * \sa CleanupPlayerName, EnsurePlayerNameIsGood
   * \author Graue <graue@oceanbase.org>
   */
 static void SetPlayerName(INT32 playernum, char *newname)
 {
-	if (IsNameGood(newname, playernum))
+	if (EnsurePlayerNameIsGood(newname, playernum))
 	{
 		if (strcasecmp(newname, player_names[playernum]) != 0)
 		{
@@ -2393,28 +2426,29 @@ void D_MapChange(INT32 mapnum, INT32 newgametype, boolean pencoremode, boolean r
 
 void D_SetupVote(void)
 {
-	UINT8 buf[6*2]; // five UINT16 maps (at twice the width of a UINT8), and two gametypes
+	UINT8 buf[5*2]; // four UINT16 maps (at twice the width of a UINT8), and two gametypes
 	UINT8 *p = buf;
 	INT32 i;
-	UINT8 secondgt = G_SometimesGetDifferentGametype();
-	INT16 votebuffer[3] = {-1,-1,-1};
+	UINT8 gt = (cv_kartgametypepreference.value == -1) ? gametype : cv_kartgametypepreference.value;
+	UINT8 secondgt = G_SometimesGetDifferentGametype(gt);
+	INT16 votebuffer[4] = {-1,-1,-1,0};
 
-	if (cv_kartencore.value && G_RaceGametype())
-		WRITEUINT8(p, (gametype|0x80));
+	if (cv_kartencore.value && gt == GT_RACE)
+		WRITEUINT8(p, (gt|0x80));
 	else
-		WRITEUINT8(p, gametype);
+		WRITEUINT8(p, gt);
 	WRITEUINT8(p, secondgt);
 	secondgt &= ~0x80;
 
-	for (i = 0; i < 5; i++)
+	for (i = 0; i < 4; i++)
 	{
 		UINT16 m;
 		if (i == 2) // sometimes a different gametype
 			m = G_RandMap(G_TOLFlag(secondgt), prevmap, false, 0, true, votebuffer);
 		else if (i >= 3) // unknown-random and force-unknown MAP HELL
-			m = G_RandMap(G_TOLFlag(gametype), prevmap, false, (i-2), (i < 4), votebuffer);
+			m = G_RandMap(G_TOLFlag(gt), prevmap, false, (i-2), (i < 4), votebuffer);
 		else
-			m = G_RandMap(G_TOLFlag(gametype), prevmap, false, 0, true, votebuffer);
+			m = G_RandMap(G_TOLFlag(gt), prevmap, false, 0, true, votebuffer);
 		if (i < 3)
 			votebuffer[min(i, 2)] = m; // min() is a dumb workaround for gcc 4.4 array-bounds error
 		WRITEUINT16(p, m);
@@ -2445,7 +2479,6 @@ void D_PickVote(void)
 	SINT8 templevels[MAXPLAYERS];
 	SINT8 votecompare = -1;
 	UINT8 numvotes = 0, key = 0;
-	boolean force = true;
 	INT32 i;
 
 	for (i = 0; i < MAXPLAYERS; i++)
@@ -2459,8 +2492,6 @@ void D_PickVote(void)
 			numvotes++;
 			if (votecompare == -1)
 				votecompare = votes[i];
-			else if (votes[i] != votecompare)
-				force = false;
 		}
 	}
 
@@ -2469,10 +2500,7 @@ void D_PickVote(void)
 	if (numvotes > 0)
 	{
 		WRITESINT8(p, temppicks[key]);
-		if (force && templevels[key] == 3 && numvotes > 1)
-			WRITESINT8(p, 4);
-		else
-			WRITESINT8(p, templevels[key]);
+		WRITESINT8(p, templevels[key]);
 	}
 	else
 	{
@@ -3449,7 +3477,7 @@ static void Command_ServerTeamChange_f(void)
 static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 {
 	changeteam_union NetPacket;
-	boolean error = false;
+	boolean error = false, wasspectator = false;
 	NetPacket.value.l = NetPacket.value.b = READINT16(*cp);
 
 	if (!G_GametypeHasTeams() && !G_GametypeHasSpectators()) //Make sure you're in the right gametype.
@@ -3593,6 +3621,8 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		else
 			players[playernum].playerstate = PST_REBORN;
 	}
+	else
+		wasspectator = true;
 
 	players[playernum].pflags &= ~PF_WANTSTOJOIN;
 
@@ -3677,7 +3707,7 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 		else
 			CONS_Printf(M_GetText("%s switched to the %c%s%c.\n"), player_names[playernum], '\x84', M_GetText("Blue Team"), '\x80');
 	}
-	else if (NetPacket.packet.newteam == 0)
+	else if (NetPacket.packet.newteam == 0 && !wasspectator)
 		HU_AddChatText(va("\x82*%s became a spectator.", player_names[playernum]), false); // "entered the game" text was moved to P_SpectatorJoinGame
 
 	//reset view if you are changed, or viewing someone who was changed.
@@ -3707,12 +3737,15 @@ static void Got_Teamchange(UINT8 **cp, INT32 playernum)
 	// Clear player score and rings if a spectator.
 	if (players[playernum].spectator)
 	{
+		players[playernum].spectatorreentry = (cv_spectatorreentry.value * TICRATE);
+
 		if (G_BattleGametype()) // SRB2kart
 		{
 			players[playernum].marescore = 0;
 			if (K_IsPlayerWanted(&players[playernum]))
 				K_CalculateBattleWanted();
 		}
+
 		players[playernum].health = 1;
 		if (players[playernum].mo)
 			players[playernum].mo->health = 1;
@@ -5141,10 +5174,18 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 		return;
 	}
 
+	// Get gametype data.
 	gt = (UINT8)READUINT8(*cp);
 	secondgt = (UINT8)READUINT8(*cp);
 
-	for (i = 0; i < 5; i++)
+	// Strip illegal Encore flag.
+	if (gt == (GT_MATCH|0x80))
+	{
+		gt &= ~0x80;
+	}
+
+	// Apply most data.
+	for (i = 0; i < 4; i++)
 	{
 		votelevels[i][0] = (UINT16)READUINT16(*cp);
 		votelevels[i][1] = gt;
@@ -5152,7 +5193,19 @@ static void Got_SetupVotecmd(UINT8 **cp, INT32 playernum)
 			P_AllocMapHeader(votelevels[i][0]);
 	}
 
+	// Correct third entry's gametype/Encore status.
 	votelevels[2][1] = secondgt;
+
+	// If third entry has an illelegal Encore flag...
+	if (secondgt == (GT_MATCH|0x80))
+	{
+		votelevels[2][1] &= ~0x80;
+		// Apply it to the second entry instead, gametype permitting!
+		if (gt != GT_MATCH)
+		{
+			votelevels[1][1] |= 0x80;
+		}
+	}
 
 	G_SetGamestate(GS_VOTING);
 	Y_StartVote();
@@ -5675,13 +5728,6 @@ static void KartFrantic_OnChange(void)
 
 static void KartSpeed_OnChange(void)
 {
-	if (!M_SecretUnlocked(SECRET_HARDSPEED) && cv_kartspeed.value == 2)
-	{
-		CONS_Printf(M_GetText("You haven't earned this yet.\n"));
-		CV_StealthSetValue(&cv_kartspeed, 1);
-		return;
-	}
-
 	if (G_RaceGametype())
 	{
 		if ((UINT8)cv_kartspeed.value != gamespeed && gamestate == GS_LEVEL && leveltime > starttime)

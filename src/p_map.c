@@ -19,6 +19,7 @@
 #include "m_random.h"
 #include "p_local.h"
 #include "p_setup.h" // NiGHTS stuff
+#include "r_fps.h"
 #include "r_state.h"
 #include "r_main.h"
 #include "r_sky.h"
@@ -75,7 +76,7 @@ camera_t *mapcampointer;
 //
 // P_TeleportMove
 //
-boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z)
+static boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z)
 {
 	// the move is ok,
 	// so link the thing into its new position
@@ -103,6 +104,30 @@ boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z)
 	thing->ceilingz = tmceilingz;
 
 	return true;
+}
+
+// P_SetOrigin - P_TeleportMove which RESETS interpolation values.
+//
+boolean P_SetOrigin(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z)
+{
+	boolean result = P_TeleportMove(thing, x, y, z);
+
+	if (result == true)
+	{
+		thing->old_x = thing->x;
+		thing->old_y = thing->y;
+		thing->old_z = thing->z;
+	}
+
+	return result;
+}
+
+//
+// P_MoveOrigin - P_TeleportMove which KEEPS interpolation values.
+//
+boolean P_MoveOrigin(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z)
+{
+	return P_TeleportMove(thing, x, y, z);
 }
 
 // =========================================================================
@@ -599,9 +624,9 @@ static boolean PIT_CheckThing(mobj_t *thing)
 			return true; // underneath
 
 		if (tmthing->eflags & MFE_VERTICALFLIP)
-			thing->z = tmthing->z - thing->height - FixedMul(FRACUNIT, tmthing->scale);
+			thing->z = thing->old_z = tmthing->z - thing->height - FixedMul(FRACUNIT, tmthing->scale);
 		else
-			thing->z = tmthing->z + tmthing->height + FixedMul(FRACUNIT, tmthing->scale);
+			thing->z = thing->old_z = tmthing->z + tmthing->height + FixedMul(FRACUNIT, tmthing->scale);
 		if (thing->flags & MF_SHOOTABLE)
 			P_DamageMobj(thing, tmthing, tmthing, 1);
 		return true;
@@ -1904,7 +1929,6 @@ if (tmthing->flags & MF_PAPERCOLLISION) // Caution! Turning whilst up against a 
 		if (P_PointOnLineSide(tmx - cosradius, tmy - sinradius, ld)
 		== P_PointOnLineSide(tmx + cosradius, tmy + sinradius, ld))
 			return true; // the line doesn't cross between collider's start or end
-
 	}
 
 	// A line has been hit
@@ -2649,7 +2673,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 	fixed_t tryx = thing->x;
 	fixed_t tryy = thing->y;
 	fixed_t radius = thing->radius;
-	fixed_t thingtop = thing->z + thing->height;
+	fixed_t thingtop ;//= thing->z + thing->height;
 	fixed_t startingonground = P_IsObjectOnGround(thing);
 	floatok = false;
 
@@ -2715,64 +2739,52 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean allowdropoff)
 
 			floatok = true;
 
-			if (thing->eflags & MFE_VERTICALFLIP)
+			thingtop = thing->z + thing->height;
+
+			// Step up
+			if (thing->z < tmfloorz)
 			{
-				if (thing->z < tmfloorz)
+				if (tmfloorz - thing->z <= maxstep)
+				{
+					thing->z = thing->floorz = tmfloorz;
+					thing->eflags |= MFE_JUSTSTEPPEDDOWN;
+				}
+				else
+				{
 					return false; // mobj must raise itself to fit
+				}
 			}
 			else if (tmceilingz < thingtop)
-				return false; // mobj must lower itself to fit
-
-			// Ramp test
-			if (maxstep > 0 && !(
+			{
+				if (thingtop - tmceilingz <= maxstep)
+				{
+					thing->z = ( thing->ceilingz = tmceilingz ) - thing->height;
+					thing->eflags |= MFE_JUSTSTEPPEDDOWN;
+				}
+				else
+				{
+					return false; // mobj must lower itself to fit
+				}
+			}
+			else if (maxstep > 0 && !(
 				thing->player && (
 				P_PlayerTouchingSectorSpecial(thing->player, 1, 14)
 				|| GETSECSPECIAL(R_PointInSubsector(x, y)->sector->special, 1) == 14)
-				)
-			)
+				)) // Step down
 			{
 				// If the floor difference is MAXSTEPMOVE or less, and the sector isn't Section1:14, ALWAYS
 				// step down! Formerly required a Section1:13 sector for the full MAXSTEPMOVE, but no more.
 
-				if (thing->eflags & MFE_VERTICALFLIP)
+				if (thingtop == thing->ceilingz && tmceilingz > thingtop && tmceilingz - thingtop <= maxstep)
 				{
-					if (thingtop == thing->ceilingz && tmceilingz > thingtop && tmceilingz - thingtop <= maxstep)
-					{
-						thing->z = (thing->ceilingz = thingtop = tmceilingz) - thing->height;
-						thing->eflags |= MFE_JUSTSTEPPEDDOWN;
-					}
-					else if (tmceilingz < thingtop && thingtop - tmceilingz <= maxstep)
-					{
-						thing->z = (thing->ceilingz = thingtop = tmceilingz) - thing->height;
-						thing->eflags |= MFE_JUSTSTEPPEDDOWN;
-					}
+					thing->z = (thing->ceilingz = tmceilingz) - thing->height;
+					thing->eflags |= MFE_JUSTSTEPPEDDOWN;
 				}
 				else if (thing->z == thing->floorz && tmfloorz < thing->z && thing->z - tmfloorz <= maxstep)
 				{
 					thing->z = thing->floorz = tmfloorz;
 					thing->eflags |= MFE_JUSTSTEPPEDDOWN;
 				}
-				else if (tmfloorz > thing->z && tmfloorz - thing->z <= maxstep)
-				{
-					thing->z = thing->floorz = tmfloorz;
-					thing->eflags |= MFE_JUSTSTEPPEDDOWN;
-				}
-			}
-
-			if (thing->eflags & MFE_VERTICALFLIP)
-			{
-				if (thingtop - tmceilingz > maxstep)
-				{
-					if (tmfloorthing)
-						tmhitthing = tmfloorthing;
-					return false; // too big a step up
-				}
-			}
-			else if (tmfloorz - thing->z > maxstep)
-			{
-				if (tmfloorthing)
-					tmhitthing = tmfloorthing;
-				return false; // too big a step up
 			}
 
 			if (!allowdropoff && !(thing->flags & MF_FLOAT) && thing->type != MT_SKIM && !tmfloorthing)

@@ -128,7 +128,7 @@ boolean P_Teleport(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle
 {
 	UINT8 i;
 
-	if (!P_TeleportMove(thing, x, y, z))
+	if (!P_SetOrigin(thing, x, y, z))
 		return false;
 
 	thing->angle = angle;

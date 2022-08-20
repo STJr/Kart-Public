@@ -31,6 +31,8 @@
 ///  For use on the internet
 #define INETPACKETLENGTH 1024
 
+#define NO_BAN_TIME (time_t)(-1)
+
 extern INT16 hardware_MAXPACKETLENGTH;
 extern INT32 net_bandwidth; // in byte/s
 
@@ -77,11 +79,19 @@ typedef struct
 	char data[MAXPACKETLENGTH];
 } ATTRPACK doomcom_t;
 
+typedef struct
+{
+	INT32 magic;
+	INT32 addr;
+	INT16 port;
+} ATTRPACK holepunch_t;
+
 #if defined(_MSC_VER)
 #pragma pack()
 #endif
 
 extern doomcom_t *doomcom;
+extern holepunch_t *holepunchpacket;
 
 /**	\brief return packet in doomcom struct
 */
@@ -140,13 +150,34 @@ extern boolean (*I_NetOpenSocket)(void);
 extern void (*I_NetCloseSocket)(void);
 
 
+/**	\brief send a hole punching request
+*/
+extern void (*I_NetRequestHolePunch)(void);
+
+/**	\brief register this machine on the hole punching server
+*/
+extern void (*I_NetRegisterHolePunch)(void);
+
+
 extern boolean (*I_Ban) (INT32 node);
 extern void (*I_ClearBans)(void);
 extern const char *(*I_GetNodeAddress) (INT32 node);
 extern const char *(*I_GetBanAddress) (size_t ban);
 extern const char *(*I_GetBanMask) (size_t ban);
+extern const char *(*I_GetBanUsername) (size_t ban);
+extern const char *(*I_GetBanReason) (size_t ban);
+extern time_t (*I_GetUnbanTime) (size_t ban);
 extern boolean (*I_SetBanAddress) (const char *address,const char *mask);
-extern boolean *bannednode;
+extern boolean (*I_SetBanUsername) (const char *username);
+extern boolean (*I_SetBanReason) (const char *reason);
+extern boolean (*I_SetUnbanTime) (time_t timestamp);
+
+typedef struct
+{
+	size_t banid;
+	time_t timeleft;
+} bannednode_t;
+extern bannednode_t *bannednode;
 
 /// \brief Called by D_SRB2Main to be defined by extern network driver
 boolean I_InitNetwork(void);

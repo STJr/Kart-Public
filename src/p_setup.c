@@ -21,6 +21,7 @@
 #include "p_spec.h"
 #include "p_saveg.h"
 
+#include "i_time.h"
 #include "i_sound.h" // for I_PlayCD()..
 #include "i_video.h" // for I_FinishUpdate()..
 #include "r_sky.h"
@@ -30,6 +31,7 @@
 #include "r_things.h"
 #include "r_sky.h"
 #include "r_draw.h"
+#include "r_fps.h" // R_ResetViewInterpolation in level load
 
 #include "s_sound.h"
 #include "st_stuff.h"
@@ -2396,6 +2398,8 @@ static void P_LevelInitStuff(void)
 		players[i].exiting = 0;
 		P_ResetPlayer(&players[i]);
 
+		players[i].spectatorreentry = 0; // SRB2Kart 1.4
+
 		players[i].mo = NULL;
 
 		// we must unset axis details too
@@ -2909,7 +2913,10 @@ boolean P_SetupLevel(boolean skipprecip)
 		{
 			// wait loop
 			while (!((nowtime = I_GetTime()) - lastwipetic))
-				I_Sleep();
+			{
+				I_Sleep(cv_sleep.value);
+				I_UpdateTime(cv_timescale.value);
+			}
 			lastwipetic = nowtime;
 			if (moviemode) // make sure we save frames for the white hold too
 				M_SaveFrame();
@@ -2988,7 +2995,10 @@ boolean P_SetupLevel(boolean skipprecip)
 	R_ClearLevelSplats();
 #endif
 
+	R_InitializeLevelInterpolators();
+
 	P_InitThinkers();
+	R_InitMobjInterpolators();
 	P_InitCachedActions();
 
 	/// \note for not spawning precipitation, etc. when loading netgame snapshots
@@ -3227,6 +3237,37 @@ boolean P_SetupLevel(boolean skipprecip)
 		G_RecordDemo(buf);
 	}
 
+	wantedcalcdelay = wantedfrequency*2;
+	indirectitemcooldown = 0;
+	hyubgone = 0;
+	mapreset = 0;
+	nospectategrief = 0;
+	thwompsactive = false;
+	spbplace = -1;
+
+	startedInFreePlay = false;
+	{
+		UINT8 nump = 0;
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			if (!playeringame[i] || players[i].spectator)
+			{
+				continue;
+			}
+
+			nump++;
+			if (nump == 2)
+			{
+				break;
+			}
+		}
+
+		if (nump <= 1)
+		{
+			startedInFreePlay = true;
+		}
+	}
+
 	// ===========
 	// landing point for netgames.
 	netgameskip:
@@ -3298,14 +3339,6 @@ boolean P_SetupLevel(boolean skipprecip)
 		CV_SetValue(&cv_analog2, false);
 		CV_SetValue(&cv_analog, false);
 	}*/
-
-	wantedcalcdelay = wantedfrequency*2;
-	indirectitemcooldown = 0;
-	hyubgone = 0;
-	mapreset = 0;
-	nospectategrief = 0;
-	thwompsactive = false;
-	spbplace = -1;
 
 	// clear special respawning que
 	iquehead = iquetail = 0;

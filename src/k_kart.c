@@ -575,6 +575,7 @@ void K_RegisterKartStuff(void)
 	CV_RegisterVar(&cv_kartcomeback);
 	CV_RegisterVar(&cv_kartencore);
 	CV_RegisterVar(&cv_kartvoterulechanges);
+	CV_RegisterVar(&cv_kartgametypepreference);
 	CV_RegisterVar(&cv_kartspeedometer);
 	CV_RegisterVar(&cv_kartvoices);
 	CV_RegisterVar(&cv_karteliminatelast);
@@ -894,7 +895,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 				POWERITEMODDS(newodds);
 			break;
 		case KITEM_THUNDERSHIELD:
-			if (thunderisout)
+			if (thunderisout || COOLDOWNONSTART)
 				newodds = 0;
 			else
 				POWERITEMODDS(newodds);
@@ -952,6 +953,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (playeringame[i] && !players[i].spectator && players[i].mo
+			&& players[i].kartstuff[k_position] != 0
 			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
 			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
 													players[i].mo->y - player->mo->y),
@@ -2003,10 +2005,10 @@ fixed_t K_3dKartMovement(player_t *player, boolean onground, fixed_t forwardmove
 	finalspeed *= forwardmove/25;
 	finalspeed /= 2;
 
-	if (forwardmove < 0 && finalspeed > FRACUNIT*2)
+	if (forwardmove < 0 && finalspeed > mapobjectscale*2)
 		return finalspeed/2;
 	else if (forwardmove < 0)
-		return -FRACUNIT/2;
+		return -mapobjectscale/2;
 
 	if (finalspeed < 0)
 		finalspeed = 0;
@@ -2026,9 +2028,15 @@ void K_DoInstashield(player_t *player)
 	S_StartSound(player->mo, sfx_cdpcm9);
 
 	layera = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_INSTASHIELDA);
+	layera->old_x = player->mo->old_x;
+	layera->old_y = player->mo->old_y;
+	layera->old_z = player->mo->old_z;
 	P_SetTarget(&layera->target, player->mo);
 
 	layerb = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_INSTASHIELDB);
+	layerb->old_x = player->mo->old_x;
+	layerb->old_y = player->mo->old_y;
+	layerb->old_z = player->mo->old_z;
 	P_SetTarget(&layerb->target, player->mo);
 }
 
@@ -2730,7 +2738,7 @@ static mobj_t *K_SpawnKartMissile(mobj_t *source, mobjtype_t type, angle_t an, I
 	{
 		// floorz and ceilingz aren't properly set to account for FOFs and Polyobjects on spawn
 		// This should set it for FOFs
-		P_TeleportMove(th, th->x, th->y, th->z);
+		P_SetOrigin(th, th->x, th->y, th->z);
 		// spawn on the ground if the player is on the ground
 		if (P_MobjFlip(source) < 0)
 		{
@@ -3258,7 +3266,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 				angle_t fa = player->mo->angle>>ANGLETOFINESHIFT;
 				fixed_t HEIGHT = (20 + (dir*10))*mapobjectscale + (player->mo->momz*P_MobjFlip(player->mo));
 
-				P_SetObjectMomZ(mo, HEIGHT, false);
+				mo->momz = HEIGHT*P_MobjFlip(mo);
 				mo->momx = player->mo->momx + FixedMul(FINECOSINE(fa), PROJSPEED*dir);
 				mo->momy = player->mo->momy + FixedMul(FINESINE(fa), PROJSPEED*dir);
 
@@ -3313,7 +3321,7 @@ static mobj_t *K_ThrowKartItem(player_t *player, boolean missile, mobjtype_t map
 			{
 				// floorz and ceilingz aren't properly set to account for FOFs and Polyobjects on spawn
 				// This should set it for FOFs
-				P_TeleportMove(mo, mo->x, mo->y, mo->z); // however, THIS can fuck up your day. just absolutely ruin you.
+				P_SetOrigin(mo, mo->x, mo->y, mo->z); // however, THIS can fuck up your day. just absolutely ruin you.
 				if (P_MobjWasRemoved(mo))
 					return NULL;
 
@@ -3826,7 +3834,7 @@ void K_DropHnextList(player_t *player)
 		{
 			// floorz and ceilingz aren't properly set to account for FOFs and Polyobjects on spawn
 			// This should set it for FOFs
-			//P_TeleportMove(dropwork, dropwork->x, dropwork->y, dropwork->z); -- handled better by above floorz/ceilingz passing
+			//P_SetOrigin(dropwork, dropwork->x, dropwork->y, dropwork->z); -- handled better by above floorz/ceilingz passing
 
 			if (flip == 1)
 			{
@@ -4100,7 +4108,7 @@ static void K_MoveHeldObjects(player_t *player)
 						z = player->mo->z + player->mo->height - cur->height;
 
 					cur->flags |= MF_NOCLIPTHING; // temporarily make them noclip other objects so they can't hit anyone while in the player
-					P_TeleportMove(cur, player->mo->x, player->mo->y, z);
+					P_MoveOrigin(cur, player->mo->x, player->mo->y, z);
 					cur->momx = FixedMul(FINECOSINE(cur->angle>>ANGLETOFINESHIFT), cur->extravalue1);
 					cur->momy = FixedMul(FINESINE(cur->angle>>ANGLETOFINESHIFT), cur->extravalue1);
 					cur->flags &= ~MF_NOCLIPTHING;
@@ -4202,7 +4210,7 @@ static void K_MoveHeldObjects(player_t *player)
 					P_SetObjectMomZ(cur, FixedMul(targz - cur->z, 7*FRACUNIT/8) - gravity, false);
 
 					if (R_PointToDist2(cur->x, cur->y, targx, targy) > 768*FRACUNIT)
-						P_TeleportMove(cur, targx, targy, cur->z);
+						P_MoveOrigin(cur, targx, targy, cur->z);
 
 					cur = cur->hnext;
 				}
@@ -4286,12 +4294,12 @@ static void K_MoveHeldObjects(player_t *player)
 						diffy = targy - cur->y;
 						diffz = targz - cur->z;
 
-						P_TeleportMove(cur->tracer, cur->tracer->x + diffx + P_ReturnThrustX(cur, cur->angle + angoffset, 6*cur->scale),
+						P_MoveOrigin(cur->tracer, cur->tracer->x + diffx + P_ReturnThrustX(cur, cur->angle + angoffset, 6*cur->scale),
 							cur->tracer->y + diffy + P_ReturnThrustY(cur, cur->angle + angoffset, 6*cur->scale), cur->tracer->z + diffz);
 						P_SetScale(cur->tracer, (cur->tracer->destscale = 3*cur->scale/4));
 					}
 
-					P_TeleportMove(cur, targx, targy, targz);
+					P_MoveOrigin(cur, targx, targy, targz);
 					K_FlipFromObject(cur, player->mo);	// Update graviflip in real time thanks.
 					num = (num+1) % 2;
 					cur = cur->hnext;
@@ -4526,7 +4534,7 @@ static void K_UpdateEngineSounds(player_t *player, ticcmd_t *cmd)
 		volume = FixedDiv(volume * FRACUNIT, volumedampen) / FRACUNIT;
 	}
 
-	if (volume <= 0) 
+	if (volume <= 0)
 	{
 		// Don't need to play the sound at all.
 		return;
@@ -4950,6 +4958,9 @@ void K_KartPlayerAfterThink(player_t *player)
 		}
 
 		ret = P_SpawnMobj(targ->mo->x, targ->mo->y, targ->mo->z, MT_PLAYERRETICULE);
+		ret->old_x = targ->mo->old_x;
+		ret->old_y = targ->mo->old_y;
+		ret->old_z = targ->mo->old_z;
 		P_SetTarget(&ret->target, targ->mo);
 		ret->frame |= ((leveltime % 10) / 2);
 		ret->tics = 1;
@@ -5021,8 +5032,10 @@ static INT16 K_GetKartDriftValue(player_t *player, fixed_t countersteer)
 
 INT16 K_GetKartTurnValue(player_t *player, INT16 turnvalue)
 {
-	fixed_t p_maxspeed = FixedMul(K_GetKartSpeed(player, false), 3*FRACUNIT);
-	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (player->speed>>16), (p_maxspeed>>16) + player->kartweight);
+	fixed_t p_topspeed = K_GetKartSpeed(player, false);
+	fixed_t p_curspeed = min(player->speed, p_topspeed * 2);
+	fixed_t p_maxspeed = p_topspeed * 3;
+	fixed_t adjustangle = FixedDiv((p_maxspeed>>16) - (p_curspeed>>16), (p_maxspeed>>16) + player->kartweight);
 
 	if (player->spectator)
 		return turnvalue;
@@ -5064,6 +5077,12 @@ static void K_KartDrift(player_t *player, boolean onground)
 	INT32 dsone = K_GetKartDriftSparkValue(player);
 	INT32 dstwo = dsone*2;
 	INT32 dsthree = dstwo*2;
+
+	// Grown players taking yellow spring panels will go below minspeed for one tic,
+	// and will then wrongdrift or have their sparks removed because of this.
+	// This fixes this problem.
+	if (player->kartstuff[k_pogospring] == 2 && player->mo->scale > mapobjectscale)
+		minspeed = FixedMul(10<<FRACBITS, mapobjectscale);
 
 	// Drifting is actually straffing + automatic turning.
 	// Holding the Jump button will enable drifting.
@@ -5116,14 +5135,14 @@ static void K_KartDrift(player_t *player, boolean onground)
 	{
 		// Starting left drift
 		player->kartstuff[k_drift] = 1;
-		player->kartstuff[k_driftend] = player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_driftend] = 0;
 	}
 	else if ((player->cmd.driftturn < 0) && player->speed > minspeed && player->kartstuff[k_jmp] == 1
 		&& (player->kartstuff[k_drift] == 0 || player->kartstuff[k_driftend] == 1)) // && player->kartstuff[k_drift] != -1)
 	{
 		// Starting right drift
 		player->kartstuff[k_drift] = -1;
-		player->kartstuff[k_driftend] = player->kartstuff[k_driftcharge] = 0;
+		player->kartstuff[k_driftend] = 0;
 	}
 	else if (player->kartstuff[k_jmp] == 0) // || player->kartstuff[k_turndir] == 0)
 	{
@@ -5930,7 +5949,9 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 	}
 
-	if (onground)
+	// JugadorXEI: Do *not* calculate friction when a player is pogo'd
+	// because they'll be in the air and friction will not reset!
+	if (onground && !player->kartstuff[k_pogospring]) 
 	{
 		// Friction
 		if (!player->kartstuff[k_offroad])
@@ -5964,7 +5985,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 		}
 
 		// Wipeout slowdown
-		if (player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
+		if (player->speed > 0 && player->kartstuff[k_spinouttimer] && player->kartstuff[k_wipeoutslow])
 		{
 			if (player->kartstuff[k_offroad])
 				player->mo->friction -= 4912;
@@ -6028,7 +6049,7 @@ void K_MoveKartPlayer(player_t *player, boolean onground)
 	if (leveltime < starttime+10)
 	{
 		player->mo->scalespeed = mapobjectscale/12;
-		player->mo->destscale = mapobjectscale + (player->kartstuff[k_boostcharge]*131);
+		player->mo->destscale = mapobjectscale + (FixedMul(mapobjectscale, player->kartstuff[k_boostcharge]*131));
 		if (cv_kartdebugshrink.value && !modeattacking && !player->bot)
 			player->mo->destscale = (6*player->mo->destscale)/8;
 	}
@@ -6260,16 +6281,23 @@ void K_CheckSpectateStatus(void)
 {
 	UINT8 respawnlist[MAXPLAYERS];
 	UINT8 i, j, numingame = 0, numjoiners = 0;
+	UINT8 previngame = 0;
 
 	// Maintain spectate wait timer
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (!playeringame[i])
 			continue;
+
 		if (players[i].spectator && (players[i].pflags & PF_WANTSTOJOIN))
 			players[i].kartstuff[k_spectatewait]++;
 		else
 			players[i].kartstuff[k_spectatewait] = 0;
+
+		if (gamestate != GS_LEVEL)
+			players[i].spectatorreentry = 0;
+		else if (players[i].spectatorreentry > 0)
+			players[i].spectatorreentry--;
 	}
 
 	// No one's allowed to join
@@ -6285,24 +6313,47 @@ void K_CheckSpectateStatus(void)
 		if (!players[i].spectator)
 		{
 			numingame++;
-			if (cv_ingamecap.value && numingame >= cv_ingamecap.value) // DON'T allow if you've hit the in-game player cap
+
+			// DON'T allow if you've hit the in-game player cap
+			if (cv_ingamecap.value && numingame >= cv_ingamecap.value)
 				return;
-			if (gamestate != GS_LEVEL) // Allow if you're not in a level
+
+			// Allow if you're not in a level
+			if (gamestate != GS_LEVEL) 
 				continue;
-			if (players[i].exiting) // DON'T allow if anyone's exiting
+
+			// DON'T allow if anyone's exiting
+			if (players[i].exiting)
 				return;
-			if (numingame < 2 || leveltime < starttime || mapreset) // Allow if the match hasn't started yet
+
+			// Allow if the match hasn't started yet
+			if (numingame < 2 || leveltime < starttime || mapreset)
 				continue;
-			if (leveltime > (starttime + 20*TICRATE)) // DON'T allow if the match is 20 seconds in
+
+			// DON'T allow if the match is 20 seconds in
+			if (leveltime > (starttime + 20*TICRATE))
 				return;
-			if (G_RaceGametype() && players[i].laps) // DON'T allow if the race is at 2 laps
+
+			// DON'T allow if the race is on the second lap
+			if (G_RaceGametype() && players[i].laps)
 				return;
+
 			continue;
 		}
 		else if (!(players[i].pflags & PF_WANTSTOJOIN))
+		{
+			// This spectator does not want to join.
 			continue;
+		}
 
 		respawnlist[numjoiners++] = i;
+	}
+
+	// The map started as a legitimate race, but there's still the one player.
+	// Don't allow new joiners, as they're probably a ragespeccer.
+	if (G_RaceGametype() && startedInFreePlay == false && numingame == 1)
+	{
+		return;
 	}
 
 	// literally zero point in going any further if nobody is joining
@@ -6310,7 +6361,9 @@ void K_CheckSpectateStatus(void)
 		return;
 
 	// Organize by spectate wait timer
+#if 0
 	if (cv_ingamecap.value)
+#endif
 	{
 		UINT8 oldrespawnlist[MAXPLAYERS];
 		memcpy(oldrespawnlist, respawnlist, numjoiners);
@@ -6334,20 +6387,57 @@ void K_CheckSpectateStatus(void)
 		}
 	}
 
-	// Finally, we can de-spectate everyone!
+	// Finally, we can de-spectate everyone in the list!
+	previngame = numingame;
+
 	for (i = 0; i < numjoiners; i++)
 	{
-		if (cv_ingamecap.value && numingame+i >= cv_ingamecap.value) // Hit the in-game player cap while adding people?
+		// Hit the in-game player cap while adding people? Get out of here
+		if (cv_ingamecap.value > 0 && numingame >= cv_ingamecap.value)
 			break;
+
+		// This person has their reentry cooldown active.
+		if (players[i].spectatorreentry > 0 && numingame > 0)
+			continue;
+
 		P_SpectatorJoinGame(&players[respawnlist[i]]);
+		numingame++;
 	}
 
 	// Reset the match if you're in an empty server
-	if (!mapreset && gamestate == GS_LEVEL && leveltime >= starttime && (numingame < 2 && numingame+i >= 2)) // use previous i value
+	if (!mapreset && gamestate == GS_LEVEL && (leveltime > introtime) && (previngame < 2 && numingame >= 2))
 	{
 		S_ChangeMusicInternal("chalng", false); // COME ON
 		mapreset = 3*TICRATE; // Even though only the server uses this for game logic, set for everyone for HUD
 	}
+}
+
+void K_UpdateSpectateGrief(void)
+{
+	UINT8 numingame = 0;
+	INT32 i;
+
+	if (nospectategrief)
+	{
+		return;
+	}
+
+	if (leveltime <= (starttime + 20*TICRATE))
+	{
+		return;
+	}
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || players[i].spectator)
+		{
+			continue;
+		}
+
+		numingame++;
+	}
+
+	nospectategrief = numingame;
 }
 
 //}

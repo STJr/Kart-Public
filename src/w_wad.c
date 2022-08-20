@@ -54,6 +54,7 @@
 #include "d_main.h"
 #include "filesrch.h"
 
+#include "i_time.h"
 #include "i_video.h" // rendermode
 #include "d_netfil.h"
 #include "dehacked.h"
@@ -617,8 +618,6 @@ static lumpinfo_t* ResGetLumpsZip (FILE* handle, UINT16* nlmp)
 		lump_p->fullname = Z_Calloc(zentry.namelen + 1, PU_STATIC, NULL);
 		strncpy(lump_p->fullname, fullname, zentry.namelen);
 
-		free(fullname);
-
 		switch(zentry.compression)
 		{
 		case 0:
@@ -637,6 +636,7 @@ static lumpinfo_t* ResGetLumpsZip (FILE* handle, UINT16* nlmp)
 			lump_p->compression = CM_UNSUPPORTED;
 			break;
 		}
+		free(fullname);
 
 		// skip and ignore comments/extra fields
 		if (fseek(handle, zentry.xtralen + zentry.commlen, SEEK_CUR) != 0)
