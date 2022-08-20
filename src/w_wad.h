@@ -77,9 +77,10 @@ typedef struct
 // =========================================================================
 
 #define MAX_WADPATH 512
-#define MAX_WADFILES 127 // maximum of wad files used at the same time
-// Replay code relies on it being an UINT8 and, just to be safe, in case some wad counter somewhere is a SINT8, you should NOT go above 127 here if you're lazy like me.
-// Besides, are there truly 127 wads worth your interrest?
+#define MAX_WADFILES 250 // maximum of wad files used at the same time
+// Replay code relies on it being an UINT8. There are no SINT8s handling WAD indices, though.
+// Can be set all the way up to 255 but not 256 (as the latter breaks for loops with UINT8 indices).
+// 5 slots are left open for tricks that hardmods might engage in, like Moe Mansion's WAD_MUSIC.
 
 #define lumpcache_t void *
 
