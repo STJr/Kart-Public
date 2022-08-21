@@ -713,13 +713,13 @@ static boolean SOCK_Get(void)
 #ifdef USE_STUN
 			if (STUN_got_response(doomcom->data, c))
 			{
-				return false;
+				break;
 			}
 #endif
 
 			if (hole_punch(c))
 			{
-				return false;
+				break;
 			}
 
 			// find remote node number

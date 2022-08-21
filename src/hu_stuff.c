@@ -321,7 +321,7 @@ void HU_LoadGraphics(void)
 		pinggfx[i] = (patch_t *)W_CachePatchName(buffer, PU_HUDGFX);
 	}
 
-	pingmeasure[0] = W_CachePatchName("PINGF", PU_HUDGFX);
+	pingmeasure[0] = W_CachePatchName("PINGD", PU_HUDGFX);
 	pingmeasure[1] = W_CachePatchName("PINGMS", PU_HUDGFX);
 
 	// fps stuff
@@ -2552,7 +2552,8 @@ void HU_drawPing(INT32 x, INT32 y, UINT32 lag, INT32 flags)
 
 	gfxnum = Ping_gfx_num(lag);
 
-	V_DrawScaledPatch(x+11 - pingmeasure[measureid]->width, y+9, flags, pingmeasure[measureid]);
+	if (measureid == 1)
+		V_DrawScaledPatch(x+11 - pingmeasure[measureid]->width, y+9, flags, pingmeasure[measureid]);
 	V_DrawScaledPatch(x+2, y, flags, pinggfx[gfxnum]);
 
 	if (servermaxping && lag > servermaxping && hu_tick < 4)
@@ -2566,7 +2567,10 @@ void HU_drawPing(INT32 x, INT32 y, UINT32 lag, INT32 flags)
 		lag = (INT32)(lag * (1000.00f / TICRATE));
 	}
 
-	V_DrawPingNum(x+11 - pingmeasure[measureid]->width, y+9, flags, lag, colormap);
+	x = V_DrawPingNum(x + (measureid == 1 ? 11 - pingmeasure[measureid]->width : 10), y+9, flags, lag, colormap);
+
+	if (measureid == 0)
+		V_DrawScaledPatch(x+1 - pingmeasure[measureid]->width, y+9, flags, pingmeasure[measureid]);
 }
 
 //

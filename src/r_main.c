@@ -1045,24 +1045,44 @@ void R_SetupFrame(player_t *player, boolean skybox)
 		thiscam = &camera[3];
 		chasecam = (cv_chasecam4.value != 0);
 		R_SetViewContext(VIEWCONTEXT_PLAYER4);
+		if (thiscam->reset)
+		{
+			R_ResetViewInterpolation(4);
+			thiscam->reset = false;
+		}
 	}
 	else if (splitscreen > 1 && player == &players[displayplayers[2]])
 	{
 		thiscam = &camera[2];
 		chasecam = (cv_chasecam3.value != 0);
 		R_SetViewContext(VIEWCONTEXT_PLAYER3);
+		if (thiscam->reset)
+		{
+			R_ResetViewInterpolation(3);
+			thiscam->reset = false;
+		}
 	}
 	else if (splitscreen && player == &players[displayplayers[1]])
 	{
 		thiscam = &camera[1];
 		chasecam = (cv_chasecam2.value != 0);
 		R_SetViewContext(VIEWCONTEXT_PLAYER2);
+		if (thiscam->reset)
+		{
+			R_ResetViewInterpolation(2);
+			thiscam->reset = false;
+		}
 	}
 	else
 	{
 		thiscam = &camera[0];
 		chasecam = (cv_chasecam.value != 0);
 		R_SetViewContext(VIEWCONTEXT_PLAYER1);
+		if (thiscam->reset)
+		{
+			R_ResetViewInterpolation(1);
+			thiscam->reset = false;
+		}
 	}
 
 	if (player->spectator) // no spectator chasecam
@@ -1175,11 +1195,11 @@ static void R_PortalFrame(line_t *start, line_t *dest, portal_pair *portal)
 #endif
 
 	//R_SetupFrame(player, false);
-	newview->x = portal->viewx;
-	newview->y = portal->viewy;
-	newview->z = portal->viewz;
+	viewx = portal->viewx;
+	viewy = portal->viewy;
+	viewz = portal->viewz;
 
-	newview->angle = portal->viewangle;
+	viewangle = portal->viewangle;
 	// newview->sin = FINESINE(newview->angle>>ANGLETOFINESHIFT);
 	// newview->cos = FINECOSINE(newview->angle>>ANGLETOFINESHIFT);
 
@@ -1207,13 +1227,13 @@ static void R_PortalFrame(line_t *start, line_t *dest, portal_pair *portal)
 	if (dangle == 0)
 #endif
 	{ // the entrance goes straight opposite the exit, so we just need to mess with the offset.
-		newview->x += dest_c.x - start_c.x;
-		newview->y += dest_c.y - start_c.y;
+		viewx += dest_c.x - start_c.x;
+		viewy += dest_c.y - start_c.y;
 		return;
 	}
 
 #ifdef ANGLED_PORTALS
-	newview->angle += dangle;
+	viewangle += dangle;
 	// newview->sin = FINESINE(newview->angle>>ANGLETOFINESHIFT);
 	// newview->cos = FINECOSINE(newview->angle>>ANGLETOFINESHIFT);
 	//CONS_Printf("dangle == %u\n", AngleFixed(dangle)>>FRACBITS);
@@ -1227,8 +1247,8 @@ static void R_PortalFrame(line_t *start, line_t *dest, portal_pair *portal)
 		angtopoint = R_PointToAngle2(start_c.x, start_c.y, newview->x, newview->y);
 		angtopoint += dangle;
 
-		newview->x = dest_c.x+FixedMul(FINECOSINE(angtopoint>>ANGLETOFINESHIFT), disttopoint);
-		newview->y = dest_c.y+FixedMul(FINESINE(angtopoint>>ANGLETOFINESHIFT), disttopoint);
+		viewx = dest_c.x+FixedMul(FINECOSINE(angtopoint>>ANGLETOFINESHIFT), disttopoint);
+		viewy = dest_c.y+FixedMul(FINESINE(angtopoint>>ANGLETOFINESHIFT), disttopoint);
 	}
 #endif
 }
