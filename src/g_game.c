@@ -421,7 +421,7 @@ static CV_PossibleValue_t joyaxis_cons_t[] = {{0, "None"},
 #endif
 #endif
 
-static CV_PossibleValue_t deadzone_cons_t[] = {{0, "MIN"}, {FRACUNIT, "MAX"}, {0, NULL}};
+static CV_PossibleValue_t deadzone_cons_t[] = {{FRACUNIT/16, "MIN"}, {FRACUNIT, "MAX"}, {0, NULL}};
 
 // don't mind me putting these here, I was lazy to figure out where else I could put those without blowing up the compiler.
 
@@ -493,7 +493,8 @@ consvar_t cv_aimaxis = {"joyaxis_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL, 
 consvar_t cv_lookaxis = {"joyaxis_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis = {"joyaxis_fire", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_driftaxis = {"joyaxis_drift", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_deadzone = {"joy_deadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_xdeadzone = {"joy_xdeadzone", "0.3", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_ydeadzone = {"joy_ydeadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_turnaxis2 = {"joyaxis2_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis2 = {"joyaxis2_move", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -502,7 +503,8 @@ consvar_t cv_aimaxis2 = {"joyaxis2_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL
 consvar_t cv_lookaxis2 = {"joyaxis2_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis2 = {"joyaxis2_fire", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_driftaxis2 = {"joyaxis2_drift", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_deadzone2 = {"joy2_deadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_xdeadzone2 = {"joy2_xdeadzone", "0.3", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_ydeadzone2 = {"joy2_ydeadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_turnaxis3 = {"joyaxis3_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis3 = {"joyaxis3_move", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -511,7 +513,8 @@ consvar_t cv_aimaxis3 = {"joyaxis3_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL
 consvar_t cv_lookaxis3 = {"joyaxis3_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis3 = {"joyaxis3_fire", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_driftaxis3 = {"joyaxis3_drift", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_deadzone3 = {"joy3_deadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_xdeadzone3 = {"joy3_xdeadzone", "0.3", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_ydeadzone3 = {"joy3_ydeadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_turnaxis4 = {"joyaxis4_turn", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_moveaxis4 = {"joyaxis4_move", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
@@ -520,7 +523,8 @@ consvar_t cv_aimaxis4 = {"joyaxis4_aim", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL
 consvar_t cv_lookaxis4 = {"joyaxis4_look", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_fireaxis4 = {"joyaxis4_fire", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_driftaxis4 = {"joyaxis4_drift", "None", CV_SAVE, joyaxis_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-consvar_t cv_deadzone4 = {"joy4_deadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_xdeadzone4 = {"joy4_xdeadzone", "0.3", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
+consvar_t cv_ydeadzone4 = {"joy4_ydeadzone", "0.5", CV_FLOAT|CV_SAVE, deadzone_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 
 #if MAXPLAYERS > 16
@@ -930,31 +934,44 @@ static INT32 Joy1Axis(axis_input_e axissel)
 	{
 		axisval /= 2;
 		retaxis = joyxmove[axisval];
+
+		if (retaxis < (-JOYAXISRANGE))
+			retaxis = -JOYAXISRANGE;
+		if (retaxis > (+JOYAXISRANGE))
+			retaxis = +JOYAXISRANGE;
+		if (!Joystick.bGamepadStyle && axissel < AXISDEAD)
+		{
+			const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_xdeadzone.value) >> FRACBITS;
+			if (abs(retaxis) <= jdeadzone)
+				return 0;
+		}
+		if (flp) retaxis = -retaxis; //flip it around
+		return retaxis;
 	}
 	else
 	{
 		axisval--;
 		axisval /= 2;
 		retaxis = joyymove[axisval];
+
+		if (retaxis < (-JOYAXISRANGE))
+			retaxis = -JOYAXISRANGE;
+		if (retaxis > (+JOYAXISRANGE))
+			retaxis = +JOYAXISRANGE;
+		if (!Joystick.bGamepadStyle && axissel < AXISDEAD)
+		{
+			const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_ydeadzone.value) >> FRACBITS;
+			if (abs(retaxis) <= jdeadzone)
+				return 0;
+		}
+		if (flp) retaxis = -retaxis; //flip it around
+		return retaxis;
 	}
+}
 
 #ifdef _arch_dreamcast
 	skipDC:
 #endif
-
-	if (retaxis < (-JOYAXISRANGE))
-		retaxis = -JOYAXISRANGE;
-	if (retaxis > (+JOYAXISRANGE))
-		retaxis = +JOYAXISRANGE;
-	if (!Joystick.bGamepadStyle && axissel < AXISDEAD)
-	{
-		const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_deadzone.value) >> FRACBITS;
-		if (abs(retaxis) <= jdeadzone)
-			return 0;
-	}
-	if (flp) retaxis = -retaxis; //flip it around
-	return retaxis;
-}
 
 static INT32 Joy2Axis(axis_input_e axissel)
 {
@@ -1011,31 +1028,46 @@ static INT32 Joy2Axis(axis_input_e axissel)
 	{
 		axisval /= 2;
 		retaxis = joy2xmove[axisval];
+
+		if (retaxis < (-JOYAXISRANGE))
+			retaxis = -JOYAXISRANGE;
+		if (retaxis > (+JOYAXISRANGE))
+			retaxis = +JOYAXISRANGE;
+		if (!Joystick2.bGamepadStyle && axissel < AXISDEAD)
+		{
+			const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_xdeadzone2.value) >> FRACBITS;
+			if (-jdeadzone < retaxis && retaxis < jdeadzone)
+				return 0;
+		}
+		if (flp) retaxis = -retaxis; //flip it around
+		return retaxis;
+
 	}
 	else
 	{
 		axisval--;
 		axisval /= 2;
 		retaxis = joy2ymove[axisval];
+
+		if (retaxis < (-JOYAXISRANGE))
+			retaxis = -JOYAXISRANGE;
+		if (retaxis > (+JOYAXISRANGE))
+			retaxis = +JOYAXISRANGE;
+		if (!Joystick2.bGamepadStyle && axissel < AXISDEAD)
+		{
+			const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_ydeadzone2.value) >> FRACBITS;
+			if (-jdeadzone < retaxis && retaxis < jdeadzone)
+				return 0;
+		}
+		if (flp) retaxis = -retaxis; //flip it around
+		return retaxis;
+
 	}
+}
 
 #ifdef _arch_dreamcast
 	skipDC:
 #endif
-
-	if (retaxis < (-JOYAXISRANGE))
-		retaxis = -JOYAXISRANGE;
-	if (retaxis > (+JOYAXISRANGE))
-		retaxis = +JOYAXISRANGE;
-	if (!Joystick2.bGamepadStyle && axissel < AXISDEAD)
-	{
-		const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_deadzone2.value) >> FRACBITS;
-		if (-jdeadzone < retaxis && retaxis < jdeadzone)
-			return 0;
-	}
-	if (flp) retaxis = -retaxis; //flip it around
-	return retaxis;
-}
 
 static INT32 Joy3Axis(axis_input_e axissel)
 {
@@ -1092,31 +1124,46 @@ static INT32 Joy3Axis(axis_input_e axissel)
 	{
 		axisval /= 2;
 		retaxis = joy3xmove[axisval];
+
+		if (retaxis < (-JOYAXISRANGE))
+			retaxis = -JOYAXISRANGE;
+		if (retaxis > (+JOYAXISRANGE))
+			retaxis = +JOYAXISRANGE;
+		if (!Joystick3.bGamepadStyle && axissel < AXISDEAD)
+		{
+			const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_xdeadzone3.value) >> FRACBITS;
+			if (-jdeadzone < retaxis && retaxis < jdeadzone)
+				return 0;
+		}
+		if (flp) retaxis = -retaxis; //flip it around
+		return retaxis;
+		
 	}
 	else
 	{
 		axisval--;
 		axisval /= 2;
 		retaxis = joy3ymove[axisval];
+
+		if (retaxis < (-JOYAXISRANGE))
+			retaxis = -JOYAXISRANGE;
+		if (retaxis > (+JOYAXISRANGE))
+			retaxis = +JOYAXISRANGE;
+		if (!Joystick3.bGamepadStyle && axissel < AXISDEAD)
+		{
+			const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_ydeadzone3.value) >> FRACBITS;
+			if (-jdeadzone < retaxis && retaxis < jdeadzone)
+				return 0;
+		}
+		if (flp) retaxis = -retaxis; //flip it around
+		return retaxis;
+		
 	}
+}
 
 #ifdef _arch_dreamcast
 	skipDC:
 #endif
-
-	if (retaxis < (-JOYAXISRANGE))
-		retaxis = -JOYAXISRANGE;
-	if (retaxis > (+JOYAXISRANGE))
-		retaxis = +JOYAXISRANGE;
-	if (!Joystick3.bGamepadStyle && axissel < AXISDEAD)
-	{
-		const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_deadzone3.value) >> FRACBITS;
-		if (-jdeadzone < retaxis && retaxis < jdeadzone)
-			return 0;
-	}
-	if (flp) retaxis = -retaxis; //flip it around
-	return retaxis;
-}
 
 static INT32 Joy4Axis(axis_input_e axissel)
 {
@@ -1172,31 +1219,46 @@ static INT32 Joy4Axis(axis_input_e axissel)
 	{
 		axisval /= 2;
 		retaxis = joy4xmove[axisval];
+
+		if (retaxis < (-JOYAXISRANGE))
+			retaxis = -JOYAXISRANGE;
+		if (retaxis > (+JOYAXISRANGE))
+			retaxis = +JOYAXISRANGE;
+		if (!Joystick4.bGamepadStyle && axissel < AXISDEAD)
+		{
+			const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_xdeadzone4.value) >> FRACBITS;
+			if (-jdeadzone < retaxis && retaxis < jdeadzone)
+				return 0;
+		}
+		if (flp) retaxis = -retaxis; //flip it around
+		return retaxis;
+		
 	}
 	else
 	{
 		axisval--;
 		axisval /= 2;
 		retaxis = joy4ymove[axisval];
+
+		if (retaxis < (-JOYAXISRANGE))
+			retaxis = -JOYAXISRANGE;
+		if (retaxis > (+JOYAXISRANGE))
+			retaxis = +JOYAXISRANGE;
+		if (!Joystick4.bGamepadStyle && axissel < AXISDEAD)
+		{
+			const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_ydeadzone4.value) >> FRACBITS;
+			if (-jdeadzone < retaxis && retaxis < jdeadzone)
+				return 0;
+		}
+		if (flp) retaxis = -retaxis; //flip it around
+		return retaxis;
+		
 	}
+}
 
 #ifdef _arch_dreamcast
 	skipDC:
 #endif
-
-	if (retaxis < (-JOYAXISRANGE))
-		retaxis = -JOYAXISRANGE;
-	if (retaxis > (+JOYAXISRANGE))
-		retaxis = +JOYAXISRANGE;
-	if (!Joystick4.bGamepadStyle && axissel < AXISDEAD)
-	{
-		const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_deadzone4.value) >> FRACBITS;
-		if (-jdeadzone < retaxis && retaxis < jdeadzone)
-			return 0;
-	}
-	if (flp) retaxis = -retaxis; //flip it around
-	return retaxis;
-}
 
 boolean InputDown(INT32 gc, UINT8 p)
 {

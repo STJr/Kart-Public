@@ -1164,6 +1164,8 @@ static menuitem_t OP_Joystick1Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis        , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis         , 80},
 	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis         , 90},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone        , 110},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone        , 120},
 };
 
 static menuitem_t OP_Joystick2Menu[] =
@@ -1176,6 +1178,8 @@ static menuitem_t OP_Joystick2Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis2       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis2        , 80},
 	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis2        , 90},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone2       , 110},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone2       , 120},
 };
 
 static menuitem_t OP_Joystick3Menu[] =
@@ -1188,6 +1192,8 @@ static menuitem_t OP_Joystick3Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis3       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis3        , 80},
 	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis3        , 90},
+	{IT_STRING | IT_CVAR,  NULL, "X DeadZone"         , &cv_xdeadzone3       , 110},
+	{IT_STRING | IT_CVAR,  NULL, "Y DeadZone"         , &cv_ydeadzone3       , 120},
 };
 
 static menuitem_t OP_Joystick4Menu[] =
@@ -1200,6 +1206,8 @@ static menuitem_t OP_Joystick4Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis4       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis4        , 80},
 	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis4        , 90},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone4       , 110},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone4       , 120},
 };
 
 static menuitem_t OP_JoystickSetMenu[] =
@@ -2563,10 +2571,11 @@ boolean M_Responder(event_t *ev)
 	{
 		if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
 		{
-			const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_deadzone.value) >> FRACBITS;
+			const INT32 jxdeadzone = ((JOYAXISRANGE-1) * max(cv_xdeadzone.value, FRACUNIT/2)) >> FRACBITS;
+			const INT32 jydeadzone = ((JOYAXISRANGE-1) * max(cv_ydeadzone.value, FRACUNIT/2)) >> FRACBITS;
 			if (ev->data3 != INT32_MAX)
 			{
-				if (Joystick.bGamepadStyle || abs(ev->data3) > jdeadzone)
+				if (Joystick.bGamepadStyle || abs(ev->data3) > jydeadzone)
 				{
 					if (ev->data3 < 0 && pjoyy >= 0)
 					{
@@ -2586,7 +2595,7 @@ boolean M_Responder(event_t *ev)
 
 			if (ev->data2 != INT32_MAX)
 			{
-				if (Joystick.bGamepadStyle || abs(ev->data2) > jdeadzone)
+				if (Joystick.bGamepadStyle || abs(ev->data2) > jxdeadzone)
 				{
 					if (ev->data2 < 0 && pjoyx >= 0)
 					{

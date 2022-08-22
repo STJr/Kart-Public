@@ -912,10 +912,14 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_driftaxis2);
 	CV_RegisterVar(&cv_driftaxis3);
 	CV_RegisterVar(&cv_driftaxis4);
-	CV_RegisterVar(&cv_deadzone);
-	CV_RegisterVar(&cv_deadzone2);
-	CV_RegisterVar(&cv_deadzone3);
-	CV_RegisterVar(&cv_deadzone4);
+	CV_RegisterVar(&cv_xdeadzone);
+	CV_RegisterVar(&cv_ydeadzone);
+	CV_RegisterVar(&cv_xdeadzone2);
+	CV_RegisterVar(&cv_ydeadzone2);
+	CV_RegisterVar(&cv_xdeadzone3);
+	CV_RegisterVar(&cv_ydeadzone3);
+	CV_RegisterVar(&cv_xdeadzone4);
+	CV_RegisterVar(&cv_ydeadzone4);
 
 	// filesrch.c
 	CV_RegisterVar(&cv_addons_option);
