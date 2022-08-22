@@ -953,7 +953,8 @@ UINT16 W_CheckNumForNamePwad(const char *name, UINT16 wad, UINT16 startlump)
 	if (!TestValidLump(wad,0))
 		return INT16_MAX;
 
-	strlcpy(uname, name, sizeof uname);
+	memset(uname, 0, sizeof uname);
+	strncpy(uname, name, sizeof(uname)-1);
 	strupr(uname);
 
 	//
@@ -965,7 +966,7 @@ UINT16 W_CheckNumForNamePwad(const char *name, UINT16 wad, UINT16 startlump)
 	{
 		lumpinfo_t *lump_p = wadfiles[wad]->lumpinfo + startlump;
 		for (i = startlump; i < wadfiles[wad]->numlumps; i++, lump_p++)
-			if (!strncmp(lump_p->name, uname, sizeof(uname) - 1))
+			if (memcmp(lump_p->name, uname, sizeof(uname) - 1) == 0)
 				return i;
 	}
 
@@ -1044,9 +1045,10 @@ UINT16 W_CheckNumForFolderEndPK3(const char *name, UINT16 wad, UINT16 startlump)
 {
 	INT32 i;
 	lumpinfo_t *lump_p = wadfiles[wad]->lumpinfo + startlump;
+	size_t name_length = strlen(name);
 	for (i = startlump; i < wadfiles[wad]->numlumps; i++, lump_p++)
 	{
-		if (strnicmp(name, lump_p->fullname, strlen(name)))
+		if (strnicmp(name, lump_p->fullname, name_length))
 			break;
 	}
 	return i;
@@ -1058,9 +1060,10 @@ UINT16 W_CheckNumForFullNamePK3(const char *name, UINT16 wad, UINT16 startlump)
 {
 	INT32 i;
 	lumpinfo_t *lump_p = wadfiles[wad]->lumpinfo + startlump;
+	size_t name_length = strlen(name);
 	for (i = startlump; i < wadfiles[wad]->numlumps; i++, lump_p++)
 	{
-		if (!strnicmp(name, lump_p->fullname, strlen(name)))
+		if (!strnicmp(name, lump_p->fullname, name_length))
 		{
 			return i;
 		}
