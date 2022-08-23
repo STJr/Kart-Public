@@ -2381,7 +2381,7 @@ static void M_ChangeCvar(INT32 choice)
 	{
 		if (cv == &cv_playercolor)
 		{
-			SINT8 skinno = R_SkinAvailable(cv_chooseskin.string);
+			INT32 skinno = R_SkinAvailable(cv_chooseskin.string);
 			if (skinno != -1)
 				CV_SetValue(cv,skins[skinno].prefcolor);
 			return;
