@@ -40,8 +40,8 @@ extern SDL_bool framebuffer;
 */
 typedef struct SDLJoyInfo_s
 {
-	/// Joystick handle
-	SDL_Joystick *dev;
+	/// Controller handle
+	SDL_GameController *dev;
 	/// number of old joystick
 	int oldjoy;
 	/// number of axies
@@ -57,7 +57,7 @@ typedef struct SDLJoyInfo_s
 
 } SDLJoyInfo_t;
 
-/**	\brief SDL info about joystick 1
+/**	\brief SDL info about controller 1
 */
 extern SDLJoyInfo_t JoyInfo;
 
@@ -66,15 +66,15 @@ extern SDLJoyInfo_t JoyInfo;
 #define SDL_JDEADZONE 153
 #undef SDL_JDEADZONE
 
-/**	\brief SDL inof about joystick 2
+/**	\brief SDL inof about controller 2
 */
 extern SDLJoyInfo_t JoyInfo2;
 
-/**	\brief SDL inof about joystick 3
+/**	\brief SDL inof about controller 3
 */
 extern SDLJoyInfo_t JoyInfo3;
 
-/**	\brief SDL inof about joystick 4
+/**	\brief SDL inof about controller 4
 */
 extern SDLJoyInfo_t JoyInfo4;
 
@@ -86,8 +86,8 @@ void I_ShutdownJoystick2(void);
 void I_ShutdownJoystick3(void);
 void I_ShutdownJoystick4(void);
 
-// Cheat to get the device index for a joystick handle
-INT32 I_GetJoystickDeviceIndex(SDL_Joystick *dev);
+// Cheat to get the device index for a game controller handle
+INT32 I_GetJoystickDeviceIndex(SDL_GameController *dev);
 
 // Quick thing to make SDL_JOYDEVICEADDED events less of an abomination
 void I_UpdateJoystickDeviceIndices(INT32 player);
