@@ -1,3 +1,5 @@
+// SONIC ROBO BLAST 2
+//-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
 // Copyright (C) 1999-2018 by Sonic Team Junior.
