@@ -6356,7 +6356,7 @@ boolean firstDismissedRulesThisBoot = true;
 void M_PopupMasterServerRules(void)
 {
 #ifdef MASTERSERVER
-	if (cv_advertise.value && (serverrunning || currentMenu == &MP_ServerDef) && firstDismissedRulesThisBoot)
+	if (cv_advertise.value && ((serverrunning && netgame) || currentMenu == &MP_ServerDef) && firstDismissedRulesThisBoot)
 	{
 		char *rules = GetMasterServerRules();
 
