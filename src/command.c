@@ -1875,6 +1875,45 @@ static boolean CV_FilterJoyAxisVars(consvar_t *v, const char *valstr)
 	return true;
 }
 
+// Block the Xbox DInput default axes and reset to the current defaults 
+static boolean CV_FilterJoyAxisVars2(consvar_t *v, const char *valstr)
+{
+	if (!stricmp(v->name, "joyaxis_turn") && !stricmp(valstr, "X-Axis"))
+		return false;
+	if (!stricmp(v->name, "joyaxis2_turn") && !stricmp(valstr, "X-Axis"))
+		return false;
+	if (!stricmp(v->name, "joyaxis3_turn") && !stricmp(valstr, "X-Axis"))
+		return false;
+	if (!stricmp(v->name, "joyaxis4_turn") && !stricmp(valstr, "X-Axis"))
+		return false;
+	if (!stricmp(v->name, "joyaxis_aim") && !stricmp(valstr, "Y-Axis"))
+		return false;
+	if (!stricmp(v->name, "joyaxis2_aim") && !stricmp(valstr, "Y-Axis"))
+		return false;
+	if (!stricmp(v->name, "joyaxis3_aim") && !stricmp(valstr, "Y-Axis"))
+		return false;
+	if (!stricmp(v->name, "joyaxis4_aim") && !stricmp(valstr, "Y-Axis"))
+		return false;
+	if (!stricmp(v->name, "joyaxis_fire") && !stricmp(valstr, "None"))
+		return false;
+	if (!stricmp(v->name, "joyaxis2_fire") && !stricmp(valstr, "None"))
+		return false;
+	if (!stricmp(v->name, "joyaxis3_fire") && !stricmp(valstr, "None"))
+		return false;
+	if (!stricmp(v->name, "joyaxis4_fire") && !stricmp(valstr, "None"))
+		return false;
+	if (!stricmp(v->name, "joyaxis_drift") && !stricmp(valstr, "None"))
+		return false;
+	if (!stricmp(v->name, "joyaxis2_drift") && !stricmp(valstr, "None"))
+		return false;
+	if (!stricmp(v->name, "joyaxis3_drift") && !stricmp(valstr, "None"))
+		return false;
+	if (!stricmp(v->name, "joyaxis4_drift") && !stricmp(valstr, "None"))
+		return false;
+
+	return true;
+}
+
 static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr)
 {
 	// True means allow the CV change, False means block it
@@ -1905,6 +1944,13 @@ static boolean CV_FilterVarByVersion(consvar_t *v, const char *valstr)
 		// axis defaults were changed to be friendly to 360 controllers
 		// if ALL axis settings are defaults, then change them to new values
 		if (!CV_FilterJoyAxisVars(v, valstr))
+			return false;
+	}
+
+	if (GETMAJOREXECVERSION(cv_execversion.value) < 10) // 10 = 1.6
+	{
+		// axis defaults changed again to SDL game controllers
+		if (!CV_FilterJoyAxisVars2(v, valstr))
 			return false;
 	}
 

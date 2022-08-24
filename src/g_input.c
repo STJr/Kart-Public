@@ -1308,8 +1308,8 @@ void G_Controldefault(UINT8 player)
 		gamecontrol[gc_accelerate ][1] = KEY_JOY1+0; // A
 		gamecontrol[gc_lookback   ][1] = KEY_JOY1+2; // X
 		gamecontrol[gc_brake      ][1] = KEY_JOY1+1; // B
-		gamecontrol[gc_fire       ][1] = KEY_JOY1+4; // LB
-		gamecontrol[gc_drift      ][1] = KEY_JOY1+5; // RB
+		gamecontrol[gc_fire       ][1] = KEY_JOY1+9; // LB
+		gamecontrol[gc_drift      ][1] = KEY_JOY1+10; // RB
 
 		// Extra controls
 		gamecontrol[gc_pause      ][0] = KEY_PAUSE;
@@ -1328,8 +1328,8 @@ void G_Controldefault(UINT8 player)
 		gamecontrol[gc_camtoggle  ][0] = KEY_BACKSPACE;
 
 		gamecontrol[gc_viewpoint  ][1] = KEY_JOY1+3; // Y
-		gamecontrol[gc_pause      ][1] = KEY_JOY1+6; // Back
-		gamecontrol[gc_systemmenu ][0] = KEY_JOY1+7; // Start
+		gamecontrol[gc_pause      ][1] = KEY_JOY1+4; // Back
+		gamecontrol[gc_systemmenu ][0] = KEY_JOY1+6; // Start
 		//gamecontrol[gc_camtoggle  ][1] = KEY_HAT1+0; // D-Pad Up
 		//gamecontrol[gc_screenshot ][1] = KEY_HAT1+1; // D-Pad Down // absolutely fucking NOT
 		gamecontrol[gc_talkkey    ][1] = KEY_HAT1+1; // D-Pad Down
@@ -1342,8 +1342,8 @@ void G_Controldefault(UINT8 player)
 		gamecontrolbis[gc_accelerate ][0] = KEY_2JOY1+0; // A
 		gamecontrolbis[gc_lookback   ][0] = KEY_2JOY1+2; // X
 		gamecontrolbis[gc_brake      ][0] = KEY_2JOY1+1; // B
-		gamecontrolbis[gc_fire       ][0] = KEY_2JOY1+4; // LB
-		gamecontrolbis[gc_drift      ][0] = KEY_2JOY1+5; // RB
+		gamecontrolbis[gc_fire       ][0] = KEY_2JOY1+9; // LB
+		gamecontrolbis[gc_drift      ][0] = KEY_2JOY1+10; // RB
 	}
 
 	if (player == 0 || player == 3)
@@ -1352,8 +1352,8 @@ void G_Controldefault(UINT8 player)
 		gamecontrol3[gc_accelerate ][0] = KEY_3JOY1+0; // A
 		gamecontrol3[gc_lookback   ][0] = KEY_3JOY1+2; // X
 		gamecontrol3[gc_brake      ][0] = KEY_3JOY1+1; // B
-		gamecontrol3[gc_fire       ][0] = KEY_3JOY1+4; // LB
-		gamecontrol3[gc_drift      ][0] = KEY_3JOY1+5; // RB
+		gamecontrol3[gc_fire       ][0] = KEY_3JOY1+9; // LB
+		gamecontrol3[gc_drift      ][0] = KEY_3JOY1+10; // RB
 	}
 
 	if (player == 0 || player == 4)
@@ -1362,8 +1362,8 @@ void G_Controldefault(UINT8 player)
 		gamecontrol4[gc_accelerate ][0] = KEY_4JOY1+0; // A
 		gamecontrol4[gc_lookback   ][0] = KEY_4JOY1+2; // X
 		gamecontrol4[gc_brake      ][0] = KEY_4JOY1+1; // B
-		gamecontrol4[gc_fire       ][0] = KEY_4JOY1+4; // LB
-		gamecontrol4[gc_drift      ][0] = KEY_4JOY1+5; // RB
+		gamecontrol4[gc_fire       ][0] = KEY_4JOY1+9; // LB
+		gamecontrol4[gc_drift      ][0] = KEY_4JOY1+10; // RB
 	}
 }
 
@@ -1452,25 +1452,51 @@ INT32 G_CheckDoubleUsage(INT32 keynum, boolean modify)
 
 static INT32 G_FilterKeyByVersion(INT32 numctrl, INT32 keyidx, INT32 player, INT32 *keynum1, INT32 *keynum2, boolean *nestedoverride)
 {
-	// Special case: ignore KEY_PAUSE because it's hardcoded
-	if (keyidx == 0 && *keynum1 == KEY_PAUSE)
-	{
-		if (*keynum2 != KEY_PAUSE)
-		{
-			*keynum1 = *keynum2; // shift down keynum2 and continue
-			*keynum2 = 0;
-		}
-		else
-			return -1; // skip setting control
-	}
-	else if (keyidx == 1 && *keynum2 == KEY_PAUSE)
-		return -1; // skip setting control
-
-#if 1
-	// We don't have changed control defaults yet
-	(void)numctrl;
-	(void)player;
+#if 1 // SRB2Kart filters/migrations
 	(void)nestedoverride;
+
+	// Migration: 1.6 (majorexec 10) Joystick Defaults changed to use SDL Game Controllers
+	if (GETMAJOREXECVERSION(cv_execversion.value) < 10)
+	{
+		INT32 joybuttonbase = KEY_JOY1;
+
+		switch (player)
+		{
+			case 0:
+				joybuttonbase = KEY_JOY1;
+				break;
+			case 1:
+				joybuttonbase = KEY_2JOY1;
+				break;
+			case 2:
+				joybuttonbase = KEY_3JOY1;
+				break;
+			case 3:
+				joybuttonbase = KEY_4JOY1;
+				break;
+		}
+
+		// The face buttons match, so we don't need to rebind those.
+
+		if (keyidx == 1 && numctrl == gc_fire && *keynum2 == joybuttonbase + 4) // Xbox DInput LB
+		{
+			*keynum2 = joybuttonbase + 9; // SDL LEFTSHOULDER
+		}
+		if (keyidx == 1 && numctrl == gc_drift && *keynum2 == joybuttonbase + 5) // Xbox DInput RB
+		{
+			*keynum2 = joybuttonbase + 10; // SDL RIGHTSHOULDER
+		}
+
+		// Pause and Systemmenu are only bound for P1
+		if (keyidx == 1 && player == 0 && numctrl == gc_pause && *keynum2 == joybuttonbase + 6) // Xbox DInput Back
+		{
+			*keynum2 = joybuttonbase + 4; // SDL BACK
+		}
+		if (keyidx == 0 && player == 0 && numctrl == gc_systemmenu && *keynum1 == joybuttonbase + 7) // Xbox DInput Start
+		{
+			*keynum1 = joybuttonbase + 6; // SDL START
+		}
+	}
 #else
 #if !defined (DC) && !defined (_PSP) && !defined (GP2X) && !defined (_NDS) && !defined(WMINPUT) && !defined(_WII)
 	if (GETMAJOREXECVERSION(cv_execversion.value) < 27 && ( // v2.1.22
