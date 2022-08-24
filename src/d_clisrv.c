@@ -3986,7 +3986,7 @@ void D_QuitNetGame(void)
 			if (nodeingame[i])
 				HSendPacket(i, true, 0, 0);
 #ifdef MASTERSERVER
-		if (serverrunning && cv_advertise.value)
+		if (serverrunning && netgame && cv_advertise.value) // see mserv.c Online()
 			UnregisterServer();
 #endif
 	}
