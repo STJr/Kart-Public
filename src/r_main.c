@@ -844,7 +844,7 @@ void R_SkyboxFrame(player_t *player)
 	{
 		newview->aim = player->aiming;
 		newview->angle = player->mo->angle;
-		if (/*!demo.playback && */player->playerstate != PST_DEAD)
+		if (!demo.playback && player->playerstate != PST_DEAD)
 		{
 			if (player == &players[consoleplayer])
 			{
