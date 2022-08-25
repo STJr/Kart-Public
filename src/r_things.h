@@ -58,7 +58,6 @@ void R_DelSpriteDefs(UINT16 wadnum);
 void R_AddSprites(sector_t *sec, INT32 lightlevel);
 void R_InitSprites(void);
 void R_ClearSprites(void);
-void R_ClipSprites(void);
 void R_DrawMasked(void);
 
 // -----------
@@ -162,6 +161,17 @@ typedef struct vissprite_s
 
 	fixed_t thingscale;
 } vissprite_t;
+
+extern UINT32 visspritecount;
+
+void R_ClipSprites(void);
+void R_ClipVisSprite(vissprite_t *spr, INT32 x1, INT32 x2);
+
+UINT8 *R_GetSpriteTranslation(vissprite_t *vis);
+
+// ----------
+// DRAW NODES
+// ----------
 
 // A drawnode is something that points to a 3D floor, 3D side, or masked
 // middle texture. This is used for sorting with sprites.
