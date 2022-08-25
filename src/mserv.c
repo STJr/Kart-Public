@@ -470,7 +470,7 @@ char *GetMasterServerRules(void)
 static boolean
 Online (void)
 {
-	return ( serverrunning && cv_advertise.value );
+	return ( serverrunning && netgame && cv_advertise.value );
 }
 
 static inline void SendPingToMasterServer(void)
@@ -568,7 +568,7 @@ Advertise_OnChange(void)
 
 	if (cv_advertise.value)
 	{
-		if (serverrunning)
+		if (serverrunning && netgame)
 		{
 			Lock_state();
 			{
