@@ -792,7 +792,7 @@ static void Impl_HandleControllerAxisEvent(SDL_ControllerAxisEvent evt)
 {
 	event_t event;
 	SDL_JoystickID joyid[4];
-	int32_t value;
+	INT32 value;
 
 	// Determine the Joystick IDs for each current open joystick
 	joyid[0] = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(JoyInfo.dev));
@@ -828,27 +828,27 @@ static void Impl_HandleControllerAxisEvent(SDL_ControllerAxisEvent evt)
 	{
 		case SDL_CONTROLLER_AXIS_LEFTX:
 			event.data1 = 0;
-			event.data2 = SDLJoyAxis(evt.value, event.type);
+			event.data2 = value;
 			break;
 		case SDL_CONTROLLER_AXIS_LEFTY:
 			event.data1 = 0;
-			event.data3 = SDLJoyAxis(evt.value, event.type);
+			event.data3 = value;
 			break;
 		case SDL_CONTROLLER_AXIS_RIGHTX:
 			event.data1 = 1;
-			event.data2 = SDLJoyAxis(evt.value, event.type);
+			event.data2 = value;
 			break;
 		case SDL_CONTROLLER_AXIS_RIGHTY:
 			event.data1 = 1;
-			event.data3 = SDLJoyAxis(evt.value, event.type);
+			event.data3 = value;
 			break;
 		case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
 			event.data1 = 2;
-			event.data2 = SDLJoyAxis(evt.value, event.type);
+			event.data2 = value;
 			break;
 		case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
 			event.data1 = 2;
-			event.data3 = SDLJoyAxis(evt.value, event.type);
+			event.data3 = value;
 			break;
 		default:
 			return;
@@ -1322,7 +1322,7 @@ void I_OsPolling(void)
 
 	if (consolevent)
 		I_GetConsoleEvents();
-	if (SDL_WasInit(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) == SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER)
+	if (SDL_WasInit(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) == (SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER))
 	{
 		SDL_GameControllerUpdate();
 		I_GetJoystickEvents();

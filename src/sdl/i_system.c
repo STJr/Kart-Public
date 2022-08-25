@@ -1155,10 +1155,11 @@ void I_GetJoystickEvents(void)
 	UINT64 joyhats = 0;
 #if 0
 	UINT64 joybuttons = 0;
-	Sint16 axisx, axisy;
+	UINT32 axisx, axisy;
 #endif
 
-	if (!joystick_started) return;
+	if (!joystick_started)
+		return;
 
 	if (!JoyInfo.dev) //I_ShutdownJoystick();
 		return;
@@ -1233,11 +1234,9 @@ void I_GetJoystickEvents(void)
 			axisy = SDL_JoystickGetAxis(JoyInfo.dev, i*2 + 1);
 		else axisy = 0;
 
-
 		// -32768 to 32767
 		axisx = axisx/32;
 		axisy = axisy/32;
-
 
 		if (Joystick.bGamepadStyle)
 		{
@@ -1246,12 +1245,14 @@ void I_GetJoystickEvents(void)
 				event.data2 = -1;
 			else if (axisx > (JOYAXISRANGE/2))
 				event.data2 = 1;
-			else event.data2 = 0;
+			else
+				event.data2 = 0;
 			if (axisy < -(JOYAXISRANGE/2))
 				event.data3 = -1;
 			else if (axisy > (JOYAXISRANGE/2))
 				event.data3 = 1;
-			else event.data3 = 0;
+			else
+				event.data3 = 0;
 		}
 		else
 		{
@@ -1424,8 +1425,8 @@ void I_GetJoystick2Events(void)
 	INT32 i = 0;
 	UINT64 joyhats = 0;
 #if 0
-	INT64 joybuttons = 0;
-	INT32 axisx, axisy;
+	UINT64 joybuttons = 0;
+	UINT32 axisx, axisy;
 #endif
 
 	if (!joystick2_started)
@@ -1433,7 +1434,6 @@ void I_GetJoystick2Events(void)
 
 	if (!JoyInfo2.dev) //I_ShutdownJoystick2();
 		return;
-
 
 #if 0
 	//faB: look for as much buttons as g_input code supports,
@@ -1696,16 +1696,15 @@ void I_GetJoystick3Events(void)
 	INT32 i = 0;
 	UINT64 joyhats = 0;
 #if 0
-	INT64 joybuttons = 0;
+	UINT64 joybuttons = 0;
+	UINT32 axisx, axisy;
 #endif
-	INT32 axisx, axisy;
 
 	if (!joystick3_started)
 		return;
 
 	if (!JoyInfo3.dev) //I_ShutdownJoystick3();
 		return;
-
 
 #if 0
 	//faB: look for as much buttons as g_input code supports,
@@ -1968,16 +1967,15 @@ void I_GetJoystick4Events(void)
 	INT32 i = 0;
 	UINT64 joyhats = 0;
 #if 0
-	INT64 joybuttons = 0;
+	UINT64 joybuttons = 0;
+	UINT32 axisx, axisy;
 #endif
-	INT32 axisx, axisy;
 
 	if (!joystick4_started)
 		return;
 
 	if (!JoyInfo4.dev) //I_ShutdownJoystick4();
 		return;
-
 
 #if 0
 	//faB: look for as much buttons as g_input code supports,
