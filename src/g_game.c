@@ -3519,21 +3519,14 @@ UINT8 G_SometimesGetDifferentGametype(UINT8 prefgametype)
 	if (!cv_kartvoterulechanges.value) // never
 		return (gametype|encoremodifier);
 
-	if (randmapbuffer[NUMMAPS] > 0 && (encorepossible || cv_kartvoterulechanges.value != 3))
+	if (randmapbuffer[NUMMAPS] > 0 && (cv_kartvoterulechanges.value != 3)) // used to be (encorepossible || rule changes != 3)
 	{
 		randmapbuffer[NUMMAPS]--;
-		if (cv_kartvoterulechanges.value == 3) // always
-		{
-			randmapbuffer[NUMMAPS] = 0; // gotta prep this in case it isn't already set
-		}
 		return (gametype|encoremodifier);
 	}
 
 	switch (cv_kartvoterulechanges.value) // okay, we're having a gametype change! when's the next one, luv?
 	{
-		case 3: // always
-			randmapbuffer[NUMMAPS] = 1; // every other vote (or always if !encorepossible)
-			break;
 		case 1: // sometimes
 			randmapbuffer[NUMMAPS] = 5; // per "cup"
 			break;
@@ -3545,10 +3538,15 @@ UINT8 G_SometimesGetDifferentGametype(UINT8 prefgametype)
 	}
 
 	// Only this response is prefgametype-based.
-	// Also intentionally does not use encoremodifier!
 	if (prefgametype == GT_MATCH)
+	{
+		// Intentionally does not use encoremodifier!
+		if (cv_kartencore.value)
+			return (GT_RACE|0x80);
 		return (GT_RACE);
-	return (GT_MATCH);
+	}
+	// This might appear wrong HERE, but the game will display the Encore possibility on the second voting choice instead.
+	return (GT_MATCH|encoremodifier);
 }
 
 //
