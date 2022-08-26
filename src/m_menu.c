@@ -2623,27 +2623,21 @@ boolean M_Responder(event_t *ev)
 				accelaxis /= 2;
 				if (ev->data1 == accelaxis)
 				{
-					const INT32 jacceldeadzone = xmode ? jxdeadzone : jydeadzone;
 					retaxis = xmode ? ev->data2 : ev->data3;
 					if (retaxis != INT32_MAX)
 					{
 						if (cv_moveaxis.value < 0)
 							retaxis = -retaxis;
 
-						if (Joystick.bGamepadStyle || abs(retaxis) > jacceldeadzone)
+						if (joywaitaccel < thistime && (abs(retaxis) >= abs(pjoyaccel))) // only on upwards event
 						{
-							if (joywaitaccel < thistime)
-							{
-								ch = KEY_ENTER;
-								joywaitaccel = thistime;
-								if (pjoyaccel == 0 // no previous input?
-								|| ((retaxis < 0) == (pjoyaccel > 0))) // same direction as the current one?
-									joywaitaccel += NEWTICRATE/3;
-							}
-							pjoyaccel = retaxis;
+							ch = KEY_ENTER;
+							joywaitaccel = thistime;
+							if (pjoyaccel == 0 // no previous input?
+							|| ((retaxis < 0) == (pjoyaccel < 0))) // same direction as the current one?
+								joywaitaccel += NEWTICRATE/3;
 						}
-						else
-							pjoyaccel = 0;
+						pjoyaccel = retaxis;
 					}
 				}
 			}
