@@ -6224,6 +6224,9 @@ INT32 D_NumPlayers(void)
 
 tic_t GetLag(INT32 node)
 {
+	// If the client has caught up to the server -- say, during a wipe -- lag is meaningless.
+	if (nettics[node] > gametic)
+		return 0;
 	return gametic - nettics[node];
 }
 
