@@ -2633,7 +2633,7 @@ boolean M_Responder(event_t *ev)
 						if (cv_moveaxis.value < 0)
 							retaxis = -retaxis;
 
-						if (joywaitaccel < thistime && (abs(retaxis) >= abs(pjoyaccel))) // only on upwards event
+						if (joywaitaccel < thistime && retaxis >= pjoyaccel) // only on upwards event
 						{
 							ch = KEY_ENTER;
 							joywaitaccel = thistime;
