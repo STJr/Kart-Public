@@ -2636,13 +2636,10 @@ boolean M_Responder(event_t *ev)
 
 						if (Joystick.bGamepadStyle || retaxis > jacceldeadzone)
 						{
-							if (joywaitaccel < thistime)
+							if (joywaitaccel < thistime && retaxis >= pjoyaccel) // only on upwards event
 							{
 								ch = KEY_ENTER;
-								joywaitaccel = thistime;
-								if (pjoyaccel == 0 // no previous input?
-								|| ((retaxis < 0) == (pjoyaccel > 0))) // same direction as the current one?
-									joywaitaccel += NEWTICRATE/3;
+								joywaitaccel = thistime + NEWTICRATE/3;
 							}
 							pjoyaccel = retaxis;
 						}
