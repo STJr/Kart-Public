@@ -1163,9 +1163,10 @@ static menuitem_t OP_Joystick1Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis        , 60},
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis        , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis         , 80},
-	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis         , 90},
-	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone        , 110},
-	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone        , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Look Backward"      , &cv_lookbackaxis     , 90},
+	{IT_STRING | IT_CVAR,  NULL, "Spec. Look Up/Down" , &cv_lookaxis         , 100},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone        , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone        , 130},
 };
 
 static menuitem_t OP_Joystick2Menu[] =
@@ -1177,9 +1178,10 @@ static menuitem_t OP_Joystick2Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis2       , 60},
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis2       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis2        , 80},
-	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis2        , 90},
-	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone2       , 110},
-	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone2       , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Look Backward"      , &cv_lookbackaxis2    , 90},
+	{IT_STRING | IT_CVAR,  NULL, "Spec. Look Up/Down" , &cv_lookaxis2        , 100},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone2       , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone2       , 130},
 };
 
 static menuitem_t OP_Joystick3Menu[] =
@@ -1191,9 +1193,10 @@ static menuitem_t OP_Joystick3Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis3       , 60},
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis3       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis3        , 80},
-	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis3        , 90},
-	{IT_STRING | IT_CVAR,  NULL, "X DeadZone"         , &cv_xdeadzone3       , 110},
-	{IT_STRING | IT_CVAR,  NULL, "Y DeadZone"         , &cv_ydeadzone3       , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Look Backward"      , &cv_lookbackaxis3    , 90},
+	{IT_STRING | IT_CVAR,  NULL, "Spec. Look Up/Down" , &cv_lookaxis3        , 100},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone3       , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone3       , 130},
 };
 
 static menuitem_t OP_Joystick4Menu[] =
@@ -1205,7 +1208,8 @@ static menuitem_t OP_Joystick4Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis4       , 60},
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis4       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis4        , 80},
-	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis4        , 90},
+	{IT_STRING | IT_CVAR,  NULL, "Look Backward"      , &cv_lookbackaxis4    , 90},
+	{IT_STRING | IT_CVAR,  NULL, "Spec. Look Up/Down" , &cv_lookaxis4        , 100},
 	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone4       , 110},
 	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone4       , 120},
 };
@@ -10711,6 +10715,7 @@ static void M_ResetControlsResponse(INT32 ch)
 			CV_StealthSet(&cv_lookaxis4, cv_lookaxis4.defaultvalue);
 			CV_StealthSet(&cv_fireaxis4, cv_fireaxis4.defaultvalue);
 			CV_StealthSet(&cv_driftaxis4, cv_driftaxis4.defaultvalue);
+			CV_StealthSet(&cv_lookbackaxis4, cv_lookbackaxis4.defaultvalue);
 			break;
 		case 3:
 			CV_StealthSet(&cv_usejoystick3, cv_usejoystick3.defaultvalue);
@@ -10721,6 +10726,7 @@ static void M_ResetControlsResponse(INT32 ch)
 			CV_StealthSet(&cv_lookaxis3, cv_lookaxis3.defaultvalue);
 			CV_StealthSet(&cv_fireaxis3, cv_fireaxis3.defaultvalue);
 			CV_StealthSet(&cv_driftaxis3, cv_driftaxis3.defaultvalue);
+			CV_StealthSet(&cv_lookbackaxis3, cv_lookbackaxis3.defaultvalue);
 			break;
 		case 2:
 			CV_StealthSet(&cv_usejoystick2, cv_usejoystick2.defaultvalue);
@@ -10731,6 +10737,7 @@ static void M_ResetControlsResponse(INT32 ch)
 			CV_StealthSet(&cv_lookaxis2, cv_lookaxis2.defaultvalue);
 			CV_StealthSet(&cv_fireaxis2, cv_fireaxis2.defaultvalue);
 			CV_StealthSet(&cv_driftaxis2, cv_driftaxis2.defaultvalue);
+			CV_StealthSet(&cv_lookbackaxis2, cv_lookbackaxis2.defaultvalue);
 			break;
 		case 1:
 		default:
@@ -10742,6 +10749,7 @@ static void M_ResetControlsResponse(INT32 ch)
 			CV_StealthSet(&cv_lookaxis, cv_lookaxis.defaultvalue);
 			CV_StealthSet(&cv_fireaxis, cv_fireaxis.defaultvalue);
 			CV_StealthSet(&cv_driftaxis, cv_driftaxis.defaultvalue);
+			CV_StealthSet(&cv_lookbackaxis, cv_lookbackaxis.defaultvalue);
 			break;
 	}
 

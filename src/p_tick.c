@@ -770,10 +770,12 @@ void P_Ticker(boolean run)
 
 		if (demo.recording)
 		{
+			INT32 axis = JoyAxis(AXISLOOKBACK, 1);
+
 			G_WriteAllGhostTics();
 
 			if (cv_recordmultiplayerdemos.value && (demo.savemode == DSM_NOTSAVING || demo.savemode == DSM_WILLAUTOSAVE))
-				if (demo.savebutton && demo.savebutton + 3*TICRATE < leveltime && InputDown(gc_lookback, 1))
+				if (demo.savebutton && demo.savebutton + 3*TICRATE < leveltime && (InputDown(gc_lookback, 1) || (cv_usejoystick.value && axis > 0)))
 					demo.savemode = DSM_TITLEENTRY;
 		}
 		else if (demo.playback) // Use Ghost data for consistency checks.
