@@ -2585,13 +2585,11 @@ boolean M_Responder(event_t *ev)
 				{
 					if (Joystick.bGamepadStyle || abs(ev->data3) > jydeadzone)
 					{
-						if (joywaity < thistime)
+						if (joywaity < thistime
+							&& (pjoyy == 0 || (ev->data3 < 0) != (pjoyy < 0))) // no previous direction OR change direction
 						{
 							ch = (ev->data3 < 0) ? KEY_UPARROW : KEY_DOWNARROW;
-							joywaity = thistime;
-							if (pjoyy == 0 // no previous input?
-							|| ((ev->data3 < 0) == (pjoyy < 0))) // same direction as the current one?
-								joywaity += NEWTICRATE/7;
+							joywaity = thistime + NEWTICRATE/7;
 						}
 						pjoyy = ev->data3;
 					}
@@ -2603,13 +2601,11 @@ boolean M_Responder(event_t *ev)
 				{
 					if (Joystick.bGamepadStyle || abs(ev->data2) > jxdeadzone)
 					{
-						if (joywaity < thistime)
+						if (joywaitx < thistime
+							&& (pjoyx == 0 || (ev->data2 < 0) != (pjoyx < 0))) // no previous direction OR change direction
 						{
 							ch = (ev->data2 < 0) ? KEY_LEFTARROW : KEY_RIGHTARROW;
-							joywaity = thistime;
-							if (pjoyx == 0 // no previous input?
-							|| ((ev->data2 < 0) == (pjoyx < 0))) // same direction as the current one?
-								joywaity += NEWTICRATE/7;
+							joywaitx = thistime + NEWTICRATE/7;
 						}
 						pjoyx = ev->data2;
 					}
@@ -2636,7 +2632,7 @@ boolean M_Responder(event_t *ev)
 
 						if (Joystick.bGamepadStyle || retaxis > jacceldeadzone)
 						{
-							if (joywaitaccel < thistime && retaxis >= pjoyaccel) // only on upwards event
+							if (joywaitaccel < thistime && retaxis > pjoyaccel) // only on upwards event
 							{
 								ch = KEY_ENTER;
 								joywaitaccel = thistime + NEWTICRATE/3;
