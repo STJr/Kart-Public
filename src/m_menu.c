@@ -1163,9 +1163,10 @@ static menuitem_t OP_Joystick1Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis        , 60},
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis        , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis         , 80},
-	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis         , 90},
-	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone        , 110},
-	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone        , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Look Backward"      , &cv_lookbackaxis     , 90},
+	{IT_STRING | IT_CVAR,  NULL, "Spec. Look Up/Down" , &cv_lookaxis         , 100},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone        , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone        , 130},
 };
 
 static menuitem_t OP_Joystick2Menu[] =
@@ -1177,9 +1178,10 @@ static menuitem_t OP_Joystick2Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis2       , 60},
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis2       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis2        , 80},
-	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis2        , 90},
-	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone2       , 110},
-	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone2       , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Look Backward"      , &cv_lookbackaxis2    , 90},
+	{IT_STRING | IT_CVAR,  NULL, "Spec. Look Up/Down" , &cv_lookaxis2        , 100},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone2       , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone2       , 130},
 };
 
 static menuitem_t OP_Joystick3Menu[] =
@@ -1191,9 +1193,10 @@ static menuitem_t OP_Joystick3Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis3       , 60},
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis3       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis3        , 80},
-	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis3        , 90},
-	{IT_STRING | IT_CVAR,  NULL, "X DeadZone"         , &cv_xdeadzone3       , 110},
-	{IT_STRING | IT_CVAR,  NULL, "Y DeadZone"         , &cv_ydeadzone3       , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Look Backward"      , &cv_lookbackaxis3    , 90},
+	{IT_STRING | IT_CVAR,  NULL, "Spec. Look Up/Down" , &cv_lookaxis3        , 100},
+	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone3       , 120},
+	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone3       , 130},
 };
 
 static menuitem_t OP_Joystick4Menu[] =
@@ -1205,7 +1208,8 @@ static menuitem_t OP_Joystick4Menu[] =
 	{IT_STRING | IT_CVAR,  NULL, "Brake"              , &cv_brakeaxis4       , 60},
 	{IT_STRING | IT_CVAR,  NULL, "Drift"              , &cv_driftaxis4       , 70},
 	{IT_STRING | IT_CVAR,  NULL, "Use Item"           , &cv_fireaxis4        , 80},
-	{IT_STRING | IT_CVAR,  NULL, "Look Up/Down"       , &cv_lookaxis4        , 90},
+	{IT_STRING | IT_CVAR,  NULL, "Look Backward"      , &cv_lookbackaxis4    , 90},
+	{IT_STRING | IT_CVAR,  NULL, "Spec. Look Up/Down" , &cv_lookaxis4        , 100},
 	{IT_STRING | IT_CVAR,  NULL, "X deadzone"         , &cv_xdeadzone4       , 110},
 	{IT_STRING | IT_CVAR,  NULL, "Y deadzone"         , &cv_ydeadzone4       , 120},
 };
@@ -2517,8 +2521,8 @@ boolean M_Responder(event_t *ev)
 {
 	INT32 ch = -1;
 //	INT32 i;
-	static tic_t joywait = 0, mousewait = 0;
-	static INT32 pjoyx = 0, pjoyy = 0;
+	static tic_t joywaitx = 0, joywaity = 0, joywaitaccel = 0, mousewait = 0;
+	static INT32 pjoyx = 0, pjoyy = 0, pjoyaccel = 0;
 	static INT32 pmousex = 0, pmousey = 0;
 	static INT32 lastx = 0, lasty = 0;
 	void (*routine)(INT32 choice); // for some casting problem
@@ -2569,48 +2573,76 @@ boolean M_Responder(event_t *ev)
 	}
 	else if (menuactive)
 	{
-		if (ev->type == ev_joystick  && ev->data1 == 0 && joywait < I_GetTime())
+		tic_t thistime = I_GetTime();
+		if (ev->type == ev_joystick)
 		{
 			const INT32 jxdeadzone = ((JOYAXISRANGE-1) * max(cv_xdeadzone.value, FRACUNIT/2)) >> FRACBITS;
 			const INT32 jydeadzone = ((JOYAXISRANGE-1) * max(cv_ydeadzone.value, FRACUNIT/2)) >> FRACBITS;
-			if (ev->data3 != INT32_MAX)
+			INT32 accelaxis = abs(cv_moveaxis.value);
+			if (ev->data1 == 0)
 			{
-				if (Joystick.bGamepadStyle || abs(ev->data3) > jydeadzone)
+				if (ev->data3 != INT32_MAX)
 				{
-					if (ev->data3 < 0 && pjoyy >= 0)
+					if (Joystick.bGamepadStyle || abs(ev->data3) > jydeadzone)
 					{
-						ch = KEY_UPARROW;
-						joywait = I_GetTime() + NEWTICRATE/7;
+						if (joywaity < thistime
+							&& (pjoyy == 0 || (ev->data3 < 0) != (pjoyy < 0))) // no previous direction OR change direction
+						{
+							ch = (ev->data3 < 0) ? KEY_UPARROW : KEY_DOWNARROW;
+							joywaity = thistime + NEWTICRATE/7;
+						}
+						pjoyy = ev->data3;
 					}
-					else if (ev->data3 > 0 && pjoyy <= 0)
-					{
-						ch = KEY_DOWNARROW;
-						joywait = I_GetTime() + NEWTICRATE/7;
-					}
-					pjoyy = ev->data3;
+					else
+						pjoyy = 0;
 				}
-				else
-					pjoyy = 0;
-			}
 
-			if (ev->data2 != INT32_MAX)
-			{
-				if (Joystick.bGamepadStyle || abs(ev->data2) > jxdeadzone)
+				if (ev->data2 != INT32_MAX && joywaitx < thistime)
 				{
-					if (ev->data2 < 0 && pjoyx >= 0)
+					if (Joystick.bGamepadStyle || abs(ev->data2) > jxdeadzone)
 					{
-						ch = KEY_LEFTARROW;
-						joywait = I_GetTime() + NEWTICRATE/17;
+						if (joywaitx < thistime
+							&& (pjoyx == 0 || (ev->data2 < 0) != (pjoyx < 0))) // no previous direction OR change direction
+						{
+							ch = (ev->data2 < 0) ? KEY_LEFTARROW : KEY_RIGHTARROW;
+							joywaitx = thistime + NEWTICRATE/7;
+						}
+						pjoyx = ev->data2;
 					}
-					else if (ev->data2 > 0 && pjoyx <= 0)
-					{
-						ch = KEY_RIGHTARROW;
-						joywait = I_GetTime() + NEWTICRATE/17;
-					}
-					pjoyx = ev->data2;
+					else
+						pjoyx = 0;
 				}
-				else
-					pjoyx = 0;
+			}
+			else if (!(accelaxis > JOYAXISSET*2 || accelaxis == 0))
+			{
+				// The following borrows heavily from Joy1Axis.
+				const boolean xmode = (accelaxis%2);
+				INT32 retaxis = 0;
+				if (!xmode)
+					accelaxis--;
+				accelaxis /= 2;
+				if (ev->data1 == accelaxis)
+				{
+					const INT32 jacceldeadzone = xmode ? jxdeadzone : jydeadzone;
+					retaxis = xmode ? ev->data2 : ev->data3;
+					if (retaxis != INT32_MAX)
+					{
+						if (cv_moveaxis.value < 0)
+							retaxis = -retaxis;
+
+						if (Joystick.bGamepadStyle || retaxis > jacceldeadzone)
+						{
+							if (joywaitaccel < thistime && retaxis > pjoyaccel) // only on upwards event
+							{
+								ch = KEY_ENTER;
+								joywaitaccel = thistime + NEWTICRATE/3;
+							}
+							pjoyaccel = retaxis;
+						}
+						else
+							pjoyaccel = 0;
+					}
+				}
 			}
 		}
 		else if (ev->type == ev_mouse && mousewait < I_GetTime())
@@ -10682,6 +10714,7 @@ static void M_ResetControlsResponse(INT32 ch)
 			CV_StealthSet(&cv_lookaxis4, cv_lookaxis4.defaultvalue);
 			CV_StealthSet(&cv_fireaxis4, cv_fireaxis4.defaultvalue);
 			CV_StealthSet(&cv_driftaxis4, cv_driftaxis4.defaultvalue);
+			CV_StealthSet(&cv_lookbackaxis4, cv_lookbackaxis4.defaultvalue);
 			break;
 		case 3:
 			CV_StealthSet(&cv_usejoystick3, cv_usejoystick3.defaultvalue);
@@ -10692,6 +10725,7 @@ static void M_ResetControlsResponse(INT32 ch)
 			CV_StealthSet(&cv_lookaxis3, cv_lookaxis3.defaultvalue);
 			CV_StealthSet(&cv_fireaxis3, cv_fireaxis3.defaultvalue);
 			CV_StealthSet(&cv_driftaxis3, cv_driftaxis3.defaultvalue);
+			CV_StealthSet(&cv_lookbackaxis3, cv_lookbackaxis3.defaultvalue);
 			break;
 		case 2:
 			CV_StealthSet(&cv_usejoystick2, cv_usejoystick2.defaultvalue);
@@ -10702,6 +10736,7 @@ static void M_ResetControlsResponse(INT32 ch)
 			CV_StealthSet(&cv_lookaxis2, cv_lookaxis2.defaultvalue);
 			CV_StealthSet(&cv_fireaxis2, cv_fireaxis2.defaultvalue);
 			CV_StealthSet(&cv_driftaxis2, cv_driftaxis2.defaultvalue);
+			CV_StealthSet(&cv_lookbackaxis2, cv_lookbackaxis2.defaultvalue);
 			break;
 		case 1:
 		default:
@@ -10713,6 +10748,7 @@ static void M_ResetControlsResponse(INT32 ch)
 			CV_StealthSet(&cv_lookaxis, cv_lookaxis.defaultvalue);
 			CV_StealthSet(&cv_fireaxis, cv_fireaxis.defaultvalue);
 			CV_StealthSet(&cv_driftaxis, cv_driftaxis.defaultvalue);
+			CV_StealthSet(&cv_lookbackaxis, cv_lookbackaxis.defaultvalue);
 			break;
 	}
 
