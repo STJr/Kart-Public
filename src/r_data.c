@@ -429,15 +429,25 @@ void R_LoadTextures(void)
 		// Add all the textures between TX_START and TX_END
 		if (texstart != INT16_MAX && texend != INT16_MAX)
 		{
-			numtextures += (UINT32)(texend - texstart);
-		}
-
-		// If no textures found by this point, bomb out
-		if (!numtextures && w == (numwadfiles - 1))
-		{
-			I_Error("No textures detected in any WADs!\n");
+			// PK3s have subfolders, so we can't just make a simple sum
+			if (W_FileHasFolders(wadfiles[w]))
+			{
+				for (j = texstart; j < texend; j++)
+				{
+					if (!W_IsLumpFolder((UINT16)w, j)) // Check if lump is a folder; if not, then count it
+						numtextures++;
+				}
+			}
+			else
+			{
+				numtextures += (UINT32)(texend - texstart);
+			}
 		}
 	}
+
+	// If no textures found by this point, bomb out
+	if (!numtextures)
+		I_Error("No textures detected in any WADs!\n");
 
 	// Allocate memory and initialize to 0 for all the textures we are initialising.
 	// There are actually 5 buffers allocated in one for convenience.
@@ -484,8 +494,13 @@ void R_LoadTextures(void)
 			continue;
 
 		// Work through each lump between the markers in the WAD.
-		for (j = 0; j < (texend - texstart); i++, j++)
+		for (j = 0; j < (texend - texstart); j++)
 		{
+			if (W_FileHasFolders(wadfiles[w]))
+			{
+				if (W_IsLumpFolder(w, texstart + j)) // Check if lump is a folder
+					continue; // If it is then SKIP IT
+			}
 			patchlump = W_CacheLumpNumPwad((UINT16)w, texstart + j, PU_CACHE);
 
 			// Then, check the lump directly to see if it's a texture SOC,
@@ -524,6 +539,7 @@ void R_LoadTextures(void)
 				texturewidthmask[i] = k - 1;
 				textureheight[i] = texture->height << FRACBITS;
 			}
+			i++;
 		}
 	}
 }
