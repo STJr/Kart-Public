@@ -694,6 +694,8 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][2] =
 			   /*Jawz x2*/ { 2, 1 }  // Jawz x2
 };
 
+#define DISTVAR (2048) // Magic number distance for use with item roulette tiers
+
 /**	\brief	Item Roulette for Kart
 
 	\param	player		player
@@ -767,8 +769,8 @@ static fixed_t K_ItemOddsScale(UINT8 numPlayers, boolean spbrush)
 	else if (playerCount > basePlayer)
 	{
 		// More than basePlayer: reduce odds slightly.
-		// 16P: x0.78
-		playerScaling = (basePlayer - playerCount) * (FRACUNIT / 36);
+		// 16P: x0.75
+		playerScaling = (basePlayer - playerCount) * (FRACUNIT / 32);
 	}
 
 	return playerScaling;
@@ -809,7 +811,6 @@ static UINT32 K_ScaleItemDistance(UINT32 distance, UINT8 numPlayers, boolean spb
 
 static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean spbrush)
 {
-	const INT32 distvar = (64*14);
 	INT32 newodds;
 	INT32 i;
 	UINT8 pingame = 0, pexiting = 0;
@@ -915,14 +916,14 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 			cooldownOnStart = true;
 			indirectItem = true;
 
-			if (((pexiting > 0) || (secondist/distvar < 3))
+			if (((pexiting > 0) || (secondist/DISTVAR < 3))
 				&& (pos != 9)) // Force SPB
 			{
 				newodds = 0;
 			}
 			else
 			{
-				newodds *= min((secondist/distvar)-4, 3); // POWERITEMODDS(newodds);
+				newodds *= min((secondist/DISTVAR)-4, 3); // POWERITEMODDS(newodds);
 			}
 			break;
 		case KITEM_SHRINK:
@@ -995,12 +996,18 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 
 static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT32 bestbumper, boolean spbrush, boolean dontforcespb)
 {
-	const INT32 distvar = (64*14);
-	INT32 i;
-	INT32 pdis = 0, useodds = 0;
+	SINT8 sortedPlayers[MAXPLAYERS];
+	UINT8 sortLength = 0;
+
+	UINT32 pdis = 0;
+
 	UINT8 disttable[14];
 	UINT8 distlen = 0;
+
 	boolean oddsvalid[10];
+	INT32 useodds = 0;
+
+	INT32 i;
 
 	// Unused now, oops :V
 	(void)bestbumper;
@@ -1028,19 +1035,113 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 		oddsvalid[i] = available;
 	}
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	memset(sortedPlayers, -1, sizeof(sortedPlayers));
+
+	if (player->mo != NULL && P_MobjWasRemoved(player->mo) == false)
 	{
-		if (playeringame[i] && !players[i].spectator && players[i].mo
-			&& players[i].kartstuff[k_position] != 0
-			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
+		// Sort all of the players ahead of you.
+		// Then tally up their distances in a conga line.
+
+		// This will create a much more consistent item
+		// distance algorithm than the "spider web" thing
+		// that it was doing before.
+
+		// Add yourself to the list.
+		// You'll always be the end of the list,
+		// so we can also calculate the length here.
+		sortedPlayers[ player->kartstuff[k_position] - 1 ] = player - players;
+		sortLength = player->kartstuff[k_position];
+
+		// Will only need to do this if there's goint to be 
+		// more than yourself in the list.
+		if (sortLength > 1)
 		{
-			// 1.6: Don't really remember how this item scaling worked,
-			// so I'm gonna avoid touching it for now.
-			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
-													players[i].mo->y - player->mo->y),
-													players[i].mo->z - player->mo->z) / FRACUNIT
-													* (pingame - players[i].kartstuff[k_position])
-													/ max(1, ((pingame - 1) * (pingame + 1) / 3));
+			SINT8 firstIndex = -1;
+			SINT8 secondIndex = -1;
+			INT32 startFrom = INT32_MAX;
+
+			// Add all of the other players.
+			for (i = 0; i < MAXPLAYERS; i++)
+			{
+				INT32 pos = INT32_MAX;
+
+				if (!playeringame[i] || players[i].spectator)
+				{
+					continue;
+				}
+
+				if (players[i].mo == NULL || P_MobjWasRemoved(players[i].mo) == true)
+				{
+					continue;
+				}
+
+				pos = players[i].kartstuff[k_position];
+
+				if (pos <= 0 || pos > MAXPLAYERS)
+				{
+					// Invalid position.
+					continue;
+				}
+
+				if (pos >= player->kartstuff[k_position])
+				{
+					// Tied / behind us.
+					// Also handles ourselves, obviously.
+					continue;
+				}
+
+				// Ties are done with port priority, if there are any.
+				if (sortedPlayers[ pos - 1 ] == -1) 
+				{
+					sortedPlayers[ pos - 1 ] = i;
+				}
+			}
+
+			// The chance of this list having gaps is improbable,
+			// but not impossible. So we need to spend some extra time
+			// to prevent the gaps from mattering.
+			for (i = 0; i < sortLength-1; i++)
+			{
+				if (sortedPlayers[i] >= 0 && sortedPlayers[i] < MAXPLAYERS)
+				{
+					// First valid index in the list found.
+					firstIndex = sortedPlayers[i];
+
+					// Start the next loop after this player.
+					startFrom = i + 1;
+					break;
+				}
+			}
+
+			if (firstIndex >= 0 && firstIndex < MAXPLAYERS
+				&& startFrom < sortLength)
+			{
+				// First index is valid, so we can
+				// start comparing the players.
+
+				player_t *firstPlayer = NULL;
+				player_t *secondPlayer = NULL;
+
+				for (i = startFrom; i < sortLength; i++)
+				{
+					if (sortedPlayers[i] >= 0 && sortedPlayers[i] < MAXPLAYERS)
+					{
+						secondIndex = sortedPlayers[i];
+
+						firstPlayer = &players[firstIndex];
+						secondPlayer = &players[secondIndex];
+
+						// Add the distance to the player behind you.
+						pdis += P_AproxDistance(P_AproxDistance(
+									firstPlayer->mo->x - secondPlayer->mo->x,
+									firstPlayer->mo->y - secondPlayer->mo->y),
+									firstPlayer->mo->z - secondPlayer->mo->z) / FRACUNIT;
+
+						// Advance to next index.
+						firstIndex = secondIndex;
+					}
+				}
+			}
 		}
 	}
 
@@ -1078,21 +1179,33 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 
 		pdis = K_ScaleItemDistance(pdis, pingame, spbrush);
 
-		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
+		if (pingame == 1 && oddsvalid[0])
+		{
+			// Record Attack, or just alone
 			useodds = 0;
-		else if (pdis <= 0)									// (64*14) *  0 =     0
+		}
+		else if (pdis <= 0)
+		{
+			// 1st place
 			useodds = disttable[0];
-		else if (player->kartstuff[k_position] == 2 && pdis > (distvar*6)
+		}
+		else if (player->kartstuff[k_position] == 2 && pdis > (DISTVAR*6)
 			&& spbplace == -1 && !indirectitemcooldown && !dontforcespb
-			&& oddsvalid[9])								// Force SPB in 2nd
+			&& oddsvalid[9])
+		{
+			// Force SPB in 2nd
 			useodds = 9;
-		else if (pdis > distvar * ((12 * distlen) / 14))	// (64*14) * 12 = 10752
+		}
+		else if (pdis > DISTVAR * ((12 * distlen) / 14))
+		{
+			// Back of the pack
 			useodds = disttable[distlen-1];
+		}
 		else
 		{
 			for (i = 1; i < 13; i++)
 			{
-				if (pdis <= distvar * ((i * distlen) / 14))
+				if (pdis <= (unsigned)(DISTVAR * ((i * distlen) / 14)))
 				{
 					useodds = disttable[((i * distlen) / 14)];
 					break;
