@@ -1038,7 +1038,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 			// so I'm gonna avoid touching it for now.
 			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
 													players[i].mo->y - player->mo->y),
-													players[i].mo->z - player->mo->z) / mapobjectscale
+													players[i].mo->z - player->mo->z) / FRACUNIT
 													* (pingame - players[i].kartstuff[k_position])
 													/ max(1, ((pingame - 1) * (pingame + 1) / 3));
 		}
