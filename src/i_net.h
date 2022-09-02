@@ -152,7 +152,7 @@ extern void (*I_NetCloseSocket)(void);
 
 /**	\brief send a hole punching request
 */
-extern void (*I_NetRequestHolePunch)(void);
+extern void (*I_NetRequestHolePunch)(INT32 node);
 
 /**	\brief register this machine on the hole punching server
 */
