@@ -80,6 +80,33 @@ static spriteframe_t sprtemp[64];
 static size_t maxframe;
 static const char *spritename;
 
+//
+// Clipping against drawsegs optimization, from prboom-plus
+//
+// TODO: This should be done with proper subsector pass through
+// sprites which would ideally remove the need to do it at all.
+// Unfortunately, SRB2's drawing loop has lots of annoying
+// changes from Doom for portals, which make it hard to implement.
+
+typedef struct drawseg_xrange_item_s
+{
+	INT16 x1, x2;
+	drawseg_t *user;
+} drawseg_xrange_item_t;
+
+typedef struct drawsegs_xrange_s
+{
+	drawseg_xrange_item_t *items;
+	INT32 count;
+} drawsegs_xrange_t;
+
+#define DS_RANGES_COUNT 3
+static drawsegs_xrange_t drawsegs_xranges[DS_RANGES_COUNT];
+
+static drawseg_xrange_item_t *drawsegs_xrange;
+static size_t drawsegs_xrange_size = 0;
+static INT32 drawsegs_xrange_count = 0;
+
 // ==========================================================================
 //
 // Sprite loading routines: support sprites in pwad, dehacked sprite renaming,
@@ -548,7 +575,7 @@ void R_DelSpriteDefs(UINT16 wadnum)
 //
 // GAME FUNCTIONS
 //
-static UINT32 visspritecount;
+UINT32 visspritecount;
 static UINT32 clippedvissprites;
 static vissprite_t *visspritechunks[MAXVISSPRITES >> VISSPRITECHUNKBITS] = {NULL};
 
@@ -2274,43 +2301,44 @@ static void R_DrawPrecipitationSprite(vissprite_t *spr)
 
 // R_ClipSprites
 // Clips vissprites without drawing, so that portals can work. -Red
-void R_ClipSprites(void)
+void R_ClipVisSprite(vissprite_t *spr, INT32 x1, INT32 x2)
 {
-	vissprite_t *spr;
-	for (;clippedvissprites < visspritecount; clippedvissprites++)
+	drawseg_t *ds;
+	INT32		x;
+	INT32		r1;
+	INT32		r2;
+	fixed_t		scale;
+	fixed_t		lowscale;
+	INT32		silhouette;
+
+	for (x = x1; x <= x2; x++)
 	{
-		drawseg_t *ds;
-		INT32		x;
-		INT32		r1;
-		INT32		r2;
-		fixed_t		scale;
-		fixed_t		lowscale;
-		INT32		silhouette;
+		spr->clipbot[x] = spr->cliptop[x] = -2;
+	}
 
-		spr = R_GetVisSprite(clippedvissprites);
+	// Scan drawsegs from end to start for obscuring segs.
+	// The first drawseg that has a greater scale
+	//  is the clip seg.
+	//SoM: 4/8/2000:
+	// Pointer check was originally nonportable
+	// and buggy, by going past LEFT end of array:
 
-		for (x = spr->x1; x <= spr->x2; x++)
-			spr->clipbot[x] = spr->cliptop[x] = -2;
+	// e6y: optimization
+	if (drawsegs_xrange_size)
+	{
+		const drawseg_xrange_item_t *last = &drawsegs_xrange[drawsegs_xrange_count - 1];
+		drawseg_xrange_item_t *curr = &drawsegs_xrange[-1];
 
-		// Scan drawsegs from end to start for obscuring segs.
-		// The first drawseg that has a greater scale
-		//  is the clip seg.
-		//SoM: 4/8/2000:
-		// Pointer check was originally nonportable
-		// and buggy, by going past LEFT end of array:
-
-		//    for (ds = ds_p-1; ds >= drawsegs; ds--)    old buggy code
-		for (ds = ds_p; ds-- > drawsegs ;)
+		while (++curr <= last)
 		{
 			// determine if the drawseg obscures the sprite
-			if (ds->x1 > spr->x2 ||
-			    ds->x2 < spr->x1 ||
-			    (!ds->silhouette
-			     && !ds->maskedtexturecol))
+			if (curr->x1 > spr->x2 || curr->x2 < spr->x1)
 			{
 				// does not cover sprite
 				continue;
 			}
+
+			ds = curr->user;
 
 			if (ds->portalpass > 0 && ds->portalpass <= portalrender)
 				continue; // is a portal
@@ -2375,87 +2403,173 @@ void R_ClipSprites(void)
 				}
 			}
 		}
-		//SoM: 3/17/2000: Clip sprites in water.
-		if (spr->heightsec != -1)  // only things in specially marked sectors
+	}
+	//SoM: 3/17/2000: Clip sprites in water.
+	if (spr->heightsec != -1)  // only things in specially marked sectors
+	{
+		fixed_t mh, h;
+		INT32 phs = viewplayer->mo->subsector->sector->heightsec;
+		if ((mh = sectors[spr->heightsec].floorheight) > spr->gz &&
+			(h = centeryfrac - FixedMul(mh -= viewz, spr->sortscale)) >= 0 &&
+			(h >>= FRACBITS) < viewheight)
 		{
-			fixed_t mh, h;
-			INT32 phs = viewplayer->mo->subsector->sector->heightsec;
-			if ((mh = sectors[spr->heightsec].floorheight) > spr->gz &&
-				(h = centeryfrac - FixedMul(mh -= viewz, spr->sortscale)) >= 0 &&
-				(h >>= FRACBITS) < viewheight)
-			{
-				if (mh <= 0 || (phs != -1 && viewz > sectors[phs].floorheight))
-				{                          // clip bottom
-					for (x = spr->x1; x <= spr->x2; x++)
-						if (spr->clipbot[x] == -2 || h < spr->clipbot[x])
-							spr->clipbot[x] = (INT16)h;
-				}
-				else						// clip top
-				{
-					for (x = spr->x1; x <= spr->x2; x++)
-						if (spr->cliptop[x] == -2 || h > spr->cliptop[x])
-							spr->cliptop[x] = (INT16)h;
-				}
+			if (mh <= 0 || (phs != -1 && viewz > sectors[phs].floorheight))
+			{                          // clip bottom
+				for (x = spr->x1; x <= spr->x2; x++)
+					if (spr->clipbot[x] == -2 || h < spr->clipbot[x])
+						spr->clipbot[x] = (INT16)h;
 			}
-
-			if ((mh = sectors[spr->heightsec].ceilingheight) < spr->gzt &&
-			    (h = centeryfrac - FixedMul(mh-viewz, spr->sortscale)) >= 0 &&
-			    (h >>= FRACBITS) < viewheight)
+			else						// clip top
 			{
-				if (phs != -1 && viewz >= sectors[phs].ceilingheight)
-				{                         // clip bottom
-					for (x = spr->x1; x <= spr->x2; x++)
-						if (spr->clipbot[x] == -2 || h < spr->clipbot[x])
-							spr->clipbot[x] = (INT16)h;
-				}
-				else                       // clip top
-				{
-					for (x = spr->x1; x <= spr->x2; x++)
-						if (spr->cliptop[x] == -2 || h > spr->cliptop[x])
-							spr->cliptop[x] = (INT16)h;
-				}
-			}
-		}
-		if (spr->cut & SC_TOP && spr->cut & SC_BOTTOM)
-		{
-			for (x = spr->x1; x <= spr->x2; x++)
-			{
-				if (spr->cliptop[x] == -2 || spr->szt > spr->cliptop[x])
-					spr->cliptop[x] = spr->szt;
-
-				if (spr->clipbot[x] == -2 || spr->sz < spr->clipbot[x])
-					spr->clipbot[x] = spr->sz;
-			}
-		}
-		else if (spr->cut & SC_TOP)
-		{
-			for (x = spr->x1; x <= spr->x2; x++)
-			{
-				if (spr->cliptop[x] == -2 || spr->szt > spr->cliptop[x])
-					spr->cliptop[x] = spr->szt;
-			}
-		}
-		else if (spr->cut & SC_BOTTOM)
-		{
-			for (x = spr->x1; x <= spr->x2; x++)
-			{
-				if (spr->clipbot[x] == -2 || spr->sz < spr->clipbot[x])
-					spr->clipbot[x] = spr->sz;
+				for (x = spr->x1; x <= spr->x2; x++)
+					if (spr->cliptop[x] == -2 || h > spr->cliptop[x])
+						spr->cliptop[x] = (INT16)h;
 			}
 		}
 
-		// all clipping has been performed, so store the values - what, did you think we were drawing them NOW?
-
-		// check for unclipped columns
+		if ((mh = sectors[spr->heightsec].ceilingheight) < spr->gzt &&
+		    (h = centeryfrac - FixedMul(mh-viewz, spr->sortscale)) >= 0 &&
+		    (h >>= FRACBITS) < viewheight)
+		{
+			if (phs != -1 && viewz >= sectors[phs].ceilingheight)
+			{                         // clip bottom
+				for (x = spr->x1; x <= spr->x2; x++)
+					if (spr->clipbot[x] == -2 || h < spr->clipbot[x])
+						spr->clipbot[x] = (INT16)h;
+			}
+			else                       // clip top
+			{
+				for (x = spr->x1; x <= spr->x2; x++)
+					if (spr->cliptop[x] == -2 || h > spr->cliptop[x])
+						spr->cliptop[x] = (INT16)h;
+			}
+		}
+	}
+	if (spr->cut & SC_TOP && spr->cut & SC_BOTTOM)
+	{
 		for (x = spr->x1; x <= spr->x2; x++)
 		{
-			if (spr->clipbot[x] == -2)
-				spr->clipbot[x] = (INT16)viewheight;
+			if (spr->cliptop[x] == -2 || spr->szt > spr->cliptop[x])
+				spr->cliptop[x] = spr->szt;
 
-			if (spr->cliptop[x] == -2)
-				//Fab : 26-04-98: was -1, now clips against console bottom
-				spr->cliptop[x] = (INT16)con_clipviewtop;
+			if (spr->clipbot[x] == -2 || spr->sz < spr->clipbot[x])
+				spr->clipbot[x] = spr->sz;
 		}
+	}
+	else if (spr->cut & SC_TOP)
+	{
+		for (x = spr->x1; x <= spr->x2; x++)
+		{
+			if (spr->cliptop[x] == -2 || spr->szt > spr->cliptop[x])
+				spr->cliptop[x] = spr->szt;
+		}
+	}
+	else if (spr->cut & SC_BOTTOM)
+	{
+		for (x = spr->x1; x <= spr->x2; x++)
+		{
+			if (spr->clipbot[x] == -2 || spr->sz < spr->clipbot[x])
+				spr->clipbot[x] = spr->sz;
+		}
+	}
+
+	// all clipping has been performed, so store the values - what, did you think we were drawing them NOW?
+
+	// check for unclipped columns
+	for (x = spr->x1; x <= spr->x2; x++)
+	{
+		if (spr->clipbot[x] == -2)
+			spr->clipbot[x] = (INT16)viewheight;
+
+		if (spr->cliptop[x] == -2)
+			//Fab : 26-04-98: was -1, now clips against console bottom
+			spr->cliptop[x] = (INT16)con_clipviewtop;
+	}
+}
+
+void R_ClipSprites(void)
+{
+	const size_t maxdrawsegs = ds_p - drawsegs;
+	const INT32 cx = viewwidth / 2;
+	drawseg_t* ds;
+	INT32 i;
+
+	// e6y
+	// Reducing of cache misses in the following R_DrawSprite()
+	// Makes sense for scenes with huge amount of drawsegs.
+	// ~12% of speed improvement on epic.wad map05
+	for (i = 0; i < DS_RANGES_COUNT; i++)
+	{
+		drawsegs_xranges[i].count = 0;
+	}
+
+	if (visspritecount - clippedvissprites <= 0)
+	{
+		return;
+	}
+
+	if (drawsegs_xrange_size < maxdrawsegs)
+	{
+		drawsegs_xrange_size = 2 * maxdrawsegs;
+
+		for (i = 0; i < DS_RANGES_COUNT; i++)
+		{
+			drawsegs_xranges[i].items = Z_Realloc(
+				drawsegs_xranges[i].items,
+				drawsegs_xrange_size * sizeof(drawsegs_xranges[i].items[0]),
+				PU_STATIC, NULL
+			);
+		}
+	}
+
+	for (ds = ds_p; ds-- > drawsegs;)
+	{
+		if (ds->silhouette || ds->maskedtexturecol)
+		{
+			drawsegs_xranges[0].items[drawsegs_xranges[0].count].x1 = ds->x1;
+			drawsegs_xranges[0].items[drawsegs_xranges[0].count].x2 = ds->x2;
+			drawsegs_xranges[0].items[drawsegs_xranges[0].count].user = ds;
+
+			// e6y: ~13% of speed improvement on sunder.wad map10
+			if (ds->x1 < cx)
+			{
+				drawsegs_xranges[1].items[drawsegs_xranges[1].count] = 
+					drawsegs_xranges[0].items[drawsegs_xranges[0].count];
+				drawsegs_xranges[1].count++;
+			}
+
+			if (ds->x2 >= cx)
+			{
+				drawsegs_xranges[2].items[drawsegs_xranges[2].count] = 
+					drawsegs_xranges[0].items[drawsegs_xranges[0].count];
+				drawsegs_xranges[2].count++;
+			}
+
+			drawsegs_xranges[0].count++;
+		}
+	}
+
+	for (; clippedvissprites < visspritecount; clippedvissprites++)
+	{
+		vissprite_t *spr = R_GetVisSprite(clippedvissprites);
+
+		if (spr->x2 < cx)
+		{
+			drawsegs_xrange = drawsegs_xranges[1].items;
+			drawsegs_xrange_count = drawsegs_xranges[1].count;
+		}
+		else if (spr->x1 >= cx)
+		{
+			drawsegs_xrange = drawsegs_xranges[2].items;
+			drawsegs_xrange_count = drawsegs_xranges[2].count;
+		}
+		else
+		{
+			drawsegs_xrange = drawsegs_xranges[0].items;
+			drawsegs_xrange_count = drawsegs_xranges[0].count;
+		}
+
+		R_ClipVisSprite(spr, spr->x1, spr->x2);
 	}
 }
 

@@ -52,7 +52,7 @@ typedef struct drawitem_s {
 	fixed_t sy;
 	INT32 num;
 	INT32 digits;
-	const char *str;
+	size_t stroffset; // offset into strbuf to get str
 	UINT16 color;
 	UINT8 strength;
 	INT32 align;
@@ -123,6 +123,10 @@ void LUA_HUD_DestroyDrawList(huddrawlist_h list)
 	{
 		Z_Free(list->items);
 	}
+	if (list->strbuf)
+	{
+		Z_Free(list->strbuf);
+	}
 	Z_Free(list);
 }
 
@@ -150,7 +154,7 @@ static size_t AllocateDrawItem(huddrawlist_h list)
 // copy string to list's internal string buffer
 // lua can deallocate the string before we get to use it, so it's important to
 // keep our own copy
-static const char *CopyString(huddrawlist_h list, const char* str)
+static size_t CopyString(huddrawlist_h list, const char* str)
 {
 	size_t lenstr;
 
@@ -164,10 +168,10 @@ static const char *CopyString(huddrawlist_h list, const char* str)
 	}
 
 	{
-		const char *result = (const char *) &list->strbuf[list->strbuf_len];
-		strncpy(&list->strbuf[list->strbuf_len], str, lenstr + 1);
+		size_t old_len = list->strbuf_len;
+		strncpy(&list->strbuf[old_len], str, lenstr + 1);
 		list->strbuf_len += lenstr + 1;
-		return result;
+		return old_len;
 	}
 }
 
@@ -280,7 +284,7 @@ void LUA_HUD_AddDrawString(
 	item->type = DI_DrawString;
 	item->x = x;
 	item->y = y;
-	item->str = CopyString(list, str);
+	item->stroffset = CopyString(list, str);
 	item->flags = flags;
 	item->align = align;
 }
@@ -298,7 +302,7 @@ void LUA_HUD_AddDrawKartString(
 	item->type = DI_DrawKartString;
 	item->x = x;
 	item->y = y;
-	item->str = CopyString(list, str);
+	item->stroffset = CopyString(list, str);
 	item->flags = flags;
 }
 
@@ -315,7 +319,7 @@ void LUA_HUD_AddDrawLevelTitle(
 	item->type = DI_DrawLevelTitle;
 	item->x = x;
 	item->y = y;
-	item->str = CopyString(list, str);
+	item->stroffset = CopyString(list, str);
 	item->flags = flags;
 }
 
@@ -343,6 +347,7 @@ void LUA_HUD_DrawList(huddrawlist_h list)
 	for (i = 0; i < list->items_len; i++)
 	{
 		drawitem_t *item = &list->items[i];
+		const char *itemstr = &list->strbuf[item->stroffset];
 
 		switch (item->type)
 		{
@@ -366,38 +371,38 @@ void LUA_HUD_DrawList(huddrawlist_h list)
 				{
 				// hu_font
 				case align_left:
-					V_DrawString(item->x, item->y, item->flags, item->str);
+					V_DrawString(item->x, item->y, item->flags, itemstr);
 					break;
 				case align_center:
-					V_DrawCenteredString(item->x, item->y, item->flags, item->str);
+					V_DrawCenteredString(item->x, item->y, item->flags, itemstr);
 					break;
 				case align_right:
-					V_DrawRightAlignedString(item->x, item->y, item->flags, item->str);
+					V_DrawRightAlignedString(item->x, item->y, item->flags, itemstr);
 					break;
 				case align_fixed:
-					V_DrawStringAtFixed(item->x, item->y, item->flags, item->str);
+					V_DrawStringAtFixed(item->x, item->y, item->flags, itemstr);
 					break;
 				// hu_font, 0.5x scale
 				case align_small:
-					V_DrawSmallString(item->x, item->y, item->flags, item->str);
+					V_DrawSmallString(item->x, item->y, item->flags, itemstr);
 					break;
 				case align_smallright:
-					V_DrawRightAlignedSmallString(item->x, item->y, item->flags, item->str);
+					V_DrawRightAlignedSmallString(item->x, item->y, item->flags, itemstr);
 					break;
 				// tny_font
 				case align_thin:
-					V_DrawThinString(item->x, item->y, item->flags, item->str);
+					V_DrawThinString(item->x, item->y, item->flags, itemstr);
 					break;
 				case align_thinright:
-					V_DrawRightAlignedThinString(item->x, item->y, item->flags, item->str);
+					V_DrawRightAlignedThinString(item->x, item->y, item->flags, itemstr);
 					break;
 				}
 				break;
 			case DI_DrawKartString:
-				V_DrawKartString(item->x, item->y, item->flags, item->str);
+				V_DrawKartString(item->x, item->y, item->flags, itemstr);
 				break;
 			case DI_DrawLevelTitle:
-				V_DrawLevelTitle(item->x, item->y, item->flags, item->str);
+				V_DrawLevelTitle(item->x, item->y, item->flags, itemstr);
 				break;
 			case DI_FadeScreen:
 				V_DrawFadeScreen(item->color, item->strength);

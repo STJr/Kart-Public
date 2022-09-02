@@ -474,7 +474,7 @@ void HWR_InitMD2(void)
 	size_t i;
 	INT32 s;
 	FILE *f;
-	char name[18], filename[32];
+	char name[20], filename[32];
 	float scale, offset;
 
 	CONS_Printf("InitMD2()...\n");
@@ -561,7 +561,7 @@ md2found:
 void HWR_AddPlayerMD2(int skin) // For MD2's that were added after startup
 {
 	FILE *f;
-	char name[18], filename[32];
+	char name[20], filename[32];
 	float scale, offset;
 
 	if (nomd2s)
@@ -610,7 +610,7 @@ void HWR_AddSpriteMD2(size_t spritenum) // For MD2s that were added after startu
 	FILE *f;
 	// name[18] is used to check for names in the mdls.dat file that match with sprites or player skins
 	// sprite names are always 4 characters long, and names is for player skins can be up to 19 characters long
-	char name[18], filename[32];
+	char name[20], filename[32];
 	float scale, offset;
 
 	if (nomd2s)
@@ -660,18 +660,18 @@ spritemd2found:
 // 0.0722 to blue
 // (See this same define in k_kart.c!)
 #define SETBRIGHTNESS(brightness,r,g,b) \
-	brightness = (UINT8)(((1063*(UINT16)(r))/5000) + ((3576*(UINT16)(g))/5000) + ((361*(UINT16)(b))/5000))
+	brightness = (UINT8)(((1063*(UINT32)(r))/5000) + ((3576*(UINT32)(g))/5000) + ((361*(UINT32)(b))/5000))
 
 static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, GLMipmap_t *grmip, INT32 skinnum, skincolors_t color)
 {
 	UINT16 w = gpatch->width, h = gpatch->height;
 	UINT32 size = w*h;
 	RGBA_t *image, *blendimage, *cur, blendcolor;
-	UINT8 translation[16]; // First the color index
-	UINT8 cutoff[16]; // Brightness cutoff before using the next color
+	UINT8 translation[17]; // First the color index
+	UINT8 cutoff[17]; // Brightness cutoff before using the next color
 	UINT8 translen = 0;
 	UINT8 i;
-	UINT8 colorbrightnesses[16];
+	UINT8 colorbrightnesses[17];
 	UINT8 color_match_lookup[256]; // optimization attempt
 
 	blendcolor = V_GetColor(0); // initialize
@@ -741,6 +741,11 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 		translen++;
 	}
 
+	if (translen > 0)
+		translation[translen] = translation[translen-1]; // extended to accomodate secondi if firsti equal to translen-1
+	if (translen > 1)
+		cutoff[translen] = cutoff[translen-1] = 0; // as above
+
 	if (skinnum == TC_RAINBOW && translen > 0)
 	{
 		UINT16 b;
@@ -756,7 +761,7 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 		{
 			UINT16 brightdif = 256;
 
-			color_match_lookup[i] = 0;
+			color_match_lookup[b] = 0;
 			for (i = 0; i < translen; i++)
 			{
 				if (b > colorbrightnesses[i]) // don't allow greater matches (because calculating a makeshift gradient for this is already a huge mess as is)
@@ -772,6 +777,9 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 			}
 		}
 	}
+
+	if (translen > 0)
+		colorbrightnesses[translen] = colorbrightnesses[translen-1];
 
 	while (size--)
 	{
@@ -918,6 +926,8 @@ static void HWR_CreateBlendedTexture(GLPatch_t *gpatch, GLPatch_t *blendgpatch, 
 					secondi = firsti+1;
 
 					mulmax = cutoff[firsti] - cutoff[secondi];
+					if (mulmax == 0)
+						mulmax = 1; // don't divide by zero on equal cutoffs (however unlikely)
 					mul = cutoff[firsti] - brightness;
 				}
 

@@ -245,7 +245,7 @@ static void HWR_ResizeBlock(INT32 originalwidth, INT32 originalheight,
 		min = blockwidth;
 	}
 
-	for (k = 2048, j = 0; k > max; j++)
+	for (k = 2048, j = 0; k > max && j < 8; j++)
 		k>>=1;
 	grInfo->smallLodLog2 = gr_lods[j];
 	grInfo->largeLodLog2 = gr_lods[j];
