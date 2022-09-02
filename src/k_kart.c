@@ -749,6 +749,57 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 	}
 }
 
+static fixed_t K_ItemOddsScale(UINT8 numPlayers, boolean spbrush)
+{
+	const UINT8 basePlayer = 8; // The player count we design most of the game around.
+	UINT8 playerCount = (spbrush ? 2 : numPlayers);
+	fixed_t playerScaling = 0;
+
+	// Then, it multiplies it further if the player count isn't equal to basePlayer.
+	// This is done to make low player count races more interesting and high player count rates more fair.
+	// (If you're in SPB mode and in 2nd place, it acts like it's a 1v1, so the catch-up game is not weakened.)
+	if (playerCount < basePlayer)
+	{
+		// Less than basePlayer: increase odds significantly.
+		// 2P: x2.5
+		playerScaling = (basePlayer - playerCount) * (FRACUNIT / 4);
+	}
+	else if (playerCount > basePlayer)
+	{
+		// More than basePlayer: reduce odds slightly.
+		// 16P: x0.78
+		playerScaling = (basePlayer - playerCount) * (FRACUNIT / 36);
+	}
+
+	return playerScaling;
+}
+
+static UINT32 K_ScaleItemDistance(UINT32 distance, UINT8 numPlayers, boolean spbrush)
+{
+	if (mapobjectscale != FRACUNIT)
+	{
+		// Bring back to normal scale.
+		distance = FixedDiv(distance * FRACUNIT, mapobjectscale) / FRACUNIT;
+	}
+
+	if (franticitems == true)
+	{
+		// Frantic items pretends everyone's farther apart, for crazier items.
+		distance = (15 * distance) / 14;
+	}
+
+	if (numPlayers > 0)
+	{
+		// Items get crazier with the fewer players that you have.
+		distance = FixedMul(
+			distance * FRACUNIT,
+			FRACUNIT + (K_ItemOddsScale(numPlayers, spbrush) / 2) // Odds are scaled more than the distance brackets
+		) / FRACUNIT;
+	}
+
+	return distance;
+}
+
 /**	\brief	Item Roulette for Kart
 
 	\param	player	player object passed from P_KartPlayerThink
@@ -789,6 +840,10 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 		cv_quadorbinaut.value,
 		cv_dualjawz.value
 	};
+
+	boolean powerItem = false;
+	boolean cooldownOnStart = false;
+	boolean indirectItem = false;
 
 	I_Assert(item > KITEM_NONE); // too many off by one scenarioes.
 
@@ -833,32 +888,9 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 	{
 		secondist = P_AproxDistance(P_AproxDistance(players[first].mo->x - players[second].mo->x,
 													players[first].mo->y - players[second].mo->y),
-													players[first].mo->z - players[second].mo->z) / mapobjectscale;
-		if (franticitems)
-			secondist = (15 * secondist) / 14;
-		secondist = ((28 + (8-pingame)) * secondist) / 28;
+													players[first].mo->z - players[second].mo->z) / FRACUNIT;
+		secondist = K_ScaleItemDistance(secondist, pingame, spbrush);
 	}
-
-	// POWERITEMODDS handles all of the "frantic item" related functionality, for all of our powerful items.
-	// First, it multiplies it by 2 if franticitems is true; easy-peasy.
-	// Next, it multiplies it again if it's in SPB mode and 2nd needs to apply pressure to 1st.
-	// Then, it multiplies it further if the player count isn't equal to 8.
-	// This is done to make low player count races more interesting and high player count rates more fair.
-	// (2P normal would be about halfway between 8P normal and 8P frantic.)
-	// (This scaling is not done for SPB Rush, so that catchup strength is not weakened.)
-	// Lastly, it *divides* it by your mashed value, which was determined in K_KartItemRoulette, for lesser items needed in a pinch.
-
-#define PLAYERSCALING (8 - (spbrush ? 2 : pingame))
-
-#define POWERITEMODDS(odds) {\
-	if (franticitems) \
-		odds <<= 1; \
-	odds = FixedMul(odds<<FRACBITS, FRACUNIT + ((PLAYERSCALING << FRACBITS) / 25)) >> FRACBITS; \
-	if (mashed > 0) \
-		odds = FixedDiv(odds<<FRACBITS, FRACUNIT + mashed) >> FRACBITS; \
-}
-
-#define COOLDOWNONSTART (leveltime < (30*TICRATE)+starttime)
 
 	switch (item)
 	{
@@ -871,44 +903,90 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 		case KRITEM_TRIPLEORBINAUT:
 		case KRITEM_QUADORBINAUT:
 		case KRITEM_DUALJAWZ:
-			POWERITEMODDS(newodds);
+			powerItem = true;
 			break;
 		case KITEM_INVINCIBILITY:
 		case KITEM_MINE:
 		case KITEM_GROW:
-			if (COOLDOWNONSTART)
-				newodds = 0;
-			else
-				POWERITEMODDS(newodds);
+			cooldownOnStart = true;
+			powerItem = true;
 			break;
 		case KITEM_SPB:
-			if (((indirectitemcooldown > 0) || (pexiting > 0) || (secondist/distvar < 3))
+			cooldownOnStart = true;
+			indirectItem = true;
+
+			if (((pexiting > 0) || (secondist/distvar < 3))
 				&& (pos != 9)) // Force SPB
+			{
 				newodds = 0;
+			}
 			else
+			{
 				newodds *= min((secondist/distvar)-4, 3); // POWERITEMODDS(newodds);
+			}
 			break;
 		case KITEM_SHRINK:
-			if ((indirectitemcooldown > 0) || (pingame-1 <= pexiting) || COOLDOWNONSTART)
+			cooldownOnStart = true;
+			powerItem = true;
+			indirectItem = true;
+
+			if (pingame-1 <= pexiting)
 				newodds = 0;
-			else
-				POWERITEMODDS(newodds);
 			break;
 		case KITEM_THUNDERSHIELD:
-			if (thunderisout || COOLDOWNONSTART)
+			cooldownOnStart = true;
+			powerItem = true;
+
+			if (thunderisout)
 				newodds = 0;
-			else
-				POWERITEMODDS(newodds);
 			break;
 		case KITEM_HYUDORO:
-			if ((hyubgone > 0) || COOLDOWNONSTART)
+			cooldownOnStart = true;
+
+			if (hyubgone > 0)
 				newodds = 0;
 			break;
 		default:
 			break;
 	}
 
-#undef POWERITEMODDS
+	if (newodds == 0)
+	{
+		// Nothing else we want to do with odds matters at this point :p
+		return newodds;
+	}
+
+	if ((indirectItem == true) && (indirectitemcooldown > 0))
+	{
+		// Too many items that act indirectly in a match can feel kind of bad.
+		newodds = 0;
+	}
+	else if ((cooldownOnStart == true) && (leveltime < (30*TICRATE)+starttime))
+	{
+		// This item should not appear at the beginning of a race. (Usually really powerful crowd-breaking items)
+		newodds = 0;
+	}
+	else if (powerItem == true)
+	{
+		// This item is a "power item". This activates "frantic item" toggle related functionality.
+		fixed_t fracOdds = newodds * FRACUNIT;
+
+		if (franticitems == true)
+		{
+			// First, power items multiply their odds by 2 if frantic items are on; easy-peasy.
+			fracOdds *= 2;
+		}
+
+		fracOdds = FixedMul(fracOdds, FRACUNIT + K_ItemOddsScale(pingame, spbrush));
+
+		if (mashed > 0)
+		{
+			// Lastly, it *divides* it based on your mashed value, so that power items are less likely when you mash.
+			fracOdds = FixedDiv(fracOdds, FRACUNIT + mashed);
+		}
+
+		newodds = fracOdds / FRACUNIT;
+	}
 
 	return newodds;
 }
@@ -955,11 +1033,15 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 		if (playeringame[i] && !players[i].spectator && players[i].mo
 			&& players[i].kartstuff[k_position] != 0
 			&& players[i].kartstuff[k_position] < player->kartstuff[k_position])
+		{
+			// 1.6: Don't really remember how this item scaling worked,
+			// so I'm gonna avoid touching it for now.
 			pdis += P_AproxDistance(P_AproxDistance(players[i].mo->x - player->mo->x,
 													players[i].mo->y - player->mo->y),
 													players[i].mo->z - player->mo->z) / mapobjectscale
 													* (pingame - players[i].kartstuff[k_position])
 													/ max(1, ((pingame - 1) * (pingame + 1) / 3));
+		}
 	}
 
 #define SETUPDISTTABLE(odds, num) \
@@ -994,13 +1076,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 		if (oddsvalid[7]) SETUPDISTTABLE(7,3);
 		if (oddsvalid[8]) SETUPDISTTABLE(8,1);
 
-		if (franticitems) // Frantic items make the distances between everyone artifically higher, for crazier items
-			pdis = (15 * pdis) / 14;
-
-		if (spbrush) // SPB Rush Mode: It's 2nd place's job to catch-up items and make 1st place's job hell
-			pdis = (3 * pdis) / 2;
-
-		pdis = ((28 + (8-pingame)) * pdis) / 28;
+		pdis = K_ScaleItemDistance(pdis, pingame, spbrush);
 
 		if (pingame == 1 && oddsvalid[0])					// Record Attack, or just alone
 			useodds = 0;
