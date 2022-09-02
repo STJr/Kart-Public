@@ -1934,6 +1934,7 @@ static void CL_LoadReceivedSavegame(void)
 static void SendAskInfo(INT32 node)
 {
 	const tic_t asktime = I_GetTime();
+
 	netbuffer->packettype = PT_ASKINFO;
 	netbuffer->u.askinfo.version = VERSION;
 	netbuffer->u.askinfo.time = (tic_t)LONG(asktime);
@@ -1946,7 +1947,7 @@ static void SendAskInfo(INT32 node)
 	if (node != 0 && node != BROADCASTADDR &&
 			cv_rendezvousserver.string[0])
 	{
-		I_NetRequestHolePunch();
+		I_NetRequestHolePunch(node);
 	}
 }
 

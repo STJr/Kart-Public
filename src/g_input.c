@@ -1276,6 +1276,9 @@ INT32 G_KeyStringtoNum(const char *keystr)
 {
 	UINT32 j;
 
+	if (!keystr[0])
+		return 0;
+
 	if (!keystr[1] && keystr[0] > ' ' && keystr[0] <= 'z')
 		return keystr[0];
 
