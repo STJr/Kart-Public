@@ -2030,16 +2030,16 @@ static void ST_overlayDrawer(void)
 			// SRB2kart: changed positions & text
 			if (splitscreen)
 			{
-				INT32 splitflags = K_calcSplitFlags(0);
-				V_DrawThinString(2, (BASEVIDHEIGHT/2)-20, V_YELLOWMAP|V_HUDTRANSHALF|splitflags, M_GetText("- SPECTATING -"));
+				INT32 splitflags = K_calcSplitFlags(V_SNAPTOBOTTOM|V_SNAPTOLEFT);
+				V_DrawThinString(2, (BASEVIDHEIGHT/2)-20, V_HUDTRANSHALF|V_YELLOWMAP|splitflags, M_GetText("- SPECTATING -"));
 				V_DrawThinString(2, (BASEVIDHEIGHT/2)-10, V_HUDTRANSHALF|splitflags, itemtxt);
 			}
 			else
 			{
-				V_DrawString(2, BASEVIDHEIGHT-40, V_HUDTRANSHALF|V_YELLOWMAP, M_GetText("- SPECTATING -"));
-				V_DrawString(2, BASEVIDHEIGHT-30, V_HUDTRANSHALF, itemtxt);
-				V_DrawString(2, BASEVIDHEIGHT-20, V_HUDTRANSHALF, M_GetText("Accelerate - Float"));
-				V_DrawString(2, BASEVIDHEIGHT-10, V_HUDTRANSHALF, M_GetText("Brake - Sink"));
+				V_DrawString(2, BASEVIDHEIGHT-40, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_HUDTRANSHALF|V_YELLOWMAP, M_GetText("- SPECTATING -"));
+				V_DrawString(2, BASEVIDHEIGHT-30, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_HUDTRANSHALF, itemtxt);
+				V_DrawString(2, BASEVIDHEIGHT-20, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_HUDTRANSHALF, M_GetText("Accelerate - Float"));
+				V_DrawString(2, BASEVIDHEIGHT-10, V_SNAPTOBOTTOM|V_SNAPTOLEFT|V_HUDTRANSHALF, M_GetText("Brake - Sink"));
 			}
 		}
 	}

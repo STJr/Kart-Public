@@ -3397,7 +3397,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, UINT16 wad)
 
 					if (i > 0 && i <= NUMMAPS)
 					{
-						if (mapheaderinfo[i])
+						if (mapheaderinfo[i-1])
 							G_SetGameModified(multiplayer, true); // only mark as a major mod if it replaces an already-existing mapheaderinfo
 						readlevelheader(f, i);
 					}

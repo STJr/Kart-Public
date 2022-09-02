@@ -8631,6 +8631,7 @@ static void M_DrawConnectMenu(void)
 	const char *spd = "";
 	INT32 numPages = (serverlistcount+(SERVERS_PER_PAGE-1))/SERVERS_PER_PAGE;
 	int waiting;
+	int mservflags = V_ALLOWLOWERCASE;
 
 	for (i = FIRSTSERVERLINE; i < min(localservercount, SERVERS_PER_PAGE)+FIRSTSERVERLINE; i++)
 		MP_ConnectMenu[i].status = IT_STRING | IT_SPACE;
@@ -8641,9 +8642,8 @@ static void M_DrawConnectMenu(void)
 	// Page num
 	V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ConnectMenu[mp_connect_page].alphaKey,
 	                         highlightflags, va("%u of %d", serverlistpage+1, numPages));
-	
+
 	// Did you change the Server Browser address? Have a little reminder.
-	int mservflags = V_ALLOWLOWERCASE;
 	if (CV_IsSetToDefault(&cv_masterserver))
 		mservflags = mservflags|highlightflags|V_30TRANS;
 	else

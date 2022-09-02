@@ -1545,9 +1545,9 @@ static void rendezvous(int size)
 	free(addrs);
 }
 
-static void SOCK_RequestHolePunch(void)
+static void SOCK_RequestHolePunch(INT32 node)
 {
-	mysockaddr_t * addr = &clientaddress[doomcom->remotenode];
+	mysockaddr_t * addr = &clientaddress[node];
 
 	holepunchpacket->addr = addr->ip4.sin_addr.s_addr;
 	holepunchpacket->port = addr->ip4.sin_port;
