@@ -694,7 +694,19 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][2] =
 			   /*Jawz x2*/ { 2, 1 }  // Jawz x2
 };
 
-#define DISTVAR (1792) // Magic number distance for use with item roulette tiers
+// Magic number distance for use with item roulette tiers
+#define DISTVAR (1792)
+
+// Distance between 1st and 2nd, when SPB can start appearing randomly for anyone.
+// (It's vague if SRB2Kart wanted this to be 3 or 4...)
+#define SPBSTARTDIST (4*DISTVAR)
+
+// Distance between 1st and 2nd, where SPB is forcefully given to 2nd place.
+#define SPBFORCEDIST (SPBSTARTDIST + (3*DISTVAR))
+
+// Distance from finish line when the game stops giving you bananas
+// (If only waypoints were sophisticated enough to bring this one over...)
+//#define ENDDIST (12*DISTVAR)
 
 /**	\brief	Item Roulette for Kart
 
@@ -816,7 +828,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 	UINT8 pingame = 0, pexiting = 0;
 	boolean thunderisout = false;
 	SINT8 first = -1, second = -1;
-	INT32 secondist = 0;
+	UINT32 secondToFirst = 0;
 	boolean itemenabled[NUMKARTRESULTS-1] = {
 		cv_sneaker.value,
 		cv_rocketsneaker.value,
@@ -887,10 +899,10 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 
 	if (first != -1 && second != -1) // calculate 2nd's distance from 1st, for SPB
 	{
-		secondist = P_AproxDistance(P_AproxDistance(players[first].mo->x - players[second].mo->x,
-													players[first].mo->y - players[second].mo->y),
-													players[first].mo->z - players[second].mo->z) / FRACUNIT;
-		secondist = K_ScaleItemDistance(secondist, pingame, spbrush);
+		secondToFirst = P_AproxDistance(P_AproxDistance(players[first].mo->x - players[second].mo->x,
+														players[first].mo->y - players[second].mo->y),
+														players[first].mo->z - players[second].mo->z) / FRACUNIT;
+		secondToFirst = K_ScaleItemDistance(secondToFirst, pingame, spbrush);
 	}
 
 	switch (item)
@@ -915,15 +927,27 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 		case KITEM_SPB:
 			cooldownOnStart = true;
 			indirectItem = true;
+			//powerItem = true;
 
-			if (((pexiting > 0) || (secondist/DISTVAR < 3))
-				&& (pos != 9)) // Force SPB
+			if (pexiting > 0)
 			{
 				newodds = 0;
 			}
-			else
+			else if (pos != 9) // Force SPB
 			{
-				newodds *= min((secondist/DISTVAR)-4, 3); // POWERITEMODDS(newodds);
+				const INT32 distFromStart = max(0, (INT32)secondToFirst - SPBSTARTDIST);
+				const INT32 distRange = SPBFORCEDIST - SPBSTARTDIST;
+				const fixed_t mulMax = 3*FRACUNIT;
+
+				fixed_t multiplier = (distFromStart * mulMax) / distRange;
+
+				if (multiplier < 0)
+					multiplier = 0;
+
+				if (multiplier > mulMax)
+					multiplier = mulMax;
+
+				newodds = FixedMul(newodds * FRACUNIT, multiplier) / FRACUNIT;
 			}
 			break;
 		case KITEM_SHRINK:
