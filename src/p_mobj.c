@@ -4231,7 +4231,7 @@ static void P_Boss3Thinker(mobj_t *mobj)
 			dummy = P_SpawnMobj(mobj->x, mobj->y, mobj->z, mobj->info->mass);
 			dummy->angle = mobj->angle;
 			dummy->threshold = way + 1;
-			dummy->tracer = mobj;
+			P_SetTarget(&dummy->tracer, mobj);
 
 			do
 				way2 = (way + P_RandomRange(1,3)) % 5; // dummy 2 has to be careful,
@@ -4239,7 +4239,7 @@ static void P_Boss3Thinker(mobj_t *mobj)
 			dummy = P_SpawnMobj(mobj->x, mobj->y, mobj->z, mobj->info->mass);
 			dummy->angle = mobj->angle;
 			dummy->threshold = way2 + 1;
-			dummy->tracer = mobj;
+			P_SetTarget(&dummy->tracer, mobj);
 
 			CONS_Debug(DBG_GAMELOGIC, "Eggman path %d - Dummy selected paths %d and %d\n", mobj->threshold, way + 1, dummy->threshold);
 			P_LinedefExecute(LE_PINCHPHASE, mobj, NULL);
@@ -4550,8 +4550,8 @@ static void P_Boss4Thinker(mobj_t *mobj)
 				P_SetTarget(&seg->target, mobj);
 				for (i = 0; i < 9; i++)
 				{
-					seg->hnext = P_SpawnMobj(mobj->x, mobj->y, z, MT_EGGMOBILE4_MACE);
-					seg->hnext->hprev = seg;
+					P_SetTarget(&seg->hnext, P_SpawnMobj(mobj->x, mobj->y, z, MT_EGGMOBILE4_MACE));
+					P_SetTarget(&seg->hnext->hprev, seg);
 					seg = seg->hnext;
 				}
 			}
@@ -5111,10 +5111,10 @@ static void P_Boss9Thinker(mobj_t *mobj)
 			if (mo2->type == MT_BOSS9GATHERPOINT)
 			{
 				if (last)
-					last->hnext = mo2;
+					P_SetTarget(&last->hnext, mo2);
 				else
-					mobj->hnext = mo2;
-				mo2->hprev = last;
+					P_SetTarget(&mobj->hnext, mo2);
+				P_SetTarget(&mo2->hprev, last);
 				last = mo2;
 			}
 		}
@@ -9800,7 +9800,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 				mobj_t *side = P_SpawnMobj(mobj->x + FINECOSINE((ang>>ANGLETOFINESHIFT) & FINEMASK),
 					mobj->y + FINESINE((ang>>ANGLETOFINESHIFT) & FINEMASK), mobj->z, MT_PINETREE_SIDE);
 				side->angle = ang;
-				side->target = mobj;
+				P_SetTarget(&side->target, mobj);
 				side->threshold = i;
 			}
 			break;
@@ -10312,6 +10312,7 @@ void P_RemoveSavegameMobj(mobj_t *mobj)
 
 	// free block
 	P_RemoveThinker((thinker_t *)mobj);
+	R_RemoveMobjInterpolator(mobj);
 }
 
 static CV_PossibleValue_t respawnitemtime_cons_t[] = {{1, "MIN"}, {300, "MAX"}, {0, NULL}};
