@@ -694,7 +694,7 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][2] =
 			   /*Jawz x2*/ { 2, 1 }  // Jawz x2
 };
 
-#define DISTVAR (2048) // Magic number distance for use with item roulette tiers
+#define DISTVAR (1792) // Magic number distance for use with item roulette tiers
 
 /**	\brief	Item Roulette for Kart
 
