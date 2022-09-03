@@ -1205,7 +1205,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 
 		if (pingame == 1 && oddsvalid[0])
 		{
-			// Record Attack, or just alone
+			// Record Attack / FREE PLAY
 			useodds = 0;
 		}
 		else if (pdis <= 0)
@@ -1213,7 +1213,7 @@ static INT32 K_FindUseodds(player_t *player, fixed_t mashed, INT32 pingame, INT3
 			// 1st place
 			useodds = disttable[0];
 		}
-		else if (player->kartstuff[k_position] == 2 && pdis > (DISTVAR*6)
+		else if (player->kartstuff[k_position] == 2 && pdis > SPBFORCEDIST
 			&& spbplace == -1 && !indirectitemcooldown && !dontforcespb
 			&& oddsvalid[9])
 		{
