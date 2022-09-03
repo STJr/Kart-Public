@@ -720,7 +720,7 @@ static void K_KartGetItemResult(player_t *player, SINT8 getitem)
 	if (getitem == KITEM_SPB || getitem == KITEM_SHRINK) // Indirect items
 		indirectitemcooldown = 20*TICRATE;
 	if (getitem == KITEM_HYUDORO) // Hyudoro cooldown
-		hyubgone = 5*TICRATE;
+		hyubgone = 20*TICRATE;
 
 	switch (getitem)
 	{
