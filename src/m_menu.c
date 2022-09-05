@@ -8574,14 +8574,14 @@ static void M_Refresh(INT32 choice)
 	// first page of servers
 	serverlistpage = 0;
 
+	CL_UpdateServerList();
+
 #ifdef MASTERSERVER
 #ifdef HAVE_THREADS
 	Spawn_masterserver_thread("fetch-servers", Fetch_servers_thread);
 #else/*HAVE_THREADS*/
 	Fetch_servers_thread(NULL);
 #endif/*HAVE_THREADS*/
-#else/*MASTERSERVER*/
-	CL_UpdateServerList();
 #endif/*MASTERSERVER*/
 }
 
@@ -8820,6 +8820,9 @@ static void M_ConnectMenu(INT32 choice)
 
 	// first page of servers
 	serverlistpage = 0;
+
+	CL_UpdateServerList();
+
 	M_SetupNextMenu(&MP_ConnectDef);
 	itemOn = 0;
 
