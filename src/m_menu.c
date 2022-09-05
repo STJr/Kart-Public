@@ -3447,6 +3447,8 @@ void M_Ticker(void)
 	}
 	I_unlock_mutex(ms_ServerList_mutex);
 #endif
+
+	CL_TimeoutServerList();
 }
 
 //
