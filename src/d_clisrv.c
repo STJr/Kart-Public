@@ -1953,9 +1953,9 @@ static void SendAskInfo(INT32 node)
 
 serverelem_t serverlist[MAXSERVERLIST];
 UINT32 serverlistcount = 0;
+UINT32 serverlistultimatecount = 0;
 
 static boolean resendserverlistnode[MAXNETNODES];
-static boolean resendserverlist;
 static tic_t serverlistepoch;
 
 static void SL_ClearServerList(INT32 connectedserver)
@@ -2066,14 +2066,14 @@ void CL_QueryServerList (msg_server_t *server_list)
 		}
 	}
 
-	resendserverlist = true;
+	serverlistultimatecount = i;
 }
 
 #define SERVERLISTRESENDRATE NEWTICRATE
 
 void CL_TimeoutServerList(void)
 {
-	if (netgame && resendserverlist)
+	if (netgame && serverlistultimatecount > serverlistcount)
 	{
 		const tic_t timediff = I_GetTime() - serverlistepoch;
 		const tic_t timetoresend = timediff % SERVERLISTRESENDRATE;
@@ -2095,7 +2095,7 @@ void CL_TimeoutServerList(void)
 			}
 
 			if (timedout)
-				resendserverlist = false;
+				serverlistultimatecount = serverlistcount;
 		}
 	}
 }

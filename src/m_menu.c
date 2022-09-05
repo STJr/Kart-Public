@@ -8594,6 +8594,32 @@ static void M_Refresh(INT32 choice)
 #endif/*MASTERSERVER*/
 }
 
+static void M_DrawServerCountAndHorizontalBar(void)
+{
+	const char *text;
+	INT32 radius;
+	INT32 center = BASEVIDWIDTH/2;
+
+	if (serverlistultimatecount > serverlistcount)
+	{
+		text = va("Pinging %d servers%.*s",
+				serverlistultimatecount - serverlistcount,
+				I_GetTime() / NEWTICRATE % 4, "...");
+	}
+	else
+	{
+		text = va("%d servers found", serverlistcount);
+	}
+
+	radius = V_StringWidth(text, 0) / 2;
+
+	V_DrawCenteredString(center, currentMenu->y+28, 0, text);
+
+	// Horizontal line!
+	V_DrawFill(1, currentMenu->y+32, center - radius - 2, 1, 0);
+	V_DrawFill(center + radius + 2, currentMenu->y+32, BASEVIDWIDTH - 1, 1, 0);
+}
+
 static void M_DrawConnectMenu(void)
 {
 	UINT16 i;
@@ -8618,11 +8644,10 @@ static void M_DrawConnectMenu(void)
 		mservflags = mservflags|highlightflags|V_30TRANS;
 	else
 		mservflags = mservflags|warningflags;
-	V_DrawRightAlignedSmallString(BASEVIDWIDTH - currentMenu->x, currentMenu->y+14 + MP_ConnectMenu[mp_connect_page].alphaKey,
+	V_DrawRightAlignedSmallString(BASEVIDWIDTH - currentMenu->x, currentMenu->y+3 + MP_ConnectMenu[mp_connect_refresh].alphaKey,
 	                         mservflags, va("MS: %s", cv_masterserver.string));
 
-	// Horizontal line!
-	V_DrawFill(1, currentMenu->y+32, 318, 1, 0);
+	M_DrawServerCountAndHorizontalBar();
 
 	if (serverlistcount <= 0)
 		V_DrawString(currentMenu->x,currentMenu->y+SERVERHEADERHEIGHT, 0, "No servers found");
