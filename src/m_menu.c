@@ -157,6 +157,8 @@ UINT8 maplistoption = 0;
 static char joystickInfo[8][29];
 #ifndef NONET
 static UINT32 serverlistpage;
+static UINT32 oldserverlistpage;
+static float serverlistslidex;
 #endif
 
 //static saveinfo_t savegameinfo[MAXSAVEGAMES]; // Extra info about the save games.
@@ -8539,12 +8541,18 @@ static void M_HandleServerPage(INT32 choice)
 		case KEY_RIGHTARROW:
 			S_StartSound(NULL, sfx_menu1);
 			if ((serverlistpage + 1) * SERVERS_PER_PAGE < serverlistcount)
-				serverlistpage++;
+			{
+				oldserverlistpage = serverlistpage++;
+				serverlistslidex = BASEVIDWIDTH;
+			}
 			break;
 		case KEY_LEFTARROW:
 			S_StartSound(NULL, sfx_menu1);
 			if (serverlistpage > 0)
-				serverlistpage--;
+			{
+				oldserverlistpage = serverlistpage--;
+				serverlistslidex = -(BASEVIDWIDTH);
+			}
 			break;
 
 		default:
@@ -8627,11 +8635,53 @@ static void M_DrawServerCountAndHorizontalBar(void)
 	V_DrawFill(center + radius + 2, currentMenu->y+32, BASEVIDWIDTH - 1, 1, 0);
 }
 
-static void M_DrawConnectMenu(void)
+static void M_DrawServerLines(INT32 x, INT32 page)
 {
 	UINT16 i;
 	const char *gt = "Unknown";
 	const char *spd = "";
+
+	for (i = 0; i < min(serverlistcount - page * SERVERS_PER_PAGE, SERVERS_PER_PAGE); i++)
+	{
+		INT32 slindex = i + page * SERVERS_PER_PAGE;
+		UINT32 globalflags = ((serverlist[slindex].info.numberofplayer >= serverlist[slindex].info.maxplayer) ? V_TRANSLUCENT : 0)
+			|((itemOn == FIRSTSERVERLINE+i) ? highlightflags : 0)|V_ALLOWLOWERCASE;
+
+		V_DrawString(x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
+
+		// Don't use color flags intentionally, the global yellow color will auto override the text color code
+		if (serverlist[slindex].info.modifiedgame)
+			V_DrawSmallString(x+202, S_LINEY(i)+8, globalflags, "\x85" "Mod");
+		if (serverlist[slindex].info.cheatsenabled)
+			V_DrawSmallString(x+222, S_LINEY(i)+8, globalflags, "\x83" "Cheats");
+
+		V_DrawSmallString(x, S_LINEY(i)+8, globalflags,
+		                     va("Ping: %u", (UINT32)LONG(serverlist[slindex].info.time)));
+
+		gt = "Unknown";
+		if (serverlist[slindex].info.gametype < NUMGAMETYPES)
+			gt = Gametype_Names[serverlist[slindex].info.gametype];
+
+		V_DrawSmallString(x+46,S_LINEY(i)+8, globalflags,
+		                         va("Players: %02d/%02d", serverlist[slindex].info.numberofplayer, serverlist[slindex].info.maxplayer));
+
+		V_DrawSmallString(x+112, S_LINEY(i)+8, globalflags, gt);
+
+		// display game speed for race gametypes
+		if (serverlist[slindex].info.gametype == GT_RACE)
+		{
+			spd = kartspeed_cons_t[serverlist[slindex].info.kartvars & SV_SPEEDMASK].strvalue;
+
+			V_DrawSmallString(x+132, S_LINEY(i)+8, globalflags, va("(%s Speed)", spd));
+		}
+
+		MP_ConnectMenu[i+FIRSTSERVERLINE].status = IT_STRING | IT_CALL;
+	}
+}
+
+static void M_DrawConnectMenu(void)
+{
+	UINT16 i;
 	INT32 numPages = (serverlistcount+(SERVERS_PER_PAGE-1))/SERVERS_PER_PAGE;
 	INT32 mservflags = V_ALLOWLOWERCASE;
 
@@ -8655,41 +8705,28 @@ static void M_DrawConnectMenu(void)
 
 	M_DrawServerCountAndHorizontalBar();
 
-	for (i = 0; i < min(serverlistcount - serverlistpage * SERVERS_PER_PAGE, SERVERS_PER_PAGE); i++)
+	// When switching pages, slide the old page and the
+	// new page across the screen
+	if (oldserverlistpage != serverlistpage)
 	{
-		INT32 slindex = i + serverlistpage * SERVERS_PER_PAGE;
-		UINT32 globalflags = ((serverlist[slindex].info.numberofplayer >= serverlist[slindex].info.maxplayer) ? V_TRANSLUCENT : 0)
-			|((itemOn == FIRSTSERVERLINE+i) ? highlightflags : 0)|V_ALLOWLOWERCASE;
+		const float ease = serverlistslidex / 2.f;
+		const INT32 offx = serverlistslidex > 0 ? BASEVIDWIDTH : -(BASEVIDWIDTH);
+		const INT32 x = (FLOAT_TO_FIXED(serverlistslidex) + ease * rendertimefrac) / FRACUNIT;
 
-		V_DrawString(currentMenu->x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
+		M_DrawServerLines(currentMenu->x + x - offx, oldserverlistpage);
+		M_DrawServerLines(currentMenu->x + x, serverlistpage);
 
-		// Don't use color flags intentionally, the global yellow color will auto override the text color code
-		if (serverlist[slindex].info.modifiedgame)
-			V_DrawSmallString(currentMenu->x+202, S_LINEY(i)+8, globalflags, "\x85" "Mod");
-		if (serverlist[slindex].info.cheatsenabled)
-			V_DrawSmallString(currentMenu->x+222, S_LINEY(i)+8, globalflags, "\x83" "Cheats");
-
-		V_DrawSmallString(currentMenu->x, S_LINEY(i)+8, globalflags,
-		                     va("Ping: %u", (UINT32)LONG(serverlist[slindex].info.time)));
-
-		gt = "Unknown";
-		if (serverlist[slindex].info.gametype < NUMGAMETYPES)
-			gt = Gametype_Names[serverlist[slindex].info.gametype];
-
-		V_DrawSmallString(currentMenu->x+46,S_LINEY(i)+8, globalflags,
-		                         va("Players: %02d/%02d", serverlist[slindex].info.numberofplayer, serverlist[slindex].info.maxplayer));
-
-		V_DrawSmallString(currentMenu->x+112, S_LINEY(i)+8, globalflags, gt);
-
-		// display game speed for race gametypes
-		if (serverlist[slindex].info.gametype == GT_RACE)
+		if (interpTimerHackAllow)
 		{
-			spd = kartspeed_cons_t[serverlist[slindex].info.kartvars & SV_SPEEDMASK].strvalue;
+			serverlistslidex -= ease;
 
-			V_DrawSmallString(currentMenu->x+132, S_LINEY(i)+8, globalflags, va("(%s Speed)", spd));
+			if ((INT32)serverlistslidex == 0)
+				oldserverlistpage = serverlistpage;
 		}
-
-		MP_ConnectMenu[i+FIRSTSERVERLINE].status = IT_STRING | IT_CALL;
+	}
+	else
+	{
+		M_DrawServerLines(currentMenu->x, serverlistpage);
 	}
 
 	localservercount = serverlistcount;
