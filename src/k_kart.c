@@ -701,7 +701,7 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][2] =
 #define SPBSTARTDIST (2*DISTVAR)
 
 // Distance between 1st and 2nd, where SPB is forcefully given to 2nd place.
-#define SPBFORCEDIST (SPBSTARTDIST + (3*DISTVAR))
+#define SPBFORCEDIST (SPBSTARTDIST + (2*DISTVAR))
 
 // Distance from finish line when the game stops giving you bananas
 // (If only waypoints were sophisticated enough to bring this one over...)
