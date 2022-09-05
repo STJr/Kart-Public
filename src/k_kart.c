@@ -695,11 +695,10 @@ static INT32 K_KartItemOddsBattle[NUMKARTRESULTS][2] =
 };
 
 // Magic number distance for use with item roulette tiers
-#define DISTVAR (1792)
+#define DISTVAR (1280)
 
 // Distance between 1st and 2nd, when SPB can start appearing randomly for anyone.
-// (It's vague if SRB2Kart wanted this to be 3 or 4...)
-#define SPBSTARTDIST (4*DISTVAR)
+#define SPBSTARTDIST (2*DISTVAR)
 
 // Distance between 1st and 2nd, where SPB is forcefully given to 2nd place.
 #define SPBFORCEDIST (SPBSTARTDIST + (3*DISTVAR))
