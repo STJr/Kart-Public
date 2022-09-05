@@ -925,7 +925,7 @@ static INT32 K_KartGetItemOdds(UINT8 pos, SINT8 item, fixed_t mashed, boolean sp
 			break;
 		case KITEM_SPB:
 			cooldownOnStart = true;
-			indirectItem = true;
+			//indirectItem = true;
 			//powerItem = true;
 
 			if (pexiting > 0)
