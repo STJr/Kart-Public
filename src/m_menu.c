@@ -8608,9 +8608,13 @@ static void M_DrawServerCountAndHorizontalBar(void)
 						serverlistultimatecount - serverlistcount,
 						I_GetTime() / NEWTICRATE % 4, "...");
 			}
-			else
+			else if (serverlistcount > 0)
 			{
 				text = va("%d servers found", serverlistcount);
+			}
+			else
+			{
+				text = "No servers found";
 			}
 	}
 
@@ -8651,9 +8655,6 @@ static void M_DrawConnectMenu(void)
 
 	M_DrawServerCountAndHorizontalBar();
 
-	if (serverlistcount <= 0)
-		V_DrawString(currentMenu->x,currentMenu->y+SERVERHEADERHEIGHT, 0, "No servers found");
-	else
 	for (i = 0; i < min(serverlistcount - serverlistpage * SERVERS_PER_PAGE, SERVERS_PER_PAGE); i++)
 	{
 		INT32 slindex = i + serverlistpage * SERVERS_PER_PAGE;
