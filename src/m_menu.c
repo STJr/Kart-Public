@@ -8612,8 +8612,9 @@ static void M_DrawServerCountAndHorizontalBar(void)
 		default:
 			if (serverlistultimatecount > serverlistcount)
 			{
-				text = va("Pinging %d servers%.*s",
-						serverlistultimatecount - serverlistcount,
+				text = va("%d/%d servers found%.*s",
+						serverlistcount,
+						serverlistultimatecount,
 						I_GetTime() / NEWTICRATE % 4, "...");
 			}
 			else if (serverlistcount > 0)
