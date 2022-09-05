@@ -8571,15 +8571,6 @@ static void M_Refresh(INT32 choice)
 {
 	(void)choice;
 
-	// Display a little "please wait" message.
-	M_DrawTextBox(52, BASEVIDHEIGHT/2-10, 25, 3);
-	V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, 0, "Searching for servers...");
-	V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2)+12, 0, "Please wait.");
-	I_OsPolling();
-	I_UpdateNoBlit();
-	if (rendermode == render_soft)
-		I_FinishUpdate(); // page flip or blit buffer
-
 	// first page of servers
 	serverlistpage = 0;
 
@@ -8600,15 +8591,27 @@ static void M_DrawServerCountAndHorizontalBar(void)
 	INT32 radius;
 	INT32 center = BASEVIDWIDTH/2;
 
-	if (serverlistultimatecount > serverlistcount)
+	switch (M_GetWaitingMode())
 	{
-		text = va("Pinging %d servers%.*s",
-				serverlistultimatecount - serverlistcount,
-				I_GetTime() / NEWTICRATE % 4, "...");
-	}
-	else
-	{
-		text = va("%d servers found", serverlistcount);
+		case M_WAITING_VERSION:
+			text = "Checking for updates";
+			break;
+
+		case M_WAITING_SERVERS:
+			text = "Loading server list";
+			break;
+
+		default:
+			if (serverlistultimatecount > serverlistcount)
+			{
+				text = va("Pinging %d servers%.*s",
+						serverlistultimatecount - serverlistcount,
+						I_GetTime() / NEWTICRATE % 4, "...");
+			}
+			else
+			{
+				text = va("%d servers found", serverlistcount);
+			}
 	}
 
 	radius = V_StringWidth(text, 0) / 2;
@@ -8626,8 +8629,7 @@ static void M_DrawConnectMenu(void)
 	const char *gt = "Unknown";
 	const char *spd = "";
 	INT32 numPages = (serverlistcount+(SERVERS_PER_PAGE-1))/SERVERS_PER_PAGE;
-	int waiting;
-	int mservflags = V_ALLOWLOWERCASE;
+	INT32 mservflags = V_ALLOWLOWERCASE;
 
 	for (i = FIRSTSERVERLINE; i < min(localservercount, SERVERS_PER_PAGE)+FIRSTSERVERLINE; i++)
 		MP_ConnectMenu[i].status = IT_STRING | IT_SPACE;
@@ -8692,23 +8694,6 @@ static void M_DrawConnectMenu(void)
 	localservercount = serverlistcount;
 
 	M_DrawGenericMenu();
-
-	waiting = M_GetWaitingMode();
-
-	if (waiting)
-	{
-		const char *message;
-
-		if (waiting == M_WAITING_VERSION)
-			message = "Checking for updates...";
-		else
-			message = "Searching for servers...";
-
-		// Display a little "please wait" message.
-		M_DrawTextBox(52, BASEVIDHEIGHT/2-10, 25, 3);
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, 0, message);
-		V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2)+12, 0, "Please wait.");
-	}
 }
 
 static boolean M_CancelConnect(void)
