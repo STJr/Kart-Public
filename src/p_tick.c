@@ -231,6 +231,7 @@ void P_RemoveThinkerDelayed(void *pthinker)
 			 * thinker->prev->next = thinker->next */
 			(next->prev = currentthinker = thinker->prev)->next = next;
 		}
+		R_DestroyLevelInterpolators(thinker);
 		Z_Free(thinker);
 	}
 }

@@ -4286,7 +4286,7 @@ static void K_MoveHeldObjects(player_t *player)
 
 					}
 
-					if (cur->tracer)
+					if (cur->tracer && !P_MobjWasRemoved(cur->tracer))
 					{
 						fixed_t diffx, diffy, diffz;
 
