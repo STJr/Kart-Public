@@ -157,6 +157,8 @@ UINT8 maplistoption = 0;
 static char joystickInfo[8][29];
 #ifndef NONET
 static UINT32 serverlistpage;
+static UINT32 oldserverlistpage;
+static float serverlistslidex;
 #endif
 
 //static saveinfo_t savegameinfo[MAXSAVEGAMES]; // Extra info about the save games.
@@ -3479,6 +3481,8 @@ void M_Ticker(void)
 	}
 	I_unlock_mutex(ms_ServerList_mutex);
 #endif
+
+	CL_TimeoutServerList();
 }
 
 //
@@ -8569,12 +8573,18 @@ static void M_HandleServerPage(INT32 choice)
 		case KEY_RIGHTARROW:
 			S_StartSound(NULL, sfx_menu1);
 			if ((serverlistpage + 1) * SERVERS_PER_PAGE < serverlistcount)
-				serverlistpage++;
+			{
+				oldserverlistpage = serverlistpage++;
+				serverlistslidex = BASEVIDWIDTH;
+			}
 			break;
 		case KEY_LEFTARROW:
 			S_StartSound(NULL, sfx_menu1);
 			if (serverlistpage > 0)
-				serverlistpage--;
+			{
+				oldserverlistpage = serverlistpage--;
+				serverlistslidex = -(BASEVIDWIDTH);
+			}
 			break;
 
 		default:
@@ -8601,17 +8611,10 @@ static void M_Refresh(INT32 choice)
 {
 	(void)choice;
 
-	// Display a little "please wait" message.
-	M_DrawTextBox(52, BASEVIDHEIGHT/2-10, 25, 3);
-	V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, 0, "Searching for servers...");
-	V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2)+12, 0, "Please wait.");
-	I_OsPolling();
-	I_UpdateNoBlit();
-	if (rendermode == render_soft)
-		I_FinishUpdate(); // page flip or blit buffer
-
 	// first page of servers
 	serverlistpage = 0;
+
+	CL_UpdateServerList();
 
 #ifdef MASTERSERVER
 #ifdef HAVE_THREADS
@@ -8619,19 +8622,101 @@ static void M_Refresh(INT32 choice)
 #else/*HAVE_THREADS*/
 	Fetch_servers_thread(NULL);
 #endif/*HAVE_THREADS*/
-#else/*MASTERSERVER*/
-	CL_UpdateServerList();
 #endif/*MASTERSERVER*/
+}
+
+static void M_DrawServerCountAndHorizontalBar(void)
+{
+	const char *text;
+	INT32 radius;
+	INT32 center = BASEVIDWIDTH/2;
+
+	switch (M_GetWaitingMode())
+	{
+		case M_WAITING_VERSION:
+			text = "Checking for updates";
+			break;
+
+		case M_WAITING_SERVERS:
+			text = "Loading server list";
+			break;
+
+		default:
+			if (serverlistultimatecount > serverlistcount)
+			{
+				text = va("%d/%d servers found%.*s",
+						serverlistcount,
+						serverlistultimatecount,
+						I_GetTime() / NEWTICRATE % 4, "...");
+			}
+			else if (serverlistcount > 0)
+			{
+				text = va("%d servers found", serverlistcount);
+			}
+			else
+			{
+				text = "No servers found";
+			}
+	}
+
+	radius = V_StringWidth(text, 0) / 2;
+
+	V_DrawCenteredString(center, currentMenu->y+28, 0, text);
+
+	// Horizontal line!
+	V_DrawFill(1, currentMenu->y+32, center - radius - 2, 1, 0);
+	V_DrawFill(center + radius + 2, currentMenu->y+32, BASEVIDWIDTH - 1, 1, 0);
+}
+
+static void M_DrawServerLines(INT32 x, INT32 page)
+{
+	UINT16 i;
+	const char *gt = "Unknown";
+	const char *spd = "";
+
+	for (i = 0; i < min(serverlistcount - page * SERVERS_PER_PAGE, SERVERS_PER_PAGE); i++)
+	{
+		INT32 slindex = i + page * SERVERS_PER_PAGE;
+		UINT32 globalflags = ((serverlist[slindex].info.numberofplayer >= serverlist[slindex].info.maxplayer) ? V_TRANSLUCENT : 0)
+			|((itemOn == FIRSTSERVERLINE+i) ? highlightflags : 0)|V_ALLOWLOWERCASE;
+
+		V_DrawString(x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
+
+		// Don't use color flags intentionally, the global yellow color will auto override the text color code
+		if (serverlist[slindex].info.modifiedgame)
+			V_DrawSmallString(x+202, S_LINEY(i)+8, globalflags, "\x85" "Mod");
+		if (serverlist[slindex].info.cheatsenabled)
+			V_DrawSmallString(x+222, S_LINEY(i)+8, globalflags, "\x83" "Cheats");
+
+		V_DrawSmallString(x, S_LINEY(i)+8, globalflags,
+		                     va("Ping: %u", (UINT32)LONG(serverlist[slindex].info.time)));
+
+		gt = "Unknown";
+		if (serverlist[slindex].info.gametype < NUMGAMETYPES)
+			gt = Gametype_Names[serverlist[slindex].info.gametype];
+
+		V_DrawSmallString(x+46,S_LINEY(i)+8, globalflags,
+		                         va("Players: %02d/%02d", serverlist[slindex].info.numberofplayer, serverlist[slindex].info.maxplayer));
+
+		V_DrawSmallString(x+112, S_LINEY(i)+8, globalflags, gt);
+
+		// display game speed for race gametypes
+		if (serverlist[slindex].info.gametype == GT_RACE)
+		{
+			spd = kartspeed_cons_t[serverlist[slindex].info.kartvars & SV_SPEEDMASK].strvalue;
+
+			V_DrawSmallString(x+132, S_LINEY(i)+8, globalflags, va("(%s Speed)", spd));
+		}
+
+		MP_ConnectMenu[i+FIRSTSERVERLINE].status = IT_STRING | IT_CALL;
+	}
 }
 
 static void M_DrawConnectMenu(void)
 {
 	UINT16 i;
-	const char *gt = "Unknown";
-	const char *spd = "";
 	INT32 numPages = (serverlistcount+(SERVERS_PER_PAGE-1))/SERVERS_PER_PAGE;
-	int waiting;
-	int mservflags = V_ALLOWLOWERCASE;
+	INT32 mservflags = V_ALLOWLOWERCASE;
 
 	for (i = FIRSTSERVERLINE; i < min(localservercount, SERVERS_PER_PAGE)+FIRSTSERVERLINE; i++)
 		MP_ConnectMenu[i].status = IT_STRING | IT_SPACE;
@@ -8648,72 +8733,38 @@ static void M_DrawConnectMenu(void)
 		mservflags = mservflags|highlightflags|V_30TRANS;
 	else
 		mservflags = mservflags|warningflags;
-	V_DrawRightAlignedSmallString(BASEVIDWIDTH - currentMenu->x, currentMenu->y+14 + MP_ConnectMenu[mp_connect_page].alphaKey,
+	V_DrawRightAlignedSmallString(BASEVIDWIDTH - currentMenu->x, currentMenu->y+3 + MP_ConnectMenu[mp_connect_refresh].alphaKey,
 	                         mservflags, va("MS: %s", cv_masterserver.string));
 
-	// Horizontal line!
-	V_DrawFill(1, currentMenu->y+32, 318, 1, 0);
+	M_DrawServerCountAndHorizontalBar();
 
-	if (serverlistcount <= 0)
-		V_DrawString(currentMenu->x,currentMenu->y+SERVERHEADERHEIGHT, 0, "No servers found");
-	else
-	for (i = 0; i < min(serverlistcount - serverlistpage * SERVERS_PER_PAGE, SERVERS_PER_PAGE); i++)
+	// When switching pages, slide the old page and the
+	// new page across the screen
+	if (oldserverlistpage != serverlistpage)
 	{
-		INT32 slindex = i + serverlistpage * SERVERS_PER_PAGE;
-		UINT32 globalflags = ((serverlist[slindex].info.numberofplayer >= serverlist[slindex].info.maxplayer) ? V_TRANSLUCENT : 0)
-			|((itemOn == FIRSTSERVERLINE+i) ? highlightflags : 0)|V_ALLOWLOWERCASE;
+		const float ease = serverlistslidex / 2.f;
+		const INT32 offx = serverlistslidex > 0 ? BASEVIDWIDTH : -(BASEVIDWIDTH);
+		const INT32 x = (FLOAT_TO_FIXED(serverlistslidex) + ease * rendertimefrac) / FRACUNIT;
 
-		V_DrawString(currentMenu->x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
+		M_DrawServerLines(currentMenu->x + x - offx, oldserverlistpage);
+		M_DrawServerLines(currentMenu->x + x, serverlistpage);
 
-		// Don't use color flags intentionally, the global yellow color will auto override the text color code
-		if (serverlist[slindex].info.modifiedgame)
-			V_DrawSmallString(currentMenu->x+202, S_LINEY(i)+8, globalflags, "\x85" "Mod");
-		if (serverlist[slindex].info.cheatsenabled)
-			V_DrawSmallString(currentMenu->x+222, S_LINEY(i)+8, globalflags, "\x83" "Cheats");
-
-		V_DrawSmallString(currentMenu->x, S_LINEY(i)+8, globalflags,
-		                     va("Ping: %u", (UINT32)LONG(serverlist[slindex].info.time)));
-
-		gt = "Unknown";
-		if (serverlist[slindex].info.gametype < NUMGAMETYPES)
-			gt = Gametype_Names[serverlist[slindex].info.gametype];
-
-		V_DrawSmallString(currentMenu->x+46,S_LINEY(i)+8, globalflags,
-		                         va("Players: %02d/%02d", serverlist[slindex].info.numberofplayer, serverlist[slindex].info.maxplayer));
-
-		V_DrawSmallString(currentMenu->x+112, S_LINEY(i)+8, globalflags, gt);
-
-		// display game speed for race gametypes
-		if (serverlist[slindex].info.gametype == GT_RACE)
+		if (interpTimerHackAllow)
 		{
-			spd = kartspeed_cons_t[serverlist[slindex].info.kartvars & SV_SPEEDMASK].strvalue;
+			serverlistslidex -= ease;
 
-			V_DrawSmallString(currentMenu->x+132, S_LINEY(i)+8, globalflags, va("(%s Speed)", spd));
+			if ((INT32)serverlistslidex == 0)
+				oldserverlistpage = serverlistpage;
 		}
-
-		MP_ConnectMenu[i+FIRSTSERVERLINE].status = IT_STRING | IT_CALL;
+	}
+	else
+	{
+		M_DrawServerLines(currentMenu->x, serverlistpage);
 	}
 
 	localservercount = serverlistcount;
 
 	M_DrawGenericMenu();
-
-	waiting = M_GetWaitingMode();
-
-	if (waiting)
-	{
-		const char *message;
-
-		if (waiting == M_WAITING_VERSION)
-			message = "Checking for updates...";
-		else
-			message = "Searching for servers...";
-
-		// Display a little "please wait" message.
-		M_DrawTextBox(52, BASEVIDHEIGHT/2-10, 25, 3);
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, 0, message);
-		V_DrawCenteredString(BASEVIDWIDTH/2, (BASEVIDHEIGHT/2)+12, 0, "Please wait.");
-	}
 }
 
 static boolean M_CancelConnect(void)
@@ -8840,6 +8891,9 @@ static void M_ConnectMenu(INT32 choice)
 
 	// first page of servers
 	serverlistpage = 0;
+
+	CL_UpdateServerList();
+
 	M_SetupNextMenu(&MP_ConnectDef);
 	itemOn = 0;
 
