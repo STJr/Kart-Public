@@ -10298,20 +10298,34 @@ void P_RemovePrecipMobj(precipmobj_t *mobj)
 void P_RemoveSavegameMobj(mobj_t *mobj)
 {
 	// unlink from sector and block lists
-	P_UnsetThingPosition(mobj);
-
-	// Remove touching_sectorlist from mobj.
-	if (sector_list)
+	if (((thinker_t *)mobj)->function.acp1 == (actionf_p1)P_NullPrecipThinker)
 	{
-		P_DelSeclist(sector_list);
-		sector_list = NULL;
+		P_UnsetPrecipThingPosition((precipmobj_t *)mobj);
+
+		if (precipsector_list)
+		{
+			P_DelPrecipSeclist(precipsector_list);
+			precipsector_list = NULL;
+		}
+	}
+	else
+	{
+		// unlink from sector and block lists
+		P_UnsetThingPosition(mobj);
+
+		// Remove touching_sectorlist from mobj.
+		if (sector_list)
+		{
+			P_DelSeclist(sector_list);
+			sector_list = NULL;
+		}
 	}
 
 	// stop any playing sound
 	S_StopSound(mobj);
 
 	// free block
-	P_RemoveThinker((thinker_t *)mobj);
+	P_RemoveThinkerDelayed((thinker_t *)mobj); // Call directly here since we are calling P_InitThinkers
 	R_RemoveMobjInterpolator(mobj);
 }
 
