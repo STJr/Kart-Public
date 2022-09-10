@@ -2167,10 +2167,12 @@ static void LoadMobjThinker(actionf_p1 thinker)
 	}
 
 	if (mobj->type == MT_SKYBOX)
+	{
 		if (mobj->spawnpoint->options & MTF_OBJECTSPECIAL)
 			skyboxmo[1] = mobj;
 		else
 			skyboxmo[0] = mobj;
+	}
 
 	P_AddThinker(&mobj->thinker);
 
