@@ -2677,7 +2677,11 @@ static void P_NetUnArchiveThinkers(void)
 		if (currentthinker->function.acp1 == (actionf_p1)P_MobjThinker || currentthinker->function.acp1 == (actionf_p1)P_NullPrecipThinker)
 			P_RemoveSavegameMobj((mobj_t *)currentthinker); // item isn't saved, don't remove it
 		else
+		{
+			(next->prev = currentthinker->prev)->next = next;
+			R_DestroyLevelInterpolators(currentthinker);
 			Z_Free(currentthinker);
+		}
 	}
 
 	// we don't want the removed mobjs to come back
@@ -3090,6 +3094,7 @@ static inline void P_NetArchiveSpecials(void)
 	// Sky number
 	WRITEINT32(save_p, globallevelskynum);
 
+	CONS_Printf("globalweather write %d", globalweather);
 	// Current global weather type
 	WRITEUINT8(save_p, globalweather);
 
@@ -3126,6 +3131,7 @@ static void P_NetUnArchiveSpecials(void)
 		P_SetupLevelSky(j, true);
 
 	globalweather = READUINT8(save_p);
+	CONS_Printf("globalweather read %d", globalweather);
 
 	if (globalweather)
 	{
