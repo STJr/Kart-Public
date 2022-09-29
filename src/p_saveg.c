@@ -3094,7 +3094,6 @@ static inline void P_NetArchiveSpecials(void)
 	// Sky number
 	WRITEINT32(save_p, globallevelskynum);
 
-	CONS_Printf("globalweather write %d", globalweather);
 	// Current global weather type
 	WRITEUINT8(save_p, globalweather);
 
@@ -3131,7 +3130,6 @@ static void P_NetUnArchiveSpecials(void)
 		P_SetupLevelSky(j, true);
 
 	globalweather = READUINT8(save_p);
-	CONS_Printf("globalweather read %d", globalweather);
 
 	if (globalweather)
 	{
