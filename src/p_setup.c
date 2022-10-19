@@ -3124,13 +3124,13 @@ boolean P_SetupLevel(boolean skipprecip)
 		if (!playerstarts[numcoopstarts])
 			break;
 
+	globalweather = mapheaderinfo[gamemap-1]->weather;
+
 	// set up world state
 	P_SpawnSpecials(fromnetsave);
 
 	if (loadprecip) //  ugly hack for P_NetUnArchiveMisc (and P_LoadNetGame)
 		P_SpawnPrecipitation();
-
-	globalweather = mapheaderinfo[gamemap-1]->weather;
 
 #ifdef HWRENDER // not win32 only 19990829 by Kin
 	if (rendermode != render_soft && rendermode != render_none)
