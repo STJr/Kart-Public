@@ -8358,7 +8358,7 @@ boolean G_CheckDemoStatus(void)
 		CONS_Printf(M_GetText("timed %u gametics in %d realtics\n%f seconds, %f avg fps\n"), leveltime,demotime,f1/TICRATE,f2/f1);
 		if (restorecv_vidwait != cv_vidwait.value)
 			CV_SetValue(&cv_vidwait, restorecv_vidwait);
-		D_AdvanceDemo();
+		D_StartTitle();
 		return true;
 	}
 
@@ -8376,7 +8376,7 @@ boolean G_CheckDemoStatus(void)
 			if (modeattacking)
 				M_EndModeAttackRun();
 			else
-				D_AdvanceDemo();
+				D_StartTitle();
 		}
 
 		return true;

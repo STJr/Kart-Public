@@ -5945,23 +5945,20 @@ boolean TryRunTics(tic_t realtics)
 
 	if (ticking)
 	{
-		if (advancedemo)
-			D_StartTitle();
-		else
-			// run the count * tics
-			while (neededtic > gametic)
-			{
-				DEBFILE(va("============ Running tic %d (local %d)\n", gametic, localgametic));
+		// run the count * tics
+		while (neededtic > gametic)
+		{
+			DEBFILE(va("============ Running tic %d (local %d)\n", gametic, localgametic));
 
-				G_Ticker((gametic % NEWTICRATERATIO) == 0);
-				ExtraDataTicker();
-				gametic++;
-				consistancy[gametic%TICQUEUE] = Consistancy();
+			G_Ticker((gametic % NEWTICRATERATIO) == 0);
+			ExtraDataTicker();
+			gametic++;
+			consistancy[gametic%TICQUEUE] = Consistancy();
 
-				// Leave a certain amount of tics present in the net buffer as long as we've ran at least one tic this frame.
-				if (client && gamestate == GS_LEVEL && leveltime > 3 && neededtic <= gametic + cv_netticbuffer.value)
-					break;
-			}
+			// Leave a certain amount of tics present in the net buffer as long as we've ran at least one tic this frame.
+			if (client && gamestate == GS_LEVEL && leveltime > 3 && neededtic <= gametic + cv_netticbuffer.value)
+				break;
+		}
 	}
 	else
 	{
