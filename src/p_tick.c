@@ -23,6 +23,7 @@
 #include "lua_script.h"
 #include "lua_hook.h"
 #include "k_kart.h"
+#include "r_main.h"
 #include "r_fps.h"
 
 // Object place
@@ -813,6 +814,20 @@ void P_Ticker(boolean run)
 	{
 		R_UpdateLevelInterpolators();
 		R_UpdateViewInterpolation();
+
+		// Hack: ensure newview is assigned every tic.
+		// Ensures view interpolation is T-1 to T in poor network conditions
+		// We need a better way to assign view state decoupled from game logic
+		for (i = 0; i <= splitscreen; i++)
+		{
+			player_t *player = &players[displayplayers[i]];
+			BOOL skyVisible = skyVisiblePerPlayer[i];
+			if (skyVisible && skyboxmo[0] && cv_skybox.value)
+			{
+				R_SkyboxFrame(player);
+			}
+			R_SetupFrame(player, (skyboxmo[0] && cv_skybox.value));
+		}
 	}
 
 	P_MapEnd();
