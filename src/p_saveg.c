@@ -2166,6 +2166,14 @@ static void LoadMobjThinker(actionf_p1 thinker)
 			mobj->player->viewz = mobj->player->mo->z + mobj->player->viewheight;
 	}
 
+	if (mobj->type == MT_SKYBOX)
+	{
+		if (mobj->spawnpoint->options & MTF_OBJECTSPECIAL)
+			skyboxmo[1] = mobj;
+		else
+			skyboxmo[0] = mobj;
+	}
+
 	P_AddThinker(&mobj->thinker);
 
 	if (diff2 & MD2_WAYPOINTCAP)
@@ -2666,10 +2674,14 @@ static void P_NetUnArchiveThinkers(void)
 	{
 		next = currentthinker->next;
 
-		if (currentthinker->function.acp1 == (actionf_p1)P_MobjThinker)
+		if (currentthinker->function.acp1 == (actionf_p1)P_MobjThinker || currentthinker->function.acp1 == (actionf_p1)P_NullPrecipThinker)
 			P_RemoveSavegameMobj((mobj_t *)currentthinker); // item isn't saved, don't remove it
 		else
+		{
+			(next->prev = currentthinker->prev)->next = next;
+			R_DestroyLevelInterpolators(currentthinker);
 			Z_Free(currentthinker);
+		}
 	}
 
 	// we don't want the removed mobjs to come back
