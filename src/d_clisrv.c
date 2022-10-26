@@ -6054,7 +6054,7 @@ static inline void PingUpdate(void)
 		if (nodeingame[i])
 			HSendPacket(i, true, 0, sizeof(INT32) * (MAXPLAYERS+1));
 
-	pingmeasurecount = 1; //Reset count
+	pingmeasurecount = 0; //Reset count
 }
 
 static tic_t gametime = 0;
