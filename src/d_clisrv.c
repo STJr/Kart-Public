@@ -5983,53 +5983,77 @@ boolean TryRunTics(tic_t realtics)
 
 static INT32 pingtimeout[MAXPLAYERS];
 
+#define PINGKICK_TICQUEUE 2
+#define PINGKICK_LIMIT 1
+
 static inline void PingUpdate(void)
 {
 	INT32 i;
-	boolean laggers[MAXPLAYERS];
-	UINT8 numlaggers = 0;
-	memset(laggers, 0, sizeof(boolean) * MAXPLAYERS);
+	UINT8 pingkick[MAXPLAYERS];
+	UINT8 nonlaggers = 0;
+	memset(pingkick, 0, sizeof(pingkick));
 
 	netbuffer->packettype = PT_PING;
 
 	//check for ping limit breakage.
-	if (cv_maxping.value)
+	//if (cv_maxping.value) -- always check for TICQUEUE overrun
 	{
-		for (i = 1; i < MAXPLAYERS; i++)
+		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			if (playeringame[i] && (realpingtable[i] / pingmeasurecount > (unsigned)cv_maxping.value))
+			if (!playeringame[i] || P_IsLocalPlayer(&players[i])) // should be P_IsMachineLocalPlayer for DRRR
 			{
-				if (players[i].jointime > 30 * TICRATE)
-					laggers[i] = true;
-				numlaggers++;
+				pingtimeout[i] = 0;
+				continue;
+			}
+
+			if ((maketic + 5) >= nettics[playernode[i]] + (TICQUEUE-(2*TICRATE)))
+			{
+				// Anyone who's gobbled most of the TICQUEUE and is likely to halt the server the next few times this runs has to die *right now*. (See also NetUpdate)
+				pingkick[i] = PINGKICK_TICQUEUE;
+			}
+			else if ((cv_maxping.value)
+				&& (realpingtable[i] / pingmeasurecount > (unsigned)cv_maxping.value))
+			{
+				if (players[i].jointime > 10 * TICRATE)
+				{
+					pingkick[i] = PINGKICK_LIMIT;
+				}
 			}
 			else
-				pingtimeout[i] = 0;
+			{
+				nonlaggers++;
+
+				// you aren't lagging, but you aren't free yet. In case you'll keep spiking, we just make the timer go back down. (Very unstable net must still get kicked).
+				if (pingtimeout[i] > 0)
+					pingtimeout[i]--;
+			}
 
 		}
 
 		//kick lagging players... unless everyone but the server's ping sucks.
 		//in that case, it is probably the server's fault.
-		if (numlaggers < D_NumPlayers() - 1)
+		// Always kick TICQUEUE-overrunners, too.
 		{
-			for (i = 1; i < MAXPLAYERS; i++)
+			UINT8 minimumkicklevel = (nonlaggers > 0) ? PINGKICK_LIMIT : PINGKICK_TICQUEUE;
+			for (i = 0; i < MAXPLAYERS; i++)
 			{
-				if (playeringame[i] && laggers[i])
+				XBOXSTATIC char buf[2];
+
+				if (!playeringame[i] || pingkick[i] < minimumkicklevel)
+					continue;
+
+				if (pingkick[i] == PINGKICK_LIMIT)
 				{
-					pingtimeout[i]++;
-					if (pingtimeout[i] > cv_pingtimeout.value)	// ok your net has been bad for too long, you deserve to die.
-					{
-						XBOXSTATIC char buf[2];
-
-						pingtimeout[i] = 0;
-
-						buf[0] = (char)i;
-						buf[1] = KICK_MSG_PING_HIGH;
-						SendNetXCmd(XD_KICK, &buf, 2);
-					}
+					// Don't kick on ping alone if we haven't reached our threshold yet.
+					if (++pingtimeout[i] < cv_pingtimeout.value)
+						continue;
 				}
-				else	// you aren't lagging, but you aren't free yet. In case you'll keep spiking, we just make the timer go back down. (Very unstable net must still get kicked).
-					pingtimeout[i] = (pingtimeout[i] == 0 ? 0 : pingtimeout[i]-1);
+
+				pingtimeout[i] = 0;
+
+				buf[0] = (char)i;
+				buf[1] = KICK_MSG_PING_HIGH;
+				SendNetXCmd(XD_KICK, &buf, 2);
 			}
 		}
 	}
@@ -6056,6 +6080,9 @@ static inline void PingUpdate(void)
 
 	pingmeasurecount = 0; //Reset count
 }
+
+#undef PINGKICK_DANGER
+#undef PINGKICK_LIMIT
 
 static tic_t gametime = 0;
 
@@ -6225,6 +6252,7 @@ FILESTAMP
 			// Do not make tics while resynching
 			if (counts != -666)
 			{
+				// See also PingUpdate
 				if (maketic + counts >= firstticstosend + TICQUEUE)
 					counts = firstticstosend+TICQUEUE-maketic-1;
 
