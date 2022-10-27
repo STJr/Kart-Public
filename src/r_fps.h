@@ -115,6 +115,8 @@ void R_InterpolateView(fixed_t frac);
 void R_UpdateViewInterpolation(void);
 // Reset the view states (e.g. after level load) so R_InterpolateView doesn't interpolate invalid data
 void R_ResetViewInterpolation(UINT8 p);
+// Update old view for seamless relative teleport
+void R_RelativeTeleportViewInterpolation(UINT8 p, fixed_t xdiff, fixed_t ydiff, fixed_t zdiff, angle_t angdiff);
 // Set the current view context (the viewvars pointed to by newview)
 void R_SetViewContext(enum viewcontext_e _viewcontext);
 
