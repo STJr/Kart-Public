@@ -1564,6 +1564,7 @@ static inline void SavePolyrotatetThinker(const thinker_t *th, const UINT8 type)
 	WRITEINT32(save_p, ht->polyObjNum);
 	WRITEINT32(save_p, ht->speed);
 	WRITEINT32(save_p, ht->distance);
+	WRITEUINT8(save_p, ht->turnobjs);
 }
 
 //
@@ -2533,6 +2534,7 @@ static inline void LoadPolyrotatetThinker(actionf_p1 thinker)
 	ht->polyObjNum = READINT32(save_p);
 	ht->speed = READINT32(save_p);
 	ht->distance = READINT32(save_p);
+	ht->turnobjs = READUINT8(save_p);
 	P_AddThinker(&ht->thinker);
 }
 
