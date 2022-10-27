@@ -818,10 +818,10 @@ sfxinfo_t S_sfx[NUMSFX] =
   {"gemhit", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Opulence gem/coin tumbling
   {"wrink", false,  64,  0, -1, NULL, 0,         -1,  -1, LUMPERROR}, // Some sort of ghoulie?
   {"bsnipe", false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Banana sniping
-  {"join",   false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Player joined server
-  {"leave",  false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Player left server
-  {"requst", false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Got a Discord join request
-  {"syfail", false,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Funny sync failure
+  {"join",    true,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Player joined server
+  {"leave",   true,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Player left server
+  {"requst",  true,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Got a Discord join request
+  {"syfail",  true,  96,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Funny sync failure
   {"itfree", false,  64,  0, -1, NULL, 0,        -1,  -1, LUMPERROR}, // :shitsfree:
   {"dbgsal", false, 255,  8, -1, NULL, 0,        -1,  -1, LUMPERROR}, // Debug notification
 
