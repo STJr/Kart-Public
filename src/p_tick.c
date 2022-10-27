@@ -25,6 +25,7 @@
 #include "k_kart.h"
 #include "r_main.h"
 #include "r_fps.h"
+#include "stdbool.h"
 
 // Object place
 #include "m_cheat.h"
