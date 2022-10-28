@@ -821,7 +821,7 @@ void P_Ticker(boolean run)
 		for (i = 0; i <= splitscreen; i++)
 		{
 			player_t *player = &players[displayplayers[i]];
-			BOOL skyVisible = skyVisiblePerPlayer[i];
+			boolean skyVisible = skyVisiblePerPlayer[i];
 			if (skyVisible && skyboxmo[0] && cv_skybox.value)
 			{
 				R_SkyboxFrame(player);
