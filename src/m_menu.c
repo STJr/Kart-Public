@@ -5616,7 +5616,7 @@ static void DrawReplayHutReplayInfo(void)
 		}
 
 		// Character face!
-		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[0].skin].facewant) != LUMPERROR)
+		if (demolist[dir_on[menudepthleft]].standings[0].skin < numskins && W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[0].skin].facewant) != LUMPERROR)
 		{
 			patch = facewantprefix[demolist[dir_on[menudepthleft]].standings[0].skin];
 			colormap = R_GetTranslationColormap(
