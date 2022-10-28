@@ -1143,6 +1143,8 @@ void D_SRB2Main(void)
 
 	{
 		const char *userhome = D_Home(); //Alam: path to home
+		FILE *tmpfile;
+		char testfile[MAX_WADPATH];
 
 		if (!userhome)
 		{
@@ -1192,9 +1194,6 @@ void D_SRB2Main(void)
 
 		// If config isn't writable, tons of behavior will be broken.
 		// Fail loudly before things get confusing!
-		FILE *tmpfile;
-		char testfile[MAX_WADPATH];
-
 		snprintf(testfile, sizeof testfile, "%s" PATHSEP "file.tmp", srb2home);
 		testfile[sizeof testfile - 1] = '\0';
 
