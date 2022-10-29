@@ -3071,6 +3071,10 @@ boolean P_SetupLevel(boolean skipprecip)
 					(fileinfo + ML_REJECT)->size,
 					(fileinfo + ML_REJECT)->name);
 		}
+		else
+		{
+			rejectmatrix = NULL;
+		}
 
 		// Important: take care of the ordering of the next functions.
 		if (!loadedbm)
