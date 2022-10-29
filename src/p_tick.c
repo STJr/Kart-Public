@@ -25,6 +25,7 @@
 #include "k_kart.h"
 #include "r_main.h"
 #include "r_fps.h"
+#include "i_video.h" // rendermode
 
 // Object place
 #include "m_cheat.h"
@@ -818,15 +819,18 @@ void P_Ticker(boolean run)
 		// Hack: ensure newview is assigned every tic.
 		// Ensures view interpolation is T-1 to T in poor network conditions
 		// We need a better way to assign view state decoupled from game logic
-		for (i = 0; i <= splitscreen; i++)
+		if (rendermode != render_none)
 		{
-			player_t *player = &players[displayplayers[i]];
-			boolean isSkyVisibleForPlayer = skyVisiblePerPlayer[i];
-			if (isSkyVisibleForPlayer && skyboxmo[0] && cv_skybox.value)
+			for (i = 0; i <= splitscreen; i++)
 			{
-				R_SkyboxFrame(player);
+				player_t *player = &players[displayplayers[i]];
+				boolean isSkyVisibleForPlayer = skyVisiblePerPlayer[i];
+				if (isSkyVisibleForPlayer && skyboxmo[0] && cv_skybox.value)
+				{
+					R_SkyboxFrame(player);
+				}
+				R_SetupFrame(player, (skyboxmo[0] && cv_skybox.value));
 			}
-			R_SetupFrame(player, (skyboxmo[0] && cv_skybox.value));
 		}
 	}
 
