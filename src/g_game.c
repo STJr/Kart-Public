@@ -6734,7 +6734,7 @@ void G_BeginRecording(void)
 		demoflags |= DF_ENCORE;
 
 #ifdef HAVE_BLUA
-	if (!modeattacking)	// Ghosts don't read luavars, and you shouldn't ever need to save Lua in replays, you doof!
+	if (!modeattacking && gL)	// Ghosts don't read luavars, and you shouldn't ever need to save Lua in replays, you doof!
 						// SERIOUSLY THOUGH WHY WOULD YOU LOAD HOSTMOD AND RECORD A GHOST WITH IT !????
 		demoflags |= DF_LUAVARS;
 #endif
@@ -6843,7 +6843,7 @@ void G_BeginRecording(void)
 
 #ifdef HAVE_BLUA
 	// player lua vars, always saved even if empty... Unless it's record attack.
-	if (!modeattacking)
+	if (demoflags & DF_LUAVARS)
 		LUA_ArchiveDemo();
 #endif
 
