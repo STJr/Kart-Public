@@ -827,7 +827,10 @@ void P_Ticker(boolean run)
 				{
 					R_SkyboxFrame(player);
 				}
-				R_SetupFrame(player, (skyboxmo[0] && cv_skybox.value));
+				if (player->mo)
+				{
+					R_SetupFrame(player, (skyboxmo[0] && cv_skybox.value));
+				}
 			}
 		}
 	}
