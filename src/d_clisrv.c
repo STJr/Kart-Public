@@ -6199,7 +6199,7 @@ FILESTAMP
 }
 
 // If a tree falls in the forest but nobody is around to hear it, does it make a tic?
-//#define DEDICATEDIDLETIME (10*TICRATE)
+#define DEDICATEDIDLETIME (10*TICRATE)
 
 void NetUpdate(void)
 {
