@@ -6251,7 +6251,7 @@ void NetUpdate(void)
 			}
 			else if (++dedicatedidle == DEDICATEDIDLETIME)
 			{
-				char *idlereason = "at round start";
+				const char *idlereason = "at round start";
 				if (leveltime > 3)
 					idlereason = va("for %d seconds", dedicatedidle/TICRATE);
 
