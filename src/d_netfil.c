@@ -299,8 +299,8 @@ boolean CL_CheckDownloadable(void)
 	return false;
 }
 
-// The following was written and then quickly deemed too fragile on paper to be worth testing.
-//#define MORELEGACYDOWNLOADER
+// The following was written and, against all odds, works.
+#define MORELEGACYDOWNLOADER
 
 /** Sends requests for files in the ::fileneeded table with a status of
   * ::FS_NOTFOUND.
