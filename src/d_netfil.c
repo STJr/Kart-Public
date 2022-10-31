@@ -300,7 +300,7 @@ boolean CL_CheckDownloadable(void)
 }
 
 // The following was written and then quickly deemed too fragile on paper to be worth testing.
-//#DEFINE MORELEGACYDOWNLOADER
+//#define MORELEGACYDOWNLOADER
 
 /** Sends requests for files in the ::fileneeded table with a status of
   * ::FS_NOTFOUND.
@@ -321,18 +321,21 @@ boolean CL_SendRequestFile(void)
 
 #ifdef PARANOIA
 	if (M_CheckParm("-nodownload"))
-		I_Error("CL_SendRequestFile: Attempted to download files in -nodownload mode");
+	{
+		CONS_Printf("Direct download - Attempted to download files in -nodownload mode");
+		return false;
+	}
 #endif
 
 	for (i = 0; i < fileneedednum; i++)
 	{
-#ifdef PARANOIA
 		if (fileneeded[i].status != FS_FOUND && fileneeded[i].status != FS_OPEN
 			&& (fileneeded[i].willsend == 0 || fileneeded[i].willsend == 2))
 		{
-			I_Error("CL_SendRequestFile: Attempted to download files that were not sendable");
+			CONS_Printf("Direct download - attempted to download files that were not sendable\n");
+			return false;
 		}
-#endif
+
 		if ((fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD || fileneeded[i].status == FS_FALLBACK))
 		{
 			// Error check for the first time around.
@@ -342,9 +345,13 @@ boolean CL_SendRequestFile(void)
 
 	I_GetDiskFreeSpace(&availablefreespace);
 	if (totalfreespaceneeded > availablefreespace)
-		I_Error("To play on this server you must download %s KB,\n"
-			"but you have only %s KB free space on this drive\n",
+	{
+		CONS_Printf("Direct download -\n"
+			" To play on this server you must download %s KB,\n"
+			" but you have only %s KB free space on this drive\n",
 			sizeu1((size_t)(totalfreespaceneeded>>10)), sizeu2((size_t)(availablefreespace>>10)));
+		return false;
+	}
 
 #ifdef MORELEGACYDOWNLOADER
 tryagain:
@@ -386,20 +393,33 @@ tryagain:
 #else
 	// If we're not trying extralong legacy download requests, gotta bail.
 	if (skippedafile != -1)
+	{
+#ifndef MORELEGACYDOWNLOADER
+		CONS_Printf("Direct download - missing files are as follows:\n");
+		for (i = 0; i < fileneedednum; i++)
+		{
+			if ((fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD || fileneeded[i].status == FS_FALLBACK || fileneeded[i].status == FS_REQUESTED)) // FS_REQUESTED added
+				CONS_Printf(" %s\n", fileneeded[i].filename);
+		}
+#endif
 		return false;
-	else
+	}
 #endif
 		I_mkdir(downloaddir, 0755);
 
-#ifdef PARANOIA
 	// Couldn't fit a single one in?
 	if (p == (char *)netbuffer->u.textcmd)
-		I_Error("CL_SendRequestFile: Fileneeded name for %s (fileneeded[%d]) too long??", (p > 0 ? fileneeded[p].filename : NULL), p);
-#endif
+	{
+		CONS_Printf("Direct download - fileneeded name for %s (fileneeded[%d]) too long??\n", (skippedafile != -1 ? fileneeded[skippedafile].filename : NULL), skippedafile);
+		return false;
+	}
 
 	WRITEUINT8(p, 0xFF); // terminator
 	if (!HSendPacket(servernode, true, 0, p - (char *)netbuffer->u.textcmd))
+	{
+		CONS_Printf("Direct download - unable to send packet.\n");
 		return false;
+	}
 
 #ifdef MORELEGACYDOWNLOADER
 	if (skippedafile != -1)

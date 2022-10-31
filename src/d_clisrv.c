@@ -1335,8 +1335,10 @@ static inline void CL_DrawConnectionStatus(void)
 				strncpy(tempname, filename, sizeof(tempname)-1);
 			}
 
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-30, 0,
+				va(M_GetText("%s downloading"), ((cl_mode == CL_DOWNLOADHTTPFILES) ? "\x82""HTTP" : "\x85""Direct")));
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-22, V_YELLOWMAP,
-				va(M_GetText("Downloading \"%s\""), tempname));
+				va(M_GetText("\"%s\""), tempname));
 			V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE,
 				va(" %4uK/%4uK",fileneeded[lastfilenum].currentsize>>10,file->totalsize>>10));
 			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE,
@@ -2483,9 +2485,8 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 				CL_Reset();
 				D_StartTitle();
 				M_StartMessage(M_GetText(
-					"The legacy file downloader could not handle that many files.\n"
-					"Ask the server host to set up a http source, or\n"
-					"locate and download the necessary files yourself.\n"
+					"The direct download encountered an error.\n"
+					"See the logfile for more info.\n"
 					"\n"
 					"Press ESC\n"
 				), NULL, MM_NOTHING);
