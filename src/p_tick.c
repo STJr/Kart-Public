@@ -825,7 +825,9 @@ void P_Ticker(boolean run)
 			{
 				player_t *player = &players[displayplayers[i]];
 				boolean isSkyVisibleForPlayer = skyVisiblePerPlayer[i];
-				if (isSkyVisibleForPlayer && player->mo && skyboxmo[0] && cv_skybox.value)
+				if (!player->mo)
+					continue;
+				if (isSkyVisibleForPlayer && skyboxmo[0] && cv_skybox.value)
 				{
 					R_SkyboxFrame(player);
 				}
