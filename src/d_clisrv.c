@@ -1130,6 +1130,7 @@ typedef enum
 	CL_PREPAREHTTPFILES,
 	CL_DOWNLOADHTTPFILES,
 #endif
+	CL_LEGACYREQUESTFAILED,
 } cl_mode_t;
 
 static void GetPackets(void);
@@ -1227,6 +1228,7 @@ static inline void CL_DrawConnectionStatus(void)
 #endif
 			case CL_ASKFULLFILELIST:
 			case CL_CONFIRMCONNECT:
+			case CL_LEGACYREQUESTFAILED:
 				cltext = "";
 				break;
 			case CL_SETUPFILES:
@@ -2124,6 +2126,10 @@ static void M_ConfirmConnect(event_t *ev)
 					{
 						cl_mode = CL_DOWNLOADFILES;
 					}
+					else
+					{
+						cl_mode = CL_LEGACYREQUESTFAILED;
+					}
 				}
 #ifdef HAVE_CURL
 				else
@@ -2278,6 +2284,10 @@ static boolean CL_FinishedFileList(void)
 			if (CL_SendRequestFile())
 			{
 				cl_mode = CL_DOWNLOADFILES;
+			}
+			else
+			{
+				cl_mode = CL_LEGACYREQUESTFAILED;
 			}
 		}
 #endif
@@ -2465,6 +2475,22 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 
 			cl_mode = CL_LOADFILES;
 			break;
+		case CL_LEGACYREQUESTFAILED:
+			{
+				CONS_Printf(M_GetText("Legacy downloader request packet failed.\n"));
+				CONS_Printf(M_GetText("Network game synchronization aborted.\n"));
+				D_QuitNetGame();
+				CL_Reset();
+				D_StartTitle();
+				M_StartMessage(M_GetText(
+					"The legacy file downloader could not handle that many files.\n"
+					"Ask the server host to set up a http source, or\n"
+					"locate and download the necessary files yourself.\n"
+					"\n"
+					"Press ESC\n"
+				), NULL, MM_NOTHING);
+				return false;
+			}
 		case CL_LOADFILES:
 			if (CL_LoadServerFiles()) 
 				cl_mode = CL_SETUPFILES;

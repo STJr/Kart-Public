@@ -299,6 +299,9 @@ boolean CL_CheckDownloadable(void)
 	return false;
 }
 
+// The following was written and then quickly deemed too fragile on paper to be worth testing.
+//#DEFINE MORELEGACYDOWNLOADER
+
 /** Sends requests for files in the ::fileneeded table with a status of
   * ::FS_NOTFOUND.
   *
@@ -311,42 +314,102 @@ boolean CL_SendRequestFile(void)
 	char *p;
 	INT32 i;
 	INT64 totalfreespaceneeded = 0, availablefreespace;
+	INT32 skippedafile = -1;
+#ifdef MORELEGACYDOWNLOADER
+	boolean firstloop = true;
+#endif
 
 #ifdef PARANOIA
 	if (M_CheckParm("-nodownload"))
-		I_Error("Attempted to download files in -nodownload mode");
+		I_Error("CL_SendRequestFile: Attempted to download files in -nodownload mode");
+#endif
 
 	for (i = 0; i < fileneedednum; i++)
+	{
+#ifdef PARANOIA
 		if (fileneeded[i].status != FS_FOUND && fileneeded[i].status != FS_OPEN
 			&& (fileneeded[i].willsend == 0 || fileneeded[i].willsend == 2))
 		{
-			I_Error("Attempted to download files that were not sendable");
+			I_Error("CL_SendRequestFile: Attempted to download files that were not sendable");
 		}
 #endif
-
-	netbuffer->packettype = PT_REQUESTFILE;
-	p = (char *)netbuffer->u.textcmd;
-	for (i = 0; i < fileneedednum; i++)
 		if ((fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD || fileneeded[i].status == FS_FALLBACK))
 		{
+			// Error check for the first time around.
 			totalfreespaceneeded += fileneeded[i].totalsize;
-			nameonly(fileneeded[i].filename);
-			WRITEUINT8(p, i); // fileid
-			WRITESTRINGN(p, fileneeded[i].filename, MAX_WADPATH);
-			// put it in download dir
-			strcatbf(fileneeded[i].filename, downloaddir, "/");
-			fileneeded[i].status = FS_REQUESTED;
 		}
-	WRITEUINT8(p, 0xFF);
+	}
+
 	I_GetDiskFreeSpace(&availablefreespace);
 	if (totalfreespaceneeded > availablefreespace)
 		I_Error("To play on this server you must download %s KB,\n"
 			"but you have only %s KB free space on this drive\n",
 			sizeu1((size_t)(totalfreespaceneeded>>10)), sizeu2((size_t)(availablefreespace>>10)));
 
-	// prepare to download
-	I_mkdir(downloaddir, 0755);
-	return HSendPacket(servernode, true, 0, p - (char *)netbuffer->u.textcmd);
+#ifdef MORELEGACYDOWNLOADER
+tryagain:
+	skippedafile = -1;
+#endif
+
+	netbuffer->packettype = PT_REQUESTFILE;
+	p = (char *)netbuffer->u.textcmd;
+
+	for (i = 0; i < fileneedednum; i++)
+	{
+		if ((fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD || fileneeded[i].status == FS_FALLBACK))
+		{
+			// Pre-prepare.
+			size_t checklen;
+			nameonly(fileneeded[i].filename);
+
+			// Figure out if we'd overrun our buffer.
+			checklen = strlen(fileneeded[i].filename)+2; // plus the fileid (and terminator, in case this is last)
+			if ((UINT8 *)(p + checklen) > netbuffer->u.textcmd + MAXTEXTCMD-1)
+			{
+				skippedafile = i;
+				// we might have a shorter file that can fit in the remaining space, and file ID permits out-of-order data
+				continue;
+			}
+
+			// Now write.
+			WRITEUINT8(p, i); // fileid
+			WRITESTRINGN(p, fileneeded[i].filename, MAX_WADPATH);
+
+			// put it in download dir
+			strcatbf(fileneeded[i].filename, downloaddir, "/");
+			fileneeded[i].status = FS_REQUESTED;
+		}
+	}
+
+#ifdef MORELEGACYDOWNLOADER
+	if (firstloop)
+#else
+	// If we're not trying extralong legacy download requests, gotta bail.
+	if (skippedafile != -1)
+		return false;
+	else
+#endif
+		I_mkdir(downloaddir, 0755);
+
+#ifdef PARANOIA
+	// Couldn't fit a single one in?
+	if (p == (char *)netbuffer->u.textcmd)
+		I_Error("CL_SendRequestFile: Fileneeded name for %s (fileneeded[%d]) too long??", (p > 0 ? fileneeded[p].filename : NULL), p);
+#endif
+
+	WRITEUINT8(p, 0xFF); // terminator
+	if (!HSendPacket(servernode, true, 0, p - (char *)netbuffer->u.textcmd))
+		return false;
+
+#ifdef MORELEGACYDOWNLOADER
+	if (skippedafile != -1)
+	{
+		firstloop = false;
+		goto tryagain;
+	}
+#endif
+
+	return true;
 }
 
 // get request filepak and put it on the send queue
@@ -362,10 +425,10 @@ boolean Got_RequestFilePak(INT32 node)
 		if (id == 0xFF)
 			break;
 		READSTRINGN(p, wad, MAX_WADPATH);
-		if (!SV_SendFile(node, wad, id))
+		if (p >= netbuffer->u.textcmd + MAXTEXTCMD-1 || !SV_SendFile(node, wad, id))
 		{
 			SV_AbortSendFiles(node);
-			return false; // don't read the rest of the files
+			return false; // don't read any more
 		}
 	}
 	return true; // no problems with any files
