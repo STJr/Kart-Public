@@ -6304,7 +6304,7 @@ FILESTAMP
 	}
 	else
 	{
-		if (!demo.playback)
+		if (!demo.playback && realtics > 0)
 		{
 			INT32 counts;
 
