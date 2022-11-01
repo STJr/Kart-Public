@@ -3028,7 +3028,7 @@ static void HWR_RotateSpritePolyToAim(gr_vissprite_t *spr, FOutVector *wallVerts
 		{
 			if (spr->precip)
 			{
-				R_InterpolatePrecipMobjState(spr->mobj, rendertimefrac, &interp);
+				R_InterpolatePrecipMobjState((precipmobj_t *)spr->mobj, rendertimefrac, &interp);
 			}
 			else
 			{
@@ -3039,7 +3039,7 @@ static void HWR_RotateSpritePolyToAim(gr_vissprite_t *spr, FOutVector *wallVerts
 		{
 			if (spr->precip)
 			{
-				R_InterpolatePrecipMobjState(spr->mobj, FRACUNIT, &interp);
+				R_InterpolatePrecipMobjState((precipmobj_t *)spr->mobj, FRACUNIT, &interp);
 			}
 			else
 			{
