@@ -1031,8 +1031,6 @@ boolean SV_SendingFile(INT32 node)
   */
 void SV_AbortSendFiles(INT32 node)
 {
-	if (cv_noticedownload.value)
-		CONS_Printf("Aborting send files for node %d...\n", node);
 	while (transfer[node].txlist)
 		SV_EndFileSend(node);
 }
