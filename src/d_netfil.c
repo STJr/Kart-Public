@@ -358,6 +358,10 @@ tryagain:
 	skippedafile = -1;
 #endif
 
+#ifdef VERBOSEREQUESTFILE
+	CONS_Printf("Preparing packet\n");
+#endif
+
 	netbuffer->packettype = PT_REQUESTFILE;
 	p = (char *)netbuffer->u.textcmd;
 
@@ -371,7 +375,7 @@ tryagain:
 
 			// Figure out if we'd overrun our buffer.
 			checklen = strlen(fileneeded[i].filename)+2; // plus the fileid (and terminator, in case this is last)
-			if ((UINT8 *)(p + checklen) > netbuffer->u.textcmd + MAXTEXTCMD-1)
+			if ((UINT8 *)(p + checklen) >= netbuffer->u.textcmd + MAXTEXTCMD)
 			{
 				skippedafile = i;
 				// we might have a shorter file that can fit in the remaining space, and file ID permits out-of-order data
@@ -381,6 +385,10 @@ tryagain:
 			// Now write.
 			WRITEUINT8(p, i); // fileid
 			WRITESTRINGN(p, fileneeded[i].filename, MAX_WADPATH);
+
+#ifdef VERBOSEREQUESTFILE
+			CONS_Printf(" file \"%s\" (id %d)\n", i, fileneeded[i].filename);
+#endif
 
 			// put it in download dir
 			strcatbf(fileneeded[i].filename, downloaddir, "/");
@@ -394,14 +402,12 @@ tryagain:
 	// If we're not trying extralong legacy download requests, gotta bail.
 	if (skippedafile != -1)
 	{
-#ifndef MORELEGACYDOWNLOADER
 		CONS_Printf("Direct download - missing files are as follows:\n");
 		for (i = 0; i < fileneedednum; i++)
 		{
 			if ((fileneeded[i].status == FS_NOTFOUND || fileneeded[i].status == FS_MD5SUMBAD || fileneeded[i].status == FS_FALLBACK || fileneeded[i].status == FS_REQUESTED)) // FS_REQUESTED added
 				CONS_Printf(" %s\n", fileneeded[i].filename);
 		}
-#endif
 		return false;
 	}
 #endif
@@ -429,6 +435,10 @@ tryagain:
 	}
 #endif
 
+#ifdef VERBOSEREQUESTFILE
+	CONS_Printf("Returning true\n");
+#endif
+
 	return true;
 }
 
@@ -439,14 +449,16 @@ boolean Got_RequestFilePak(INT32 node)
 	char wad[MAX_WADPATH+1];
 	UINT8 *p = netbuffer->u.textcmd;
 	UINT8 id;
-	while (p < netbuffer->u.textcmd + MAXTEXTCMD-1) // Don't allow hacked client to overflow
+	while (p < netbuffer->u.textcmd + MAXTEXTCMD) // Don't allow hacked client to overflow
 	{
 		id = READUINT8(p);
 		if (id == 0xFF)
 			break;
 		READSTRINGN(p, wad, MAX_WADPATH);
-		if (p >= netbuffer->u.textcmd + MAXTEXTCMD-1 || !SV_SendFile(node, wad, id))
+		if (p >= netbuffer->u.textcmd + MAXTEXTCMD || !SV_SendFile(node, wad, id))
 		{
+			if (cv_noticedownload.value)
+				CONS_Printf("Bad PT_REQUESTFILE from node %d!\n", node);
 			SV_AbortSendFiles(node);
 			return false; // don't read any more
 		}
@@ -621,7 +633,7 @@ static boolean SV_SendFile(INT32 node, const char *filename, UINT8 fileid)
 	char wadfilename[MAX_WADPATH];
 
 	if (cv_noticedownload.value)
-		CONS_Printf("Sending file \"%s\" to node %d (%s)\n", filename, node, I_GetNodeAddress(node));
+		CONS_Printf("Sending file \"%s\" (id %d) to node %d (%s)\n", filename, fileid, node, I_GetNodeAddress(node));
 
 	// Find the last file in the list and set a pointer to its "next" field
 	q = &transfer[node].txlist;
@@ -747,7 +759,7 @@ static void SV_EndFileSend(INT32 node)
 	{
 		case SF_FILE: // It's a file, close it and free its filename
 			if (cv_noticedownload.value)
-				CONS_Printf("Ending file transfer for node %d\n", node);
+				CONS_Printf("Ending file transfer (id %d) for node %d\n", p->fileid, node);
 			if (transfer[node].currentfile)
 				fclose(transfer[node].currentfile);
 			free(p->id.filename);
@@ -1019,6 +1031,8 @@ boolean SV_SendingFile(INT32 node)
   */
 void SV_AbortSendFiles(INT32 node)
 {
+	if (cv_noticedownload.value)
+		CONS_Printf("Aborting send files for node %d...\n", node);
 	while (transfer[node].txlist)
 		SV_EndFileSend(node);
 }
