@@ -1302,6 +1302,7 @@ void CURLGetFile(void)
 				{
 					CONS_Alert(CONS_ERROR, M_GetText("HTTP Download of %s finished but is corrupt or has been modified\n"), filename);
 					curl_curfile->status = FS_FALLBACK;
+					curl_failedwebdownload = true;
 				}
 				else
 				{
