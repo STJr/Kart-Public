@@ -1239,6 +1239,7 @@ void CURLGetFile(void)
 	int msgs_left; /* how many messages are left */
 	const char *easy_handle_error;
 	long response_code = 0;
+	static char *filename;
 
     if (curl_runninghandles)
     {
@@ -1263,6 +1264,8 @@ void CURLGetFile(void)
 		{
 			e = m->easy_handle;
 			easyres = m->data.result;
+			filename = Z_StrDup(curl_realname);
+			nameonly(filename);
 			if (easyres != CURLE_OK)
 			{
 				if (easyres == CURLE_HTTP_RETURNED_ERROR)
@@ -1275,21 +1278,29 @@ void CURLGetFile(void)
 				curl_failedwebdownload = true;
 				fclose(curl_curfile->file);
 				remove(curl_curfile->filename);
-				curl_curfile->file = NULL;
-				//nameonly(curl_curfile->filename);
-				nameonly(curl_realname);
-				CONS_Printf(M_GetText("Failed to download %s (%s)\n"), curl_realname, easy_handle_error);
+				CONS_Printf(M_GetText("Failed to download %s (%s)\n"), filename, easy_handle_error);
 			}
 			else
 			{
-				nameonly(curl_realname);
-				CONS_Printf(M_GetText("Finished downloading %s\n"), curl_realname);
-				downloadcompletednum++;
-				downloadcompletedsize += curl_curfile->totalsize;
-				curl_curfile->status = FS_FOUND;
 				fclose(curl_curfile->file);
+
+				if (checkfilemd5(curl_curfile->filename, curl_curfile->md5sum) == FS_MD5SUMBAD)
+				{
+					CONS_Alert(CONS_ERROR, M_GetText("HTTP Download of %s finished but is corrupt or has been modified\n"), filename);
+					curl_curfile->status = FS_FALLBACK;
+				}
+				else
+				{
+					CONS_Printf(M_GetText("Finished HTTP download of %s\n"), filename);
+					downloadcompletednum++;
+					downloadcompletedsize += curl_curfile->totalsize;
+					curl_curfile->status = FS_FOUND;
+				}
 			}
 
+
+			Z_Free(filename);
+			curl_curfile->file = NULL;
 			curl_running = false;
 			curl_transfers--;
 			curl_multi_remove_handle(multi_handle, e);
