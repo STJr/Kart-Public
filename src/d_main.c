@@ -144,7 +144,6 @@ boolean sound_disabled = false;
 boolean digital_disabled = false;
 #endif
 
-boolean advancedemo;
 #ifdef DEBUGFILE
 INT32 debugload = 0;
 #endif
@@ -815,15 +814,6 @@ void D_SRB2Loop(void)
 	}
 }
 
-//
-// D_AdvanceDemo
-// Called after each demo or intro demosequence finishes
-//
-void D_AdvanceDemo(void)
-{
-	advancedemo = true;
-}
-
 // =========================================================================
 // D_SRB2Main
 // =========================================================================
@@ -883,7 +873,6 @@ void D_StartTitle(void)
 	//demosequence = -1;
 	gametype = GT_RACE; // SRB2kart
 	paused = false;
-	advancedemo = false;
 	F_StartTitleScreen();
 
 	// Reset the palette -- SRB2Kart: actually never mind let's do this in the middle of every fade
@@ -1154,6 +1143,8 @@ void D_SRB2Main(void)
 
 	{
 		const char *userhome = D_Home(); //Alam: path to home
+		FILE *tmpfile;
+		char testfile[MAX_WADPATH];
 
 		if (!userhome)
 		{
@@ -1203,9 +1194,6 @@ void D_SRB2Main(void)
 
 		// If config isn't writable, tons of behavior will be broken.
 		// Fail loudly before things get confusing!
-		FILE *tmpfile;
-		char testfile[MAX_WADPATH];
-
 		snprintf(testfile, sizeof testfile, "%s" PATHSEP "file.tmp", srb2home);
 		testfile[sizeof testfile - 1] = '\0';
 
@@ -1257,26 +1245,6 @@ void D_SRB2Main(void)
 
 	if (M_CheckParm("-server") || dedicated)
 		netgame = server = true;
-
-	if (M_CheckParm("-warp") && M_IsNextParm())
-	{
-		const char *word = M_GetNextParm();
-		char ch; // use this with sscanf to catch non-digits with
-		if (fastncmp(word, "MAP", 3)) // MAPxx name
-			pstartmap = M_MapNumber(word[3], word[4]);
-		else if (sscanf(word, "%d%c", &pstartmap, &ch) != 1) // a plain number
-			I_Error("Cannot warp to map %s (invalid map name)\n", word);
-		// Don't check if lump exists just yet because the wads haven't been loaded!
-		// Just do a basic range check here.
-		if (pstartmap < 1 || pstartmap > NUMMAPS)
-			I_Error("Cannot warp to map %d (out of range)\n", pstartmap);
-		else
-		{
-			if (!M_CheckParm("-server"))
-				G_SetGameModified(true, true);
-			autostart = true;
-		}
-	}
 
 	CONS_Printf("Z_Init(): Init zone memory allocation daemon. \n");
 	Z_Init();
@@ -1456,6 +1424,23 @@ void D_SRB2Main(void)
 	savedata.lives = 0; // flag this as not-used
 
 	//------------------------------------------------ COMMAND LINE PARAMS
+
+	// this must be done after loading gamedata,
+	// to avoid setting off the corrupted gamedata code in G_LoadGameData if a SOC with custom gamedata is added
+	// -- Monster Iestyn 20/02/20
+	if (M_CheckParm("-warp") && M_IsNextParm())
+	{
+		const char *word = M_GetNextParm();
+		pstartmap = G_FindMapByNameOrCode(word, 0);
+		if (! pstartmap)
+			I_Error("Cannot find a map remotely named '%s'\n", word);
+		else
+		{
+			if (!M_CheckParm("-server"))
+				G_SetGameModified(true, true);
+			autostart = true;
+		}
+	}
 
 	// Initialize CD-Audio
 	if (M_CheckParm("-usecd") && !dedicated)

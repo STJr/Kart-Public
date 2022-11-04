@@ -5603,6 +5603,18 @@ static void DrawReplayHutReplayInfo(void)
 		if (demolist[dir_on[menudepthleft]].gametype == GT_RACE)
 		{
 			V_DrawThinString(x, y+39, V_SNAPTOTOP|highlightflags, "TIME");
+		}
+		else
+		{
+			V_DrawThinString(x, y+39, V_SNAPTOTOP|highlightflags, "SCORE");
+		}
+
+		if (demolist[dir_on[menudepthleft]].standings[0].timeorscore == (UINT32_MAX-1))
+		{
+			V_DrawThinString(x+32, y+40-1, V_SNAPTOTOP, "NO CONTEST");
+		}
+		else if (demolist[dir_on[menudepthleft]].gametype == GT_RACE)
+		{
 			V_DrawRightAlignedString(x+84, y+40, V_SNAPTOTOP, va("%d'%02d\"%02d",
 											G_TicsToMinutes(demolist[dir_on[menudepthleft]].standings[0].timeorscore, true),
 											G_TicsToSeconds(demolist[dir_on[menudepthleft]].standings[0].timeorscore),
@@ -5611,12 +5623,11 @@ static void DrawReplayHutReplayInfo(void)
 		}
 		else
 		{
-			V_DrawThinString(x, y+39, V_SNAPTOTOP|highlightflags, "SCORE");
 			V_DrawString(x+32, y+40, V_SNAPTOTOP, va("%d", demolist[dir_on[menudepthleft]].standings[0].timeorscore));
 		}
 
 		// Character face!
-		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[0].skin].facewant) != LUMPERROR)
+		if (demolist[dir_on[menudepthleft]].standings[0].skin < numskins && W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[0].skin].facewant) != LUMPERROR)
 		{
 			patch = facewantprefix[demolist[dir_on[menudepthleft]].standings[0].skin];
 			colormap = R_GetTranslationColormap(
@@ -5816,7 +5827,7 @@ static void M_DrawReplayStartMenu(void)
 			V_DrawString(BASEVIDWIDTH-92, STARTY + i*20 + 9, V_SNAPTOTOP, va("%d", demolist[dir_on[menudepthleft]].standings[i].timeorscore));
 
 		// Character face!
-		if (W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[i].skin].facerank) != LUMPERROR)
+		if (demolist[dir_on[menudepthleft]].standings[i].skin < numskins && W_CheckNumForName(skins[demolist[dir_on[menudepthleft]].standings[i].skin].facerank) != LUMPERROR)
 		{
 			patch = facerankprefix[demolist[dir_on[menudepthleft]].standings[i].skin];
 			colormap = R_GetTranslationColormap(

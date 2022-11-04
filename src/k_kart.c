@@ -2166,7 +2166,7 @@ void K_SpinPlayer(player_t *player, mobj_t *source, INT32 type, mobj_t *inflicto
 
 	player->kartstuff[k_spinouttype] = type;
 
-	if (player->kartstuff[k_spinouttype] <= 0) // type 0 is spinout, type 1 is wipeout
+	if (player->kartstuff[k_spinouttype] <= 0) // type 0 is spinout, type 1 is wipeout, type 2 is spb
 	{
 		// At spinout, player speed is increased to 1/4 their regular speed, moving them forward
 		if (player->speed < K_GetKartSpeed(player, true)/4)
@@ -2332,6 +2332,7 @@ void K_SquishPlayer(player_t *player, mobj_t *source, mobj_t *inflictor)
 
 void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A bit of a hack, we just throw the player up higher here and extend their spinout timer
 {
+	fixed_t upgoer;
 	UINT8 scoremultiply = 1;
 #ifdef HAVE_BLUA
 	boolean force = false;	// Used to check if Lua ShouldExplode should get us damaged reguardless of flashtics or heck knows what.
@@ -2377,9 +2378,6 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 
 	if (source && source != player->mo && source->player)
 		K_PlayHitEmSound(source);
-
-	player->mo->momz = 18*mapobjectscale*P_MobjFlip(player->mo);	// please stop forgetting mobjflip checks!!!!
-	player->mo->momx = player->mo->momy = 0;
 
 	player->kartstuff[k_sneakertimer] = 0;
 	player->kartstuff[k_driftboost] = 0;
@@ -2428,19 +2426,34 @@ void K_ExplodePlayer(player_t *player, mobj_t *source, mobj_t *inflictor) // A b
 		K_CheckBumpers();
 	}
 
-	player->kartstuff[k_spinouttype] = 1;
-	player->kartstuff[k_spinouttimer] = (3*TICRATE/2)+2;
-
 	player->powers[pw_flashing] = K_GetKartFlashing(player);
+
+	upgoer = (18*mapobjectscale*P_MobjFlip(player->mo));
+	if (player->mo->eflags & MFE_UNDERWATER)
+		upgoer = (117 * upgoer) / 200;
+
+#define EXPLODESPINTIME ((3*TICRATE/2)+2)
 
 	if (inflictor && inflictor->type == MT_SPBEXPLOSION && inflictor->extravalue1)
 	{
-		player->kartstuff[k_spinouttimer] = ((5*player->kartstuff[k_spinouttimer])/2)+1;
-		player->mo->momz *= 2;
+		player->kartstuff[k_spinouttype] = 2;
+		player->kartstuff[k_spinouttimer] = (5*EXPLODESPINTIME/2)+1;
+		player->mo->momz = upgoer*2;
 	}
+	else
+	{
+		if (player->kartstuff[k_spinouttype] == 2)
+		{
+			// We're on to your tricks. But let's not STOP the tech - let's make you have to work extra hard for it to pay off.
+			indirectitemcooldown = 0;
+		}
+		player->kartstuff[k_spinouttype] = 1;
+		player->kartstuff[k_spinouttimer] = EXPLODESPINTIME;
+		player->mo->momz = upgoer;
+	}
+	player->mo->momx = player->mo->momy = 0;
 
-	if (player->mo->eflags & MFE_UNDERWATER)
-		player->mo->momz = (117 * player->mo->momz) / 200;
+#undef SPINTIME
 
 	if (player->mo->state != &states[S_KART_SPIN])
 		P_SetPlayerMobjState(player->mo, S_KART_SPIN);
@@ -4748,7 +4761,7 @@ void K_KartPlayerThink(player_t *player, ticcmd_t *cmd)
 
 	if (player->kartstuff[k_spinouttimer])
 	{
-		if ((P_IsObjectOnGround(player->mo) || player->kartstuff[k_spinouttype] == 1)
+		if ((P_IsObjectOnGround(player->mo) || ((player->kartstuff[k_spinouttype]+1)/2 == 1)) // spinouttype 1 and 2 - explosion and spb
 			&& (player->kartstuff[k_sneakertimer] == 0))
 		{
 			player->kartstuff[k_spinouttimer]--;

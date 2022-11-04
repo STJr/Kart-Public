@@ -1220,7 +1220,7 @@ static void R_PortalFrame(line_t *start, line_t *dest, portal_pair *portal)
 	dest_c.y = (dest->v1->y + dest->v2->y) / 2;
 
 	// Heights!
-	newview->z += dest->frontsector->floorheight - start->frontsector->floorheight;
+	viewz += dest->frontsector->floorheight - start->frontsector->floorheight;
 
 	// calculate the difference in position and rotation!
 #ifdef ANGLED_PORTALS

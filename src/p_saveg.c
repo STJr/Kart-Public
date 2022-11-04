@@ -1564,6 +1564,7 @@ static inline void SavePolyrotatetThinker(const thinker_t *th, const UINT8 type)
 	WRITEINT32(save_p, ht->polyObjNum);
 	WRITEINT32(save_p, ht->speed);
 	WRITEINT32(save_p, ht->distance);
+	WRITEUINT8(save_p, ht->turnobjs);
 }
 
 //
@@ -2166,6 +2167,14 @@ static void LoadMobjThinker(actionf_p1 thinker)
 			mobj->player->viewz = mobj->player->mo->z + mobj->player->viewheight;
 	}
 
+	if (mobj->type == MT_SKYBOX)
+	{
+		if (mobj->spawnpoint->options & MTF_OBJECTSPECIAL)
+			skyboxmo[1] = mobj;
+		else
+			skyboxmo[0] = mobj;
+	}
+
 	P_AddThinker(&mobj->thinker);
 
 	if (diff2 & MD2_WAYPOINTCAP)
@@ -2525,6 +2534,7 @@ static inline void LoadPolyrotatetThinker(actionf_p1 thinker)
 	ht->polyObjNum = READINT32(save_p);
 	ht->speed = READINT32(save_p);
 	ht->distance = READINT32(save_p);
+	ht->turnobjs = READUINT8(save_p);
 	P_AddThinker(&ht->thinker);
 }
 
@@ -2666,10 +2676,14 @@ static void P_NetUnArchiveThinkers(void)
 	{
 		next = currentthinker->next;
 
-		if (currentthinker->function.acp1 == (actionf_p1)P_MobjThinker)
+		if (currentthinker->function.acp1 == (actionf_p1)P_MobjThinker || currentthinker->function.acp1 == (actionf_p1)P_NullPrecipThinker)
 			P_RemoveSavegameMobj((mobj_t *)currentthinker); // item isn't saved, don't remove it
 		else
+		{
+			(next->prev = currentthinker->prev)->next = next;
+			R_DestroyLevelInterpolators(currentthinker);
 			Z_Free(currentthinker);
+		}
 	}
 
 	// we don't want the removed mobjs to come back

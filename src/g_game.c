@@ -3339,7 +3339,9 @@ void G_DoReborn(INT32 playernum)
 		// respawn at the start
 		mobj_t *oldmo = NULL;
 
-		if (player->starpostnum || ((mapheaderinfo[gamemap - 1]->levelflags & LF_SECTIONRACE) && player->laps)) // SRB2kart
+		if (player->spectator)
+			;
+		else if (player->starpostnum || ((mapheaderinfo[gamemap - 1]->levelflags & LF_SECTIONRACE) && player->laps)) // SRB2kart
 			starpost = true;
 
 		// first dissasociate the corpse
@@ -4862,6 +4864,242 @@ char *G_BuildMapTitle(INT32 mapnum)
 	}
 
 	return title;
+}
+
+static void measurekeywords(mapsearchfreq_t *fr,
+		struct searchdim **dimp, UINT8 *cuntp,
+		const char *s, const char *q, boolean wanttable)
+{
+	char *qp;
+	char *sp;
+	if (wanttable)
+		(*dimp) = Z_Realloc((*dimp), 255 * sizeof (struct searchdim),
+				PU_STATIC, NULL);
+	for (qp = strtok(va("%s", q), " ");
+			qp && fr->total < 255;
+			qp = strtok(0, " "))
+	{
+		if (( sp = strcasestr(s, qp) ))
+		{
+			if (wanttable)
+			{
+				(*dimp)[(*cuntp)].pos = sp - s;
+				(*dimp)[(*cuntp)].siz = strlen(qp);
+			}
+			(*cuntp)++;
+			fr->total++;
+		}
+	}
+	if (wanttable)
+		(*dimp) = Z_Realloc((*dimp), (*cuntp) * sizeof (struct searchdim),
+				PU_STATIC, NULL);
+}
+
+static void writesimplefreq(mapsearchfreq_t *fr, INT32 *frc,
+		INT32 mapnum, UINT8 pos, UINT8 siz)
+{
+	fr[(*frc)].mapnum = mapnum;
+	fr[(*frc)].matchd = ZZ_Alloc(sizeof (struct searchdim));
+	fr[(*frc)].matchd[0].pos = pos;
+	fr[(*frc)].matchd[0].siz = siz;
+	fr[(*frc)].matchc = 1;
+	fr[(*frc)].total = 1;
+	(*frc)++;
+}
+
+INT32 G_FindMap(const char *mapname, char **foundmapnamep,
+		mapsearchfreq_t **freqp, INT32 *freqcp)
+{
+	INT32 newmapnum = 0;
+	INT32 mapnum;
+	INT32 apromapnum = 0;
+
+	size_t      mapnamelen;
+	char   *realmapname = NULL;
+	char   *newmapname = NULL;
+	char   *apromapname = NULL;
+	char   *aprop = NULL;
+
+	mapsearchfreq_t *freq;
+	boolean wanttable;
+	INT32 freqc;
+	UINT8 frequ;
+
+	INT32 i;
+
+	mapnamelen = strlen(mapname);
+
+	/* Count available maps; how ugly. */
+	for (i = 0, freqc = 0; i < NUMMAPS; ++i)
+	{
+		if (mapheaderinfo[i])
+			freqc++;
+	}
+
+	freq = ZZ_Calloc(freqc * sizeof (mapsearchfreq_t));
+
+	wanttable = !!( freqp );
+
+	freqc = 0;
+	for (i = 0, mapnum = 1; i < NUMMAPS; ++i, ++mapnum)
+		if (mapheaderinfo[i])
+	{
+		if (!( realmapname = G_BuildMapTitle(mapnum) ))
+			continue;
+
+		aprop = realmapname;
+
+		/* Now that we found a perfect match no need to fucking guess. */
+		if (strnicmp(realmapname, mapname, mapnamelen) == 0)
+		{
+			if (wanttable)
+			{
+				writesimplefreq(freq, &freqc, mapnum, 0, mapnamelen);
+			}
+			if (newmapnum == 0)
+			{
+				newmapnum = mapnum;
+				newmapname = realmapname;
+				realmapname = 0;
+				Z_Free(apromapname);
+				if (!wanttable)
+					break;
+			}
+		}
+		else
+		if (apromapnum == 0 || wanttable)
+		{
+			/* LEVEL 1--match keywords verbatim */
+			if (( aprop = strcasestr(realmapname, mapname) ))
+			{
+				if (wanttable)
+				{
+					writesimplefreq(freq, &freqc,
+							mapnum, aprop - realmapname, mapnamelen);
+				}
+				if (apromapnum == 0)
+				{
+					apromapnum = mapnum;
+					apromapname = realmapname;
+					realmapname = 0;
+				}
+			}
+			else/* ...match individual keywords */
+			{
+				freq[freqc].mapnum = mapnum;
+				measurekeywords(&freq[freqc],
+						&freq[freqc].matchd, &freq[freqc].matchc,
+						realmapname, mapname, wanttable);
+				if (freq[freqc].total)
+					freqc++;
+			}
+		}
+
+		Z_Free(realmapname);/* leftover old name */
+	}
+
+	if (newmapnum == 0)/* no perfect match--try a substring */
+	{
+		newmapnum = apromapnum;
+		newmapname = apromapname;
+	}
+
+	if (newmapnum == 0)/* calculate most queries met! */
+	{
+		frequ = 0;
+		for (i = 0; i < freqc; ++i)
+		{
+			if (freq[i].total > frequ)
+			{
+				frequ = freq[i].total;
+				newmapnum = freq[i].mapnum;
+			}
+		}
+		if (newmapnum)
+		{
+			newmapname = G_BuildMapTitle(newmapnum);
+		}
+	}
+
+	if (freqp)
+		(*freqp) = freq;
+	else
+		Z_Free(freq);
+
+	if (freqcp)
+		(*freqcp) = freqc;
+
+	if (foundmapnamep)
+		(*foundmapnamep) = newmapname;
+	else
+		Z_Free(newmapname);
+
+	return newmapnum;
+}
+
+void G_FreeMapSearch(mapsearchfreq_t *freq, INT32 freqc)
+{
+	INT32 i;
+	for (i = 0; i < freqc; ++i)
+	{
+		Z_Free(freq[i].matchd);
+	}
+	Z_Free(freq);
+}
+
+INT32 G_FindMapByNameOrCode(const char *mapname, char **realmapnamep)
+{
+	boolean usemapcode = false;
+
+	INT32 newmapnum;
+
+	size_t mapnamelen;
+
+	char *p;
+
+	mapnamelen = strlen(mapname);
+
+	if (mapnamelen == 2)/* maybe two digit code */
+	{
+		if (( newmapnum = M_MapNumber(mapname[0], mapname[1]) ))
+			usemapcode = true;
+	}
+	else if (mapnamelen == 5 && strnicmp(mapname, "MAP", 3) == 0)
+	{
+		if (( newmapnum = M_MapNumber(mapname[3], mapname[4]) ))
+			usemapcode = true;
+	}
+
+	if (!usemapcode)
+	{
+		/* Now detect map number in base 10, which no one asked for. */
+		newmapnum = strtol(mapname, &p, 10);
+		if (*p == '\0')/* we got it */
+		{
+			if (newmapnum < 1 || newmapnum > NUMMAPS)
+			{
+				CONS_Alert(CONS_ERROR, M_GetText("Invalid map number %d.\n"), newmapnum);
+				return 0;
+			}
+			usemapcode = true;
+		}
+		else
+		{
+			newmapnum = G_FindMap(mapname, realmapnamep, NULL, NULL);
+		}
+	}
+
+	if (usemapcode)
+	{
+		/* we can't check mapheaderinfo for this hahahaha */
+		if (W_CheckNumForName(G_BuildMapName(newmapnum)) == LUMPERROR)
+			return 0;
+
+		if (realmapnamep)
+			(*realmapnamep) = G_BuildMapTitle(newmapnum);
+	}
+
+	return newmapnum;
 }
 
 //
@@ -6496,7 +6734,7 @@ void G_BeginRecording(void)
 		demoflags |= DF_ENCORE;
 
 #ifdef HAVE_BLUA
-	if (!modeattacking)	// Ghosts don't read luavars, and you shouldn't ever need to save Lua in replays, you doof!
+	if (!modeattacking && gL)	// Ghosts don't read luavars, and you shouldn't ever need to save Lua in replays, you doof!
 						// SERIOUSLY THOUGH WHY WOULD YOU LOAD HOSTMOD AND RECORD A GHOST WITH IT !????
 		demoflags |= DF_LUAVARS;
 #endif
@@ -6531,7 +6769,7 @@ void G_BeginRecording(void)
 		if (wadfiles[i]->important)
 	{
 		nameonly(( filename = va("%s", wadfiles[i]->filename) ));
-		WRITESTRINGN(demo_p, filename, 64);
+		WRITESTRINGL(demo_p, filename, MAX_WADPATH);
 		WRITEMEM(demo_p, wadfiles[i]->md5sum, 16);
 
 		totalfiles++;
@@ -6605,7 +6843,7 @@ void G_BeginRecording(void)
 
 #ifdef HAVE_BLUA
 	// player lua vars, always saved even if empty... Unless it's record attack.
-	if (!modeattacking)
+	if (demoflags & DF_LUAVARS)
 		LUA_ArchiveDemo();
 #endif
 
@@ -6776,10 +7014,13 @@ static void G_LoadDemoExtraFiles(UINT8 **pp)
 			}
 			else
 			{
-				P_AddWadFile(filename);
+				P_PartialAddWadFile(filename);
 			}
 		}
 	}
+
+	if (P_PartialAddGetStage() >= 0)
+		P_MultiSetupWadFiles(true); // in case any partial adds were done
 }
 
 static void G_SkipDemoExtraFiles(UINT8 **pp)
@@ -8358,7 +8599,7 @@ boolean G_CheckDemoStatus(void)
 		CONS_Printf(M_GetText("timed %u gametics in %d realtics\n%f seconds, %f avg fps\n"), leveltime,demotime,f1/TICRATE,f2/f1);
 		if (restorecv_vidwait != cv_vidwait.value)
 			CV_SetValue(&cv_vidwait, restorecv_vidwait);
-		D_AdvanceDemo();
+		D_StartTitle();
 		return true;
 	}
 
@@ -8376,7 +8617,7 @@ boolean G_CheckDemoStatus(void)
 			if (modeattacking)
 				M_EndModeAttackRun();
 			else
-				D_AdvanceDemo();
+				D_StartTitle();
 		}
 
 		return true;

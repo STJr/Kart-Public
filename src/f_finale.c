@@ -431,10 +431,12 @@ static const char *credits[] = {
 	"\"JugadorXEI\"",
 	"\"Kimberly\"",
 	"\"Lighto97\"",
+	"\"Lonsfor\"",
 	"\"mazmazz\"",
 	"\"minenice\"",
 	"\"Shuffle\"",
 	"\"Snu\"",
+	"\"X.organic\"",
 	"",
 	"\1Lead Artists",
 	"Desmond \"Blade\" DesJardins",
@@ -512,6 +514,7 @@ static const char *credits[] = {
 	"",
 	"\1Testing",
 	"RKH License holders",
+	"The KCS",
 	"\"CyberIF\"",
 	"\"Dani\"",
 	"Karol \"Fooruman\" D""\x1E""browski", // Dąbrowski, <Sryder> accents in srb2 :ytho:
@@ -559,7 +562,7 @@ static struct {
 	// This Tyler52 gag is troublesome
 	// Alignment should be ((spaces+1 * 100) + (headers+1 * 38) + (lines * 15))
 	// Current max image spacing: (216*17)
-	{112, (16*100)+(19*38)+(100*15), "TYLER52", SKINCOLOR_NONE},
+	{112, (16*100)+(19*38)+(103*15), "TYLER52", SKINCOLOR_NONE},
 	{0, 0, NULL, SKINCOLOR_NONE}
 };
 
