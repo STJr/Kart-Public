@@ -1311,7 +1311,7 @@ void D_SRB2Main(void)
 	//
 	// search for maps
 	//
-	for (wadnum = 4; wadnum < 6; wadnum++) // fucking arbitrary numbers
+	for (wadnum = 0; wadnum < mainwads; wadnum++)
 	{
 		lumpinfo = wadfiles[wadnum]->lumpinfo;
 		for (i = 0; i < wadfiles[wadnum]->numlumps; i++, lumpinfo++)
