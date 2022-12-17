@@ -5577,7 +5577,11 @@ static void DrawReplayHutReplayInfo(void)
 		x += 85;
 
 		if (mapheaderinfo[demolist[dir_on[menudepthleft]].map-1])
-			V_DrawString(x, y, V_SNAPTOTOP, G_BuildMapTitle(demolist[dir_on[menudepthleft]].map));
+		{
+			char *title = G_BuildMapTitle(demolist[dir_on[menudepthleft]].map);
+			V_DrawString(x, y, V_SNAPTOTOP, title);
+			Z_Free(title);
+		}
 		else
 			V_DrawString(x, y, V_SNAPTOTOP|V_ALLOWLOWERCASE|V_TRANSLUCENT, "Level is not loaded.");
 
@@ -6513,16 +6517,36 @@ static char *M_GetConditionString(condition_t cond)
 				G_TicsToMinutes(cond.requirement, false),
 				G_TicsToSeconds(cond.requirement));
 		case UC_MAPVISITED:
-			return va("Visit %s", G_BuildMapTitle(cond.requirement-1));
+		{
+			char *title = G_BuildMapTitle(cond.requirement-1);
+			char *response = va("Visit %s", title);
+			Z_Free(title);
+			return response;
+		}
 		case UC_MAPBEATEN:
-			return va("Beat %s", G_BuildMapTitle(cond.requirement-1));
+		{
+			char *title = G_BuildMapTitle(cond.requirement-1);
+			char *response = va("Beat %s", title);
+			Z_Free(title);
+			return response;
+		}
 		case UC_MAPALLEMERALDS:
-			return va("Beat %s w/ all emeralds", G_BuildMapTitle(cond.requirement-1));
+		{
+			char *title = G_BuildMapTitle(cond.requirement-1);
+			char *response = va("Beat %s w/ all emeralds", title);
+			Z_Free(title);
+			return response;
+		}
 		case UC_MAPTIME:
-			return va("Beat %s in %i:%02i.%02i", G_BuildMapTitle(cond.extrainfo1-1),
+		{
+			char *title = G_BuildMapTitle(cond.extrainfo1-1);
+			char *response = va("Beat %s in %i:%02i.%02i", title,
 				G_TicsToMinutes(cond.requirement, true),
 				G_TicsToSeconds(cond.requirement),
 				G_TicsToCentiseconds(cond.requirement));
+			Z_Free(title);
+			return response;
+		}
 		case UC_TOTALEMBLEMS:
 			return va("Get %d medals", cond.requirement);
 		case UC_EXTRAEMBLEM:
