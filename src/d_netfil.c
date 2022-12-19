@@ -94,9 +94,18 @@ typedef struct filetran_s
 {
 	filetx_t *txlist; // Linked list of all files for the node
 	UINT32 position; // The current position in the file
-	FILE *currentfile; // The file currently being sent/received
+	boolean init; // false if we want to reset position / open a new file
 } filetran_t;
 static filetran_t transfer[MAXNETNODES];
+
+// The files currently being sent/received
+typedef struct fileused_s
+{
+	FILE *file;
+	UINT8 count;
+} fileused_t;
+
+static fileused_t transferFiles[UINT8_MAX + 1];
 
 // Read time of file: stat _stmtime
 // Write time of file: utime
@@ -760,8 +769,19 @@ static void SV_EndFileSend(INT32 node)
 		case SF_FILE: // It's a file, close it and free its filename
 			if (cv_noticedownload.value)
 				CONS_Printf("Ending file transfer (id %d) for node %d\n", p->fileid, node);
-			if (transfer[node].currentfile)
-				fclose(transfer[node].currentfile);
+			if (transferFiles[p->fileid].file)
+			{
+				if (transferFiles[p->fileid].count > 0)
+				{
+					transferFiles[p->fileid].count--;
+				}
+
+				if (transferFiles[p->fileid].count == 0)
+				{
+					fclose(transferFiles[p->fileid].file);
+					transferFiles[p->fileid].file = NULL;
+				}
+			}
 			free(p->id.filename);
 			break;
 		case SF_Z_RAM: // It's a memory block allocated with Z_Alloc or the likes, use Z_Free
@@ -778,7 +798,7 @@ static void SV_EndFileSend(INT32 node)
 	free(p);
 
 	// Indicate that the transmission is over
-	transfer[node].currentfile = NULL;
+	transfer[node].init = false;
 
 	filestosend--;
 }
@@ -842,23 +862,31 @@ void SV_FileSendTicker(void)
 		ram = f->ram;
 
 		// Open the file if it isn't open yet, or
-		if (!transfer[i].currentfile)
+		if (transfer[i].init == false)
 		{
 			if (!ram) // Sending a file
 			{
 				long filesize;
 
-				transfer[i].currentfile =
-					fopen(f->id.filename, "rb");
-
-				if (!transfer[i].currentfile)
+				if (transferFiles[f->fileid].count == 0)
 				{
-					I_Error("Can't open file %s: %s",
-						f->id.filename, strerror(errno));
+					// It needs opened.
+					transferFiles[f->fileid].file =
+						fopen(f->id.filename, "rb");
+
+					if (!transferFiles[f->fileid].file)
+					{
+						I_Error("Can't open file %s: %s",
+							f->id.filename, strerror(errno));
+					}
 				}
 
-				fseek(transfer[i].currentfile, 0, SEEK_END);
-				filesize = ftell(transfer[i].currentfile);
+				// Increment number of nodes using this file.
+				I_Assert(transferFiles[f->fileid].count < UINT8_MAX);
+				transferFiles[f->fileid].count++;
+
+				fseek(transferFiles[f->fileid].file, 0, SEEK_END);
+				filesize = ftell(transferFiles[f->fileid].file);
 
 				// Nobody wants to transfer a file bigger
 				// than 4GB!
@@ -868,22 +896,36 @@ void SV_FileSendTicker(void)
 					I_Error("Error getting filesize of %s", f->id.filename);
 
 				f->size = (UINT32)filesize;
-				fseek(transfer[i].currentfile, 0, SEEK_SET);
 			}
-			else // Sending RAM
-				transfer[i].currentfile = (FILE *)1; // Set currentfile to a non-null value to indicate that it is open
+
 			transfer[i].position = 0;
+			transfer[i].init = true; // Indicate that it is open
+		}
+
+		if (!ram)
+		{
+			fseek(transferFiles[f->fileid].file, transfer[i].position, SEEK_SET);
 		}
 
 		// Build a packet containing a file fragment
 		p = &netbuffer->u.filetxpak;
 		size = software_MAXPACKETLENGTH - (FILETXHEADER + BASEPACKETSIZE);
-		if (f->size-transfer[i].position < size)
-			size = f->size-transfer[i].position;
+
+		if (f->size - transfer[i].position < size)
+		{
+			size = f->size - transfer[i].position;
+		}
+
 		if (ram)
+		{
 			M_Memcpy(p->data, &f->id.ram[transfer[i].position], size);
-		else if (fread(p->data, 1, size, transfer[i].currentfile) != size)
-			I_Error("SV_FileSendTicker: can't read %s byte on %s at %d because %s", sizeu1(size), f->id.filename, transfer[i].position, M_FileError(transfer[i].currentfile));
+		}
+		else if (fread(p->data, 1, size, transferFiles[f->fileid].file) != size)
+		{
+			I_Error("SV_FileSendTicker: can't read %s byte on %s at %d because %s",
+				sizeu1(size), f->id.filename, transfer[i].position, M_FileError(transferFiles[f->fileid].file));
+		}
+
 		p->position = LONG(transfer[i].position);
 		// Put flag so receiver knows the total size
 		if (transfer[i].position + size == f->size)
@@ -893,15 +935,18 @@ void SV_FileSendTicker(void)
 
 		// Send the packet
 		if (HSendPacket(i, true, 0, FILETXHEADER + size)) // Reliable SEND
-		{ // Success
+		{
+			// Success
 			transfer[i].position = (UINT32)(transfer[i].position + size);
+
 			if (transfer[i].position == f->size) // Finish?
+			{
 				SV_EndFileSend(i);
+			}
 		}
 		else
-		{ // Not sent for some odd reason, retry at next call
-			if (!ram)
-				fseek(transfer[i].currentfile,transfer[i].position, SEEK_SET);
+		{
+			// Not sent for some odd reason, retry at next call
 			// Exit the while (can't send this one so why should i send the next?)
 			break;
 		}
