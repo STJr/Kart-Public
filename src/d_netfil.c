@@ -852,8 +852,10 @@ void SV_FileSendTicker(void)
 					fopen(f->id.filename, "rb");
 
 				if (!transfer[i].currentfile)
-					I_Error("File %s does not exist",
-						f->id.filename);
+				{
+					I_Error("Can't open file %s: %s",
+						f->id.filename, strerror(errno));
+				}
 
 				fseek(transfer[i].currentfile, 0, SEEK_END);
 				filesize = ftell(transfer[i].currentfile);
