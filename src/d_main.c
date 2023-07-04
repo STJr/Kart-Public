@@ -623,15 +623,15 @@ static void D_Display(void)
 
 tic_t rendergametic;
 
+tic_t entertic = 0, oldentertics = 0, realtics = 0, rendertimeout = INFTICS;
+double deltatics = 0.0;
+double deltasecs = 0.0;
+
+boolean interp = false;
+boolean doDisplay = false;
+
 void D_SRB2_Draw_Frame(void) {
 	{
-		tic_t entertic = 0, oldentertics = 0, realtics = 0, rendertimeout = INFTICS;
-		double deltatics = 0.0;
-		double deltasecs = 0.0;
-
-		boolean interp = false;
-		boolean doDisplay = false;
-
 
 		// capbudget is the minimum precise_t duration of a single loop iteration
 		precise_t capbudget;
