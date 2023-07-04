@@ -7,8 +7,8 @@ pkgs.mkShell rec {
     # "-DGME_LIBRARY=${game-music-emu}/lib/libgme.so"
     "-DPNG_PNG_INCLUDE_DIR=${lib.getDev pkgs.libpng}/include"
     # "-DPNG_LIBRARY=${lib.getDev libpng}"
-    "-DSDL2_MIXER_INCLUDE_DIR=${lib.getDev pkgs.SDL2_mixer}/include/SDL2"
-    "-DSDL2_INCLUDE_DIR=${lib.getDev pkgs.SDL2}/include/SDL2"
+    # "-DSDL2_MIXER_INCLUDE_DIR=${lib.getDev pkgs.SDL2_mixer}/include/SDL2"
+    # "-DSDL2_INCLUDE_DIR=${lib.getDev pkgs.SDL2}/include/SDL2"
     # "-DSDL2_LIBRARY=${lib.getDev SDL2}"
     "-DCURL_INCLUDE_DIR=${lib.getDev pkgs.curl}/include"
     # "-DCURL_LIBRARY=${lib.getDev curl}"
@@ -25,16 +25,7 @@ pkgs.mkShell rec {
     # "-DCMAKE_CXX_FLAGS=--preload-file=assets/Makefile"
   ];
 
-  packages = with pkgs; [
-    cmake
-    curl
-    game-music-emu
-    libpng
-    SDL2
-    SDL2_mixer
-    libogg
-    emscripten
-  ];
+  packages = with pkgs; [ cmake curl game-music-emu libpng libogg emscripten ];
 
   EM_CACHE = ".emscriptencache";
 

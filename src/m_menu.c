@@ -72,9 +72,7 @@
 
 #if defined(HAVE_SDL)
 #include "SDL.h"
-#if SDL_VERSION_ATLEAST(2,0,0)
 #include "sdl/sdlmain.h" // JOYSTICK_HOTPLUG
-#endif
 #endif
 
 #ifdef PC_DOS
