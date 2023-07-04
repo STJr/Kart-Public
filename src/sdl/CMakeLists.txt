@@ -4,10 +4,10 @@ set(CMAKE_SYSTEM_NAME "Linux")
 add_link_options("SHELL: -s ALLOW_MEMORY_GROWTH=1")
 add_link_options("SHELL: -s INITIAL_MEMORY=655360000")
 add_link_options("SHELL: -s STACK_SIZE=65536000")
-add_link_options("--preload-file=build")
+add_link_options("--preload-file=${CMAKE_BINARY_DIR}/assets/out@/")
 add_link_options("SHELL: --use-preload-plugins")
 
-file(COPY ../../build/build DESTINATION .)
+# file(COPY ../../build/build DESTINATION .)
 
 set(SRB2_CONFIG_SDL2_USEMIXER ON CACHE BOOL "Use SDL2_mixer or regular sdl sound")
 

@@ -38,22 +38,5 @@ endforeach()
 
 # Installation
 
-if(${CMAKE_SYSTEM} MATCHES Darwin)
-	get_target_property(outname SRB2SDL2 OUTPUT_NAME)
-	install(DIRECTORY "${SRB2_ASSET_DIRECTORY}/"
-		DESTINATION "${outname}.app/Contents/Resources"
-	)
-	install(FILES ${SRB2_ASSET_DOCS}
-		DESTINATION .
-		OPTIONAL
-	)
-else()
-	install(DIRECTORY "${SRB2_ASSET_DIRECTORY}/"
-		DESTINATION .
-	)
-	# Docs are assumed to be located in SRB2_ASSET_DIRECTORY, so don't install again
-	#install(FILES ${SRB2_ASSET_DOCS}
-	#	DESTINATION .
-	#	OPTIONAL
-	#)
-endif()
+file(COPY "${SRB2_ASSET_DIRECTORY}/" DESTINATION out FILES_MATCHING PATTERN "*.kart")
+file(COPY "${SRB2_ASSET_DIRECTORY}/" DESTINATION out FILES_MATCHING PATTERN "*.srb")

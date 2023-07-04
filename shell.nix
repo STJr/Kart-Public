@@ -21,8 +21,8 @@ pkgs.mkShell rec {
     "-DHAVE_THREADS=0"
     "-DNEWSIGNALHANDLER=0"
     "-DCMAKE_INSTALL_PREFIX=build"
-    "-DCMAKE_CC_FLAGS=--preload-file=assets/Makefile"
-    "-DCMAKE_CXX_FLAGS=--preload-file=assets/Makefile"
+    # "-DCMAKE_CC_FLAGS=--preload-file=assets/Makefile"
+    # "-DCMAKE_CXX_FLAGS=--preload-file=assets/Makefile"
   ];
 
   packages = with pkgs; [
@@ -44,7 +44,7 @@ pkgs.mkShell rec {
     export EM_CACHE=$(pwd)/.emscriptencache
     export CC="${pkgs.emscripten}/bin/emcc"
     export CXX="${pkgs.emscripten}/bin/emcc"
-    cmakeFlags="${toString cmakeFlags}"
+    export cmakeFlags="${toString cmakeFlags}"
 
     echo "CD into build"
     echo "emcmake cmake $cmakeFlags .."
