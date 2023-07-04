@@ -6,7 +6,7 @@ mkdir build
 cd build || exit
 
 mkdir .emscriptencache
-emcmake cmake "$cmakeFlags" .. || exit
+emcmake cmake $cmakeFlags .. || exit
 emmake make -j24 || exit
 
 cd bin || exit
