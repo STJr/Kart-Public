@@ -75,7 +75,7 @@ extern I_mutex       ms_ServerList_mutex;
 void RegisterServer(void);
 void UnregisterServer(void);
 
-void MasterClient_Ticker(void);
+/* void MasterClient_Ticker(void); */
 
 msg_server_t *GetShortServersList(int id);
 #ifdef UPDATE_ALERT

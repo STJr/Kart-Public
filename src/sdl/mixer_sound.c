@@ -463,13 +463,13 @@ void I_FreeSfx(sfxinfo_t *sfx)
 
 INT32 I_StartSound(sfxenum_t id, UINT8 vol, UINT8 sep, UINT8 pitch, UINT8 priority, INT32 channel)
 {
-	UINT8 volume = (((UINT16)vol + 1) * (UINT16)sfx_volume) / 62; // (256 * 31) / 62 == 127
-	INT32 handle = Mix_PlayChannel(channel, S_sfx[id].data, 0);
-	Mix_Volume(handle, volume);
-	Mix_SetPanning(handle, min((UINT16)(0xff-sep)<<1, 0xff), min((UINT16)(sep)<<1, 0xff));
-	(void)pitch; // Mixer can't handle pitch
-	(void)priority; // priority and channel management is handled by SRB2...
-	return handle;
+	/* UINT8 volume = (((UINT16)vol + 1) * (UINT16)sfx_volume) / 62; // (256 * 31) / 62 == 127 */
+	/* INT32 handle = Mix_PlayChannel(channel, S_sfx[id].data, 0); */
+	/* Mix_Volume(handle, volume); */
+	/* Mix_SetPanning(handle, min((UINT16)(0xff-sep)<<1, 0xff), min((UINT16)(sep)<<1, 0xff)); */
+	/* (void)pitch; // Mixer can't handle pitch */
+	/* (void)priority; // priority and channel management is handled by SRB2... */
+	/* return handle; */
 }
 
 void I_StopSound(INT32 handle)

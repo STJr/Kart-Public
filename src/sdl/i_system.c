@@ -79,7 +79,7 @@ typedef LPVOID (WINAPI *p_MapViewOfFile) (HANDLE, DWORD, DWORD, DWORD, SIZE_T);
 #define HAVE_SDLCPUINFO
 
 #if defined (__unix__) || defined(__APPLE__) || (defined (UNIXCOMMON) && !defined (__HAIKU__))
-#if defined (__linux__)
+#if defined (__linux__) || defined(__EMSCRIPTEN__)
 #include <sys/vfs.h>
 #else
 #include <sys/param.h>
@@ -105,7 +105,7 @@ typedef LPVOID (WINAPI *p_MapViewOfFile) (HANDLE, DWORD, DWORD, DWORD, SIZE_T);
 #if defined (__unix__) || (defined (UNIXCOMMON) && !defined (__APPLE__))
 #include <errno.h>
 #include <sys/wait.h>
-#define NEWSIGNALHANDLER
+// #define NEWSIGNALHANDLER
 #endif
 
 #ifndef NOMUMBLE
@@ -139,11 +139,11 @@ typedef LPVOID (WINAPI *p_MapViewOfFile) (HANDLE, DWORD, DWORD, DWORD, SIZE_T);
 
 // Locations for searching the srb2.srb
 #if defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON)
-#define DEFAULTWADLOCATION1 "/usr/local/share/games/SRB2Kart"
+#define DEFAULTWADLOCATION1 "/build"
 #define DEFAULTWADLOCATION2 "/usr/local/games/SRB2Kart"
 #define DEFAULTWADLOCATION3 "/usr/share/games/SRB2Kart"
 #define DEFAULTWADLOCATION4 "/usr/games/SRB2Kart"
-#define DEFAULTSEARCHPATH1 "/usr/local/games"
+#define DEFAULTSEARCHPATH1 "/build"
 #define DEFAULTSEARCHPATH2 "/usr/games"
 #define DEFAULTSEARCHPATH3 "/usr/local"
 #endif

@@ -1,4 +1,13 @@
 # Declare SDL2 interface sources
+set(CMAKE_SYSTEM_NAME "Linux")
+
+add_link_options("SHELL: -s ALLOW_MEMORY_GROWTH=1")
+add_link_options("SHELL: -s INITIAL_MEMORY=655360000")
+add_link_options("SHELL: -s STACK_SIZE=65536000")
+add_link_options("--preload-file=build")
+add_link_options("SHELL: --use-preload-plugins")
+
+file(COPY ../../build/build DESTINATION .)
 
 set(SRB2_CONFIG_SDL2_USEMIXER ON CACHE BOOL "Use SDL2_mixer or regular sdl sound")
 
@@ -262,6 +271,7 @@ if(${SDL2_FOUND})
 		${OPENGL_INCLUDE_DIRS}
 		${CURL_INCLUDE_DIRS}
 		${DISCORDRPC_INCLUDE_DIRS}
+		${LIBELF_INCLUDE_DIRS}
 	)
 
 	if(${SRB2_HAVE_MIXER})
@@ -388,3 +398,5 @@ else()
 	message(WARNING "SDL2 was not found, so the SDL2 target will not be available.")
 	set(SRB2_SDL2_AVAILABLE NO PARENT_SCOPE)
 endif()
+
+set(CMAKE_EXECUTABLE_SUFFIX ".html")

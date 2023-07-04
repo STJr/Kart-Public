@@ -1336,7 +1336,7 @@ static inline void CL_DrawConnectionStatus(void)
 			}
 
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-30, 0,
-				va(M_GetText("%s downloading"), ((cl_mode == CL_DOWNLOADHTTPFILES) ? "\x82""HTTP" : "\x85""Direct")));
+				va(M_GetText("%s downloading"), ((cl_mode == CL_DOWNLOADFILES) ? "\x82""HTTP" : "\x85""Direct")));
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-22, V_YELLOWMAP,
 				va(M_GetText("\"%s\""), tempname));
 			V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE,
