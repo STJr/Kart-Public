@@ -60,6 +60,9 @@ jobs:
           mkdir build
           cd build
 
+          echo "Setting CC to $(which emcc)"
+          echo "Setting CXX to $(which emcc)"
+
           export CC=$(which emcc)
           export CXX=$(which emcc)
 
