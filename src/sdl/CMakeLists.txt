@@ -1,4 +1,6 @@
 # Declare SDL2 interface sources
+set(CMAKE_C_COMPILER "emcc")
+set(CMAKE_CXX_COMPILER "emcc")
 set(CMAKE_SYSTEM_NAME "Linux")
 
 add_compile_options("SHELL: -sUSE_SDL=2")
