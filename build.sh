@@ -2,6 +2,9 @@
 
 export EM_CACHE="$(pwd)"/build/.emscriptencache
 
+export CC="emcc"
+export CXX="emcc"
+
 mkdir build
 cd build || exit
 
