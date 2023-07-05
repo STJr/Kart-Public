@@ -15,7 +15,6 @@
 
 #include "../doomstat.h"
 
-#ifdef HWRENDER
 #include "hw_main.h"
 #include "hw_glob.h"
 #include "hw_drv.h"
@@ -4851,11 +4850,7 @@ void HWR_Startup(void)
 
 	if (rendermode == render_opengl)
 		textureformat = patchformat =
-#ifdef _NDS
-			GR_TEXFMT_P_8;
-#else
 			GR_RGBA;
-#endif
 
 	startupdone = true;
 
@@ -5237,4 +5232,3 @@ skip_field:
 	return;
 }
 
-#endif // HWRENDER

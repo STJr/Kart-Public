@@ -26,9 +26,7 @@
 #include "m_random.h"
 #include "doomstat.h"
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
 // Each screen is [vid.width*vid.height];
 UINT8 *screens[5];
@@ -52,7 +50,6 @@ static CV_PossibleValue_t constextsize_cons_t[] = {
 static void CV_constextsize_OnChange(void);
 consvar_t cv_constextsize = {"con_textsize", "Medium", CV_SAVE|CV_CALL, constextsize_cons_t, CV_constextsize_OnChange, 0, NULL, NULL, 0, 0, NULL};
 
-#ifdef HWRENDER
 static void CV_Gammaxxx_ONChange(void);
 // Saved hardware mode variables
 // - You can change them in software,
@@ -77,7 +74,6 @@ consvar_t cv_grfallbackplayermodel = {"gr_fallbackplayermodel", "Off", CV_SAVE, 
 consvar_t cv_grshearing = {"gr_shearing", "Off", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_grspritebillboarding = {"gr_spritebillboarding", "On", CV_SAVE, CV_OnOff, NULL, 0, NULL, NULL, 0, 0, NULL};
 consvar_t cv_grfakecontrast = {"gr_fakecontrast", "Standard", CV_SAVE, grfakecontrast_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
-#endif
 
 const UINT8 gammatable[5][256] =
 {
@@ -221,13 +217,9 @@ void V_SetPalette(INT32 palettenum)
 	if (!pLocalPalette)
 		LoadMapPalette();
 
-#ifdef HWRENDER
 	if (rendermode != render_soft && rendermode != render_none)
 		HWR_SetPalette(&pLocalPalette[palettenum*256]);
-#if (defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON) || defined (HAVE_SDL)
 	else
-#endif
-#endif
 	if (rendermode != render_none)
 		I_SetPalette(&pLocalPalette[palettenum*256]);
 }
@@ -235,13 +227,9 @@ void V_SetPalette(INT32 palettenum)
 void V_SetPaletteLump(const char *pal)
 {
 	LoadPalette(pal);
-#ifdef HWRENDER
 	if (rendermode != render_soft && rendermode != render_none)
 		HWR_SetPalette(pLocalPalette);
-#if (defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON) || defined (HAVE_SDL)
 	else
-#endif
-#endif
 	if (rendermode != render_none)
 		I_SetPalette(pLocalPalette);
 #ifdef HASINVERT
@@ -257,20 +245,13 @@ static void CV_usegamma_OnChange(void)
 }
 
 // change the palette directly to see the change
-#ifdef HWRENDER
 static void CV_Gammaxxx_ONChange(void)
 {
 	if (rendermode != render_soft && rendermode != render_none)
 		V_SetPalette(0);
 }
-#endif
 
 
-#if defined (__GNUC__) && defined (__i386__) && !defined (NOASM) && !defined (__APPLE__) && !defined (NORUSEASM)
-void VID_BlitLinearScreen_ASM(const UINT8 *srcptr, UINT8 *destptr, INT32 width, INT32 height, size_t srcrowbytes,
-	size_t destrowbytes);
-#define HAVE_VIDCOPY
-#endif
 
 static void CV_constextsize_OnChange(void)
 {
@@ -343,14 +324,12 @@ void V_DrawFixedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_t 
 	if (rendermode == render_none)
 		return;
 
-#ifdef HWRENDER
 	//if (rendermode != render_soft && !con_startup)		// Why?
 	if (rendermode == render_opengl)
 	{
 		HWR_DrawFixedPatch((GLPatch_t *)patch, x, y, pscale, scrn, colormap);
 		return;
 	}
-#endif
 
 	patchdrawfunc = standardpdraw;
 
@@ -566,13 +545,11 @@ void V_DrawCroppedPatch(fixed_t x, fixed_t y, fixed_t pscale, INT32 scrn, patch_
 	if (rendermode == render_none)
 		return;
 
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
 		HWR_DrawCroppedPatch((GLPatch_t*)patch,x,y,pscale,scrn,sx,sy,w,h);
 		return;
 	}
-#endif
 
 	// only use one dup, to avoid stretching (har har)
 	dupx = dupy = (vid.dupx < vid.dupy ? vid.dupx : vid.dupy);
@@ -724,13 +701,11 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 	if (rendermode == render_none)
 		return;
 
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
 		HWR_DrawFill(x, y, w, h, c);
 		return;
 	}
-#endif
 
 	if (!(c & V_NOSCALESTART))
 	{
@@ -800,7 +775,6 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 		memset(dest, c, w * vid.bpp);
 }
 
-#ifdef HWRENDER
 // This is now a function since it's otherwise repeated 2 times and honestly looks retarded:
 static UINT32 V_GetHWConsBackColor(void)
 {
@@ -831,7 +805,6 @@ static UINT32 V_GetHWConsBackColor(void)
 	}
 	return hwcolor;
 }
-#endif
 
 // THANK YOU MPC!!!
 
@@ -844,14 +817,12 @@ void V_DrawFillConsoleMap(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 	if (rendermode == render_none)
 		return;
 
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
 		UINT32 hwcolor = V_GetHWConsBackColor();
 		HWR_DrawConsoleFill(x, y, w, h, hwcolor, c);	// we still use the regular color stuff but only for flags. actual draw color is "hwcolor" for this.
 		return;
 	}
-#endif
 
 	if (!(c & V_NOSCALESTART))
 	{
@@ -959,13 +930,11 @@ void V_DrawDiag(INT32 x, INT32 y, INT32 wh, INT32 c)
 	if (rendermode == render_none)
 		return;
 
-#ifdef HWRENDER
 	if (rendermode != render_soft && !con_startup)
 	{
 		HWR_DrawDiag(x, y, wh, c);
 		return;
 	}
-#endif
 
 	if (!(c & V_NOSCALESTART))
 	{
@@ -1055,13 +1024,11 @@ void V_DrawFlatFill(INT32 x, INT32 y, INT32 w, INT32 h, lumpnum_t flatnum)
 	UINT8 *flat, *dest;
 	size_t size, lflatsize, flatshift;
 
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
 		HWR_DrawFlatFill(x, y, w, h, flatnum);
 		return;
 	}
-#endif
 
 	size = W_LumpLength(flatnum);
 
@@ -1225,13 +1192,11 @@ void V_DrawVhsEffect(boolean rewind)
 //
 void V_DrawFadeScreen(UINT16 color, UINT8 strength)
 {
-#ifdef HWRENDER
     if (rendermode != render_soft && rendermode != render_none)
     {
         HWR_FadeScreenMenuBack(color, strength);
         return;
     }
-#endif
 
     {
         const UINT8 *fadetable =
@@ -1255,14 +1220,12 @@ void V_DrawFadeConsBack(INT32 plines)
 {
 	UINT8 *deststop, *buf;
 
-#ifdef HWRENDER // not win32 only 19990829 by Kin
 	if (rendermode == render_opengl)
 	{
 		UINT32 hwcolor = V_GetHWConsBackColor();
 		HWR_DrawConsoleBack(hwcolor, plines);
 		return;
 	}
-#endif
 
 	// heavily simplified -- we don't need to know x or y position,
 	// just the stop position
@@ -2363,10 +2326,8 @@ void V_DoPostProcessor(INT32 view, postimg_t type, INT32 param)
 #else
 	INT32 yoffset, xoffset;
 
-#ifdef HWRENDER
 	if (rendermode != render_soft)
 		return;
-#endif
 
 	if (view < 0 || view > 3 || view > splitscreen)
 		return;

@@ -36,11 +36,7 @@
 #define ZWAD
 
 #ifdef ZWAD
-#ifdef _WIN32_WCE
-#define AVOID_ERRNO
-#else
 #include <errno.h>
-#endif
 #include "lzf.h"
 #endif
 
@@ -70,11 +66,9 @@
 #endif
 #include "m_misc.h" // M_MapNumber
 
-#ifdef HWRENDER
 #include "r_data.h"
 #include "hardware/hw_main.h"
 #include "hardware/hw_glob.h"
-#endif
 
 #ifdef PC_DOS
 #include <stdio.h> // for snprintf
@@ -196,7 +190,6 @@ FILE *W_OpenWadFile(const char **filename, boolean useerrors)
 static inline void W_LoadDehackedLumpsPK3(UINT16 wadnum)
 {
 	UINT16 posStart, posEnd;
-#ifdef HAVE_BLUA
 	posStart = W_CheckNumForFolderStartPK3("Lua/", wadnum, 0);
 	if (posStart != INT16_MAX)
 	{
@@ -204,7 +197,6 @@ static inline void W_LoadDehackedLumpsPK3(UINT16 wadnum)
 		for (; posStart < posEnd; posStart++)
 			LUA_LoadLump(wadnum, posStart);
 	}
-#endif
 
 	posStart = W_CheckNumForFolderStartPK3("SOC/", wadnum, 0);
 	if (posStart != INT16_MAX)
@@ -229,7 +221,6 @@ static inline void W_LoadDehackedLumps(UINT16 wadnum)
 {
 	UINT16 lump;
 
-#ifdef HAVE_BLUA
 	// Find Lua scripts before SOCs to allow new A_Actions in SOC editing.
 	{
 		lumpinfo_t *lump_p = wadfiles[wadnum]->lumpinfo;
@@ -237,7 +228,6 @@ static inline void W_LoadDehackedLumps(UINT16 wadnum)
 			if (memcmp(lump_p->name,"LUA_",4)==0)
 				LUA_LoadLump(wadnum, lump);
 	}
-#endif
 
 	{
 		lumpinfo_t *lump_p = wadfiles[wadnum]->lumpinfo;
@@ -669,14 +659,10 @@ static lumpinfo_t* ResGetLumpsZip (FILE* handle, UINT16* nlmp)
 
 static void W_ReadFileShaders(wadfile_t *wadfile)
 {
-#ifdef HWRENDER
         if (rendermode == render_opengl)
         {
                 HWR_LoadShaders(numwadfiles - 1, W_FileHasFolders(wadfile));
         }
-#else
-        (void)wadfile;
-#endif
 }
 
 //  Allocate a wadfile, setup the lumpinfo (directory) and
@@ -756,11 +742,9 @@ UINT16 W_InitFile(const char *filename)
 	case RET_SOC:
 		lumpinfo = ResGetLumpsStandalone(handle, &numlumps, "OBJCTCFG");
 		break;
-#ifdef HAVE_BLUA
 	case RET_LUA:
 		lumpinfo = ResGetLumpsStandalone(handle, &numlumps, "LUA_INIT");
 		break;
-#endif
 	case RET_PK3:
 		lumpinfo = ResGetLumpsZip(handle, &numlumps);
 		break;
@@ -798,10 +782,8 @@ UINT16 W_InitFile(const char *filename)
 	//
 	Z_Calloc(numlumps * sizeof (*wadfile->lumpcache), PU_STATIC, &wadfile->lumpcache);
 
-#ifdef HWRENDER
 	// allocates GLPatch info structures and store them in a tree
 	wadfile->hwrcache = M_AATreeAlloc(AATREE_ZUSER);
-#endif
 
 	//
 	// add the wadfile
@@ -826,11 +808,9 @@ UINT16 W_InitFile(const char *filename)
 		CONS_Printf(M_GetText("Loading SOC from %s\n"), wadfile->filename);
 		DEH_LoadDehackedLumpPwad(numwadfiles - 1, 0);
 		break;
-#ifdef HAVE_BLUA
 	case RET_LUA:
 		LUA_LoadLump(numwadfiles - 1, 0);
 		break;
-#endif
 	default:
 		break;
 	}
@@ -857,11 +837,9 @@ void W_UnloadWadFile(UINT16 num)
 	wadfiles[num] = NULL;
 	lumpcache = delwad->lumpcache;
 	numwadfiles--;
-#ifdef HWRENDER
 	if (rendermode != render_soft && rendermode != render_none)
 		HWR_FreeTextureCache();
 	M_AATreeFree(delwad->hwrcache);
-#endif
 	if (*lumpcache)
 	{
 		for (i = 0;i < delwad->numlumps;i++)
@@ -1665,7 +1643,6 @@ void *W_CacheLumpName(const char *name, INT32 tag)
 //
 
 // Software-only compile cache the data without conversion
-#ifdef HWRENDER
 static inline void *W_CachePatchNumPwad(UINT16 wad, UINT16 lump, INT32 tag)
 {
 	GLPatch_t *grPatch;
@@ -1706,7 +1683,6 @@ void *W_CachePatchNum(lumpnum_t lumpnum, INT32 tag)
 	return W_CachePatchNumPwad(WADFILENUM(lumpnum),LUMPNUM(lumpnum),tag);
 }
 
-#endif // HWRENDER
 
 void W_UnlockCachedPatch(void *patch)
 {
@@ -1715,11 +1691,9 @@ void W_UnlockCachedPatch(void *patch)
 
 	// The hardware code does its own memory management, as its patches
 	// have different lifetimes from software's.
-#ifdef HWRENDER
 	if (rendermode != render_soft && rendermode != render_none)
 		HWR_UnlockCachedPatch((GLPatch_t*)patch);
 	else
-#endif
 		Z_Unlock(patch);
 }
 
@@ -2083,10 +2057,8 @@ int W_VerifyNMUSlumps(const char *filename)
 		{"K_", 2}, // Kart graphic changes
 		{"MUSICDEF", 8}, // Kart song definitions
 
-#ifdef HWRENDER
 		{"SHADERS", 7},
 		{"SH_", 3},
-#endif
 		{NULL, 0},
 	};
 	return W_VerifyFile(filename, NMUSlist, false);

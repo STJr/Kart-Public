@@ -26,16 +26,12 @@
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_SDL
 
 #ifdef HAVE_TTF
 #include "SDL.h"
 #include "i_ttf.h"
 #endif
 
-#if defined (_WIN32) && !defined (main)
-//#define SDLMAIN
-#endif
 
 #ifdef SDLMAIN
 #include "SDL_main.h"
@@ -58,61 +54,10 @@ char  logfilename[1024];
 #endif
 #endif
 
-#if defined (_WIN32)
-#include "exchndl.h"
-#endif
-
-#if defined (_WIN32)
-#include "../win32/win_dbg.h"
-typedef BOOL (WINAPI *p_IsDebuggerPresent)(VOID);
-#endif
-
-#if defined (_WIN32)
-static inline VOID MakeCodeWritable(VOID)
-{
-#ifdef USEASM // Disable write-protection of code segment
-	DWORD OldRights;
-	const DWORD NewRights = PAGE_EXECUTE_READWRITE;
-	PBYTE pBaseOfImage = (PBYTE)GetModuleHandle(NULL);
-	PIMAGE_DOS_HEADER dosH =(PIMAGE_DOS_HEADER)pBaseOfImage;
-	PIMAGE_NT_HEADERS ntH = (PIMAGE_NT_HEADERS)(pBaseOfImage + dosH->e_lfanew);
-	PIMAGE_OPTIONAL_HEADER oH = (PIMAGE_OPTIONAL_HEADER)
-		((PBYTE)ntH + sizeof (IMAGE_NT_SIGNATURE) + sizeof (IMAGE_FILE_HEADER));
-	LPVOID pA = pBaseOfImage+oH->BaseOfCode;
-	SIZE_T pS = oH->SizeOfCode;
-#if 1 // try to find the text section
-	PIMAGE_SECTION_HEADER ntS = IMAGE_FIRST_SECTION (ntH);
-	WORD s;
-	for (s = 0; s < ntH->FileHeader.NumberOfSections; s++)
-	{
-		if (memcmp (ntS[s].Name, ".text\0\0", 8) == 0)
-		{
-			pA = pBaseOfImage+ntS[s].VirtualAddress;
-			pS = ntS[s].Misc.VirtualSize;
-			break;
-		}
-	}
-#endif
-
-	if (!VirtualProtect(pA,pS,NewRights,&OldRights))
-		I_Error("Could not make code writable\n");
-#endif
-}
-#endif
 
 
-#ifdef _WIN32
-static void
-ChDirToExe (void)
-{
-	CHAR path[MAX_PATH];
-	if (GetModuleFileNameA(NULL, path, MAX_PATH) > 0)
-	{
-		strrchr(path, '\\')[0] = '\0';
-		SetCurrentDirectoryA(path);
-	}
-}
-#endif
+
+
 
 
 /**	\brief	The main function
@@ -137,16 +82,9 @@ int main(int argc, char **argv)
 	myargv = argv; /// \todo pull out path to exe from this string
 
 #ifdef HAVE_TTF
-#ifdef _WIN32
-	I_StartupTTF(FONTPOINTSIZE, SDL_INIT_VIDEO|SDL_INIT_AUDIO, SDL_SWSURFACE);
-#else
 	I_StartupTTF(FONTPOINTSIZE, SDL_INIT_VIDEO, SDL_SWSURFACE);
 #endif
-#endif
 
-#ifdef _WIN32
-	ChDirToExe();
-#endif
 
 	logdir = D_Home();
 
@@ -163,25 +101,6 @@ int main(int argc, char **argv)
 
 	//I_OutputMsg("I_StartupSystem() ...\n");
 	I_StartupSystem();
-#if defined (_WIN32)
-	{
-#if 0 // just load the DLL
-		p_IsDebuggerPresent pfnIsDebuggerPresent = (p_IsDebuggerPresent)GetProcAddress(GetModuleHandleA("kernel32.dll"), "IsDebuggerPresent");
-		if ((!pfnIsDebuggerPresent || !pfnIsDebuggerPresent())
-#ifdef BUGTRAP
-			&& !InitBugTrap()
-#endif
-			)
-#endif
-		{
-			ExcHndlInit();
-		}
-	}
-#ifndef __MINGW32__
-	prevExceptionFilter = SetUnhandledExceptionFilter(RecordExceptionInfo);
-#endif
-	MakeCodeWritable();
-#endif
 
 	// startup SRB2
 	CONS_Printf("Setting up SRB2Kart...\n");
@@ -198,4 +117,3 @@ int main(int argc, char **argv)
 	// return to OS
 	return 0;
 }
-#endif

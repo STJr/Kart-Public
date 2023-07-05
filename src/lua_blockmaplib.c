@@ -11,7 +11,6 @@
 /// \brief blockmap library for Lua scripting
 
 #include "doomdef.h"
-#ifdef HAVE_BLUA
 #include "p_local.h"
 #include "r_main.h" // validcount
 #include "lua_script.h"
@@ -259,4 +258,3 @@ int LUA_BlockmapLib(lua_State *L)
 	return 0;
 }
 
-#endif

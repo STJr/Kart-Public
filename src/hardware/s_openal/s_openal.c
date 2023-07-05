@@ -18,31 +18,15 @@
 ///
 ///	Implementend via OpenAL API
 
-#ifdef _WINDOWS
-//#define WIN32_LEAN_AND_MEAN
-#define RPC_NO_WINDOWS_H
-#include <windows.h>
-#include <stdio.h>
-FILE* logstream = NULL;
-#else
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
-#ifndef HAVE_SDL // let not make a logstream here is we are inline the HW3D in the SDL binary
-FILE* logstream = NULL;
-#endif
-#endif
 
-#ifdef __APPLE__
-#include <al.h> //Main AL
-#include <alc.h> //Helpers
-#else
 #include <AL/al.h> //Main AL
 #include <AL/alc.h> //Helpers
-#endif
 
 #define  _CREATE_DLL_
 #include "../../doomdef.h"
@@ -312,17 +296,7 @@ EXPORT INT32 HWRAPI( Startup ) (I_Error_t FatalErrorFunction, snddev_t *snd_dev)
 	ALenum          model      = AL_INVERSE_DISTANCE_CLAMPED;
 	ALCboolean      inited     = ALC_FALSE;
 	ALCint          AlSetup[8] = {ALC_FREQUENCY,22050,ALC_REFRESH,35,ALC_SYNC,AL_FALSE,ALC_INVALID,ALC_INVALID};
-#if (defined (_WIN32) || defined (_WIN64)) && 0
-	const ALCubyte *ALCdriver  = alcGetString(NULL,ALC_DEFAULT_DEVICE_SPECIFIER);
-	const ALCubyte *DSdriver = "DirectSound";
-
-	if (!strcmp((const ALCbyte *)ALCdriver,"DirectSound3D")) //Alam: OpenAL's DS3D is buggy
-		ALCDevice = alcOpenDevice(DSdriver); //Open DirectSound
-	else //Alam: The OpenAl device
-		ALCDevice = alcOpenDevice(ALCdriver); //Open Default
-#else
 	ALCDevice = alcOpenDevice(alcGetString(NULL,ALC_DEFAULT_DEVICE_SPECIFIER));
-#endif
 	if (ALCo_GetError() != ALC_NO_ERROR || !ALCDevice)
 	{
 		DBG_Printf("S_OpenAl: Error %s when opening device!\n", GetALCErrorString(ALCo_Lasterror));
@@ -932,48 +906,6 @@ EXPORT void HWRAPI (GetHW3DSTitle) (char *buf, size_t size)
 }
 
 
-#ifdef _WINDOWS
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, // handle to DLL module
-                    DWORD fdwReason,    // reason for calling function
-                    LPVOID lpvReserved) // reserved
-{
-	// Perform actions based on the reason for calling.
-	UNREFERENCED_PARAMETER(lpvReserved);
-	switch ( fdwReason )
-	{
-		case DLL_PROCESS_ATTACH:
-		// Initialize once for each new process.
-		// Return FALSE to fail DLL load.
-#ifdef DEBUG_TO_FILE
-			logstream = fopen("s_openal.log", "wt");
-			if (logstream == NULL)
-				return FALSE;
-#endif
-		DisableThreadLibraryCalls(hinstDLL);
-		break;
-
-		case DLL_THREAD_ATTACH:
-			// Do thread-specific initialization.
-			break;
-
-		case DLL_THREAD_DETACH:
-			// Do thread-specific cleanup.
-			break;
-
-		case DLL_PROCESS_DETACH:
-			// Perform any necessary cleanup.
-#ifdef DEBUG_TO_FILE
-			if ( logstream)
-			{
-				fclose(logstream);
-				logstream  = NULL;
-			}
-#endif
-			break;
-	}
-	return TRUE;  // Successful DLL_PROCESS_ATTACH.
-}
-#elif !defined (_WINDOWS)
 
 // **************************************************************************
 //                                                                  FUNCTIONS
@@ -994,5 +926,4 @@ EXPORT void _fini()
 	logstream = NULL;
 #endif
 }
-#endif
 

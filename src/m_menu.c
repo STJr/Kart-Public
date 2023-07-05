@@ -48,9 +48,7 @@
 #include "p_setup.h"
 #include "f_finale.h"
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
 #include "d_net.h"
 #include "mserv.h"
@@ -70,10 +68,8 @@
 // And just some randomness for the exits.
 #include "m_random.h"
 
-#if defined(HAVE_SDL)
 #include "SDL.h"
 #include "sdl/sdlmain.h" // JOYSTICK_HOTPLUG
-#endif
 
 #ifdef PC_DOS
 #include <stdio.h> // for snprintf
@@ -124,9 +120,7 @@ typedef enum
 	NUM_QUITMESSAGES
 } text_enum;
 
-#ifdef HAVE_THREADS
 I_mutex m_menu_mutex;
-#endif
 
 M_waiting_mode_t m_waiting_mode = M_NOT_WAITING;
 
@@ -304,9 +298,7 @@ static void M_ResetControls(INT32 choice);
 
 // Video & Sound
 menu_t OP_VideoOptionsDef, OP_VideoModeDef;
-#ifdef HWRENDER
 menu_t OP_OpenGLOptionsDef, OP_OpenGLColorDef;
-#endif
 menu_t OP_SoundOptionsDef;
 //static void M_RestartAudio(void);
 
@@ -374,9 +366,7 @@ static void M_DrawVideoMenu(void);
 static void M_DrawHUDOptions(void);
 static void M_DrawVideoMode(void);
 static void M_DrawMonitorToggles(void);
-#ifdef HWRENDER
 static void M_OGL_DrawColorMenu(void);
-#endif
 static void M_DrawMPMainMenu(void);
 #ifndef NONET
 static void M_DrawConnectMenu(void);
@@ -1259,9 +1249,7 @@ static menuitem_t OP_Mouse2OptionsMenu[] =
 static menuitem_t OP_VideoOptionsMenu[] =
 {
 	{IT_STRING | IT_CALL,	NULL,	"Set Resolution...",	M_VideoModeMenu,		 10},
-#if (defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON) || defined (HAVE_SDL)
 	{IT_STRING|IT_CVAR,		NULL,	"Fullscreen",			&cv_fullscreen,			 20},
-#endif
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
 							NULL,	"Gamma",				&cv_usegamma,			 30},
 
@@ -1276,17 +1264,13 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR,	NULL,	"Vertical Sync",		&cv_vidwait,			100},
 	{IT_STRING | IT_CVAR,   NULL,   "FPS Cap",              &cv_fpscap,             110},
 
-#ifdef HWRENDER
 	{IT_SUBMENU|IT_STRING,	NULL,	"OpenGL Options...",	&OP_OpenGLOptionsDef,	130},
-#endif
 };
 
 enum
 {
 	op_video_res = 0,
-#if (defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON) || defined (HAVE_SDL)
 	op_video_fullscreen,
-#endif
 	op_video_gamma,
 	op_video_dd,
 	op_video_wdd,
@@ -1296,9 +1280,7 @@ enum
 	op_video_fps,
 	op_video_vsync,
 	op_video_fpscap,
-#ifdef HWRENDER
 	op_video_ogl,
-#endif
 };
 
 static menuitem_t OP_VideoModeMenu[] =
@@ -1306,7 +1288,6 @@ static menuitem_t OP_VideoModeMenu[] =
 	{IT_KEYHANDLER | IT_NOTHING, NULL, "", M_HandleVideoMode, '\0'},     // dummy menuitem for the control func
 };
 
-#ifdef HWRENDER
 static menuitem_t OP_OpenGLOptionsMenu[] =
 {
 	{IT_STRING | IT_CVAR,	NULL, "3D Models",					&cv_grmdls,					 10},
@@ -1330,7 +1311,6 @@ static menuitem_t OP_OpenGLColorMenu[] =
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "Green", &cv_grgammagreen, 20},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "Blue",  &cv_grgammablue,  30},
 };
-#endif
 
 static menuitem_t OP_SoundOptionsMenu[] =
 {
@@ -2104,7 +2084,6 @@ menu_t OP_MonitorToggleDef =
 	NULL
 };
 
-#ifdef HWRENDER
 menu_t OP_OpenGLOptionsDef = DEFAULTMENUSTYLE("M_VIDEO", OP_OpenGLOptionsMenu, &OP_VideoOptionsDef, 30, 30);
 menu_t OP_OpenGLColorDef =
 {
@@ -2117,7 +2096,6 @@ menu_t OP_OpenGLColorDef =
 	0,
 	NULL
 };
-#endif
 menu_t OP_DataOptionsDef = DEFAULTMENUSTYLE("M_DATA", OP_DataOptionsMenu, &OP_MainDef, 60, 30);
 menu_t OP_ScreenshotOptionsDef = DEFAULTMENUSTYLE("M_SCSHOT", OP_ScreenshotOptionsMenu, &OP_DataOptionsDef, 30, 30);
 menu_t OP_AddonsOptionsDef = DEFAULTMENUSTYLE("M_ADDONS", OP_AddonsOptionsMenu, &OP_DataOptionsDef, 30, 30);
@@ -2711,7 +2689,6 @@ boolean M_Responder(event_t *ev)
 				itemOn = 0;
 				return true;
 
-#ifndef DC
 			case KEY_F5: // Video Mode
 				if (modeattacking)
 					return true;
@@ -2719,7 +2696,6 @@ boolean M_Responder(event_t *ev)
 				M_Options(0);
 				M_VideoModeMenu(0);
 				return true;
-#endif
 
 			case KEY_F6: // Empty
 				return true;
@@ -3391,9 +3367,7 @@ void M_ClearMenus(boolean callexitmenufunc)
 	if (currentMenu->quitroutine && callexitmenufunc && !currentMenu->quitroutine())
 		return; // we can't quit this menu (also used to set parameter from the menu)
 
-#ifndef DC // Save the config file. I'm sick of crashing the game later and losing all my changes!
 	COM_BufAddText(va("saveconfig \"%s\" -silent\n", configfile));
-#endif //Alam: But not on the Dreamcast's VMUs
 
 	if (currentMenu == &MessageDef) // Oh sod off!
 		currentMenu = &MainDef; // Not like it matters
@@ -3545,11 +3519,9 @@ void M_Init(void)
 		PlayerMenu[i].alphaKey = 0;
 	}
 
-#ifdef HWRENDER
 	// Permanently hide some options based on render mode
 	if (rendermode == render_soft)
 		OP_VideoOptionsMenu[op_video_ogl].status = IT_DISABLED;
-#endif
 
 #ifndef NONET
 	CV_RegisterVar(&cv_serversort);
@@ -5285,11 +5257,6 @@ static void M_HandleAddons(INT32 choice)
 							M_AddonExec(KEY_ENTER);
 							break;
 						case EXT_LUA:
-#ifndef HAVE_BLUA
-							S_StartSound(NULL, sfx_s26d);
-							M_StartMessage(va("%c%s\x80\nThis version of SRB2Kart does not\nhave support for .lua files.\n\n(Press a key)\n", ('\x80' + (highlightflags>>V_CHARCOLORSHIFT)), dirmenu[dir_on[menudepthleft]]+DIR_STRING),NULL,MM_NOTHING);
-							break;
-#endif
 						// else intentional fallthrough
 						case EXT_SOC:
 						case EXT_WAD:
@@ -8467,15 +8434,11 @@ static void M_EndGame(INT32 choice)
 void
 M_SetWaitingMode (int mode)
 {
-#ifdef HAVE_THREADS
 	I_lock_mutex(&m_menu_mutex);
-#endif
 	{
 		m_waiting_mode = mode;
 	}
-#ifdef HAVE_THREADS
 	I_unlock_mutex(m_menu_mutex);
-#endif
 }
 
 int
@@ -8483,21 +8446,16 @@ M_GetWaitingMode (void)
 {
 	int mode;
 
-#ifdef HAVE_THREADS
 	I_lock_mutex(&m_menu_mutex);
-#endif
 	{
 		mode = m_waiting_mode;
 	}
-#ifdef HAVE_THREADS
 	I_unlock_mutex(m_menu_mutex);
-#endif
 
 	return mode;
 }
 
 #ifdef MASTERSERVER
-#ifdef HAVE_THREADS
 static void
 Spawn_masterserver_thread (const char *name, void (*thread)(int*))
 {
@@ -8525,7 +8483,6 @@ Same_instance (int id)
 
 	return okay;
 }
-#endif/*HAVE_THREADS*/
 
 static void
 Fetch_servers_thread (int *id)
@@ -8536,42 +8493,27 @@ Fetch_servers_thread (int *id)
 
 	M_SetWaitingMode(M_WAITING_SERVERS);
 
-#ifdef HAVE_THREADS
 	server_list = GetShortServersList(*id);
-#else
-	server_list = GetShortServersList(0);
-#endif
 
 	if (server_list)
 	{
-#ifdef HAVE_THREADS
 		if (Same_instance(*id))
-#endif
 		{
 			M_SetWaitingMode(M_NOT_WAITING);
 
-#ifdef HAVE_THREADS
 			I_lock_mutex(&ms_ServerList_mutex);
 			{
 				ms_ServerList = server_list;
 			}
 			I_unlock_mutex(ms_ServerList_mutex);
-#else
-			CL_QueryServerList(server_list);
-			free(server_list);
-#endif
 		}
-#ifdef HAVE_THREADS
 		else
 		{
 			free(server_list);
 		}
-#endif
 	}
 
-#ifdef HAVE_THREADS
 	free(id);
-#endif
 }
 #endif/*MASTERSERVER*/
 
@@ -8650,11 +8592,7 @@ static void M_Refresh(INT32 choice)
 	CL_UpdateServerList();
 
 #ifdef MASTERSERVER
-#ifdef HAVE_THREADS
 	Spawn_masterserver_thread("fetch-servers", Fetch_servers_thread);
-#else/*HAVE_THREADS*/
-	Fetch_servers_thread(NULL);
-#endif/*HAVE_THREADS*/
 #endif/*MASTERSERVER*/
 }
 
@@ -8886,13 +8824,9 @@ static void M_CheckMODVersion(int id)
 	if(updatecheck)
 	{
 		sprintf(updatestring, UPDATE_ALERT_STRING, VERSIONSTRING, updatecheck);
-#ifdef HAVE_THREADS
 		I_lock_mutex(&m_menu_mutex);
-#endif
 		M_StartMessage(updatestring, NULL, MM_NOTHING);
-#ifdef HAVE_THREADS
 		I_unlock_mutex(m_menu_mutex);
-#endif
 	}
 }
 #endif/*UPDATE_ALERT*/
@@ -10876,23 +10810,13 @@ static void M_VideoModeMenu(INT32 choice)
 
 	memset(modedescs, 0, sizeof(modedescs));
 
-#if (defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON) || defined (HAVE_SDL)
 	VID_PrepareModeList(); // FIXME: hack
-#endif
 	vidm_nummodes = 0;
 	vidm_selected = 0;
 	nummodes = VID_NumModes();
 
-#ifdef _WINDOWS
-	// clean that later: skip windowed mode 0, video modes menu only shows FULL SCREEN modes
-	if (nummodes <= NUMSPECIALMODES)
-		i = 0; // unless we have nothing
-	else
-		i = NUMSPECIALMODES;
-#else
 	// DOS does not skip mode 0, because mode 0 is ALWAYS present
 	i = 0;
-#endif
 	for (; i < nummodes && vidm_nummodes < MAXMODEDESCS; i++)
 	{
 		desc = VID_GetModeName(i);
@@ -11499,7 +11423,6 @@ static void M_QuitSRB2(INT32 choice)
 	M_StartMessage(quitmsg[M_RandomKey(NUM_QUITMESSAGES)], M_QuitResponse, MM_YESNO);
 }
 
-#ifdef HWRENDER
 // =====================================================================
 // OpenGL specific options
 // =====================================================================
@@ -11517,7 +11440,6 @@ static void M_OGL_DrawColorMenu(void)
 	V_DrawString(mx, my + currentMenu->menuitems[0].alphaKey - 10,
 		highlightflags, "Gamma correction");
 }
-#endif
 
 #ifdef HAVE_DISCORDRPC
 static const tic_t confirmLength = 3*TICRATE/4;

@@ -48,24 +48,16 @@
 // So that the screenshot menu auto-updates...
 #include "m_menu.h"
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
-#ifdef HAVE_SDL
 #include "sdl/hwsym_sdl.h"
 #ifdef __linux__
 #ifndef _LARGEFILE64_SOURCE
 typedef off_t off64_t;
 #endif
 #endif
-#endif
 
-#if defined(__MINGW32__) && ((__GNUC__ > 7) || (__GNUC__ == 6 && __GNUC_MINOR__ >= 3)) && (__GNUC__ < 8)
-#define PRIdS "u"
-#elif defined (_WIN32)
-#define PRIdS "Iu"
-#elif defined (_PSP) || defined (_arch_dreamcast) || defined (DJGPP) || defined (_WII) || defined (_NDS) || defined (_PS3)
+#if   defined (_PSP) || defined (_arch_dreamcast) || defined (DJGPP) || defined (_WII) || defined (_NDS) || defined (_PS3)
 #define PRIdS "u"
 #else
 #define PRIdS "zu"
@@ -74,10 +66,8 @@ typedef off_t off64_t;
 #ifdef HAVE_PNG
 
 #ifndef _MSC_VER
-#ifndef _WII
 #ifndef _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
-#endif
 #endif
 #endif
 
@@ -197,27 +187,6 @@ INT32 M_MapNumber(char first, char second)
 // ==========================================================================
 
 // some libcs has no access function, make our own
-#if defined (_WIN32_WCE) || defined (_XBOX) || defined (_WII) || defined (_PS3)
-int access(const char *path, int amode)
-{
-	int accesshandle = -1;
-	FILE *handle = NULL;
-	if (amode == 6) // W_OK|R_OK
-		handle = fopen(path, "r+");
-	else if (amode == 4) // R_OK
-		handle = fopen(path, "r");
-	else if (amode == 2) // W_OK
-		handle = fopen(path, "a+");
-	else if (amode == 0) //F_OK
-		handle = fopen(path, "rb");
-	if (handle)
-	{
-		accesshandle = 0;
-		fclose(handle);
-	}
-	return accesshandle;
-}
-#endif
 
 
 //
@@ -718,15 +687,7 @@ static void M_PNGText(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png
 	char Movietxt[] = "SRB2Kart Movie";
 	size_t i;
 	char interfacetxt[] =
-#ifdef HAVE_SDL
 	 "SDL";
-#elif defined (_WINDOWS)
-	 "DirectX";
-#elif defined (PC_DOS)
-	 "Allegro";
-#else
-	 "Unknown";
-#endif
 	char rendermodetxt[9];
 	char maptext[8];
 	char lvlttltext[48];
@@ -882,31 +843,12 @@ static inline boolean M_PNGLib(void)
 		return true;
 	if (pnglib)
 		return false;
-#ifdef _WIN32
-	pnglib = GetModuleHandleA("libpng.dll");
-	if (!pnglib)
-		pnglib = GetModuleHandleA("libpng12.dll");
-	if (!pnglib)
-		pnglib = GetModuleHandleA("libpng13.dll");
-#elif defined (HAVE_SDL)
-#ifdef __APPLE__
-	pnglib = hwOpen("libpng.dylib");
-#else
 	pnglib = hwOpen("libpng.so");
-#endif
-#endif
 	if (!pnglib)
 		return false;
-#ifdef HAVE_SDL
 	aPNG_set_acTL = hwSym("png_set_acTL", pnglib);
 	aPNG_write_frame_head = hwSym("png_write_frame_head", pnglib);
 	aPNG_write_frame_tail = hwSym("png_write_frame_tail", pnglib);
-#endif
-#ifdef _WIN32
-	aPNG_set_acTL = GetProcAddress("png_set_acTL", pnglib);
-	aPNG_write_frame_head = GetProcAddress("png_write_frame_head", pnglib);
-	aPNG_write_frame_tail = GetProcAddress("png_write_frame_tail", pnglib);
-#endif
 	return (aPNG_set_acTL && aPNG_write_frame_head && aPNG_write_frame_tail);
 #endif
 }
@@ -1176,15 +1118,11 @@ void M_SaveFrame(void)
 					linear = screens[2];
 					I_ReadScreen(linear);
 				}
-#ifdef HWRENDER
 				else
 					linear = HWR_GetScreenshot();
-#endif
 				M_PNGFrame(apng_ptr, apng_info_ptr, (png_bytep)linear);
-#ifdef HWRENDER
 				if (rendermode != render_soft && linear)
 					free(linear);
-#endif
 
 				if (apng_frames == PNG_UINT_31_MAX)
 				{
@@ -1476,11 +1414,9 @@ void M_DoScreenShot(void)
 		goto failure;
 
 	// save the pcx file
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 		ret = HWR_Screenshot(va(pandf,pathname,freename));
 	else
-#endif
 	{
 		M_CreateScreenShotPalette();
 #ifdef USE_PNG
@@ -1539,8 +1475,6 @@ boolean M_ScreenshotResponder(event_t *ev)
 #if defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON)
 #define GETTEXTDOMAIN1 "/usr/share/locale"
 #define GETTEXTDOMAIN2 "/usr/local/share/locale"
-#elif defined (_WIN32)
-#define GETTEXTDOMAIN1 "."
 #endif
 
 void M_StartupLocale(void)

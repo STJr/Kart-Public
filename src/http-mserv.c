@@ -59,9 +59,7 @@ consvar_t cv_masterserver_token = {
 static int hms_started;
 
 static char *hms_api;
-#ifdef HAVE_THREADS
 static I_mutex hms_api_mutex;
-#endif
 
 static char *hms_server_token;
 
@@ -165,9 +163,7 @@ HMS_connect (const char *format, ...)
 		token_length = 0;
 	}
 
-#ifdef HAVE_THREADS
 	I_lock_mutex(&hms_api_mutex);
-#endif
 
 	seek = strlen(hms_api) + 1;/* + '/' */
 
@@ -179,9 +175,7 @@ HMS_connect (const char *format, ...)
 
 	sprintf(url, "%s/", hms_api);
 
-#ifdef HAVE_THREADS
 	I_unlock_mutex(hms_api_mutex);
-#endif
 
 	va_start (ap, format);
 	seek += vsprintf(&url[seek], format, ap);
@@ -433,7 +427,6 @@ HMS_fetch_servers (msg_server_t *list, int query_id)
 
 			if (address && port)
 			{
-#ifdef HAVE_THREADS
 				I_lock_mutex(&ms_QueryId_mutex);
 				{
 					if (query_id != ms_QueryId)
@@ -443,7 +436,6 @@ HMS_fetch_servers (msg_server_t *list, int query_id)
 
 				if (! doing_shit)
 					break;
-#endif
 
 				strlcpy(list[i].ip,      address, sizeof list[i].ip);
 				strlcpy(list[i].port,    port,    sizeof list[i].port);
@@ -560,16 +552,12 @@ Strip_trailing_slashes (char *api)
 void
 HMS_set_api (char *api)
 {
-#ifdef HAVE_THREADS
 	I_lock_mutex(&hms_api_mutex);
-#endif
 	{
 		free(hms_api);
 		hms_api = Strip_trailing_slashes(api);
 	}
-#ifdef HAVE_THREADS
 	I_unlock_mutex(hms_api_mutex);
-#endif
 }
 
 #endif/*MASTERSERVER*/

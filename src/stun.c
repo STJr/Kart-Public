@@ -13,10 +13,6 @@
 
 #if defined (__linux__)
 #include <sys/random.h>
-#elif defined (_WIN32)
-#define _CRT_RAND_S
-#elif defined (__APPLE__)
-#include <CommonCrypto/CommonRandom.h>
 #else
 #error "Need CSPRNG."
 #endif
@@ -91,19 +87,8 @@ csprng
 		void * const buffer,
 		const size_t size
 ){
-#if defined (_WIN32)
-	size_t o;
-
-	for (o = 0; o < size; o += sizeof (unsigned int))
-	{
-		rand_s((unsigned int *)&((char *)buffer)[o]);
-	}
-#elif defined (__linux__)
+#if   defined (__linux__)
 	getrandom(buffer, size, 0U);
-#elif defined (__APPLE__)
-	CCRandomGenerateBytes(buffer, size);
-#elif defined (__FreeBSD__) || defined (__NetBSD__) || defined (__OpenBSD__)
-	arc4random_buf(buffer, size);
 #endif
 }
 

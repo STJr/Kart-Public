@@ -23,25 +23,10 @@
 /// \file
 /// \brief SRB2 system stuff for SDL
 
-#ifdef CMAKECONFIG
 #include "config.h"
-#else
-#include "../config.h.in"
-#endif
 
 #include <signal.h>
 
-#ifdef _WIN32
-#define RPC_NO_WINDOWS_H
-#include <windows.h>
-#include "../doomtype.h"
-typedef BOOL (WINAPI *p_GetDiskFreeSpaceExA)(LPCSTR, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER);
-typedef BOOL (WINAPI *p_IsProcessorFeaturePresent) (DWORD);
-typedef DWORD (WINAPI *p_timeGetTime) (void);
-typedef UINT (WINAPI *p_timeEndPeriod) (UINT);
-typedef HANDLE (WINAPI *p_OpenFileMappingA) (DWORD, BOOL, LPCSTR);
-typedef LPVOID (WINAPI *p_MapViewOfFile) (HANDLE, DWORD, DWORD, DWORD, SIZE_T);
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,15 +40,11 @@ typedef LPVOID (WINAPI *p_MapViewOfFile) (HANDLE, DWORD, DWORD, DWORD, SIZE_T);
 #endif
 
 #include <stdio.h>
-#ifdef _WIN32
-#include <conio.h>
-#endif
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4214 4244)
 #endif
 
-#ifdef HAVE_SDL
 #define _MATH_DEFINES_DEFINED
 #include "SDL.h"
 
@@ -117,10 +98,7 @@ typedef LPVOID (WINAPI *p_MapViewOfFile) (HANDLE, DWORD, DWORD, DWORD, SIZE_T);
 #include <wchar.h>
 #endif
 
-#ifdef _WIN32
-#define HAVE_MUMBLE
-#define WINMUMBLE
-#elif defined (HAVE_SHM)
+#if   defined (HAVE_SHM)
 #define HAVE_MUMBLE
 #endif
 #endif // NOMUMBLE
@@ -129,9 +107,6 @@ typedef LPVOID (WINAPI *p_MapViewOfFile) (HANDLE, DWORD, DWORD, DWORD, SIZE_T);
 #define O_BINARY 0
 #endif
 
-#ifdef __APPLE__
-#include "macosx/mac_resources.h"
-#endif
 
 #ifndef errno
 #include <errno.h>
@@ -536,127 +511,6 @@ void I_GetConsoleEvents(void)
 	(void)d;
 }
 
-#elif defined (_WIN32)
-static BOOL I_ReadyConsole(HANDLE ci)
-{
-	DWORD gotinput;
-	if (ci == INVALID_HANDLE_VALUE) return FALSE;
-	if (WaitForSingleObject(ci,0) != WAIT_OBJECT_0) return FALSE;
-	if (GetFileType(ci) != FILE_TYPE_CHAR) return FALSE;
-	if (!GetConsoleMode(ci, &gotinput)) return FALSE;
-	return (GetNumberOfConsoleInputEvents(ci, &gotinput) && gotinput);
-}
-
-static boolean entering_con_command = false;
-
-static void Impl_HandleKeyboardConsoleEvent(KEY_EVENT_RECORD evt, HANDLE co)
-{
-	event_t event;
-	CONSOLE_SCREEN_BUFFER_INFO CSBI;
-	DWORD t;
-
-	memset(&event,0x00,sizeof (event));
-
-	if (evt.bKeyDown)
-	{
-		event.type = ev_console;
-		entering_con_command = true;
-		switch (evt.wVirtualKeyCode)
-		{
-			case VK_ESCAPE:
-			case VK_TAB:
-				event.data1 = KEY_NULL;
-				break;
-			case VK_RETURN:
-				entering_con_command = false;
-				// Fall through.
-			default:
-				//event.data1 = MapVirtualKey(evt.wVirtualKeyCode,2); // convert in to char
-				event.data1 = evt.uChar.AsciiChar;
-		}
-		if (co != INVALID_HANDLE_VALUE && GetFileType(co) == FILE_TYPE_CHAR && GetConsoleMode(co, &t))
-		{
-			if (event.data1 && event.data1 != KEY_LSHIFT && event.data1 != KEY_RSHIFT)
-			{
-#ifdef _UNICODE
-				WriteConsole(co, &evt.uChar.UnicodeChar, 1, &t, NULL);
-#else
-				WriteConsole(co, &evt.uChar.AsciiChar, 1 , &t, NULL);
-#endif
-			}
-			if (evt.wVirtualKeyCode == VK_BACK
-				&& GetConsoleScreenBufferInfo(co,&CSBI))
-			{
-				WriteConsoleOutputCharacterA(co, " ",1, CSBI.dwCursorPosition, &t);
-			}
-		}
-	}
-	if (event.data1) D_PostEvent(&event);
-}
-
-void I_GetConsoleEvents(void)
-{
-	HANDLE ci = GetStdHandle(STD_INPUT_HANDLE);
-	HANDLE co = GetStdHandle(STD_OUTPUT_HANDLE);
-	INPUT_RECORD input;
-	DWORD t;
-
-	while (I_ReadyConsole(ci) && ReadConsoleInput(ci, &input, 1, &t) && t)
-	{
-		switch (input.EventType)
-		{
-			case KEY_EVENT:
-				Impl_HandleKeyboardConsoleEvent(input.Event.KeyEvent, co);
-				break;
-			case MOUSE_EVENT:
-			case WINDOW_BUFFER_SIZE_EVENT:
-			case MENU_EVENT:
-			case FOCUS_EVENT:
-				break;
-		}
-	}
-}
-
-static void I_StartupConsole(void)
-{
-	HANDLE ci, co;
-	const INT32 ded = M_CheckParm("-dedicated");
-	BOOL gotConsole = FALSE;
-	if (M_CheckParm("-console") || ded)
-		gotConsole = AllocConsole();
-#ifdef _DEBUG
-	else if (M_CheckParm("-noconsole") && !ded)
-#else
-	else if (!M_CheckParm("-console") && !ded)
-#endif
-	{
-		FreeConsole();
-		gotConsole = FALSE;
-	}
-
-	if (gotConsole)
-	{
-		SetConsoleTitleA("SRB2Kart Console");
-		consolevent = SDL_TRUE;
-	}
-
-	//Let get the real console HANDLE, because Mingw's Bash is bad!
-	ci = CreateFile(TEXT("CONIN$") ,               GENERIC_READ, FILE_SHARE_READ,  NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	co = CreateFile(TEXT("CONOUT$"), GENERIC_WRITE|GENERIC_READ, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (ci != INVALID_HANDLE_VALUE)
-	{
-		const DWORD CM = ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT|ENABLE_PROCESSED_INPUT;
-		SetStdHandle(STD_INPUT_HANDLE, ci);
-		if (GetFileType(ci) == FILE_TYPE_CHAR)
-			SetConsoleMode(ci, CM); //default mode but no ENABLE_MOUSE_INPUT
-	}
-	if (co != INVALID_HANDLE_VALUE)
-	{
-		SetStdHandle(STD_OUTPUT_HANDLE, co);
-		SetStdHandle(STD_ERROR_HANDLE, co);
-	}
-}
-static inline void I_ShutdownConsole(void){}
 #else
 void I_GetConsoleEvents(void){}
 static inline void I_StartupConsole(void)
@@ -718,9 +572,6 @@ void I_OutputMsg(const char *fmt, ...)
 	DEFAULTFONTBGR, DEFAULTFONTBGG, DEFAULTFONTBGB, DEFAULTFONTBGA, txt);
 #endif
 
-#if defined (_WIN32) && defined (_MSC_VER)
-	OutputDebugStringA(txt);
-#endif
 
 	len = strlen(txt);
 
@@ -733,69 +584,6 @@ void I_OutputMsg(const char *fmt, ...)
 	}
 #endif
 
-#if defined (_WIN32)
-#ifdef DEBUGFILE
-	if (debugfile != stderr)
-#endif
-	{
-		HANDLE co = GetStdHandle(STD_OUTPUT_HANDLE);
-		DWORD bytesWritten;
-
-		if (co == INVALID_HANDLE_VALUE)
-			return;
-
-		if (GetFileType(co) == FILE_TYPE_CHAR && GetConsoleMode(co, &bytesWritten))
-		{
-			static COORD coordNextWrite = {0,0};
-			LPVOID oldLines = NULL;
-			INT oldLength;
-			CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-			// Save the lines that we're going to obliterate.
-			GetConsoleScreenBufferInfo(co, &csbi);
-			oldLength = csbi.dwSize.X * (csbi.dwCursorPosition.Y - coordNextWrite.Y) + csbi.dwCursorPosition.X - coordNextWrite.X;
-
-			if (oldLength > 0)
-			{
-				LPVOID blank = malloc(oldLength);
-				if (!blank) return;
-				memset(blank, ' ', oldLength); // Blank out.
-				oldLines = malloc(oldLength*sizeof(TCHAR));
-				if (!oldLines)
-				{
-					free(blank);
-					return;
-				}
-
-				ReadConsoleOutputCharacter(co, oldLines, oldLength, coordNextWrite, &bytesWritten);
-
-				// Move to where we what to print - which is where we would've been,
-				// had console input not been in the way,
-				SetConsoleCursorPosition(co, coordNextWrite);
-
-				WriteConsoleA(co, blank, oldLength, &bytesWritten, NULL);
-				free(blank);
-
-				// And back to where we want to print again.
-				SetConsoleCursorPosition(co, coordNextWrite);
-			}
-
-			// Actually write the string now!
-			WriteConsoleA(co, txt, (DWORD)len, &bytesWritten, NULL);
-
-			// Next time, output where we left off.
-			GetConsoleScreenBufferInfo(co, &csbi);
-			coordNextWrite = csbi.dwCursorPosition;
-
-			// Restore what was overwritten.
-			if (oldLines && entering_con_command)
-				WriteConsole(co, oldLines, oldLength, &bytesWritten, NULL);
-			if (oldLines) free(oldLines);
-		}
-		else // Redirected to a file.
-			WriteFile(co, txt, (DWORD)len, &bytesWritten, NULL);
-	}
-#else
 #ifdef HAVE_TERMIOS
 	if (consolevent)
 	{
@@ -816,7 +604,6 @@ void I_OutputMsg(const char *fmt, ...)
 	if (!framebuffer)
 		fflush(stderr);
 
-#endif
 }
 
 //
@@ -2629,141 +2416,6 @@ static void I_ShutdownMouse2(void)
 	if (fdmouse2 != -1) close(fdmouse2);
 	mouse2_started = 0;
 }
-#elif defined (_WIN32)
-
-static HANDLE mouse2filehandle = INVALID_HANDLE_VALUE;
-
-static void I_ShutdownMouse2(void)
-{
-	event_t event;
-	INT32 i;
-
-	if (mouse2filehandle == INVALID_HANDLE_VALUE)
-		return;
-
-	SetCommMask(mouse2filehandle, 0);
-
-	EscapeCommFunction(mouse2filehandle, CLRDTR);
-	EscapeCommFunction(mouse2filehandle, CLRRTS);
-
-	PurgeComm(mouse2filehandle, PURGE_TXABORT | PURGE_RXABORT |
-			  PURGE_TXCLEAR | PURGE_RXCLEAR);
-
-	CloseHandle(mouse2filehandle);
-
-	// emulate the up of all mouse buttons
-	for (i = 0; i < MOUSEBUTTONS; i++)
-	{
-		event.type = ev_keyup;
-		event.data1 = KEY_2MOUSE1+i;
-		D_PostEvent(&event);
-	}
-
-	mouse2filehandle = INVALID_HANDLE_VALUE;
-}
-
-#define MOUSECOMBUFFERSIZE 256
-static INT32 handlermouse2x,handlermouse2y,handlermouse2buttons;
-
-static void I_PoolMouse2(void)
-{
-	UINT8 buffer[MOUSECOMBUFFERSIZE];
-	COMSTAT ComStat;
-	DWORD dwErrorFlags;
-	DWORD dwLength;
-	char dx,dy;
-
-	static INT32 bytenum;
-	static UINT8 combytes[4];
-	DWORD i;
-
-	ClearCommError(mouse2filehandle, &dwErrorFlags, &ComStat);
-	dwLength = min(MOUSECOMBUFFERSIZE, ComStat.cbInQue);
-
-	if (dwLength <= 0)
-		return;
-
-	if (!ReadFile(mouse2filehandle, buffer, dwLength, &dwLength, NULL))
-	{
-		CONS_Alert(CONS_WARNING, "%s", M_GetText("Read Error on secondary mouse port\n"));
-		return;
-	}
-
-	// parse the mouse packets
-	for (i = 0; i < dwLength; i++)
-	{
-		if ((buffer[i] & 64)== 64)
-			bytenum = 0;
-
-		if (bytenum < 4)
-			combytes[bytenum] = buffer[i];
-		bytenum++;
-
-		if (bytenum == 1)
-		{
-			handlermouse2buttons &= ~3;
-			handlermouse2buttons |= ((combytes[0] & (32+16)) >> 4);
-		}
-		else if (bytenum == 3)
-		{
-			dx = (char)((combytes[0] &  3) << 6);
-			dy = (char)((combytes[0] & 12) << 4);
-			dx = (char)(dx + combytes[1]);
-			dy = (char)(dy + combytes[2]);
-			handlermouse2x+= dx;
-			handlermouse2y+= dy;
-		}
-		else if (bytenum == 4) // fourth UINT8 (logitech mouses)
-		{
-			if (buffer[i] & 32)
-				handlermouse2buttons |= 4;
-			else
-				handlermouse2buttons &= ~4;
-		}
-	}
-}
-
-void I_GetMouseEvents(void)
-{
-	static UINT8 lastbuttons2 = 0; //mouse movement
-	event_t event;
-
-	if (mouse2filehandle == INVALID_HANDLE_VALUE)
-		return;
-
-	I_PoolMouse2();
-	// post key event for buttons
-	if (handlermouse2buttons != lastbuttons2)
-	{
-		INT32 i, j = 1, k;
-		k = (handlermouse2buttons ^ lastbuttons2); // only changed bit to 1
-		lastbuttons2 = (UINT8)handlermouse2buttons;
-
-		for (i = 0; i < MOUSEBUTTONS; i++, j <<= 1)
-			if (k & j)
-			{
-				if (handlermouse2buttons & j)
-					event.type = ev_keydown;
-				else
-					event.type = ev_keyup;
-				event.data1 = KEY_2MOUSE1+i;
-				D_PostEvent(&event);
-			}
-	}
-
-	if (handlermouse2x != 0 || handlermouse2y != 0)
-	{
-		event.type = ev_mouse2;
-		event.data1 = 0;
-//		event.data1 = buttons; // not needed
-		event.data2 = handlermouse2x << 1;
-		event.data3 = -handlermouse2y << 1;
-		handlermouse2x = 0;
-		handlermouse2y = 0;
-
-		D_PostEvent(&event);
-	}
-}
 #else
 void I_GetMouseEvents(void){};
 #endif
@@ -2826,63 +2478,6 @@ void I_StartupMouse2(void)
 		}
 	}
 	mouse2_started = 1;
-	I_AddExitFunc(I_ShutdownMouse2);
-#elif defined (_WIN32)
-	DCB dcb;
-
-	if (mouse2filehandle != INVALID_HANDLE_VALUE)
-		I_ShutdownMouse2();
-
-	if (cv_usemouse2.value == 0)
-		return;
-
-	if (mouse2filehandle == INVALID_HANDLE_VALUE)
-	{
-		// COM file handle
-		mouse2filehandle = CreateFileA(cv_mouse2port.string, GENERIC_READ | GENERIC_WRITE,
-									   0,                     // exclusive access
-									   NULL,                  // no security attrs
-									   OPEN_EXISTING,
-									   FILE_ATTRIBUTE_NORMAL,
-									   NULL);
-		if (mouse2filehandle == INVALID_HANDLE_VALUE)
-		{
-			INT32 e = GetLastError();
-			if (e == 5)
-				CONS_Alert(CONS_ERROR, M_GetText("Can't open %s: Access denied\n"), cv_mouse2port.string);
-			else
-				CONS_Alert(CONS_ERROR, M_GetText("Can't open %s: error %d\n"), cv_mouse2port.string, e);
-			return;
-		}
-	}
-
-	// getevent when somthing happens
-	//SetCommMask(mouse2filehandle, EV_RXCHAR);
-
-	// buffers
-	SetupComm(mouse2filehandle, MOUSECOMBUFFERSIZE, MOUSECOMBUFFERSIZE);
-
-	// purge buffers
-	PurgeComm(mouse2filehandle, PURGE_TXABORT | PURGE_RXABORT
-			  | PURGE_TXCLEAR | PURGE_RXCLEAR);
-
-	// setup port to 1200 7N1
-	dcb.DCBlength = sizeof (DCB);
-
-	GetCommState(mouse2filehandle, &dcb);
-
-	dcb.BaudRate = CBR_1200;
-	dcb.ByteSize = 7;
-	dcb.Parity = NOPARITY;
-	dcb.StopBits = ONESTOPBIT;
-
-	dcb.fDtrControl = DTR_CONTROL_ENABLE;
-	dcb.fRtsControl = RTS_CONTROL_ENABLE;
-
-	dcb.fBinary = TRUE;
-	dcb.fParity = TRUE;
-
-	SetCommState(mouse2filehandle, &dcb);
 	I_AddExitFunc(I_ShutdownMouse2);
 #endif
 }
@@ -3115,10 +2710,8 @@ INT32 I_StartupSystem(void)
 	SDL_version SDLlinked;
 	SDL_VERSION(&SDLcompiled)
 	SDL_GetVersion(&SDLlinked);
-#ifdef HAVE_THREADS
 	I_start_threads();
 	I_AddExitFunc(I_stop_threads);
-#endif
 	I_StartupConsole();
 #ifdef NEWSIGNALHANDLER
 	I_Fork();
@@ -3303,9 +2896,6 @@ void I_Error(const char *error, ...)
 
 	W_Shutdown();
 
-#if defined (PARANOIA) && defined (__CYGWIN__)
-	*(INT32 *)2 = 4; //Alam: Debug!
-#endif
 
 	exit(-1);
 }
@@ -3399,30 +2989,6 @@ void I_GetDiskFreeSpace(INT64 *freespace)
 	}
 	*freespace = stfs.f_bavail * stfs.f_bsize;
 #endif
-#elif defined (_WIN32)
-	static p_GetDiskFreeSpaceExA pfnGetDiskFreeSpaceEx = NULL;
-	static boolean testwin95 = false;
-	ULARGE_INTEGER usedbytes, lfreespace;
-
-	if (!testwin95)
-	{
-		pfnGetDiskFreeSpaceEx = (p_GetDiskFreeSpaceExA)(LPVOID)GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetDiskFreeSpaceExA");
-		testwin95 = true;
-	}
-	if (pfnGetDiskFreeSpaceEx)
-	{
-		if (pfnGetDiskFreeSpaceEx(NULL, &lfreespace, &usedbytes, NULL))
-			*freespace = lfreespace.QuadPart;
-		else
-			*freespace = INT32_MAX;
-	}
-	else
-	{
-		DWORD SectorsPerCluster, BytesPerSector, NumberOfFreeClusters, TotalNumberOfClusters;
-		GetDiskFreeSpace(NULL, &SectorsPerCluster, &BytesPerSector,
-						 &NumberOfFreeClusters, &TotalNumberOfClusters);
-		*freespace = BytesPerSector*SectorsPerCluster*NumberOfFreeClusters;
-	}
 #else // Dummy for platform independent; 1GB should be enough
 	*freespace = 1024*1024*1024;
 #endif
@@ -3432,11 +2998,6 @@ char *I_GetUserName(void)
 {
 	static char username[MAXPLAYERNAME+1];
 	char *p;
-#ifdef _WIN32
-	DWORD i = MAXPLAYERNAME;
-
-	if (!GetUserNameA(username, &i))
-#endif
 	{
 		p = I_GetEnv("USER");
 		if (!p)
@@ -3469,9 +3030,6 @@ INT32 I_mkdir(const char *dirname, INT32 unixright)
 //[segabor]
 #if defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON) || defined (__CYGWIN__) || defined (__OS2__)
 	return mkdir(dirname, unixright);
-#elif defined (_WIN32)
-	UNREFERENCED_PARAMETER(unixright); /// \todo should implement ntright under nt...
-	return CreateDirectoryA(dirname, NULL);
 #else
 	(void)dirname;
 	(void)unixright;
@@ -3652,7 +3210,6 @@ static const char *locateWad(void)
 #endif
 
 
-#ifdef CMAKECONFIG
 #ifndef NDEBUG
 	I_OutputMsg(","CMAKE_ASSETS_DIR);
 	strcpy(returnWadPath, CMAKE_ASSETS_DIR);
@@ -3661,16 +3218,7 @@ static const char *locateWad(void)
 		return returnWadPath;
 	}
 #endif
-#endif
 
-#ifdef __APPLE__
-	OSX_GetResourcesPath(returnWadPath);
-	I_OutputMsg(",%s", returnWadPath);
-	if (isWadPathOk(returnWadPath))
-	{
-		return returnWadPath;
-	}
-#endif
 
 	// examine default dirs
 #ifdef DEFAULTWADLOCATION1
@@ -3761,12 +3309,8 @@ const char *I_LocateWad(void)
 	if (waddir)
 	{
 		// change to the directory where we found srb2.srb
-#if defined (_WIN32)
-		SetCurrentDirectoryA(waddir);
-#else
 		if (chdir(waddir) == -1)
 			I_OutputMsg("Couldn't change working directory\n");
-#endif
 	}
 	return waddir;
 }
@@ -3838,19 +3382,6 @@ UINT32 I_GetFreeMem(UINT32 *total)
 	if (total)
 		*total = sum.v_page_count * sum.v_page_size;
 	return sum.v_free_count * sum.v_page_size;
-#elif defined (SOLARIS)
-	/* Just guess */
-	if (total)
-		*total = 32 << 20;
-	return 32 << 20;
-#elif defined (_WIN32)
-	MEMORYSTATUS info;
-
-	info.dwLength = sizeof (MEMORYSTATUS);
-	GlobalMemoryStatus( &info );
-	if (total)
-		*total = (UINT32)info.dwTotalPhys;
-	return (UINT32)info.dwAvailPhys;
 #elif defined (__OS2__)
 	UINT32 pr_arena;
 
@@ -3935,51 +3466,7 @@ UINT32 I_GetFreeMem(UINT32 *total)
 
 const CPUInfoFlags *I_CPUInfo(void)
 {
-#if defined (_WIN32)
-	static CPUInfoFlags WIN_CPUInfo;
-	SYSTEM_INFO SI;
-	p_IsProcessorFeaturePresent pfnCPUID = (p_IsProcessorFeaturePresent)(LPVOID)GetProcAddress(GetModuleHandleA("kernel32.dll"), "IsProcessorFeaturePresent");
-
-	ZeroMemory(&WIN_CPUInfo,sizeof (WIN_CPUInfo));
-	if (pfnCPUID)
-	{
-		WIN_CPUInfo.FPPE       = pfnCPUID( 0); //PF_FLOATING_POINT_PRECISION_ERRATA
-		WIN_CPUInfo.FPE        = pfnCPUID( 1); //PF_FLOATING_POINT_EMULATED
-		WIN_CPUInfo.cmpxchg    = pfnCPUID( 2); //PF_COMPARE_EXCHANGE_DOUBLE
-		WIN_CPUInfo.MMX        = pfnCPUID( 3); //PF_MMX_INSTRUCTIONS_AVAILABLE
-		WIN_CPUInfo.PPCMM64    = pfnCPUID( 4); //PF_PPC_MOVEMEM_64BIT_OK
-		WIN_CPUInfo.ALPHAbyte  = pfnCPUID( 5); //PF_ALPHA_BYTE_INSTRUCTIONS
-		WIN_CPUInfo.SSE        = pfnCPUID( 6); //PF_XMMI_INSTRUCTIONS_AVAILABLE
-		WIN_CPUInfo.AMD3DNow   = pfnCPUID( 7); //PF_3DNOW_INSTRUCTIONS_AVAILABLE
-		WIN_CPUInfo.RDTSC      = pfnCPUID( 8); //PF_RDTSC_INSTRUCTION_AVAILABLE
-		WIN_CPUInfo.PAE        = pfnCPUID( 9); //PF_PAE_ENABLED
-		WIN_CPUInfo.SSE2       = pfnCPUID(10); //PF_XMMI64_INSTRUCTIONS_AVAILABLE
-		//WIN_CPUInfo.blank    = pfnCPUID(11); //PF_SSE_DAZ_MODE_AVAILABLE
-		WIN_CPUInfo.DEP        = pfnCPUID(12); //PF_NX_ENABLED
-		WIN_CPUInfo.SSE3       = pfnCPUID(13); //PF_SSE3_INSTRUCTIONS_AVAILABLE
-		WIN_CPUInfo.cmpxchg16b = pfnCPUID(14); //PF_COMPARE_EXCHANGE128
-		WIN_CPUInfo.cmp8xchg16 = pfnCPUID(15); //PF_COMPARE64_EXCHANGE128
-		WIN_CPUInfo.PFC        = pfnCPUID(16); //PF_CHANNELS_ENABLED
-	}
-#ifdef HAVE_SDLCPUINFO
-	else
-	{
-		WIN_CPUInfo.RDTSC       = SDL_HasRDTSC();
-		WIN_CPUInfo.MMX         = SDL_HasMMX();
-		WIN_CPUInfo.AMD3DNow    = SDL_Has3DNow();
-		WIN_CPUInfo.SSE         = SDL_HasSSE();
-		WIN_CPUInfo.SSE2        = SDL_HasSSE2();
-		WIN_CPUInfo.AltiVec     = SDL_HasAltiVec();
-	}
-	WIN_CPUInfo.MMXExt      = SDL_FALSE; //SDL_HasMMXExt(); No longer in SDL2
-	WIN_CPUInfo.AMD3DNowExt = SDL_FALSE; //SDL_Has3DNowExt(); No longer in SDL2
-#endif
-	GetSystemInfo(&SI);
-	WIN_CPUInfo.CPUs = SI.dwNumberOfProcessors;
-	WIN_CPUInfo.IA64 = (SI.dwProcessorType == 2200); // PROCESSOR_INTEL_IA64
-	WIN_CPUInfo.AMD64 = (SI.dwProcessorType == 8664); // PROCESSOR_AMD_X8664
-	return &WIN_CPUInfo;
-#elif defined (HAVE_SDLCPUINFO)
+#if   defined (HAVE_SDLCPUINFO)
 	static CPUInfoFlags SDL_CPUInfo;
 	memset(&SDL_CPUInfo,0,sizeof (CPUInfoFlags));
 	SDL_CPUInfo.RDTSC       = SDL_HasRDTSC();
@@ -3998,4 +3485,3 @@ const CPUInfoFlags *I_CPUInfo(void)
 
 // note CPUAFFINITY code used to reside here
 void I_RegisterSysCommands(void) {}
-#endif

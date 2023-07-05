@@ -33,9 +33,7 @@
 #include "m_misc.h" // M_Memcpy
 #include "lua_script.h"
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h" // For hardware memory info
-#endif
 
 #ifdef HAVE_VALGRIND
 #include "valgrind.h"
@@ -183,11 +181,9 @@ void Z_Free(void *ptr)
 	CONS_Debug(DBG_MEMORY, "Z_Free at %s:%d\n", file, line);
 #endif
 
-#ifdef HAVE_BLUA
 	// anything that isn't by lua gets passed to lua just in case.
 	if (block->tag != PU_LUA)
 		LUA_InvalidateUserdata(ptr);
-#endif
 
 	// TODO: if zdebugging, make sure no other block has a user
 	// that is about to be freed.
@@ -220,10 +216,6 @@ static void *xm(size_t size)
 
 		if (p == NULL)
 		{
-#if defined (_NDS) | defined (_PSP)
-			// Temporary-ish debugging measure
-			Command_Memfree_f();
-#endif
 			I_Error("Out of memory allocating %s bytes", sizeu1(size));
 		}
 	}
@@ -630,7 +622,6 @@ void Command_Memfree_f(void)
 	CONS_Printf(M_GetText("All purgable      : %7s KB\n"),
 		sizeu1(Z_TagsUsage(PU_PURGELEVEL, INT32_MAX)>>10));
 
-#ifdef HWRENDER
 	if (rendermode != render_soft && rendermode != render_none)
 	{
 		CONS_Printf(M_GetText("Patch info headers: %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRPATCHINFO)>>10));
@@ -638,7 +629,6 @@ void Command_Memfree_f(void)
 		CONS_Printf(M_GetText("HW Texture cache  : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRCACHE)>>10));
 		CONS_Printf(M_GetText("Plane polygons    : %7s KB\n"), sizeu1(Z_TagUsage(PU_HWRPLANE)>>10));
 	}
-#endif
 
 	CONS_Printf("\x82%s", M_GetText("System Memory Info\n"));
 	freebytes = I_GetFreeMem(&totalbytes);

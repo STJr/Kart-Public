@@ -11,11 +11,6 @@
 /// \file
 /// \brief OpenGL API for Sonic Robo Blast 2
 
-#if defined (_WIN32)
-//#define WIN32_LEAN_AND_MEAN
-#define RPC_NO_WINDOWS_H
-#include <windows.h>
-#endif
 #undef GETTEXT
 #ifdef __GNUC__
 #include <unistd.h>

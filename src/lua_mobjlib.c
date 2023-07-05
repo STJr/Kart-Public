@@ -11,7 +11,6 @@
 /// \brief mobj/thing library for Lua scripting
 
 #include "doomdef.h"
-#ifdef HAVE_BLUA
 #include "fastcmp.h"
 #include "r_things.h"
 #include "p_local.h"
@@ -854,4 +853,3 @@ int LUA_MobjLib(lua_State *L)
 	return 0;
 }
 
-#endif

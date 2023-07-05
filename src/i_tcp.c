@@ -23,28 +23,12 @@
 #include <sys/time.h>
 #endif // __OS2__
 
-#ifdef _PS3
-#define NO_IPV6 // PSL1GHT v2 do not have IPv6 support
-#endif
 
 #ifndef NO_IPV6
 #define HAVE_IPV6
 #endif
 
-#if defined (_WIN32) || defined (_WIN32_WCE)
-#define USE_WINSOCK
-#if defined (_WIN64) || defined (HAVE_IPV6)
-#define USE_WINSOCK2
-#else //_WIN64/HAVE_IPV6
-#define USE_WINSOCK1
-#endif
-#endif //WIN32 OS
 
-#ifdef _XBOX // XBox have on WinSock API?
-#undef USE_WINSOCK
-#undef USE_WINSOCK1
-#undef USE_WINSOCK2
-#endif
 
 #ifdef USE_WINSOCK2
 #include <ws2tcpip.h>
@@ -72,22 +56,12 @@
 #include <lwip/sockets.h>
 #define ioctl lwip_ioctl
 #elif !defined (USE_WINSOCK) //!HAVE_LWIP
-#ifdef __APPLE_CC__
-#ifndef _BSD_SOCKLEN_T_
-#define _BSD_SOCKLEN_T_
-#endif //_BSD_SOCKLEN_T_
-#endif //__APPLE_CC__
 #include <sys/socket.h>
 #include <netinet/in.h>
 #endif //normal BSD API
 
-#if defined(_arch_dreamcast) && !defined(HAVE_LWIP)
-#include <kos/net.h>
-#elif defined(HAVE_LWIP)
+#if   defined(HAVE_LWIP)
 #include <lwip/lwip.h>
-#elif defined (_PS3)
-#include <net/select.h>
-#include <net/net.h>
 #elif !defined(USE_WINSOCK) //!HAVE_LWIP
 #include <netdb.h>
 #include <sys/ioctl.h>
@@ -96,9 +70,6 @@
 #include <errno.h>
 #include <time.h>
 
-#ifdef _arch_dreamcast
-#include "sdl12/SRB2DC/dchelp.h"
-#endif
 
 #if (defined (__unix__) && !defined (MSDOS)) || defined(__APPLE__) || defined (UNIXCOMMON)
 	#include <sys/time.h>
@@ -192,9 +163,6 @@ static UINT8 UPNP_support = TRUE;
 	#define ioctl ioctlsocket
 	#define close closesocket
 
-	#ifdef _WIN32_WCE
-	#include "sdl12/SRB2CE/cehelp.h"
-	#endif
 
 #endif
 
@@ -208,7 +176,7 @@ static UINT8 UPNP_support = TRUE;
 
 #elif defined(HAVE_LWIP)
 #define SELECTTEST
-#elif !defined( _arch_dreamcast)
+#else
 #define SELECTTEST
 #endif
 
@@ -1320,9 +1288,6 @@ boolean I_InitTcpDriver(void)
 #endif
 #ifdef HAVE_LWIP
 		lwip_kos_init();
-#elif defined(_arch_dreamcast)
-		//return;
-		net_init();
 #endif
 #ifdef __DJGPP__
 #ifdef WATTCP // Alam_GBC: survive bootp, dhcp, rarp and wattcp/pktdrv from failing to load
@@ -1376,9 +1341,6 @@ boolean I_InitTcpDriver(void)
 			CONS_Debug(DBG_NETPLAY, "No TCP/IP driver detected\n");
 #endif // libsocket
 #endif // __DJGPP__
-#ifdef _PS3
-		netInitialize();
-#endif
 #ifndef __DJGPP__
 		init_tcp_driver = true;
 #endif
@@ -1428,8 +1390,6 @@ void I_ShutdownTcpDriver(void)
 #endif
 #ifdef HAVE_LWIP
 	lwip_kos_shutdown();
-#elif defined(_arch_dreamcast)
-	net_shutdown();
 #endif
 #ifdef __DJGPP__
 #ifdef WATTCP // wattcp
@@ -1439,9 +1399,6 @@ void I_ShutdownTcpDriver(void)
 	__lsck_uninit();
 #endif // libsocket
 #endif // __DJGPP__
-#ifdef _PS3
-	netDeinitialize();
-#endif
 	CONS_Printf("shut down\n");
 	init_tcp_driver = false;
 #endif

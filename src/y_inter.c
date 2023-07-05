@@ -42,9 +42,7 @@
 #include "console.h" // cons_menuhighlight
 #include "lua_hook.h" // IntermissionThinker hook
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
 #ifdef PC_DOS
 #include <stdio.h> // for snprintf
@@ -340,12 +338,10 @@ void Y_IntermissionDrawer(void)
 	{
 		if (rendermode == render_soft && usebuffer)
 			VID_BlitLinearScreen(screens[1], screens[0], vid.width*vid.bpp, vid.height, vid.width*vid.bpp, vid.rowbytes);
-#ifdef HWRENDER
 		else if(rendermode != render_soft && usebuffer)
 		{
 			HWR_DrawIntermissionBG();
 		}
-#endif
 		else
 		{
 			if (widebgpatch && rendermode == render_soft && vid.width / vid.dupx == 400)
@@ -621,9 +617,7 @@ void Y_Ticker(void)
 	if (paused || P_AutoPause())
 		return;
 
-#ifdef HAVE_BLUA
 	LUAh_IntermissionThinker();
-#endif
 
 	intertic++;
 
@@ -1254,9 +1248,7 @@ void Y_VoteTicker(void)
 	if (paused || P_AutoPause() || !voteclient.loaded)
 		return;
 
-#ifdef HAVE_BLUA
 	LUAh_VoteThinker();
-#endif
 
 	votetic++;
 

@@ -20,30 +20,9 @@
 /// \file
 /// \brief SRB2 system stuff for SDL
 
-#ifndef _WIN32_WCE
 #include <signal.h>
-#endif
 
-#ifdef _XBOX
-#include "SRB2XBOX/xboxhelp.h"
-#endif
 
-#if defined (_WIN32) && !defined (_XBOX)
-#define RPC_NO_WINDOWS_H
-#include <windows.h>
-#include "../doomtype.h"
-#ifndef _WIN32_WCE
-typedef BOOL (WINAPI *p_GetDiskFreeSpaceExA)(LPCSTR, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER);
-typedef BOOL (WINAPI *p_IsProcessorFeaturePresent) (DWORD);
-typedef DWORD (WINAPI *p_timeGetTime) (void);
-typedef UINT (WINAPI *p_timeEndPeriod) (UINT);
-typedef HANDLE (WINAPI *p_OpenFileMappingA) (DWORD, BOOL, LPCSTR);
-typedef LPVOID (WINAPI *p_MapViewOfFile) (HANDLE, DWORD, DWORD, DWORD, SIZE_T);
-typedef HANDLE (WINAPI *p_GetCurrentProcess) (VOID);
-typedef BOOL (WINAPI *p_GetProcessAffinityMask) (HANDLE, PDWORD_PTR, PDWORD_PTR);
-typedef BOOL (WINAPI *p_SetProcessAffinityMask) (HANDLE, DWORD_PTR);
-#endif
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,24 +35,12 @@ typedef BOOL (WINAPI *p_SetProcessAffinityMask) (HANDLE, DWORD_PTR);
 #include <fcntl.h>
 #endif
 
-#ifdef _arch_dreamcast
-#include <arch/gdb.h>
-#include <arch/timer.h>
-#include <conio/conio.h>
-#include <dc/pvr.h>
-void __set_fpscr(long); // in libgcc / kernel's startup.s?
-#else
 #include <stdio.h>
-#if defined (_WIN32) && !defined (_WIN32_WCE) && !defined (_XBOX)
-#include <conio.h>
-#endif
-#endif
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4214 4244)
 #endif
 
-#ifdef HAVE_SDL
 
 #include "SDL.h"
 
@@ -90,9 +57,6 @@ void __set_fpscr(long); // in libgcc / kernel's startup.s?
 #define HAVE_SDLCPUINFO
 #endif
 
-#ifdef _PSP
-//#include <pspiofilemgr.h>
-#elif !defined(_PS3)
 #if defined (__unix__) || defined(__APPLE__) || (defined (UNIXCOMMON) && !defined (_arch_dreamcast) && !defined (__HAIKU__) && !defined (_WII))
 #if defined (__linux__)
 #include <sys/vfs.h>
@@ -108,15 +72,12 @@ void __set_fpscr(long); // in libgcc / kernel's startup.s?
 #include <sys/vmmeter.h>
 #endif
 #endif
-#endif
 
-#ifndef _PS3
 #if defined (__linux__) || (defined (UNIXCOMMON) && !defined (_arch_dreamcast) && !defined (_PSP) && !defined (__HAIKU__) && !defined (_WII))
 #ifndef NOTERMIOS
 #include <termios.h>
 #include <sys/ioctl.h> // ioctl
 #define HAVE_TERMIOS
-#endif
 #endif
 #endif
 
@@ -129,60 +90,24 @@ void __set_fpscr(long); // in libgcc / kernel's startup.s?
 #include <wchar.h>
 #endif
 
-#if defined (_WIN32) && !defined (_WIN32_WCE) && !defined (_XBOX)
-#define HAVE_MUMBLE
-#define WINMUMBLE
-#elif defined (HAVE_SHM)
+#if   defined (HAVE_SHM)
 #define HAVE_MUMBLE
 #endif
 #endif // NOMUMBLE
 
-#ifdef _WIN32_WCE
-#include "SRB2CE/cehelp.h"
-#endif
 
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
 
 // Locations for searching the srb2.srb
-#ifdef _arch_dreamcast
-#define DEFAULTWADLOCATION1 "/cd"
-#define DEFAULTWADLOCATION2 "/pc"
-#define DEFAULTWADLOCATION3 "/pc/home/alam/srb2code/data"
-#define DEFAULTSEARCHPATH1 "/cd"
-#define DEFAULTSEARCHPATH2 "/pc"
-//#define DEFAULTSEARCHPATH3 "/pc/home/alam/srb2code/data"
-#elif defined (GP2X)
+#if   defined (GP2X)
 #define DEFAULTWADLOCATION1 "/mnt/sd"
 #define DEFAULTWADLOCATION2 "/mnt/sd/SRB2Kart"
 #define DEFAULTWADLOCATION3 "/tmp/mnt/sd"
 #define DEFAULTWADLOCATION4 "/tmp/mnt/sd/SRB2Kart"
 #define DEFAULTSEARCHPATH1 "/mnt/sd"
 #define DEFAULTSEARCHPATH2 "/tmp/mnt/sd"
-#elif defined (_WII)
-#define NOCWD
-#define NOHOME
-#define NEED_SDL_GETENV
-#define DEFAULTWADLOCATION1 "sd:/srb2wii"
-#define DEFAULTWADLOCATION2 "usb:/srb2wii"
-#define DEFAULTSEARCHPATH1 "sd:/srb2wii"
-#define DEFAULTSEARCHPATH2 "usb:/srb2wii"
-// PS3: TODO: this will need modification most likely
-#elif defined (_PS3)
-#define NOCWD
-#define NOHOME
-#define DEFAULTWADLOCATION1 "/dev_hdd0/game/SRB2-PS3_/USRDIR/etc"
-#define DEFAULTWADLOCATION2 "/dev_usb/SRB2PS3"
-#define DEFAULTSEARCHPATH1 "/dev_hdd0/game/SRB2-PS3_/USRDIR/etc"
-#define DEFAULTSEARCHPATH2 "/dev_usb/SRB2PS3"
-#elif defined (_PSP)
-#define NOCWD
-#define NOHOME
-#define DEFAULTWADLOCATION1 "host0:/bin/Resources"
-#define DEFAULTWADLOCATION2 "ms0:/PSP/GAME/SRB2PSP"
-#define DEFAULTSEARCHPATH1 "host0:/"
-#define DEFAULTSEARCHPATH2 "ms0:/PSP/GAME/SRB2PSP"
 #elif defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON)
 #define DEFAULTWADLOCATION1 "/usr/local/share/games/SRB2Kart"
 #define DEFAULTWADLOCATION2 "/usr/local/games/SRB2Kart"
@@ -191,28 +116,6 @@ void __set_fpscr(long); // in libgcc / kernel's startup.s?
 #define DEFAULTSEARCHPATH1 "/usr/local/games"
 #define DEFAULTSEARCHPATH2 "/usr/games"
 #define DEFAULTSEARCHPATH3 "/usr/local"
-#elif defined (_XBOX)
-#define NOCWD
-#ifdef __GNUC__
-#include <openxdk/debug.h>
-#endif
-#define DEFAULTWADLOCATION1 "c:\\srb2kart"
-#define DEFAULTWADLOCATION2 "d:\\srb2kart"
-#define DEFAULTWADLOCATION3 "e:\\srb2kart"
-#define DEFAULTWADLOCATION4 "f:\\srb2kart"
-#define DEFAULTWADLOCATION5 "g:\\srb2kart"
-#define DEFAULTWADLOCATION6 "h:\\srb2kart"
-#define DEFAULTWADLOCATION7 "i:\\srb2kart"
-#elif defined (_WIN32_WCE)
-#define NOCWD
-#define NOHOME
-#define DEFAULTWADLOCATION1 "\\Storage Card\\SRB2Kart"
-#define DEFAULTSEARCHPATH1 "\\Storage Card"
-#elif defined (_WIN32)
-#define DEFAULTWADLOCATION1 "c:\\games\\srb2kart"
-#define DEFAULTWADLOCATION2 "\\games\\srb2kart"
-#define DEFAULTSEARCHPATH1 "c:\\games"
-#define DEFAULTSEARCHPATH2 "\\games"
 #endif
 
 /**	\brief WAD file to look for
@@ -586,157 +489,10 @@ void I_GetConsoleEvents(void)
 	(void)d;
 }
 
-#elif defined (_WIN32) && !(defined (_XBOX) || defined (_WIN32_WCE))
-static BOOL I_ReadyConsole(HANDLE ci)
-{
-	DWORD gotinput;
-	if (ci == INVALID_HANDLE_VALUE) return FALSE;
-	if (WaitForSingleObject(ci,0) != WAIT_OBJECT_0) return FALSE;
-	if (GetFileType(ci) != FILE_TYPE_CHAR) return FALSE;
-	if (!GetConsoleMode(ci, &gotinput)) return FALSE;
-	return (GetNumberOfConsoleInputEvents(ci, &gotinput) && gotinput);
-}
-
-static boolean entering_con_command = false;
-
-void I_GetConsoleEvents(void)
-{
-	event_t ev = {0,0,0,0};
-	HANDLE ci = GetStdHandle(STD_INPUT_HANDLE);
-	HANDLE co = GetStdHandle(STD_OUTPUT_HANDLE);
-	CONSOLE_SCREEN_BUFFER_INFO CSBI;
-	INPUT_RECORD input;
-	DWORD t;
-
-	while (I_ReadyConsole(ci) && ReadConsoleInput(ci, &input, 1, &t) && t)
-	{
-		memset(&ev,0x00,sizeof (ev));
-		switch (input.EventType)
-		{
-			case KEY_EVENT:
-				if (input.Event.KeyEvent.bKeyDown)
-				{
-					ev.type = ev_console;
-					entering_con_command = true;
-					switch (input.Event.KeyEvent.wVirtualKeyCode)
-					{
-						case VK_ESCAPE:
-						case VK_TAB:
-							ev.data1 = KEY_NULL;
-							break;
-						case VK_SHIFT:
-							ev.data1 = KEY_LSHIFT;
-							break;
-						case VK_RETURN:
-							entering_con_command = false;
-							// Fall through.
-						default:
-							ev.data1 = MapVirtualKey(input.Event.KeyEvent.wVirtualKeyCode,2); // convert in to char
-					}
-					if (co != INVALID_HANDLE_VALUE && GetFileType(co) == FILE_TYPE_CHAR && GetConsoleMode(co, &t))
-					{
-						if (ev.data1 && ev.data1 != KEY_LSHIFT && ev.data1 != KEY_RSHIFT)
-						{
-#ifdef _UNICODE
-							WriteConsole(co, &input.Event.KeyEvent.uChar.UnicodeChar, 1, &t, NULL);
-#else
-							WriteConsole(co, &input.Event.KeyEvent.uChar.AsciiChar, 1 , &t, NULL);
-#endif
-						}
-						if (input.Event.KeyEvent.wVirtualKeyCode == VK_BACK
-							&& GetConsoleScreenBufferInfo(co,&CSBI))
-						{
-							WriteConsoleOutputCharacterA(co, " ",1, CSBI.dwCursorPosition, &t);
-						}
-					}
-				}
-				else
-				{
-					ev.type = ev_keyup;
-					switch (input.Event.KeyEvent.wVirtualKeyCode)
-					{
-						case VK_SHIFT:
-							ev.data1 = KEY_LSHIFT;
-							break;
-						default:
-							break;
-					}
-				}
-				if (ev.data1) D_PostEvent(&ev);
-				break;
-			case MOUSE_EVENT:
-			case WINDOW_BUFFER_SIZE_EVENT:
-			case MENU_EVENT:
-			case FOCUS_EVENT:
-				break;
-		}
-	}
-}
-
-static void I_StartupConsole(void)
-{
-	HANDLE ci, co;
-	const INT32 ded = M_CheckParm("-dedicated");
-#ifdef SDLMAIN
-	BOOL gotConsole = FALSE;
-	if (M_CheckParm("-console") || ded)
-		gotConsole = AllocConsole();
-#else
-	BOOL gotConsole = TRUE;
-	if (M_CheckParm("-detachconsole"))
-	{
-		FreeConsole();
-		gotConsole = AllocConsole();
-	}
-#ifdef _DEBUG
-	else if (M_CheckParm("-noconsole") && !ded)
-#else
-	else if (!M_CheckParm("-console") && !ded)
-#endif
-	{
-		FreeConsole();
-		gotConsole = FALSE;
-	}
-#endif
-
-	if (gotConsole)
-	{
-		SetConsoleTitleA("SRB2Kart Console");
-		consolevent = SDL_TRUE;
-	}
-
-	//Let get the real console HANDLE, because Mingw's Bash is bad!
-	ci = CreateFile(TEXT("CONIN$") ,               GENERIC_READ, FILE_SHARE_READ,  NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	co = CreateFile(TEXT("CONOUT$"), GENERIC_WRITE|GENERIC_READ, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (ci != INVALID_HANDLE_VALUE)
-	{
-		const DWORD CM = ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT|ENABLE_PROCESSED_INPUT;
-		SetStdHandle(STD_INPUT_HANDLE, ci);
-		if (GetFileType(ci) == FILE_TYPE_CHAR)
-			SetConsoleMode(ci, CM); //default mode but no ENABLE_MOUSE_INPUT
-	}
-	if (co != INVALID_HANDLE_VALUE)
-	{
-		SetStdHandle(STD_OUTPUT_HANDLE, co);
-		SetStdHandle(STD_ERROR_HANDLE, co);
-	}
-}
-static inline void I_ShutdownConsole(void){}
 #else
 void I_GetConsoleEvents(void){}
 static inline void I_StartupConsole(void)
 {
-#ifdef _arch_dreamcast
-	char title[] = "SRB2 for Dreamcast!\n";
-	__set_fpscr(0x00040000); /* ignore FPU underflow */
-	//printf("\nHello world!\n\n");
-	pvr_init_defaults();
-	conio_init(CONIO_TTY_PVR, CONIO_INPUT_LINE);
-	conio_set_theme(CONIO_THEME_MATRIX);
-	conio_clear();
-	conio_putstr(title);
-	//printf("\nHello world!\n\n");
-#endif
 #ifdef _DEBUG
 	consolevent = !M_CheckParm("-noconsole");
 #else
@@ -787,9 +543,6 @@ void I_OutputMsg(const char *fmt, ...)
 	XBOXSTATIC char txt[8192];
 	va_list  argptr;
 
-#ifdef _arch_dreamcast
-	if (!keyboard_started) conio_printf(fmt);
-#endif
 
 	va_start(argptr,fmt);
 	vsprintf(txt, fmt, argptr);
@@ -800,9 +553,6 @@ void I_OutputMsg(const char *fmt, ...)
 	DEFAULTFONTBGR, DEFAULTFONTBGG, DEFAULTFONTBGB, DEFAULTFONTBGA, txt);
 #endif
 
-#if defined (_WIN32) && !defined (_XBOX) && defined (_MSC_VER)
-	OutputDebugStringA(txt);
-#endif
 
 	len = strlen(txt);
 
@@ -815,69 +565,6 @@ void I_OutputMsg(const char *fmt, ...)
 	}
 #endif
 
-#if defined (_WIN32) && !defined (_XBOX) && !defined(_WIN32_WCE)
-#ifdef DEBUGFILE
-	if (debugfile != stderr)
-#endif
-	{
-		HANDLE co = GetStdHandle(STD_OUTPUT_HANDLE);
-		DWORD bytesWritten;
-
-		if (co == INVALID_HANDLE_VALUE)
-			return;
-
-		if (GetFileType(co) == FILE_TYPE_CHAR && GetConsoleMode(co, &bytesWritten))
-		{
-			static COORD coordNextWrite = {0,0};
-			LPVOID oldLines = NULL;
-			INT oldLength;
-			CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-			// Save the lines that we're going to obliterate.
-			GetConsoleScreenBufferInfo(co, &csbi);
-			oldLength = csbi.dwSize.X * (csbi.dwCursorPosition.Y - coordNextWrite.Y) + csbi.dwCursorPosition.X - coordNextWrite.X;
-
-			if (oldLength > 0)
-			{
-				LPVOID blank = malloc(oldLength);
-				if (!blank) return;
-				memset(blank, ' ', oldLength); // Blank out.
-				oldLines = malloc(oldLength*sizeof(TCHAR));
-				if (!oldLines)
-				{
-					free(blank);
-					return;
-				}
-
-				ReadConsoleOutputCharacter(co, oldLines, oldLength, coordNextWrite, &bytesWritten);
-
-				// Move to where we what to print - which is where we would've been,
-				// had console input not been in the way,
-				SetConsoleCursorPosition(co, coordNextWrite);
-
-				WriteConsoleA(co, blank, oldLength, &bytesWritten, NULL);
-				free(blank);
-
-				// And back to where we want to print again.
-				SetConsoleCursorPosition(co, coordNextWrite);
-			}
-
-			// Actually write the string now!
-			WriteConsoleA(co, txt, (DWORD)len, &bytesWritten, NULL);
-
-			// Next time, output where we left off.
-			GetConsoleScreenBufferInfo(co, &csbi);
-			coordNextWrite = csbi.dwCursorPosition;
-
-			// Restore what was overwritten.
-			if (oldLines && entering_con_command)
-				WriteConsole(co, oldLines, oldLength, &bytesWritten, NULL);
-			if (oldLines) free(oldLines);
-		}
-		else // Redirected to a file.
-			WriteFile(co, txt, (DWORD)len, &bytesWritten, NULL);
-	}
-#else
 #ifdef HAVE_TERMIOS
 	if (consolevent)
 	{
@@ -898,7 +585,6 @@ void I_OutputMsg(const char *fmt, ...)
 	if (!framebuffer)
 		fflush(stderr);
 
-#endif
 }
 
 //
@@ -1070,11 +756,6 @@ void I_GetJoystickEvents(void)
 					event.type = ev_keydown;
 				else
 					event.type = ev_keyup;
-#ifdef _PSP
-				if (i == 12)
-					event.data1 = KEY_ESCAPE;
-				else
-#endif
 				event.data1 = KEY_JOY1 + i;
 				D_PostEvent(&event);
 			}
@@ -1126,13 +807,8 @@ void I_GetJoystickEvents(void)
 			axisy = SDL_JoystickGetAxis(JoyInfo.dev, i*2 + 1);
 		else axisy = 0;
 
-#ifdef _arch_dreamcast // -128 to 127
-		axisx = axisx*8;
-		axisy = axisy*8;
-#else // -32768 to 32767
 		axisx = axisx/32;
 		axisy = axisy/32;
-#endif
 
 		if (Joystick.bGamepadStyle)
 		{
@@ -1251,15 +927,11 @@ static int joy_open(const char *fname)
 		if (JoyInfo.buttons > JOYBUTTONS)
 			JoyInfo.buttons = JOYBUTTONS;
 
-#ifdef DC
-		JoyInfo.hats = 0;
-#else
 		JoyInfo.hats = SDL_JoystickNumHats(JoyInfo.dev);
 		if (JoyInfo.hats > JOYHATS)
 			JoyInfo.hats = JOYHATS;
 
 		JoyInfo.balls = SDL_JoystickNumBalls(JoyInfo.dev);
-#endif
 
 		//Joystick.bGamepadStyle = !stricmp(SDL_JoystickName(SDL_JoystickIndex(JoyInfo.dev)), "pad");
 
@@ -1418,13 +1090,8 @@ void I_GetJoystick2Events(void)
 			axisy = SDL_JoystickGetAxis(JoyInfo2.dev, i*2 + 1);
 		else axisy = 0;
 
-#ifdef _arch_dreamcast // -128 to 127
-		axisx = axisx*8;
-		axisy = axisy*8;
-#else // -32768 to 32767
 		axisx = axisx/32;
 		axisy = axisy/32;
-#endif
 
 		if (Joystick2.bGamepadStyle)
 		{
@@ -1544,15 +1211,11 @@ static int joy_open2(const char *fname)
 		if (JoyInfo2.buttons > JOYBUTTONS)
 			JoyInfo2.buttons = JOYBUTTONS;
 
-#ifdef DC
-		JoyInfo2.hats = 0;
-#else
 		JoyInfo2.hats = SDL_JoystickNumHats(JoyInfo2.dev);
 		if (JoyInfo2.hats > JOYHATS)
 			JoyInfo2.hats = JOYHATS;
 
 		JoyInfo2.balls = SDL_JoystickNumBalls(JoyInfo2.dev);
-#endif
 
 		//Joystick.bGamepadStyle = !stricmp(SDL_JoystickName(SDL_JoystickIndex(JoyInfo2.dev)), "pad");
 
@@ -1711,13 +1374,8 @@ void I_GetJoystick3Events(void)
 			axisy = SDL_JoystickGetAxis(JoyInfo3.dev, i*2 + 1);
 		else axisy = 0;
 
-#ifdef _arch_dreamcast // -128 to 127
-		axisx = axisx*8;
-		axisy = axisy*8;
-#else // -32768 to 32767
 		axisx = axisx/32;
 		axisy = axisy/32;
-#endif
 
 		if (Joystick3.bGamepadStyle)
 		{
@@ -1837,15 +1495,11 @@ static int joy_open3(const char *fname)
 		if (JoyInfo3.buttons > JOYBUTTONS)
 			JoyInfo3.buttons = JOYBUTTONS;
 
-#ifdef DC
-		JoyInfo3.hats = 0;
-#else
 		JoyInfo3.hats = SDL_JoystickNumHats(JoyInfo3.dev);
 		if (JoyInfo3.hats > JOYHATS)
 			JoyInfo3.hats = JOYHATS;
 
 		JoyInfo3.balls = SDL_JoystickNumBalls(JoyInfo3.dev);
-#endif
 
 		//Joystick.bGamepadStyle = !stricmp(SDL_JoystickName(SDL_JoystickIndex(JoyInfo3.dev)), "pad");
 
@@ -2004,13 +1658,8 @@ void I_GetJoystick4Events(void)
 			axisy = SDL_JoystickGetAxis(JoyInfo4.dev, i*2 + 1);
 		else axisy = 0;
 
-#ifdef _arch_dreamcast // -128 to 127
-		axisx = axisx*8;
-		axisy = axisy*8;
-#else // -32768 to 32767
 		axisx = axisx/32;
 		axisy = axisy/32;
-#endif
 
 		if (Joystick4.bGamepadStyle)
 		{
@@ -2130,15 +1779,11 @@ static int joy_open4(const char *fname)
 		if (JoyInfo4.buttons > JOYBUTTONS)
 			JoyInfo4.buttons = JOYBUTTONS;
 
-#ifdef DC
-		JoyInfo4.hats = 0;
-#else
 		JoyInfo4.hats = SDL_JoystickNumHats(JoyInfo4.dev);
 		if (JoyInfo4.hats > JOYHATS)
 			JoyInfo4.hats = JOYHATS;
 
 		JoyInfo4.balls = SDL_JoystickNumBalls(JoyInfo4.dev);
-#endif
 
 		//Joystick.bGamepadStyle = !stricmp(SDL_JoystickName(SDL_JoystickIndex(JoyInfo4.dev)), "pad");
 
@@ -2462,141 +2107,6 @@ static void I_ShutdownMouse2(void)
 	if (fdmouse2 != -1) close(fdmouse2);
 	mouse2_started = 0;
 }
-#elif defined (_WIN32) && !defined (_XBOX)
-
-static HANDLE mouse2filehandle = INVALID_HANDLE_VALUE;
-
-static void I_ShutdownMouse2(void)
-{
-	event_t event;
-	INT32 i;
-
-	if (mouse2filehandle == INVALID_HANDLE_VALUE)
-		return;
-
-	SetCommMask(mouse2filehandle, 0);
-
-	EscapeCommFunction(mouse2filehandle, CLRDTR);
-	EscapeCommFunction(mouse2filehandle, CLRRTS);
-
-	PurgeComm(mouse2filehandle, PURGE_TXABORT | PURGE_RXABORT |
-	          PURGE_TXCLEAR | PURGE_RXCLEAR);
-
-	CloseHandle(mouse2filehandle);
-
-	// emulate the up of all mouse buttons
-	for (i = 0; i < MOUSEBUTTONS; i++)
-	{
-		event.type = ev_keyup;
-		event.data1 = KEY_2MOUSE1+i;
-		D_PostEvent(&event);
-	}
-
-	mouse2filehandle = INVALID_HANDLE_VALUE;
-}
-
-#define MOUSECOMBUFFERSIZE 256
-static INT32 handlermouse2x,handlermouse2y,handlermouse2buttons;
-
-static void I_PoolMouse2(void)
-{
-	UINT8 buffer[MOUSECOMBUFFERSIZE];
-	COMSTAT ComStat;
-	DWORD dwErrorFlags;
-	DWORD dwLength;
-	char dx,dy;
-
-	static INT32 bytenum;
-	static UINT8 combytes[4];
-	DWORD i;
-
-	ClearCommError(mouse2filehandle, &dwErrorFlags, &ComStat);
-	dwLength = min(MOUSECOMBUFFERSIZE, ComStat.cbInQue);
-
-	if (dwLength <= 0)
-		return;
-
-	if (!ReadFile(mouse2filehandle, buffer, dwLength, &dwLength, NULL))
-	{
-		CONS_Alert(CONS_WARNING, "%s", M_GetText("Read Error on secondary mouse port\n"));
-		return;
-	}
-
-	// parse the mouse packets
-	for (i = 0; i < dwLength; i++)
-	{
-		if ((buffer[i] & 64)== 64)
-			bytenum = 0;
-
-		if (bytenum < 4)
-			combytes[bytenum] = buffer[i];
-		bytenum++;
-
-		if (bytenum == 1)
-		{
-			handlermouse2buttons &= ~3;
-			handlermouse2buttons |= ((combytes[0] & (32+16)) >> 4);
-		}
-		else if (bytenum == 3)
-		{
-			dx = (char)((combytes[0] &  3) << 6);
-			dy = (char)((combytes[0] & 12) << 4);
-			dx = (char)(dx + combytes[1]);
-			dy = (char)(dy + combytes[2]);
-			handlermouse2x+= dx;
-			handlermouse2y+= dy;
-		}
-		else if (bytenum == 4) // fourth UINT8 (logitech mouses)
-		{
-			if (buffer[i] & 32)
-				handlermouse2buttons |= 4;
-			else
-				handlermouse2buttons &= ~4;
-		}
-	}
-}
-
-void I_GetMouseEvents(void)
-{
-	static UINT8 lastbuttons2 = 0; //mouse movement
-	event_t event;
-
-	if (mouse2filehandle == INVALID_HANDLE_VALUE)
-		return;
-
-	I_PoolMouse2();
-	// post key event for buttons
-	if (handlermouse2buttons != lastbuttons2)
-	{
-		INT32 i, j = 1, k;
-		k = (handlermouse2buttons ^ lastbuttons2); // only changed bit to 1
-		lastbuttons2 = (UINT8)handlermouse2buttons;
-
-		for (i = 0; i < MOUSEBUTTONS; i++, j <<= 1)
-			if (k & j)
-			{
-				if (handlermouse2buttons & j)
-					event.type = ev_keydown;
-				else
-					event.type = ev_keyup;
-				event.data1 = KEY_2MOUSE1+i;
-				D_PostEvent(&event);
-			}
-	}
-
-	if (handlermouse2x != 0 || handlermouse2y != 0)
-	{
-		event.type = ev_mouse2;
-		event.data1 = 0;
-//		event.data1 = buttons; // not needed
-		event.data2 = handlermouse2x << 1;
-		event.data3 = -handlermouse2y << 1;
-		handlermouse2x = 0;
-		handlermouse2y = 0;
-
-		D_PostEvent(&event);
-	}
-}
 #else
 void I_GetMouseEvents(void){};
 #endif
@@ -2659,63 +2169,6 @@ void I_StartupMouse2(void)
 		}
 	}
 	mouse2_started = 1;
-	I_AddExitFunc(I_ShutdownMouse2);
-#elif defined (_WIN32) && !defined (_XBOX)
-	DCB dcb;
-
-	if (mouse2filehandle != INVALID_HANDLE_VALUE)
-		I_ShutdownMouse2();
-
-	if (cv_usemouse2.value == 0)
-		return;
-
-	if (mouse2filehandle == INVALID_HANDLE_VALUE)
-	{
-		// COM file handle
-		mouse2filehandle = CreateFileA(cv_mouse2port.string, GENERIC_READ | GENERIC_WRITE,
-		                               0,                     // exclusive access
-		                               NULL,                  // no security attrs
-		                               OPEN_EXISTING,
-		                               FILE_ATTRIBUTE_NORMAL,
-		                               NULL);
-		if (mouse2filehandle == INVALID_HANDLE_VALUE)
-		{
-			INT32 e = GetLastError();
-			if (e == 5)
-				CONS_Alert(CONS_ERROR, M_GetText("Can't open %s: Access denied\n"), cv_mouse2port.string);
-			else
-				CONS_Alert(CONS_ERROR, M_GetText("Can't open %s: error %d\n"), cv_mouse2port.string, e);
-			return;
-		}
-	}
-
-	// getevent when somthing happens
-	//SetCommMask(mouse2filehandle, EV_RXCHAR);
-
-	// buffers
-	SetupComm(mouse2filehandle, MOUSECOMBUFFERSIZE, MOUSECOMBUFFERSIZE);
-
-	// purge buffers
-	PurgeComm(mouse2filehandle, PURGE_TXABORT | PURGE_RXABORT
-	          | PURGE_TXCLEAR | PURGE_RXCLEAR);
-
-	// setup port to 1200 7N1
-	dcb.DCBlength = sizeof (DCB);
-
-	GetCommState(mouse2filehandle, &dcb);
-
-	dcb.BaudRate = CBR_1200;
-	dcb.ByteSize = 7;
-	dcb.Parity = NOPARITY;
-	dcb.StopBits = ONESTOPBIT;
-
-	dcb.fDtrControl = DTR_CONTROL_ENABLE;
-	dcb.fRtsControl = RTS_CONTROL_ENABLE;
-
-	dcb.fBinary = TRUE;
-	dcb.fParity = TRUE;
-
-	SetCommState(mouse2filehandle, &dcb);
 	I_AddExitFunc(I_ShutdownMouse2);
 #endif
 }
@@ -2787,83 +2240,14 @@ ticcmd_t *I_BaseTiccmd4(void)
 	return &emptycmd4;
 }
 
-#if (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
-static HMODULE winmm = NULL;
-static DWORD starttickcount = 0; // hack for win2k time bug
-static p_timeGetTime pfntimeGetTime = NULL;
-
-// ---------
-// I_GetTime
-// Use the High Resolution Timer if available,
-// else use the multimedia timer which has 1 millisecond precision on Windowz 95,
-// but lower precision on Windows NT
-// ---------
-
-tic_t I_GetTime(void)
-{
-	tic_t newtics = 0;
-
-	if (!starttickcount) // high precision timer
-	{
-		LARGE_INTEGER currtime; // use only LowPart if high resolution counter is not available
-		static LARGE_INTEGER basetime = {{0, 0}};
-
-		// use this if High Resolution timer is found
-		static LARGE_INTEGER frequency;
-
-		if (!basetime.LowPart)
-		{
-			if (!QueryPerformanceFrequency(&frequency))
-				frequency.QuadPart = 0;
-			else
-				QueryPerformanceCounter(&basetime);
-		}
-
-		if (frequency.LowPart && QueryPerformanceCounter(&currtime))
-		{
-			newtics = (INT32)((currtime.QuadPart - basetime.QuadPart) * NEWTICRATE
-				/ frequency.QuadPart);
-		}
-		else if (pfntimeGetTime)
-		{
-			currtime.LowPart = pfntimeGetTime();
-			if (!basetime.LowPart)
-				basetime.LowPart = currtime.LowPart;
-			newtics = ((currtime.LowPart - basetime.LowPart)/(1000/NEWTICRATE));
-		}
-	}
-	else
-		newtics = (GetTickCount() - starttickcount)/(1000/NEWTICRATE);
-
-	return newtics;
-}
-
-static void I_ShutdownTimer(void)
-{
-	pfntimeGetTime = NULL;
-	if (winmm)
-	{
-		p_timeEndPeriod pfntimeEndPeriod = (p_timeEndPeriod)GetProcAddress(winmm, "timeEndPeriod");
-		if (pfntimeEndPeriod)
-			pfntimeEndPeriod(1);
-		FreeLibrary(winmm);
-		winmm = NULL;
-	}
-}
-#else
 //
 // I_GetTime
 // returns time in 1/TICRATE second tics
 //
 tic_t I_GetTime (void)
 {
-#ifdef _arch_dreamcast
-	static Uint64 basetime = 0;
-	       Uint64 ticks = timer_ms_gettime64(); //using timer_ms_gettime64 instand of SDL_GetTicks for the Dreamcast
-#else
 	static Uint32 basetime = 0;
 	       Uint32 ticks = SDL_GetTicks();
-#endif
 
 	if (!basetime)
 		basetime = ticks;
@@ -2880,30 +2264,13 @@ tic_t I_GetTime (void)
 
 	return (tic_t)ticks;
 }
-#endif
 
 //
 //I_StartupTimer
 //
 void I_StartupTimer(void)
 {
-#if (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
-	// for win2k time bug
-	if (M_CheckParm("-gettickcount"))
-	{
-		starttickcount = GetTickCount();
-		CONS_Printf("%s", M_GetText("Using GetTickCount()\n"));
-	}
-	winmm = LoadLibraryA("winmm.dll");
-	if (winmm)
-	{
-		p_timeEndPeriod pfntimeBeginPeriod = (p_timeEndPeriod)GetProcAddress(winmm, "timeBeginPeriod");
-		if (pfntimeBeginPeriod)
-			pfntimeBeginPeriod(1);
-		pfntimeGetTime = (p_timeGetTime)GetProcAddress(winmm, "timeGetTime");
-	}
-	I_AddExitFunc(I_ShutdownTimer);
-#elif 0 //#elif !defined (_arch_dreamcast) && !defined(GP2X) // the DC have it own timer and GP2X have broken pthreads?
+#if   0 //#elif !defined (_arch_dreamcast) && !defined(GP2X) // the DC have it own timer and GP2X have broken pthreads?
 	if (SDL_InitSubSystem(SDL_INIT_TIMER) < 0)
 		I_Error("SRB2: Needs SDL_Timer, Error: %s", SDL_GetError());
 #endif
@@ -2913,35 +2280,14 @@ void I_StartupTimer(void)
 
 void I_Sleep(void)
 {
-#if !(defined (_arch_dreamcast) || defined (_XBOX))
 	if (cv_sleep.value > 0)
 		SDL_Delay(cv_sleep.value);
-#endif
 }
 
 INT32 I_StartupSystem(void)
 {
 	SDL_version SDLcompiled;
 	const SDL_version *SDLlinked;
-#ifdef _XBOX
-#ifdef __GNUC__
-	char DP[] ="      Sonic Robo Blast 2!\n";
-	debugPrint(DP);
-#endif
-	unlink("e:/Games/SRB2/stdout.txt");
-	freopen("e:/Games/SRB2/stdout.txt", "w+", stdout);
-	unlink("e:/Games/SRB2/stderr.txt");
-	freopen("e:/Games/SRB2/stderr.txt", "w+", stderr);
-#endif
-#ifdef _arch_dreamcast
-#ifdef _DEBUG
-	//gdb_init();
-#endif
-	printf(__FILE__":%i\n",__LINE__);
-#ifdef _DEBUG
-	//gdb_breakpoint();
-#endif
-#endif
 	SDL_VERSION(&SDLcompiled)
 	SDLlinked = SDL_Linked_Version();
 	I_StartupConsole();
@@ -2995,9 +2341,7 @@ void I_Quit(void)
 	I_ShutdownGraphics();
 	I_ShutdownInput();
 	I_ShutdownSystem();
-#ifndef _arch_dreamcast
 	SDL_Quit();
-#endif
 	/* if option -noendtxt is set, don't print the text */
 	if (!M_CheckParm("-noendtxt") && W_CheckNumForName("ENDOOM") != LUMPERROR)
 	{
@@ -3066,10 +2410,8 @@ void I_Error(const char *error, ...)
 			I_ShutdownInput();
 		if (errorcount == 7)
 			I_ShutdownSystem();
-#ifndef _arch_dreamcast
 		if (errorcount == 8)
 			SDL_Quit();
-#endif
 		if (errorcount == 9)
 		{
 			M_SaveConfig(NULL);
@@ -3083,25 +2425,6 @@ void I_Error(const char *error, ...)
 			va_end(argptr);
 			// 2004-03-03 AJR Since the Mac user is most likely double clicking to run the game, give them a panel.
 			MacShowAlert("Recursive Error", buffer, "Quit", NULL, NULL);
-#elif (defined (_WIN32) || (defined (_WIN32_WCE)) && !defined (__GNUC__)) && !defined (_XBOX)
-			va_start(argptr,error);
-			vsprintf(buffer, error, argptr);
-			va_end(argptr);
-#ifndef _WIN32_WCE
-			{
-				HANDLE co = GetStdHandle(STD_OUTPUT_HANDLE);
-				DWORD bytesWritten;
-				if (co != INVALID_HANDLE_VALUE)
-				{
-					if (GetFileType(co) == FILE_TYPE_CHAR && GetConsoleMode(co, &bytesWritten))
-						WriteConsoleA(co, buffer, (DWORD)strlen(buffer), NULL, NULL);
-					else
-						WriteFile(co, buffer, (DWORD)strlen(buffer), &bytesWritten, NULL);
-				}
-			}
-#endif
-			OutputDebugStringA(buffer);
-			MessageBoxA(vid.WndParent, buffer, "SRB2 Recursive Error", MB_OK|MB_ICONERROR);
 #else
 			// Don't print garbage
 			va_start(argptr, error);
@@ -3153,9 +2476,7 @@ void I_Error(const char *error, ...)
 	I_ShutdownGraphics();
 	I_ShutdownInput();
 	I_ShutdownSystem();
-#ifndef _arch_dreamcast
 	SDL_Quit();
-#endif
 #ifdef MAC_ALERT
 	va_start(argptr, error);
 	vsprintf(buffer, error, argptr);
@@ -3164,9 +2485,6 @@ void I_Error(const char *error, ...)
 	MacShowAlert("Critical Error", buffer, "Quit", NULL, NULL);
 #endif
 	W_Shutdown();
-#if defined (PARANOIA) && defined (__CYGWIN__)
-		*(INT32 *)2 = 4; //Alam: Debug!
-#endif
 #ifdef GP2X
 	chdir("/usr/gp2x");
 	execl("/usr/gp2x/gp2xmenu", "/usr/gp2x/gp2xmenu", NULL);
@@ -3245,9 +2563,7 @@ void I_ShutdownSystem(void)
 
 void I_GetDiskFreeSpace(INT64 *freespace)
 {
-#if defined (_arch_dreamcast) || defined (_PSP)
-	*freespace = 0;
-#elif defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON)
+#if   defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON)
 #if defined (SOLARIS) || defined (__HAIKU__) || defined (_WII) || defined (_PS3)
 	*freespace = INT32_MAX;
 	return;
@@ -3260,30 +2576,6 @@ void I_GetDiskFreeSpace(INT64 *freespace)
 	}
 	*freespace = stfs.f_bavail * stfs.f_bsize;
 #endif
-#elif (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
-	static p_GetDiskFreeSpaceExA pfnGetDiskFreeSpaceEx = NULL;
-	static boolean testwin95 = false;
-	ULARGE_INTEGER usedbytes, lfreespace;
-
-	if (!testwin95)
-	{
-		pfnGetDiskFreeSpaceEx = (p_GetDiskFreeSpaceExA)GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetDiskFreeSpaceExA");
-		testwin95 = true;
-	}
-	if (pfnGetDiskFreeSpaceEx)
-	{
-		if (pfnGetDiskFreeSpaceEx(NULL, &lfreespace, &usedbytes, NULL))
-			*freespace = lfreespace.QuadPart;
-		else
-			*freespace = INT32_MAX;
-	}
-	else
-	{
-		DWORD SectorsPerCluster, BytesPerSector, NumberOfFreeClusters, TotalNumberOfClusters;
-		GetDiskFreeSpace(NULL, &SectorsPerCluster, &BytesPerSector,
-		                 &NumberOfFreeClusters, &TotalNumberOfClusters);
-		*freespace = BytesPerSector*SectorsPerCluster*NumberOfFreeClusters;
-	}
 #else // Dummy for platform independent; 1GB should be enough
 	*freespace = 1024*1024*1024;
 #endif
@@ -3294,17 +2586,9 @@ char *I_GetUserName(void)
 #ifdef GP2X
 	static char username[MAXPLAYERNAME] = "GP2XUSER";
 	return username;
-#elif defined (PSP)
-	static char username[MAXPLAYERNAME] = "PSPUSER";
-	return username;
-#elif !(defined (_WIN32_WCE) || defined (_XBOX))
+#else
 	static char username[MAXPLAYERNAME];
 	char *p;
-#ifdef _WIN32
-	DWORD i = MAXPLAYERNAME;
-
-	if (!GetUserNameA(username, &i))
-#endif
 	{
 		p = I_GetEnv("USER");
 		if (!p)
@@ -3338,9 +2622,6 @@ INT32 I_mkdir(const char *dirname, INT32 unixright)
 //[segabor]
 #if defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON) || defined (__CYGWIN__) || defined (__OS2__)
 	return mkdir(dirname, unixright);
-#elif (defined (_WIN32) || (defined (_WIN32_WCE) && !defined (__GNUC__))) && !defined (_XBOX)
-	UNREFERENCED_PARAMETER(unixright); /// \todo should implement ntright under nt...
-	return CreateDirectoryA(dirname, NULL);
 #else
 	(void)dirname;
 	(void)unixright;
@@ -3352,9 +2633,6 @@ char *I_GetEnv(const char *name)
 {
 #ifdef NEED_SDL_GETENV
 	return SDL_getenv(name);
-#elif defined(_WIN32_WCE)
-	(void)name;
-	return NULL;
 #else
 	return getenv(name);
 #endif
@@ -3364,8 +2642,6 @@ INT32 I_PutEnv(char *variable)
 {
 #ifdef NEED_SDL_GETENV
 	return SDL_putenv(variable);
-#elif defined(_WIN32_WCE)
-	return ((variable)?-1:0);
 #else
 	return putenv(variable);
 #endif
@@ -3476,14 +2752,6 @@ static const char *locateWad(void)
 	if (((envstr = I_GetEnv("SRB2WADDIR")) != NULL) && isWadPathOk(envstr))
 		return envstr;
 
-#if defined(_WIN32_WCE) || defined(_PS3) || defined(_PSP)
-	// examine argv[0]
-	strcpy(returnWadPath, myargv[0]);
-	pathonly(returnWadPath);
-	I_PutEnv(va("HOME=%s",returnWadPath));
-	if (isWadPathOk(returnWadPath))
-		return returnWadPath;
-#endif
 
 #ifndef NOCWD
 	I_OutputMsg(",.");
@@ -3582,36 +2850,20 @@ const char *I_LocateWad(void)
 	if (waddir)
 	{
 		// change to the directory where we found srb2.srb
-#if (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
-		SetCurrentDirectoryA(waddir);
-#elif !defined (_WIN32_WCE) && !defined (_PS3)
 		if (chdir(waddir) == -1)
 			I_OutputMsg("Couldn't change working directory\n");
-#endif
 	}
 	return waddir;
 }
 
-#ifdef LINUX
 #define MEMINFO_FILE "/proc/meminfo"
 #define MEMTOTAL "MemTotal:"
 #define MEMFREE "MemFree:"
-#endif
 
 // quick fix for compil
 UINT32 I_GetFreeMem(UINT32 *total)
 {
-#if defined (_arch_dreamcast)
-	//Dreamcast!
-	if (total)
-		*total = 16<<20;
-	return 8<<20;
-#elif defined (_PSP)
-	// PSP
-	if (total)
-		*total = 32<<20;
-	return 16<<20;
-#elif defined (FREEBSD)
+#if   defined (FREEBSD)
 	struct vmmeter sum;
 	kvm_t *kd;
 	struct nlist namelist[] =
@@ -3643,12 +2895,7 @@ UINT32 I_GetFreeMem(UINT32 *total)
 	if (total)
 		*total = sum.v_page_count * sum.v_page_size;
 	return sum.v_free_count * sum.v_page_size;
-#elif defined (SOLARIS)
-	/* Just guess */
-	if (total)
-		*total = 32 << 20;
-	return 32 << 20;
-#elif defined (LINUX)
+#else
 	/* Linux */
 	char buf[1024];
 	char *memTag;
@@ -3692,79 +2939,12 @@ UINT32 I_GetFreeMem(UINT32 *total)
 	if (total)
 		*total = totalKBytes << 10;
 	return freeKBytes << 10;
-#elif (defined (_WIN32) || (defined (_WIN32_WCE) && !defined (__GNUC__))) && !defined (_XBOX)
-	MEMORYSTATUS info;
-
-	info.dwLength = sizeof (MEMORYSTATUS);
-	GlobalMemoryStatus( &info );
-	if (total)
-		*total = (UINT32)info.dwTotalPhys;
-	return (UINT32)info.dwAvailPhys;
-#elif defined (__OS2__)
-	UINT32 pr_arena;
-
-	if (total)
-		DosQuerySysInfo( QSV_TOTPHYSMEM, QSV_TOTPHYSMEM,
-							(PVOID) total, sizeof (UINT32));
-	DosQuerySysInfo( QSV_MAXPRMEM, QSV_MAXPRMEM,
-				(PVOID) &pr_arena, sizeof (UINT32));
-
-	return pr_arena;
-#else
-	// Guess 48 MB.
-	if (total)
-		*total = 48<<20;
-	return 48<<20;
-#endif /* LINUX */
+#endif
 }
 
 const CPUInfoFlags *I_CPUInfo(void)
 {
-#if (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
-	static CPUInfoFlags WIN_CPUInfo;
-	SYSTEM_INFO SI;
-	p_IsProcessorFeaturePresent pfnCPUID = (p_IsProcessorFeaturePresent)GetProcAddress(GetModuleHandleA("kernel32.dll"), "IsProcessorFeaturePresent");
-
-	ZeroMemory(&WIN_CPUInfo,sizeof (WIN_CPUInfo));
-	if (pfnCPUID)
-	{
-		WIN_CPUInfo.FPPE       = pfnCPUID( 0); //PF_FLOATING_POINT_PRECISION_ERRATA
-		WIN_CPUInfo.FPE        = pfnCPUID( 1); //PF_FLOATING_POINT_EMULATED
-		WIN_CPUInfo.cmpxchg    = pfnCPUID( 2); //PF_COMPARE_EXCHANGE_DOUBLE
-		WIN_CPUInfo.MMX        = pfnCPUID( 3); //PF_MMX_INSTRUCTIONS_AVAILABLE
-		WIN_CPUInfo.PPCMM64    = pfnCPUID( 4); //PF_PPC_MOVEMEM_64BIT_OK
-		WIN_CPUInfo.ALPHAbyte  = pfnCPUID( 5); //PF_ALPHA_BYTE_INSTRUCTIONS
-		WIN_CPUInfo.SSE        = pfnCPUID( 6); //PF_XMMI_INSTRUCTIONS_AVAILABLE
-		WIN_CPUInfo.AMD3DNow   = pfnCPUID( 7); //PF_3DNOW_INSTRUCTIONS_AVAILABLE
-		WIN_CPUInfo.RDTSC      = pfnCPUID( 8); //PF_RDTSC_INSTRUCTION_AVAILABLE
-		WIN_CPUInfo.PAE        = pfnCPUID( 9); //PF_PAE_ENABLED
-		WIN_CPUInfo.SSE2       = pfnCPUID(10); //PF_XMMI64_INSTRUCTIONS_AVAILABLE
-		//WIN_CPUInfo.blank    = pfnCPUID(11); //PF_SSE_DAZ_MODE_AVAILABLE
-		WIN_CPUInfo.DEP        = pfnCPUID(12); //PF_NX_ENABLED
-		WIN_CPUInfo.SSE3       = pfnCPUID(13); //PF_SSE3_INSTRUCTIONS_AVAILABLE
-		WIN_CPUInfo.cmpxchg16b = pfnCPUID(14); //PF_COMPARE_EXCHANGE128
-		WIN_CPUInfo.cmp8xchg16 = pfnCPUID(15); //PF_COMPARE64_EXCHANGE128
-		WIN_CPUInfo.PFC        = pfnCPUID(16); //PF_CHANNELS_ENABLED
-	}
-#ifdef HAVE_SDLCPUINFO
-	else
-	{
-		WIN_CPUInfo.RDTSC       = SDL_HasRDTSC();
-		WIN_CPUInfo.MMX         = SDL_HasMMX();
-		WIN_CPUInfo.AMD3DNow    = SDL_Has3DNow();
-		WIN_CPUInfo.SSE         = SDL_HasSSE();
-		WIN_CPUInfo.SSE2        = SDL_HasSSE2();
-		WIN_CPUInfo.AltiVec     = SDL_HasAltiVec();
-	}
-	WIN_CPUInfo.MMXExt      = SDL_HasMMXExt();
-	WIN_CPUInfo.AMD3DNowExt = SDL_Has3DNowExt();
-#endif
-	GetSystemInfo(&SI);
-	WIN_CPUInfo.CPUs = SI.dwNumberOfProcessors;
-	WIN_CPUInfo.IA64 = (SI.dwProcessorType == 2200); // PROCESSOR_INTEL_IA64
-	WIN_CPUInfo.AMD64 = (SI.dwProcessorType == 8664); // PROCESSOR_AMD_X8664
-	return &WIN_CPUInfo;
-#elif defined (HAVE_SDLCPUINFO)
+#if   defined (HAVE_SDLCPUINFO)
 	static CPUInfoFlags SDL_CPUInfo;
 	memset(&SDL_CPUInfo,0,sizeof (CPUInfoFlags));
 	SDL_CPUInfo.RDTSC       = SDL_HasRDTSC();
@@ -3781,52 +2961,7 @@ const CPUInfoFlags *I_CPUInfo(void)
 #endif
 }
 
-#if (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
-static void CPUAffinity_OnChange(void);
-static consvar_t cv_cpuaffinity = {"cpuaffinity", "-1", CV_SAVE | CV_CALL, NULL, CPUAffinity_OnChange, 0, NULL, NULL, 0, 0, NULL};
-
-static p_GetCurrentProcess pfnGetCurrentProcess = NULL;
-static p_GetProcessAffinityMask pfnGetProcessAffinityMask = NULL;
-static p_SetProcessAffinityMask pfnSetProcessAffinityMask = NULL;
-
-static inline VOID GetAffinityFuncs(VOID)
-{
-	HMODULE h = GetModuleHandleA("kernel32.dll");
-	pfnGetCurrentProcess = (p_GetCurrentProcess)GetProcAddress(h, "GetCurrentProcess");
-	pfnGetProcessAffinityMask = (p_GetProcessAffinityMask)GetProcAddress(h, "GetProcessAffinityMask");
-	pfnSetProcessAffinityMask = (p_SetProcessAffinityMask)GetProcAddress(h, "SetProcessAffinityMask");
-}
-
-static void CPUAffinity_OnChange(void)
-{
-	DWORD_PTR dwProcMask, dwSysMask;
-	HANDLE selfpid;
-
-	if (!pfnGetCurrentProcess || !pfnGetProcessAffinityMask || !pfnSetProcessAffinityMask)
-		return;
-	else
-		selfpid = pfnGetCurrentProcess();
-
-	pfnGetProcessAffinityMask(selfpid, &dwProcMask, &dwSysMask);
-
-	/* If resulting mask is zero, don't change anything and fall back to
-	 * actual mask.
-	 */
-	if(dwSysMask & cv_cpuaffinity.value)
-	{
-		pfnSetProcessAffinityMask(selfpid, dwSysMask & cv_cpuaffinity.value);
-		CV_StealthSetValue(&cv_cpuaffinity, (INT32)(dwSysMask & cv_cpuaffinity.value));
-	}
-	else
-		CV_StealthSetValue(&cv_cpuaffinity, (INT32)dwProcMask);
-}
-#endif
 
 void I_RegisterSysCommands(void)
 {
-#if (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
-	GetAffinityFuncs();
-	CV_RegisterVar(&cv_cpuaffinity);
-#endif
 }
-#endif

@@ -17,7 +17,6 @@
 /// \brief cd music interface
 ///
 
-#ifdef HAVE_SDL
 
 #if defined (DC) || defined (_WIN32_WCE) || defined(GP2X) || defined(_PS3)
 #define NOSDLCD
@@ -46,17 +45,6 @@
 
 #define MAX_CD_TRACKS 256
 
-#ifdef _XBOX
-INT32  SDL_SYS_CDInit(void)
-{
-	return(0);
-}
-
-void SDL_SYS_CDQuit(void)
-{
-	return;
-}
-#endif
 
 UINT8 cdaudio_started = 0;   // for system startup/shutdown
 
@@ -585,4 +573,3 @@ boolean I_SetVolumeCD (INT32 volume)
 	return false;
 }
 
-#endif

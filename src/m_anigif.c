@@ -19,9 +19,7 @@
 #include "v_video.h"
 #include "i_video.h"
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
 // GIFs are always little-endian
 #include "byteptr.h"
@@ -456,7 +454,6 @@ const UINT8 gifframe_gchead[4] = {0x21,0xF9,0x04,0x04}; // GCE, bytes, packed by
 static UINT8 *gifframe_data = NULL;
 static size_t gifframe_size = 8192;
 
-#ifdef HWRENDER
 static void hwrconvert(void)
 {
 	UINT8 *linear = HWR_GetScreenshot();
@@ -480,7 +477,6 @@ static void hwrconvert(void)
 
 	free(linear);
 }
-#endif
 
 //
 // GIF_framewrite
@@ -509,10 +505,8 @@ static void GIF_framewrite(void)
 		// blit to temp screen
 		if (rendermode == render_soft)
 			I_ReadScreen(movie_screen);
-#ifdef HWRENDER
 		else if (rendermode == render_opengl)
 			hwrconvert();
-#endif
 	}
 	else
 	{
@@ -524,13 +518,11 @@ static void GIF_framewrite(void)
 		{
 			if (rendermode == render_soft)
 				I_ReadScreen(movie_screen);
-#ifdef HWRENDER
 			else if (rendermode == render_opengl)
 			{
 				hwrconvert();
 				VID_BlitLinearScreen(screens[2], screens[0], vid.width*vid.bpp, vid.height, vid.width*vid.bpp, vid.rowbytes);
 			}
-#endif
 		}
 
 		movie_screen = screens[0];

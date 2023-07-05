@@ -31,7 +31,6 @@
 #pragma warning(default : 4214 4244)
 #endif
 
-#ifdef HAVE_MIXER
 #include "SDL_mixer.h"
 /* This is the version number macro for the current SDL_mixer version: */
 #ifndef SDL_MIXER_COMPILEDVERSION
@@ -45,13 +44,8 @@
 	(SDL_MIXER_COMPILEDVERSION >= SDL_VERSIONNUM(X, Y, Z))
 #endif
 
-#else
-#define MIX_CHANNELS 8
-#endif
 
-#ifdef _WIN32
-#include <direct.h>
-#elif defined (__GNUC__)
+#if   defined (__GNUC__)
 #include <unistd.h>
 #endif
 #include "../z_zone.h"
@@ -138,7 +132,6 @@ static SDL_mutex *Snd_Mutex = NULL;
 static SDL_AudioSpec audio;
 
 static SDL_bool musicStarted = SDL_FALSE;
-#ifdef HAVE_MIXER
 static SDL_mutex *Msc_Mutex = NULL;
 /* FIXME: Make this file instance-specific */
 #define MIDI_PATH     srb2home
@@ -178,7 +171,6 @@ static const INT32 MIDIfade = 500;
 static const INT32 Digfade = 0;
 
 static Mix_Music *music[2] = { NULL, NULL };
-#endif
 
 typedef struct srb2audio_s {
 	void *userdata;
@@ -200,9 +192,7 @@ static void Snd_LockAudio(void) //Alam: Lock audio data and uninstall audio call
 	         && hws_mode == HWS_DEFAULT_MODE
 #endif
 	        ) SDL_LockAudio();
-#ifdef HAVE_MIXER
 	else if (musicStarted) Mix_SetPostMix(NULL, NULL);
-#endif
 }
 
 static void Snd_UnlockAudio(void) //Alam: Unlock audio data and reinstall audio callback
@@ -214,9 +204,7 @@ static void Snd_UnlockAudio(void) //Alam: Unlock audio data and reinstall audio 
 	         && hws_mode == HWS_DEFAULT_MODE
 #endif
 	        ) SDL_UnlockAudio();
-#ifdef HAVE_MIXER
 	else if (musicStarted) Mix_SetPostMix(audio.callback, audio.userdata);
-#endif
 }
 
 static inline Uint16 Snd_LowerRate(Uint16 sr)
@@ -1088,27 +1076,6 @@ static void *soundso = NULL;
 static INT32 Init3DSDriver(const char *soName)
 {
 	if (soName) soundso = hwOpen(soName);
-#if defined (_WIN32) && defined (_X86_) && !defined (STATIC3DS)
-	HW3DS.pfnStartup            = hwSym("Startup@8",soundso);
-	HW3DS.pfnShutdown           = hwSym("Shutdown@0",soundso);
-	HW3DS.pfnAddSfx             = hwSym("AddSfx@4",soundso);
-	HW3DS.pfnAddSource          = hwSym("AddSource@8",soundso);
-	HW3DS.pfnStartSource        = hwSym("StartSource@4",soundso);
-	HW3DS.pfnStopSource         = hwSym("StopSource@4",soundso);
-	HW3DS.pfnGetHW3DSVersion    = hwSym("GetHW3DSVersion@0",soundso);
-	HW3DS.pfnBeginFrameUpdate   = hwSym("BeginFrameUpdate@0",soundso);
-	HW3DS.pfnEndFrameUpdate     = hwSym("EndFrameUpdate@0",soundso);
-	HW3DS.pfnIsPlaying          = hwSym("IsPlaying@4",soundso);
-	HW3DS.pfnUpdateListener     = hwSym("UpdateListener@8",soundso);
-	HW3DS.pfnUpdateSourceParms  = hwSym("UpdateSourceParms@12",soundso);
-	HW3DS.pfnSetCone            = hwSym("SetCone@8",soundso);
-	HW3DS.pfnSetGlobalSfxVolume = hwSym("SetGlobalSfxVolume@4",soundso);
-	HW3DS.pfnUpdate3DSource     = hwSym("Update3DSource@8",soundso);
-	HW3DS.pfnReloadSource       = hwSym("ReloadSource@8",soundso);
-	HW3DS.pfnKillSource         = hwSym("KillSource@4",soundso);
-	HW3DS.pfnKillSfx            = hwSym("KillSfx@4",soundso);
-	HW3DS.pfnGetHW3DSTitle      = hwSym("GetHW3DSTitle@8",soundso);
-#else
 	HW3DS.pfnStartup            = hwSym("Startup",soundso);
 	HW3DS.pfnShutdown           = hwSym("Shutdown",soundso);
 	HW3DS.pfnAddSfx             = hwSym("AddSfx",soundso);
@@ -1128,7 +1095,6 @@ static INT32 Init3DSDriver(const char *soName)
 	HW3DS.pfnKillSource         = hwSym("KillSource",soundso);
 	HW3DS.pfnKillSfx            = hwSym("KillSfx",soundso);
 	HW3DS.pfnGetHW3DSTitle      = hwSym("GetHW3DSTitle",soundso);
-#endif
 
 //	if (HW3DS.pfnUpdateListener2 && HW3DS.pfnUpdateListener2 != soundso)
 		return true;
@@ -1172,12 +1138,6 @@ void I_StartupSound(void)
 #ifdef HW3SOUND
 	const char *sdrv_name = NULL;
 #endif
-#ifndef HAVE_MIXER
-#ifndef NO_MIDI
-	midi_disabled = 
-#endif
-	digital_disabled = true;
-#endif
 
 	memset(channels, 0, sizeof (channels)); //Alam: Clean it
 
@@ -1189,11 +1149,6 @@ void I_StartupSound(void)
 	// Configure sound device
 	CONS_Printf("I_StartupSound:\n");
 
-#ifdef _WIN32
-	// Force DirectSound instead of WASAPI
-	// SDL 2.0.6+ defaults to the latter and it screws up our sound effects
-	SDL_setenv("SDL_AUDIODRIVER", "directsound", 1);
-#endif
 
 	// EE inits audio first so we're following along.
 	if (SDL_WasInit(SDL_INIT_AUDIO) == SDL_INIT_AUDIO)
@@ -1234,22 +1189,6 @@ void I_StartupSound(void)
 	{
 		hws_mode = HWS_OPENAL;
 	}
-#elif defined (_WIN32)
-	if (M_CheckParm("-ds3d"))
-	{
-		hws_mode = HWS_DS3D;
-		sdrv_name = "s_ds3d.dll";
-	}
-	else if (M_CheckParm("-fmod3d"))
-	{
-		hws_mode = HWS_FMOD3D;
-		sdrv_name = "s_fmod.dll";
-	}
-	else if (M_CheckParm("-openal"))
-	{
-		hws_mode = HWS_OPENAL;
-		sdrv_name = "s_openal.dll";
-	}
 #else
 	if (M_CheckParm("-fmod3d"))
 	{
@@ -1278,10 +1217,6 @@ void I_StartupSound(void)
 			snddev.bps = 16;
 			snddev.sample_rate = audio.freq;
 			snddev.numsfxs = NUMSFX;
-#if defined (_WIN32)
-			snddev.cooplevel = 0x00000002;
-			snddev.hWnd = vid.WndParent;
-#endif
 			if (HW3S_Init(I_Error, &snddev))
 			{
 				audio.userdata = NULL;
@@ -1570,9 +1505,7 @@ static boolean I_StartGMESong(const char *musicname, boolean looping)
 	gme_set_user_data(emu, data);
 	gme_set_user_cleanup(emu, I_CleanupGME);
 	gme_start_track(emu, 0);
-#ifdef HAVE_MIXER
 	gme_set_fade(emu, Digfade);
-#endif
 
 	Snd_LockAudio();
 	localdata.gme_emu = emu;

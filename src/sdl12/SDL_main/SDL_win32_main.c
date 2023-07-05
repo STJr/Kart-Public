@@ -14,16 +14,8 @@
 
 #include <tchar.h>
 
-#ifdef _WIN32_WCE
-# define DIR_SEPERATOR TEXT("\\")
-# define _tgetcwd(str,len)	wcscpy(str,TEXT(""))
-# define setbuf(f,b)
-# define setvbuf(w,x,y,z)
-# define _tremove(x)	DeleteFile(x)
-#else
 # define DIR_SEPERATOR TEXT("/")
 # include <direct.h>
-#endif
 
 /* Include the SDL main definition header */
 #ifdef _MSC_VER
@@ -38,9 +30,7 @@
 #define USE_MESSAGEBOX
 
 #ifdef main
-# ifndef _WIN32_WCE_EMULATION
 #  undef main
-# endif /* _WIN32_WCE_EMULATION */
 #endif /* main */
 
 /* The standard output files */
@@ -57,31 +47,6 @@
   static TCHAR stderrPath[MAX_PATH];
 #endif
 
-#if defined(_WIN32_WCE) && _WIN32_WCE < 300
-/* seems to be undefined in Win CE although in online help */
-#define isspace(a) (((CHAR)a == ' ') || ((CHAR)a == '\t'))
-
-/* seems to be undefined in Win CE although in online help */
-char *strrchr(char *str, int c)
-{
-	char *p;
-
-	/* Skip to the end of the string */
-	p=str;
-	while (*p)
-		p++;
-
-	/* Look for the given character */
-	while ( (p >= str) && (*p != (CHAR)c) )
-		p--;
-
-	/* Return NULL if character not found */
-	if ( p < str ) {
-		p = NULL;
-	}
-	return p;
-}
-#endif /* _WIN32_WCE < 300 */
 
 /* Parse a command line buffer into arguments */
 static int ParseCommandLine(char *cmdline, char **argv)
@@ -233,7 +198,6 @@ int console_main(int argc, char *argv[])
 	atexit(cleanup_output);
 	atexit(SDL_Quit);
 
-#ifndef DISABLE_VIDEO
 #if 0
 	/* Create and register our class *
 	   DJM: If we do this here, the user nevers gets a chance to
@@ -253,7 +217,6 @@ int console_main(int argc, char *argv[])
 	 */
 	SDL_SetModuleHandle(GetModuleHandle(NULL));
 #endif /* 0 */
-#endif /* !DISABLE_VIDEO */
 
 	/* Run the application main() code */
 	st = SDL_main(argc, argv);
@@ -268,23 +231,14 @@ int console_main(int argc, char *argv[])
 }
 
 /* This is where execution begins [windowed apps] */
-#ifdef _WIN32_WCE
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR szCmdLine, int sw)
-#else
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
-#endif
 {
 	HINSTANCE handle;
 	int Result = -1;
 	char **argv;
 	int argc;
 	LPSTR cmdline;
-#ifdef _WIN32_WCE
-	size_t nLen;
-	LPTSTR bufp;
-#else
 	LPSTR bufp;
-#endif
 #ifndef NO_STDIO_REDIRECT
 	FILE *newfp;
 #endif
@@ -307,7 +261,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 	/* Redirect standard input and standard output */
 	newfp = _tfreopen(stdoutPath, TEXT("w"), stdout);
 
-#ifndef _WIN32_WCE
 	if ( newfp == NULL ) {	/* This happens on NT */
 #if !defined(stdout)
 		stdout = _tfopen(stdoutPath, TEXT("w"));
@@ -318,13 +271,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 		}
 #endif
 	}
-#endif /* _WIN32_WCE */
 
 	_tgetcwd( stderrPath, sizeof( stderrPath ) );
 	_tcscat( stderrPath, DIR_SEPERATOR STDERR_FILE );
 
 	newfp = _tfreopen(stderrPath, TEXT("w"), stderr);
-#ifndef _WIN32_WCE
 	if ( newfp == NULL ) {	/* This happens on NT */
 #if !defined(stderr)
 		stderr = _tfopen(stderrPath, TEXT("w"));
@@ -335,26 +286,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 		}
 #endif
 	}
-#endif /* _WIN32_WCE */
 
 	setvbuf(stdout, NULL, _IOLBF, BUFSIZ);	/* Line buffered */
 	setbuf(stderr, NULL);			/* No buffering */
 #endif /* !NO_STDIO_REDIRECT */
 
-#ifdef _WIN32_WCE
-	nLen = wcslen(szCmdLine)+128+1;
-	bufp = (wchar_t *)alloca(nLen*2);
-	wcscpy (bufp, TEXT("\""));
-	GetModuleFileName(NULL, bufp+1, 128-3);
-	wcscpy (bufp+wcslen(bufp), TEXT("\" "));
-	wcsncpy(bufp+wcslen(bufp), szCmdLine,nLen-wcslen(bufp));
-	nLen = wcslen(bufp)+1;
-	cmdline = (char *)alloca(nLen);
-	if ( cmdline == NULL ) {
-		return OutOfMemory();
-	}
-	WideCharToMultiByte(CP_ACP, 0, bufp, -1, cmdline, nLen, NULL, NULL);
-#else
 	szCmdLine = NULL;
 	/* Grab the command line (use alloca() on Windows) */
 	bufp = GetCommandLineA();
@@ -363,7 +299,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 		return OutOfMemory();
 	}
 	strcpy(cmdline, bufp);
-#endif
 
 	/* Parse it into argv and argc */
 	argc = ParseCommandLine(cmdline, NULL);
@@ -382,18 +317,14 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 #endif
 
 		/* Run the main program (after a little SDL initialization) */
-#ifndef _WIN32_WCE
 		 __try
-#endif
 		{
 			Result = console_main(argc, argv);
 		}
-#ifndef _WIN32_WCE
 		__except ( RecordExceptionInfo(GetExceptionInformation()))
 		{
 			SetUnhandledExceptionFilter(EXCEPTION_CONTINUE_SEARCH); //Do nothing here.
 		}
-#endif
 
 #ifdef BUGTRAP
 	}	/* BT failure clause. */

@@ -30,15 +30,9 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 //int	vsnprintf(char *str, size_t n, const char *fmt, va_list ap);
 #endif
 
-#if (defined (_WIN32) && !defined (_WIN32_WCE)) && !defined (_XBOX)
-#include <direct.h>
-#include <malloc.h>
-#endif
 
 #if !defined (UNDER_CE)
 #include <time.h>
-#elif defined (_XBOX)
-#define NO_TIME
 #endif
 
 #include <emscripten.h>
@@ -79,31 +73,17 @@ int	snprintf(char *str, size_t n, const char *fmt, ...);
 #include "keys.h"
 #include "filesrch.h" // refreshdirmenu
 
-#ifdef CMAKECONFIG
 #include "config.h"
-#else
-#include "config.h.in"
-#endif
 
-#ifdef _XBOX
-#include "sdl12/SRB2XBOX/xboxhelp.h"
-#endif
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h" // 3D View Rendering
-#endif
 
-#ifdef _WINDOWS
-#include "win32/win_main.h" // I_DoStartupMouse
-#endif
 
 #ifdef HW3SOUND
 #include "hardware/hw3sound.h"
 #endif
 
-#ifdef HAVE_BLUA
 #include "lua_script.h"
-#endif
 
 #ifdef HAVE_DISCORDRPC
 #include "discord.h"
@@ -131,19 +111,11 @@ INT32 postimgparam[MAXSPLITSCREENPLAYERS];
 // These variables are only true if
 // whether the respective sound system is disabled
 // or they're init'ed, but the player just toggled them
-#ifdef _XBOX
-#ifndef NO_MIDI
-boolean midi_disabled = true;
-#endif
-boolean sound_disabled = true;
-boolean digital_disabled = true;
-#else
 #ifndef NO_MIDI
 boolean midi_disabled = false;
 #endif
 boolean sound_disabled = false;
 boolean digital_disabled = false;
-#endif
 
 #ifdef DEBUGFILE
 INT32 debugload = 0;
@@ -151,13 +123,8 @@ INT32 debugload = 0;
 
 char savegamename[256];
 
-#ifdef _arch_dreamcast
-char srb2home[256] = "/cd";
-char srb2path[256] = "/cd";
-#else
 char srb2home[256] = ".";
 char srb2path[256] = ".";
-#endif
 boolean usehome = true;
 const char *pandf = "%s" PATHSEP "%s";
 
@@ -225,15 +192,11 @@ void D_ProcessEvents(void)
 		}
 
 		// Menu input
-#ifdef HAVE_THREADS
 		I_lock_mutex(&m_menu_mutex);
-#endif
 		{
 			eaten = M_Responder(ev);
 		}
-#ifdef HAVE_THREADS
 		I_unlock_mutex(m_menu_mutex);
-#endif
 
 		if (eaten)
 			continue; // menu ate the event
@@ -244,15 +207,11 @@ void D_ProcessEvents(void)
 				continue;	// demo ate the event
 
 		// console input
-#ifdef HAVE_THREADS
 		I_lock_mutex(&con_mutex);
-#endif
 		{
 			eaten = CON_Responder(ev);
 		}
-#ifdef HAVE_THREADS
 		I_unlock_mutex(con_mutex);
-#endif
 
 		if (eaten)
 			continue; // ate the event
@@ -449,11 +408,9 @@ static void D_Display(void)
 
 					viewssnum = i;
 
-#ifdef HWRENDER
 					if (rendermode != render_soft)
 						HWR_RenderPlayerView(i, &players[displayplayers[i]]);
 					else
-#endif
 					if (rendermode != render_none)
 					{
 						if (i > 0) // Splitscreen-specific
@@ -554,13 +511,9 @@ static void D_Display(void)
 	if (gamestate != GS_TIMEATTACK)
 		CON_Drawer();
 
-#ifdef HAVE_THREADS
 	I_lock_mutex(&m_menu_mutex);
-#endif
 	M_Drawer(); // menu is drawn even on top of everything
-#ifdef HAVE_THREADS
 	I_unlock_mutex(m_menu_mutex);
-#endif
 	// focus lost moved to M_Drawer
 
 	//
@@ -747,9 +700,7 @@ void D_SRB2_Draw_Frame(void) {
 		HW3S_EndFrameUpdate();
 #endif
 
-#ifdef HAVE_BLUA
 		LUA_Step();
-#endif
 
 #ifdef HAVE_DISCORDRPC
 		if (! dedicated)
@@ -786,10 +737,6 @@ void D_SRB2Loop(void)
 
 	// Pushing of + parameters is now done back in D_SRB2Main, not here.
 
-#ifdef _WINDOWS
-	CONS_Printf("I_StartupMouse()...\n");
-	I_DoStartupMouse();
-#endif
 
 	I_UpdateTime(cv_timescale.value);
 	/* oldentertics = I_GetTime(); */
@@ -939,10 +886,8 @@ static void IdentifyVersion(void)
 {
 	const char *srb2waddir = NULL;
 
-#if (defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON) || defined (HAVE_SDL)
 	// change to the directory where 'srb2.srb' is found
 	srb2waddir = I_LocateWad();
-#endif
 
 	// get the current directory (possible problem on NT with "." as current dir)
 	if (srb2waddir)
@@ -951,17 +896,11 @@ static void IdentifyVersion(void)
 	}
 	else
 	{
-#if !defined(_WIN32_WCE) && !defined(_PS3)
 		if (getcwd(srb2path, 256) != NULL)
 			srb2waddir = srb2path;
 		else
-#endif
 		{
-#ifdef _arch_dreamcast
-			srb2waddir = "/cd";
-#else
 			srb2waddir = srb2path;
-#endif
 		}
 	}
 
@@ -991,7 +930,6 @@ static void IdentifyVersion(void)
 	D_AddFile(va(pandf,srb2waddir,"patch.kart"), startupwadfiles);
 #endif
 
-#if !defined (HAVE_SDL) || defined (HAVE_MIXER)
 #define MUSICTEST(str) \
 	{\
 		const char *musicpath = va(pandf,srb2waddir,str);\
@@ -1004,7 +942,6 @@ static void IdentifyVersion(void)
 	MUSICTEST("sounds.kart")
 	MUSICTEST("music.kart")
 #undef MUSICTEST
-#endif
 }
 
 /* ======================================================================== */
@@ -1113,16 +1050,10 @@ void D_SRB2Main(void)
 	setbuf(stdout, NULL); // non-buffered output
 #endif
 
-#if defined (_WIN32_WCE) //|| defined (_DEBUG) || defined (GP2X)
-	devparm = M_CheckParm("-nodebug") == 0;
-#else
 	devparm = M_CheckParm("-debug") != 0;
-#endif
 
 	// for dedicated server
-#if !defined (_WINDOWS) //already check in win_main.c
 	dedicated = M_CheckParm("-dedicated") != 0;
-#endif
 
 	strcpy(title, "SRB2Kart");
 	strcpy(srb2, "SRB2Kart");
@@ -1132,13 +1063,6 @@ void D_SRB2Main(void)
 	D_Titlebar(srb2, title);
 #endif
 
-#if defined (__OS2__) && !defined (HAVE_SDL)
-	// set PM window title
-	snprintf(pmData->title, sizeof (pmData->title),
-		"SRB2Kart" VERSIONSTRING ": %s",
-		title);
-	pmData->title[sizeof (pmData->title) - 1] = '\0';
-#endif
 
 	if (devparm)
 		CONS_Printf(M_GetText("Development mode ON.\n"));
@@ -1155,11 +1079,6 @@ void D_SRB2Main(void)
 		{
 #if ((defined (__unix__) && !defined (MSDOS)) || defined(__APPLE__) || defined (UNIXCOMMON)) && !defined (__CYGWIN__) && !defined (DC) && !defined (PSP) && !defined(GP2X)
 			I_Error("Please set $HOME to your home directory\n");
-#elif defined (_WIN32_WCE) && 0
-			if (dedicated)
-				snprintf(configfile, sizeof configfile, "/Storage Card/SRB2DEMO/d"CONFIGFILENAME);
-			else
-				snprintf(configfile, sizeof configfile, "/Storage Card/SRB2DEMO/"CONFIGFILENAME);
 #else
 			if (dedicated)
 				snprintf(configfile, sizeof configfile, "d"CONFIGFILENAME);
@@ -1205,11 +1124,7 @@ void D_SRB2Main(void)
 		tmpfile = fopen(testfile, "w");
 		if (tmpfile == NULL)
 		{
-#if defined (_WIN32)
-			I_Error("Couldn't write game config.\nMake sure the game is installed somewhere it has write permissions.\n\n(Don't use the Downloads folder, Program Files, or your desktop!\nIf unsure, we recommend making a subfolder in your Documents folder.)");
-#else
 			I_Error("Couldn't write game config.\nMake sure you've installed the game somewhere it has write permissions.");
-#endif
 		}
 		else
 		{
@@ -1217,9 +1132,6 @@ void D_SRB2Main(void)
 			remove(testfile);
 		}
 
-#ifdef _arch_dreamcast
-	strcpy(downloaddir, "/ram"); // the dreamcast's TMP
-#endif
 	}
 
 	// rand() needs seeded regardless of password
@@ -1381,13 +1293,11 @@ void D_SRB2Main(void)
 	CONS_Printf("I_StartupGraphics()...\n");
 	I_StartupGraphics();
 
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
 		for (i = 0; i < numwadfiles; i++)
 			HWR_LoadShaders(i, (wadfiles[i]->type == RET_PK3));
 	}
-#endif
 
 	//--------------------------------------------------------- CONSOLE
 	// setup loading screen
@@ -1399,11 +1309,7 @@ void D_SRB2Main(void)
 
 	COM_Init();
 	// libogc has a CON_Init function, we must rename SRB2's CON_Init in WII/libogc
-#ifndef _WII
 	CON_Init();
-#else
-	CON_InitWii();
-#endif
 
 	D_RegisterServerCommands();
 	D_RegisterClientCommands(); // be sure that this is called before D_CheckNetGame
@@ -1417,9 +1323,7 @@ void D_SRB2Main(void)
 
 	G_LoadGameData();
 
-#if (defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON) || defined (HAVE_SDL)
 	VID_PrepareModeList(); // Regenerate Modelist according to cv_fullscreen
-#endif
 
 	// set user default mode or mode set at cmdline
 	SCR_CheckDefaultMode();
@@ -1704,13 +1608,6 @@ const char *D_Home(void)
 {
 	const char *userhome = NULL;
 
-#ifdef ANDROID
-	return "/data/data/org.srb2/";
-#endif
-#ifdef _arch_dreamcast
-	char VMUHOME[] = "HOME=/vmu/a1";
-	putenv(VMUHOME); //don't use I_PutEnv
-#endif
 
 	if (M_CheckParm("-home") && M_IsNextParm())
 		userhome = M_GetNextParm();
@@ -1726,30 +1623,6 @@ const char *D_Home(void)
 #endif
 			userhome = I_GetEnv("HOME"); //Alam: my new HOME for srb2
 	}
-#if defined (_WIN32) && !defined(_WIN32_WCE) //Alam: only Win32 have APPDATA and USERPROFILE
-	if (!userhome && usehome) //Alam: Still not?
-	{
-		char *testhome = NULL;
-		testhome = I_GetEnv("APPDATA");
-		if (testhome != NULL
-			&& (FIL_FileOK(va("%s" PATHSEP "%s" PATHSEP CONFIGFILENAME, testhome, DEFAULTDIR))))
-		{
-			userhome = testhome;
-		}
-	}
-#ifndef __CYGWIN__
-	if (!userhome && usehome) //Alam: All else fails?
-	{
-		char *testhome = NULL;
-		testhome = I_GetEnv("USERPROFILE");
-		if (testhome != NULL
-			&& (FIL_FileOK(va("%s" PATHSEP "%s" PATHSEP CONFIGFILENAME, testhome, DEFAULTDIR))))
-		{
-			userhome = testhome;
-		}
-	}
-#endif// !__CYGWIN__
-#endif// _WIN32
 	if (usehome) return userhome;
 	else return NULL;
 }

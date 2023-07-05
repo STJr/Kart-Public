@@ -140,11 +140,6 @@ void I_StartupSound(void)
 {
 	I_Assert(!sound_started);
 
-#ifdef _WIN32
-	// Force DirectSound instead of WASAPI
-	// SDL 2.0.6+ defaults to the latter and it screws up our sound effects
-	SDL_setenv("SDL_AUDIODRIVER", "directsound", 1);
-#endif
 
 	// EE inits audio first so we're following along.
 	if (SDL_WasInit(SDL_INIT_AUDIO) == SDL_INIT_AUDIO)
@@ -500,13 +495,6 @@ void I_SetSfxVolume(UINT8 volume)
 
 static UINT32 get_real_volume(UINT8 volume)
 {
-#ifdef _WIN32
-	if (I_SongType() == MU_MID)
-		// HACK: Until we stop using native MIDI,
-		// disable volume changes
-		return ((UINT32)31*128/31); // volume = 31
-	else
-#endif
 		// convert volume to mixer's 128 scale
 		// then apply internal_volume as a percentage
 		return ((UINT32)volume*128/31) * (UINT32)internal_volume / 100;
@@ -1111,13 +1099,6 @@ void I_SetMusicVolume(UINT8 volume)
 	if (!I_SongPlaying())
 		return;
 
-#ifdef _WIN32
-	if (I_SongType() == MU_MID)
-		// HACK: Until we stop using native MIDI,
-		// disable volume changes
-		music_volume = 31;
-	else
-#endif
 		music_volume = volume;
 
 	Mix_VolumeMusic(get_real_volume(music_volume));

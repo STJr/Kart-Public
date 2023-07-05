@@ -33,9 +33,6 @@
 // SRB2Kart
 #include "r_fps.h" // R_GetFramerateCap
 
-#if defined (USEASM) && !defined (NORUSEASM)//&& (!defined (_MSC_VER) || (_MSC_VER <= 1200))
-#define RUSEASM //MSC.NET can't patch itself
-#endif
 
 // --------------------------------------------
 // assembly or c drawer routines for 8bpp/16bpp
@@ -240,24 +237,18 @@ void SCR_Startup(void)
 	vid.fdupx = FixedDiv(vid.width*FRACUNIT, BASEVIDWIDTH*FRACUNIT);
 	vid.fdupy = FixedDiv(vid.height*FRACUNIT, BASEVIDHEIGHT*FRACUNIT);
 
-#ifdef HWRENDER
 	if (rendermode != render_opengl && rendermode != render_none) // This was just placing it incorrectly at non aspect correct resolutions in opengl
-#endif
 		vid.fdupx = vid.fdupy = (vid.fdupx < vid.fdupy ? vid.fdupx : vid.fdupy);
 
 	vid.meddupx = (UINT8)(vid.dupx >> 1) + 1;
 	vid.meddupy = (UINT8)(vid.dupy >> 1) + 1;
-#ifdef HWRENDER
 	vid.fmeddupx = vid.meddupx*FRACUNIT;
 	vid.fmeddupy = vid.meddupy*FRACUNIT;
-#endif
 
 	vid.smalldupx = (UINT8)(vid.dupx / 3) + 1;
 	vid.smalldupy = (UINT8)(vid.dupy / 3) + 1;
-#ifdef HWRENDER
 	vid.fsmalldupx = vid.smalldupx*FRACUNIT;
 	vid.fsmalldupy = vid.smalldupy*FRACUNIT;
-#endif
 
 	vid.baseratio = FRACUNIT;
 
@@ -286,12 +277,10 @@ void SCR_Recalc(void)
 	vid.fdupx = FixedDiv(vid.width*FRACUNIT, BASEVIDWIDTH*FRACUNIT);
 	vid.fdupy = FixedDiv(vid.height*FRACUNIT, BASEVIDHEIGHT*FRACUNIT);
 
-#ifdef HWRENDER
 	//if (rendermode != render_opengl && rendermode != render_none) // This was just placing it incorrectly at non aspect correct resolutions in opengl
 	// 13/11/18:
 	// The above is no longer necessary, since we want OpenGL to be just like software now
 	// -- Monster Iestyn
-#endif
 		vid.fdupx = vid.fdupy = (vid.fdupx < vid.fdupy ? vid.fdupx : vid.fdupy);
 
 	//vid.baseratio = FixedDiv(vid.height << FRACBITS, BASEVIDHEIGHT << FRACBITS);
@@ -299,17 +288,13 @@ void SCR_Recalc(void)
 
 	vid.meddupx = (UINT8)(vid.dupx >> 1) + 1;
 	vid.meddupy = (UINT8)(vid.dupy >> 1) + 1;
-#ifdef HWRENDER
 	vid.fmeddupx = vid.meddupx*FRACUNIT;
 	vid.fmeddupy = vid.meddupy*FRACUNIT;
-#endif
 
 	vid.smalldupx = (UINT8)(vid.dupx / 3) + 1;
 	vid.smalldupy = (UINT8)(vid.dupy / 3) + 1;
-#ifdef HWRENDER
 	vid.fsmalldupx = vid.smalldupx*FRACUNIT;
 	vid.fsmalldupy = vid.smalldupy*FRACUNIT;
-#endif
 
 	// toggle off automap because some screensize-dependent values will
 	// be calculated next time the automap is activated.

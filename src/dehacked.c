@@ -37,10 +37,8 @@
 
 #include "m_cond.h"
 
-#ifdef HAVE_BLUA
 #include "v_video.h" // video flags (for lua)
 #include "r_draw.h" // translation colormap consts (for lua)
-#endif
 
 #ifdef PC_DOS
 #include <stdio.h> // for snprintf
@@ -69,9 +67,6 @@ static sfxenum_t get_sfx(const char *word);
 static UINT16 get_mus(const char *word, UINT8 dehacked_mode);
 #endif
 static hudnum_t get_huditem(const char *word);
-#ifndef HAVE_BLUA
-static powertype_t get_power(const char *word);
-#endif
 
 boolean deh_loaded = false;
 static int dbg_line;
@@ -953,7 +948,6 @@ static void readlevelheader(MYFILE *f, INT32 num)
 			// Lua custom options also go above, contents may be case sensitive.
 			if (fastncmp(word, "LUA.", 4))
 			{
-#ifdef HAVE_BLUA
 				UINT8 j;
 				customoption_t *modoption;
 
@@ -987,9 +981,6 @@ static void readlevelheader(MYFILE *f, INT32 num)
 				modoption->option[31] = '\0';
 				strncpy(modoption->value,  word2, 255);
 				modoption->value[255] = '\0';
-#else
-				// Silently ignore.
-#endif
 				continue;
 			}
 
@@ -1906,10 +1897,8 @@ static void readframe(MYFILE *f, INT32 num)
 				}
 
 				z = 0;
-#ifdef HAVE_BLUA
 				found = LUA_SetLuaAction(&states[num], actiontocompare);
 				if (!found)
-#endif
 				while (actionpointers[z].name)
 				{
 					if (fastcmp(actiontocompare, actionpointers[z].name))
@@ -7792,14 +7781,12 @@ static const char *const MOBJEFLAG_LIST[] = {
 	NULL
 };
 
-#ifdef HAVE_BLUA
 static const char *const MAPTHINGFLAG_LIST[4] = {
 	NULL,
 	"OBJECTFLIP", // Reverse gravity flag for objects.
 	"OBJECTSPECIAL", // Special flag used with certain objects.
 	"AMBUSH" // Deaf monsters/do not react to sound.
 };
-#endif
 
 static const char *const PLAYERFLAG_LIST[] = {
 	// Flip camera angle with gravity flip prefrence.
@@ -7872,7 +7859,6 @@ static const char *const PLAYERFLAG_LIST[] = {
 	NULL // stop loop here.
 };
 
-#ifdef HAVE_BLUA
 // Linedef flags
 static const char *const ML_LIST[16] = {
 	"IMPASSIBLE",
@@ -7892,7 +7878,6 @@ static const char *const ML_LIST[16] = {
 	"BOUNCY",
 	"TFERLINE"
 };
-#endif
 
 // This DOES differ from r_draw's Color_Names, unfortunately.
 // Also includes Super colors
@@ -8099,7 +8084,6 @@ static const char *const POWERS_LIST[] = {
 	"INGOOP" // In goop
 };
 
-#ifdef HAVE_BLUA
 static const char *const KARTSTUFF_LIST[] = {
 	"POSITION",
 	"OLDPOSITION",
@@ -8186,7 +8170,6 @@ static const char *const KARTSTUFF_LIST[] = {
 	"SPECTATEWAIT",
 	"GROWCANCEL"
 };
-#endif
 
 static const char *const HUDITEMS_LIST[] = {
 	"LIVESNAME",
@@ -8229,11 +8212,7 @@ static const char *const HUDITEMS_LIST[] = {
 struct {
 	const char *n;
 	// has to be able to hold both fixed_t and angle_t, so drastic measure!!
-#ifdef HAVE_BLUA
 	lua_Integer v;
-#else
-	INT64 v;
-#endif
 } const INT_CONST[] = {
 	// If a mod removes some variables here,
 	// please leave the names in-tact and just set
@@ -8421,7 +8400,6 @@ struct {
 	{"SF_NOINTERRUPT",SF_NOINTERRUPT},
 	{"SF_X2AWAYSOUND",SF_X2AWAYSOUND},
 
-#ifdef HAVE_BLUA
 	// p_local.h constants
 	{"FLOATSPEED",FLOATSPEED},
 	{"MAXSTEPMOVE",MAXSTEPMOVE},
@@ -8725,7 +8703,6 @@ struct {
 	{"TC_ALLWHITE",TC_ALLWHITE},
 	{"TC_RAINBOW",TC_RAINBOW},
 	{"TC_BLINK",TC_BLINK},
-#endif
 
 	{NULL,0}
 };
@@ -8854,249 +8831,11 @@ static hudnum_t get_huditem(const char *word)
 	return HUD_LIVESNAME;
 }
 
-#ifndef HAVE_BLUA
-static powertype_t get_power(const char *word)
-{ // Returns the vlaue of pw_ enumerations
-	powertype_t i;
-	if (*word >= '0' && *word <= '9')
-		return atoi(word);
-	if (fastncmp("PW_",word,3))
-		word += 3; // take off the pw_
-	for (i = 0; i < NUMPOWERS; i++)
-		if (fastcmp(word, POWERS_LIST[i]))
-			return i;
-	deh_warning("Couldn't find power named 'pw_%s'",word);
-	return pw_invulnerability;
-}
-
-/// \todo Make ANY of this completely over-the-top math craziness obey the order of operations.
-static fixed_t op_mul(fixed_t a, fixed_t b) { return a*b; }
-static fixed_t op_div(fixed_t a, fixed_t b) { return a/b; }
-static fixed_t op_add(fixed_t a, fixed_t b) { return a+b; }
-static fixed_t op_sub(fixed_t a, fixed_t b) { return a-b; }
-static fixed_t op_or(fixed_t a, fixed_t b) { return a|b; }
-static fixed_t op_and(fixed_t a, fixed_t b) { return a&b; }
-static fixed_t op_lshift(fixed_t a, fixed_t b) { return a<<b; }
-static fixed_t op_rshift(fixed_t a, fixed_t b) { return a>>b; }
-
-struct {
-	const char c;
-	fixed_t (*v)(fixed_t,fixed_t);
-} OPERATIONS[] = {
-	{'*',op_mul},
-	{'/',op_div},
-	{'+',op_add},
-	{'-',op_sub},
-	{'|',op_or},
-	{'&',op_and},
-	{'<',op_lshift},
-	{'>',op_rshift},
-	{0,NULL}
-};
-
-// Returns the full word, cut at the first symbol or whitespace
-static char *read_word(const char *line)
-{
-	// Part 1: You got the start of the word, now find the end.
-  const char *p;
-	INT32 i;
-	for (p = line+1; *p; p++) {
-		if (*p == ' ' || *p == '\t')
-			break;
-		for (i = 0; OPERATIONS[i].c; i++)
-			if (*p == OPERATIONS[i].c) {
-				i = -1;
-				break;
-			}
-		if (i == -1)
-			break;
-	}
-
-	// Part 2: Make a copy of the word and return it.
-	{
-		size_t len = (p-line);
-		char *word = malloc(len+1);
-		M_Memcpy(word,line,len);
-		word[len] = '\0';
-		return word;
-	}
-}
-
-static INT32 operation_pad(const char **word)
-{ // Brings word the next operation and returns the operation number.
-	INT32 i;
-	for (; **word; (*word)++) {
-		if (**word == ' ' || **word == '\t')
-			continue;
-		for (i = 0; OPERATIONS[i].c; i++)
-			if (**word == OPERATIONS[i].c)
-			{
-				if ((**word == '<' && *(*word+1) == '<') || (**word == '>' && *(*word+1) == '>')) (*word)++; // These operations are two characters long.
-				else if (**word == '<' || **word == '>') continue; // ... do not accept one character long.
-				(*word)++;
-				return i;
-			}
-		deh_warning("Unknown operation '%c'",**word);
-		return -1;
-	}
-	return -1;
-}
-
-static void const_warning(const char *type, const char *word)
-{
-	deh_warning("Couldn't find %s named '%s'",type,word);
-}
-
-static fixed_t find_const(const char **rword)
-{ // Finds the value of constants and returns it, bringing word to the next operation.
-	INT32 i;
-	fixed_t r;
-	char *word = read_word(*rword);
-	*rword += strlen(word);
-	if ((*word >= '0' && *word <= '9') || *word == '-') { // Parse a number
-		r = atoi(word);
-		free(word);
-		return r;
-	}
-	if (!*(word+1) && // Turn a single A-z symbol into numbers, like sprite frames.
-	 ((*word >= 'A' && *word <= 'Z') || (*word >= 'a' && *word <= 'z'))) {
-		r = R_Char2Frame(*word);
-		free(word);
-		return r;
-	}
-	if (fastncmp("MF_", word, 3)) {
-		char *p = word+3;
-		for (i = 0; MOBJFLAG_LIST[i]; i++)
-			if (fastcmp(p, MOBJFLAG_LIST[i])) {
-				free(word);
-				return (1<<i);
-			}
-
-		// Not found error
-		const_warning("mobj flag",word);
-		free(word);
-		return 0;
-	}
-	else if (fastncmp("MF2_", word, 4)) {
-		char *p = word+4;
-		for (i = 0; MOBJFLAG2_LIST[i]; i++)
-			if (fastcmp(p, MOBJFLAG2_LIST[i])) {
-				free(word);
-				return (1<<i);
-			}
-
-		// Not found error
-		const_warning("mobj flag2",word);
-		free(word);
-		return 0;
-	}
-	else if (fastncmp("MFE_", word, 4)) {
-		char *p = word+4;
-		for (i = 0; MOBJEFLAG_LIST[i]; i++)
-			if (fastcmp(p, MOBJEFLAG_LIST[i])) {
-				free(word);
-				return (1<<i);
-			}
-
-		// Not found error
-		const_warning("mobj eflag",word);
-		free(word);
-		return 0;
-	}
-	else if (fastncmp("PF_", word, 3)) {
-		char *p = word+3;
-		for (i = 0; PLAYERFLAG_LIST[i]; i++)
-			if (fastcmp(p, PLAYERFLAG_LIST[i])) {
-				free(word);
-				return (1<<i);
-			}
-		if (fastcmp(p, "FULLSTASIS"))
-			return PF_FULLSTASIS;
-
-		// Not found error
-		const_warning("player flag",word);
-		free(word);
-		return 0;
-	}
-	else if (fastncmp("S_",word,2)) {
-		r = get_state(word);
-		free(word);
-		return r;
-	}
-	else if (fastncmp("MT_",word,3)) {
-		r = get_mobjtype(word);
-		free(word);
-		return r;
-	}
-	else if (fastncmp("SPR_",word,4)) {
-		r = get_sprite(word);
-		free(word);
-		return r;
-	}
-	else if (fastncmp("SFX_",word,4) || fastncmp("DS",word,2)) {
-		r = get_sfx(word);
-		free(word);
-		return r;
-	}
-#ifdef MUSICSLOT_COMPATIBILITY
-	else if (fastncmp("MUS_",word,4) || fastncmp("O_",word,2)) {
-		r = get_mus(word, true);
-		free(word);
-		return r;
-	}
-#endif
-	else if (fastncmp("PW_",word,3)) {
-		r = get_power(word);
-		free(word);
-		return r;
-	}
-	else if (fastncmp("HUD_",word,4)) {
-		r = get_huditem(word);
-		free(word);
-		return r;
-	}
-	else if (fastncmp("SKINCOLOR_",word,10)) {
-		char *p = word+10;
-		for (i = 0; i < MAXTRANSLATIONS; i++)
-			if (fastcmp(p, COLOR_ENUMS[i])) {
-				free(word);
-				return i;
-			}
-		const_warning("color",word);
-		free(word);
-		return 0;
-	}
-	for (i = 0; INT_CONST[i].n; i++)
-		if (fastcmp(word,INT_CONST[i].n)) {
-			free(word);
-			return INT_CONST[i].v;
-		}
-
-	// Not found error.
-	const_warning("constant",word);
-	free(word);
-	return 0;
-}
-#endif
 
 // Loops through every constant and operation in word and performs its calculations, returning the final value.
 fixed_t get_number(const char *word)
 {
-#ifdef HAVE_BLUA
 	return LUA_EvalMath(word);
-#else
-	// DESPERATELY NEEDED: Order of operations support! :x
-	fixed_t i = find_const(&word);
-	INT32 o;
-	while(*word) {
-		o = operation_pad(&word);
-		if (o != -1)
-			i = OPERATIONS[o].v(i,find_const(&word));
-		else
-			break;
-	}
-	return i;
-#endif
 }
 
 void DEH_Check(void)
@@ -9125,7 +8864,6 @@ void DEH_Check(void)
 #endif
 }
 
-#ifdef HAVE_BLUA
 #include "lua_script.h"
 #include "lua_libs.h"
 
@@ -9745,4 +9483,3 @@ void LUA_SetActionByName(void *state, const char *actiontocompare)
 	}
 }
 
-#endif // HAVE_BLUA

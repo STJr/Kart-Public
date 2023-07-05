@@ -29,7 +29,6 @@
 #pragma warning(disable : 4214 4244)
 #endif
 
-#ifdef HAVE_SDL
 
 #include "SDL.h"
 
@@ -43,12 +42,10 @@
 
 #define  _CREATE_DLL_  // necessary for Unix AND Windows
 
-#ifdef HWRENDER
 #include "../hardware/hw_drv.h"
 #include "ogl_sdl.h"
 #ifdef STATIC_OPENGL
 #include "../hardware/r_opengl/r_opengl.h"
-#endif
 #endif
 
 #ifdef HW3SOUND
@@ -73,7 +70,6 @@
 void *hwSym(const char *funcName,void *handle)
 {
 	void *funcPointer = NULL;
-#ifdef HWRENDER
 	if (0 == strcmp("SetPalette", funcName))
 		funcPointer = &OglSdlSetPalette;
 
@@ -114,10 +110,6 @@ void *hwSym(const char *funcName,void *handle)
 	GETFUNC(StartBatching);
 	GETFUNC(RenderBatches);
 
-#else //HWRENDER
-	if (0 == strcmp("FinishUpdate", funcName))
-		return funcPointer; //&FinishUpdate;
-#endif //!HWRENDER
 #ifdef STATIC3DS
 	GETFUNC(Startup);
 	GETFUNC(AddSfx);
@@ -189,4 +181,3 @@ void hwClose(void *handle)
 	SDL_UnloadObject(handle);
 #endif
 }
-#endif

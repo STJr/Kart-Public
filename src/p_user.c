@@ -53,10 +53,8 @@
 #include "hardware/hw3sound.h"
 #endif
 
-#ifdef HWRENDER
 #include "hardware/hw_light.h"
 #include "hardware/hw_main.h"
-#endif
 
 #if 0
 static void P_NukeAllPlayers(player_t *player);
@@ -6364,7 +6362,6 @@ static void P_MovePlayer(player_t *player)
 		}
 	}
 
-#ifdef HWRENDER
 	if (rendermode != render_soft && rendermode != render_none && cv_grfovchange.value)
 	{
 		fixed_t speed;
@@ -6385,7 +6382,6 @@ static void P_MovePlayer(player_t *player)
 	}
 	else
 		player->fovadd = 0;
-#endif
 
 #ifdef FLOORSPLATS
 	if (cv_shadow.value && rendermode == render_soft)
@@ -8260,9 +8256,7 @@ void P_PlayerThink(player_t *player)
 		}
 		if (player->playerstate == PST_REBORN)
 		{
-#ifdef HAVE_BLUA
 			LUAh_PlayerThink(player);
-#endif
 			return;
 		}
 	}
@@ -8389,9 +8383,7 @@ void P_PlayerThink(player_t *player)
 
 				if (player->playerstate == PST_DEAD)
 				{
-#ifdef HAVE_BLUA
 					LUAh_PlayerThink(player);
-#endif
 					return;
 				}
 			}
@@ -8457,9 +8449,7 @@ void P_PlayerThink(player_t *player)
 		else
 			player->mo->flags2 &= ~MF2_SHADOW;
 		P_DeathThink(player);
-#ifdef HAVE_BLUA
 		LUAh_PlayerThink(player);
-#endif
 		return;
 	}
 
@@ -8658,9 +8648,7 @@ void P_PlayerThink(player_t *player)
 
 	if (!player->mo)
 	{
-#ifdef HAVE_BLUA
 		LUAh_PlayerThink(player);
-#endif
 		return; // P_MovePlayer removed player->mo.
 	}
 
@@ -8858,9 +8846,7 @@ void P_PlayerThink(player_t *player)
 
 	K_KartPlayerThink(player, cmd); // SRB2kart
 
-#ifdef HAVE_BLUA
 	LUAh_PlayerThink(player);
-#endif
 
 /*
 //	Colormap verification

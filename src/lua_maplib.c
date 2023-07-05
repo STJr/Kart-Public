@@ -11,7 +11,6 @@
 /// \brief game map library for Lua scripting
 
 #include "doomdef.h"
-#ifdef HAVE_BLUA
 #include "r_state.h"
 #include "p_local.h"
 #include "p_setup.h"
@@ -1678,4 +1677,3 @@ int LUA_MapLib(lua_State *L)
 	return 0;
 }
 
-#endif

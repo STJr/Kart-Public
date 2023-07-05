@@ -288,10 +288,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck)
 	if (special->flags & MF_BOSS && special->flags2 & MF2_FRET)
 		return;
 
-#ifdef HAVE_BLUA
 	if (LUAh_TouchSpecial(special, toucher) || P_MobjWasRemoved(special))
 		return;
-#endif
 
 	if (special->flags & MF_BOSS)
 	{
@@ -2162,10 +2160,8 @@ void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source)
 	target->flags2 &= ~(MF2_SKULLFLY|MF2_NIGHTSPULL);
 	target->health = 0; // This makes it easy to check if something's dead elsewhere.
 
-#ifdef HAVE_BLUA
 	if (LUAh_MobjDeath(target, inflictor, source) || P_MobjWasRemoved(target))
 		return;
-#endif
 
 	// SRB2kart
 	// I wish I knew a better way to do this
@@ -3111,11 +3107,7 @@ static void P_RingDamage(player_t *player, mobj_t *inflictor, mobj_t *source, IN
 boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 damage)
 {
 	player_t *player;
-#ifdef HAVE_BLUA
 	boolean force = false;
-#else
-	static const boolean force = false;
-#endif
 
 	if (objectplacing)
 		return false;
@@ -3135,7 +3127,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 			return false;
 	}
 
-#ifdef HAVE_BLUA
 	// Everything above here can't be forced.
 	if (!metalrecording)
 	{
@@ -3147,7 +3138,6 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		else if (shouldForce == 2)
 			return false;
 	}
-#endif
 
 	if (!force)
 	{
@@ -3181,10 +3171,8 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		if (!force && target->fuse) // Invincible
 			return false;
 
-#ifdef HAVE_BLUA
 		if (LUAh_MobjDamage(target, inflictor, source, damage) || P_MobjWasRemoved(target))
 			return true;
-#endif
 
 		if (target->health > 1)
 		{
@@ -3209,21 +3197,17 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 		if (!force && target->flags2 & MF2_FRET) // Currently flashing from being hit
 			return false;
 
-#ifdef HAVE_BLUA
 		if (LUAh_MobjDamage(target, inflictor, source, damage) || P_MobjWasRemoved(target))
 			return true;
-#endif
 
 		if (target->health > 1)
 			target->flags2 |= MF2_FRET;
 	}
-#ifdef HAVE_BLUA
 	else if (target->flags & MF_ENEMY)
 	{
 		if (LUAh_MobjDamage(target, inflictor, source, damage) || P_MobjWasRemoved(target))
 			return true;
 	}
-#endif
 
 	player = target->player;
 
@@ -3249,18 +3233,14 @@ boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 da
 				|| (G_GametypeHasTeams() && target->player->ctfteam == source->player->ctfteam)))
 					return false; // Don't run eachother over in special stages and team games and such
 			}
-#ifdef HAVE_BLUA
 			if (LUAh_MobjDamage(target, inflictor, source, damage))
 				return true;
-#endif
 			P_NiGHTSDamage(target, source); // -5s :(
 			return true;
 		}
 
-#ifdef HAVE_BLUA	// Add this back here for ACTUAL NORMAL DAMAGE. The funny shit is that the player is barely ever "actually" damaged.
 		if (LUAh_MobjDamage(target, inflictor, source, damage))
 			return true;
-#endif
 
 		if (!force && inflictor && (inflictor->flags & MF_FIRE))
 		{

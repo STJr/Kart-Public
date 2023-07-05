@@ -30,9 +30,7 @@
 #include "m_misc.h" // movie mode
 #include "d_clisrv.h" // So the network state can be updated during the wipe
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
 #if NUMSCREENS < 5
 #define NOWIPE // do not enable wipe image post processing for ARM, SH and MIPS CPUs
@@ -306,13 +304,11 @@ static void F_DoWipe(fademask_t *fademask)
 void F_WipeStartScreen(void)
 {
 #ifndef NOWIPE
-#ifdef HWRENDER
 	if(rendermode != render_soft)
 	{
 		HWR_StartScreenWipe();
 		return;
 	}
-#endif
 	wipe_scr_start = screens[3];
 	I_ReadScreen(wipe_scr_start);
 #endif
@@ -323,13 +319,11 @@ void F_WipeStartScreen(void)
 void F_WipeEndScreen(void)
 {
 #ifndef NOWIPE
-#ifdef HWRENDER
 	if(rendermode != render_soft)
 	{
 		HWR_EndScreenWipe();
 		return;
 	}
-#endif
 	wipe_scr_end = screens[4];
 	I_ReadScreen(wipe_scr_end);
 	V_DrawBlock(0, 0, 0, vid.width, vid.height, wipe_scr_start);
@@ -372,11 +366,9 @@ void F_RunWipe(UINT8 wipetype, boolean drawMenu)
 		}
 		lastwipetic = nowtime;
 
-#ifdef HWRENDER
 		if (rendermode == render_opengl)
 			HWR_DoWipe(wipetype, wipeframe-1); // send in the wipe type and wipeframe because we need to cache the graphic
 		else
-#endif
 		if (rendermode != render_none) //this allows F_RunWipe to be called in dedicated servers
 			F_DoWipe(fmask);
 
@@ -385,13 +377,9 @@ void F_RunWipe(UINT8 wipetype, boolean drawMenu)
 
 		if (drawMenu)
 		{
-#ifdef HAVE_THREADS
 			I_lock_mutex(&m_menu_mutex);
-#endif
 			M_Drawer(); // menu is drawn even on top of wipes
-#ifdef HAVE_THREADS
 			I_unlock_mutex(m_menu_mutex);
-#endif
 		}
 
 		I_FinishUpdate(); // page flip or blit buffer

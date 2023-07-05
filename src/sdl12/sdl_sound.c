@@ -31,7 +31,6 @@
 #pragma warning(default : 4214 4244)
 #endif
 
-#ifdef HAVE_MIXER
 #include "SDL_mixer.h"
 /* This is the version number macro for the current SDL_mixer version: */
 #ifndef SDL_MIXER_COMPILEDVERSION
@@ -45,13 +44,8 @@
 	(SDL_MIXER_COMPILEDVERSION >= SDL_VERSIONNUM(X, Y, Z))
 #endif
 
-#else
-#define MIX_CHANNELS 8
-#endif
 
-#if defined (_WIN32) && !defined (_WIN32_WCE) && !defined (_XBOX)
-#include <direct.h>
-#elif defined (__GNUC__)
+#if   defined (__GNUC__)
 #include <unistd.h>
 #endif
 #include "../z_zone.h"
@@ -93,9 +87,7 @@
 
 #define INDEXOFSFX(x) ((sfxinfo_t *)x - S_sfx)
 
-#if defined (_WIN32_WCE) || defined (DC) || defined (PSP)
-static Uint16 samplecount = 512; //Alam: .5KB samplecount at 11025hz is 46.439909297052154195011337868481ms of buffer
-#elif defined(GP2X)
+#if   defined(GP2X)
 static Uint16 samplecount = 128;
 #else
 static Uint16 samplecount = 1024; //Alam: 1KB samplecount at 22050hz is 46.439909297052154195011337868481ms of buffer
@@ -148,12 +140,9 @@ static SDL_mutex *Snd_Mutex = NULL;
 static SDL_AudioSpec audio;
 
 static SDL_bool musicStarted = SDL_FALSE;
-#ifdef HAVE_MIXER
 static SDL_mutex *Msc_Mutex = NULL;
 /* FIXME: Make this file instance-specific */
-#ifdef _arch_dreamcast
-#define MIDI_PATH     "/ram"
-#elif defined(GP2X)
+#if   defined(GP2X)
 #define MIDI_PATH     "/mnt/sd/srb2"
 #define MIDI_PATH2    "/tmp/mnt/sd/srb2"
 #else
@@ -176,9 +165,6 @@ static SDL_bool canlooping = SDL_TRUE;
 
 #if SDL_MIXER_VERSION_ATLEAST(1,2,7)
 #define USE_RWOPS // ok, USE_RWOPS is in here
-#if defined (DC) || defined (_WIN32_WCE) || defined (_XBOX) //|| defined(_WIN32) || defined(GP2X)
-#undef USE_RWOPS
-#endif
 #endif
 
 #if SDL_MIXER_VERSION_ATLEAST(1,2,10)
@@ -195,7 +181,6 @@ static const INT32 MIDIfade = 500;
 static const INT32 Digfade = 0;
 
 static Mix_Music *music[2] = { NULL, NULL };
-#endif
 
 typedef struct srb2audio_s {
 	void *userdata;
@@ -217,9 +202,7 @@ static void Snd_LockAudio(void) //Alam: Lock audio data and uninstall audio call
 	         && hws_mode == HWS_DEFAULT_MODE
 #endif
 	        ) SDL_LockAudio();
-#ifdef HAVE_MIXER
 	else if (musicStarted) Mix_SetPostMix(NULL, NULL);
-#endif
 }
 
 static void Snd_UnlockAudio(void) //Alam: Unlock audio data and reinstall audio callback
@@ -231,9 +214,7 @@ static void Snd_UnlockAudio(void) //Alam: Unlock audio data and reinstall audio 
 	         && hws_mode == HWS_DEFAULT_MODE
 #endif
 	        ) SDL_UnlockAudio();
-#ifdef HAVE_MIXER
 	else if (musicStarted) Mix_SetPostMix(audio.callback, audio.userdata);
-#endif
 }
 
 static inline Uint16 Snd_LowerRate(Uint16 sr)
@@ -1104,27 +1085,6 @@ static void *soundso = NULL;
 static INT32 Init3DSDriver(const char *soName)
 {
 	if (soName) soundso = hwOpen(soName);
-#if defined (_WIN32) && defined (_X86_) && !defined (STATIC3DS)
-	HW3DS.pfnStartup            = hwSym("Startup@8",soundso);
-	HW3DS.pfnShutdown           = hwSym("Shutdown@0",soundso);
-	HW3DS.pfnAddSfx             = hwSym("AddSfx@4",soundso);
-	HW3DS.pfnAddSource          = hwSym("AddSource@8",soundso);
-	HW3DS.pfnStartSource        = hwSym("StartSource@4",soundso);
-	HW3DS.pfnStopSource         = hwSym("StopSource@4",soundso);
-	HW3DS.pfnGetHW3DSVersion    = hwSym("GetHW3DSVersion@0",soundso);
-	HW3DS.pfnBeginFrameUpdate   = hwSym("BeginFrameUpdate@0",soundso);
-	HW3DS.pfnEndFrameUpdate     = hwSym("EndFrameUpdate@0",soundso);
-	HW3DS.pfnIsPlaying          = hwSym("IsPlaying@4",soundso);
-	HW3DS.pfnUpdateListener     = hwSym("UpdateListener@8",soundso);
-	HW3DS.pfnUpdateSourceParms  = hwSym("UpdateSourceParms@12",soundso);
-	HW3DS.pfnSetCone            = hwSym("SetCone@8",soundso);
-	HW3DS.pfnSetGlobalSfxVolume = hwSym("SetGlobalSfxVolume@4",soundso);
-	HW3DS.pfnUpdate3DSource     = hwSym("Update3DSource@8",soundso);
-	HW3DS.pfnReloadSource       = hwSym("ReloadSource@8",soundso);
-	HW3DS.pfnKillSource         = hwSym("KillSource@4",soundso);
-	HW3DS.pfnKillSfx            = hwSym("KillSfx@4",soundso);
-	HW3DS.pfnGetHW3DSTitle      = hwSym("GetHW3DSTitle@8",soundso);
-#else
 	HW3DS.pfnStartup            = hwSym("Startup",soundso);
 	HW3DS.pfnShutdown           = hwSym("Shutdown",soundso);
 	HW3DS.pfnAddSfx             = hwSym("AddSfx",soundso);
@@ -1144,7 +1104,6 @@ static INT32 Init3DSDriver(const char *soName)
 	HW3DS.pfnKillSource         = hwSym("KillSource",soundso);
 	HW3DS.pfnKillSfx            = hwSym("KillSfx",soundso);
 	HW3DS.pfnGetHW3DSTitle      = hwSym("GetHW3DSTitle",soundso);
-#endif
 
 //	if (HW3DS.pfnUpdateListener2 && HW3DS.pfnUpdateListener2 != soundso)
 		return true;
@@ -1188,16 +1147,6 @@ void I_StartupSound(void)
 #ifdef HW3SOUND
 	const char *sdrv_name = NULL;
 #endif
-#ifndef HAVE_MIXER
-	nomidimusic = nodigimusic = true;
-#endif
-#ifdef DC
-	//nosound = true;
-#ifdef HAVE_MIXER
-	nomidimusic = true;
-	nodigimusic = true;
-#endif
-#endif
 
 	memset(channels, 0, sizeof (channels)); //Alam: Clean it
 
@@ -1235,13 +1184,7 @@ void I_StartupSound(void)
 		audio.samples /= 2;
 	}
 
-#if defined (_PSP)  && defined (HAVE_MIXER) // Bug in PSP's SDL_OpenAudio, can not open twice
-	I_SetChannels();
-	sound_started = true;
-	Snd_Mutex = SDL_CreateMutex();
-#else
 	if (nosound)
-#endif
 		return;
 
 #ifdef HW3SOUND
@@ -1249,22 +1192,6 @@ void I_StartupSound(void)
 	if (M_CheckParm("-3dsound") || M_CheckParm("-ds3d"))
 	{
 		hws_mode = HWS_OPENAL;
-	}
-#elif defined (_WIN32)
-	if (M_CheckParm("-ds3d"))
-	{
-		hws_mode = HWS_DS3D;
-		sdrv_name = "s_ds3d.dll";
-	}
-	else if (M_CheckParm("-fmod3d"))
-	{
-		hws_mode = HWS_FMOD3D;
-		sdrv_name = "s_fmod.dll";
-	}
-	else if (M_CheckParm("-openal"))
-	{
-		hws_mode = HWS_OPENAL;
-		sdrv_name = "s_openal.dll";
 	}
 #else
 	if (M_CheckParm("-fmod3d"))
@@ -1294,10 +1221,6 @@ void I_StartupSound(void)
 			snddev.bps = 16;
 			snddev.sample_rate = audio.freq;
 			snddev.numsfxs = NUMSFX;
-#if defined (_WIN32) && !defined (_XBOX)
-			snddev.cooplevel = 0x00000002;
-			snddev.hWnd = vid.WndParent;
-#endif
 			if (HW3S_Init(I_Error, &snddev))
 			{
 				audio.userdata = NULL;
@@ -1364,7 +1287,6 @@ void I_ShutdownDigMusic(void)
 	if (nomidimusic) I_ShutdownMusic();
 }
 
-#ifdef HAVE_MIXER
 static boolean LoadSong(void *data, size_t lumplength, size_t selectpos)
 {
 	FILE *midfile;
@@ -1453,12 +1375,10 @@ static boolean LoadSong(void *data, size_t lumplength, size_t selectpos)
 	}
 	return true;
 }
-#endif
 
 
 void I_ShutdownMusic(void)
 {
-#ifdef HAVE_MIXER
 	if ((nomidimusic && nodigimusic) || !musicStarted)
 		return;
 
@@ -1475,7 +1395,6 @@ void I_ShutdownMusic(void)
 	if (Msc_Mutex)
 		SDL_DestroyMutex(Msc_Mutex);
 	Msc_Mutex = NULL;
-#endif
 }
 
 void I_InitMIDIMusic(void)
@@ -1490,14 +1409,12 @@ void I_InitDigMusic(void)
 
 void I_InitMusic(void)
 {
-#ifdef HAVE_MIXER
 	char ad[100];
 	SDL_version MIXcompiled;
 	const SDL_version *MIXlinked;
 #ifdef MIXER_INIT
 	const int mixstart = MIX_INIT_OGG;
 	int mixflags;
-#endif
 #endif
 #ifdef HAVE_LIBGME
 	I_AddExitFunc(I_ShutdownGMEMusic);
@@ -1506,15 +1423,12 @@ void I_InitMusic(void)
 	if ((nomidimusic && nodigimusic) || dedicated)
 		return;
 
-#ifdef HAVE_MIXER
 	MIX_VERSION(&MIXcompiled)
 	MIXlinked = Mix_Linked_Version();
 	I_OutputMsg("Compiled for SDL_mixer version: %d.%d.%d\n",
 	            MIXcompiled.major, MIXcompiled.minor, MIXcompiled.patch);
 #ifdef MIXER_POS
-#ifndef _WII
 	if (MIXlinked->major == 1 && MIXlinked->minor == 2 && MIXlinked->patch < 7)
-#endif
 		canlooping = SDL_FALSE;
 #endif
 #ifdef USE_RWOPS
@@ -1605,13 +1519,11 @@ void I_InitMusic(void)
 	CONS_Printf("%s", M_GetText("Music initialized\n"));
 	musicStarted = SDL_TRUE;
 	Msc_Mutex = SDL_CreateMutex();
-#endif
 }
 
 boolean I_PlaySong(INT32 handle, boolean looping)
 {
 	(void)handle;
-#ifdef HAVE_MIXER
 	if (nomidimusic || !musicStarted || !music[handle])
 		return false;
 
@@ -1627,9 +1539,6 @@ boolean I_PlaySong(INT32 handle, boolean looping)
 		Mix_VolumeMusic(musicvol);
 		return true;
 	}
-#else
-	(void)looping;
-#endif
 	return false;
 }
 
@@ -1644,13 +1553,11 @@ void I_PauseSong(INT32 handle)
 {
 	(void)handle;
 	I_PauseGME();
-#ifdef HAVE_MIXER
 	if ((nomidimusic && nodigimusic) || !musicStarted)
 		return;
 
 	Mix_PauseMusic();
 	//I_StopSong(handle);
-#endif
 }
 
 static void I_ResumeGME(void)
@@ -1664,29 +1571,24 @@ void I_ResumeSong(INT32 handle)
 {
 	(void)handle;
 	I_ResumeGME();
-#ifdef HAVE_MIXER
 	if ((nomidimusic && nodigimusic) || !musicStarted)
 		return;
 
 	Mix_VolumeMusic(musicvol);
 	Mix_ResumeMusic();
 	//I_PlaySong(handle, true);
-#endif
 }
 
 void I_StopSong(INT32 handle)
 {
 	(void)handle;
-#ifdef HAVE_MIXER
 	if (nomidimusic || !musicStarted)
 		return;
 	Mix_FadeOutMusic(MIDIfade);
-#endif
 }
 
 void I_UnRegisterSong(INT32 handle)
 {
-#ifdef HAVE_MIXER
 
 	if (nomidimusic || !musicStarted)
 		return;
@@ -1699,14 +1601,10 @@ void I_UnRegisterSong(INT32 handle)
 		Mix_FreeMusic(music[handle]);
 	music[handle] = NULL;
 	LoadSong(NULL, 0, handle);
-#else
-	(void)handle;
-#endif
 }
 
 INT32 I_RegisterSong(void *data, size_t len)
 {
-#ifdef HAVE_MIXER
 	if (nomidimusic || !musicStarted)
 		return false;
 
@@ -1717,16 +1615,11 @@ INT32 I_RegisterSong(void *data, size_t len)
 		return true;
 
 	CONS_Printf(M_GetText("Couldn't load MIDI: %s\n"), Mix_GetError());
-#else
-	(void)len;
-	(void)data;
-#endif
 	return false;
 }
 
 void I_SetMIDIMusicVolume(UINT8 volume)
 {
-#ifdef HAVE_MIXER
 	if ((nomidimusic && nodigimusic) || !musicStarted)
 		return;
 
@@ -1734,9 +1627,6 @@ void I_SetMIDIMusicVolume(UINT8 volume)
 	musicvol = volume * 2;
 	if (Msc_Mutex) SDL_UnlockMutex(Msc_Mutex);
 	Mix_VolumeMusic(musicvol);
-#else
-	(void)volume;
-#endif
 }
 
 #ifdef HAVE_LIBGME
@@ -1801,17 +1691,14 @@ static boolean I_StartGMESong(const char *musicname, boolean looping)
 
 boolean I_StartDigSong(const char *musicname, boolean looping)
 {
-#ifdef HAVE_MIXER
 	XBOXSTATIC char filename[9];
 	void *data;
 	lumpnum_t lumpnum;
 	size_t lumplength;
-#endif
 
 	if(I_StartGMESong(musicname, looping))
 		return true;
 
-#ifdef HAVE_MIXER
 	if (nodigimusic)
 		return false;
 
@@ -1955,11 +1842,6 @@ boolean I_StartDigSong(const char *musicname, boolean looping)
 
 	if (Msc_Mutex) SDL_UnlockMutex(Msc_Mutex);
 	return true;
-#else
-	(void)looping;
-	(void)musicname;
-	return false;
-#endif
 }
 
 static void I_StopGME(void)
@@ -1974,7 +1856,6 @@ static void I_StopGME(void)
 void I_StopDigSong(void)
 {
 	I_StopGME();
-#ifdef HAVE_MIXER
 	if (nodigimusic)
 		return;
 
@@ -1991,7 +1872,6 @@ void I_StopDigSong(void)
 		Mix_FreeMusic(music[1]);
 	music[1] = NULL;
 	LoadSong(NULL, 0, 1);
-#endif
 }
 
 void I_SetDigMusicVolume(UINT8 volume)

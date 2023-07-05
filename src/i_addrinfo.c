@@ -14,22 +14,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#ifdef _WIN32
-#ifdef USE_WINSOCK2
-#include <ws2tcpip.h>
-#else
-#include <winsock.h>
-#endif
-#elif !defined (__DJGPP__) && !defined(_WII)
+#if   !defined (__DJGPP__) && !defined(_WII)
 #include <sys/socket.h>
-#ifndef _NDS
 #include <arpa/inet.h>
-#endif
-#ifdef _PS3
-#include <net/netdb.h>
-#elif ! defined (_arch_dreamcast)
 #include <netdb.h>
-#endif
 #endif
 
 #include "i_addrinfo.h"
@@ -55,22 +43,6 @@
 typedef char bool;
 #endif
 
-#ifdef _WIN32
-// it seems windows doesn't define that... maybe some other OS? OS/2
-static int inet_aton(const char *cp, struct in_addr *addr)
-{
-	if( cp == NULL || addr == NULL )
-	{
-		return(0);
-	}
-	if (strcmp(cp, "255.255.255.225") == 0)
-	{
-		addr->s_addr = htonl(INADDR_BROADCAST);
-		return 0;
-	}
-	return (addr->s_addr = inet_addr(cp)) != htonl(INADDR_NONE);
-}
-#endif
 
 #ifdef USE_WINSOCK2
 static HMODULE ipv6dll = NULL;
@@ -262,9 +234,6 @@ int I_getaddrinfo(const char *node, const char *service,
 	for (i = 0, j = 0; i < ailen; i++, j++)
 	{
 		ai = *res+i;
-#ifdef _PS3
-		addr[i].sin_len = famsize;
-#endif
 		addr[i].sin_port = htons((UINT16)sockport);
 		if (nodename)
 		{
@@ -367,18 +336,6 @@ static const char* inet_ntopA(int af, const void *cp, char *buf, socklen_t len)
 	if (WSAAddressToStringA(anyp, AFlen, NULL, buf, &Dlen) == SOCKET_ERROR)
 		return NULL;
 	return buf;
-}
-#elif defined (_WIN32)
-// w32api, ws2tcpip.h, r1.12
-static inline char* gai_strerror(int ecode)
-{
-        static char message[1024+1];
-        DWORD dwFlags = FORMAT_MESSAGE_FROM_SYSTEM
-                      | FORMAT_MESSAGE_IGNORE_INSERTS
-                      | FORMAT_MESSAGE_MAX_WIDTH_MASK;
-        DWORD dwLanguageId = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
-        FormatMessageA(dwFlags, NULL, ecode, dwLanguageId, message, 1024, NULL);
-        return message;
 }
 #else
 #define HAVE_NTOP
@@ -562,24 +519,11 @@ int main(int argc, char **argv)
 	memset(&hints, 0x00, sizeof(struct my_addrinfo));
 	hints.ai_family = AF_INET;
 
-#ifdef _WIN32
-	{
-#ifdef USE_WINSOCK2
-		const WORD VerNeed = MAKEWORD(2,2);
-#else
-		const WORD VerNeed = MAKEWORD(1,1);
-#endif
-		WSADATA WSAData;
-		WSAStartup(VerNeed, &WSAData);
-	}
-#endif
 	printf("-----------------------------------------------------------\n");
-#ifndef _WIN32 //NULL as res crashes Win32
 	gaie = I_getaddrinfo(NULL, NULL, &hints, NULL);
 	if (gaie != EAI_NONAME)
 		printf("NULLs test returned: %s(%d)\n", gai_strerror(gaie), gaie);
 	I_freeaddrinfo(res);
-#endif
 #if 0 //NULL as res crashes
 	gaie = I_getaddrinfo("localhost", "5029", NULL, NULL);
     if (gaie == 0)

@@ -49,16 +49,11 @@ static I_cond  MSCond;
 #define Lock_state()   I_lock_mutex  (&MSMutex)
 #define Unlock_state() I_unlock_mutex (MSMutex)
 
-#ifdef HAVE_THREADS
 static I_mutex MSMutex;
 static I_cond  MSCond;
 
 #  define Lock_state()   I_lock_mutex  (&MSMutex)
 #  define Unlock_state() I_unlock_mutex (MSMutex)
-#else/*HAVE_THREADS*/
-#  define Lock_state()
-#  define Unlock_state()
-#endif/*HAVE_THREADS*/
 
 #ifndef NONET
 static void Command_Listserv_f(void);
@@ -127,13 +122,9 @@ void AddMServCommands(void)
 
 static void WarnGUI (void)
 {
-#ifdef HAVE_THREADS
 	I_lock_mutex(&m_menu_mutex);
-#endif
 	M_StartMessage(M_GetText("There was a problem connecting to\nthe Master Server\n\nCheck the console for details.\n"), NULL, MM_NOTHING);
-#ifdef HAVE_THREADS
 	I_unlock_mutex(m_menu_mutex);
-#endif
 }
 
 #define NUM_LIST_SERVER MAXSERVERLIST
@@ -166,14 +157,12 @@ char *GetMODVersion(int id)
 
 	c = HMS_compare_mod_version(buffer, 16);
 
-#ifdef HAVE_THREADS
 	I_lock_mutex(&ms_QueryId_mutex);
 	{
 		if (id != ms_QueryId)
 			c = -1;
 	}
 	I_unlock_mutex(ms_QueryId_mutex);
-#endif
 
 	if (c > 0)
 		return buffer;
@@ -303,9 +292,7 @@ Finish_unlist (void)
 		}
 		/*Unlock_state();*/
 
-#ifdef HAVE_THREADS
 		I_wake_all_cond(&MSCond);
-#endif
 	}
 }
 
@@ -325,7 +312,6 @@ Finish_masterserver_change (char *api)
 	}
 }
 
-#ifdef HAVE_THREADS
 static int *
 Server_id (void)
 {
@@ -420,48 +406,35 @@ Change_masterserver_thread (char *api)
 
 	Finish_masterserver_change(api);
 }
-#endif/*HAVE_THREADS*/
 
 void RegisterServer(void)
 {
 #ifdef MASTERSERVER
-#ifdef HAVE_THREADS
 	I_spawn_thread(
 			"register-server",
 			(I_thread_fn)Register_server_thread,
 			New_server_id()
 	);
-#else
-	Finish_registration();
-#endif
 #endif/*MASTERSERVER*/
 }
 
 static void UpdateServer(void)
 {
-#ifdef HAVE_THREADS
 	I_spawn_thread(
 			"update-server",
 			(I_thread_fn)Update_server_thread,
 			Server_id()
 	);
-#else
-	Finish_update();
-#endif
 }
 
 void UnregisterServer(void)
 {
 #ifdef MASTERSERVER
-#ifdef HAVE_THREADS
 	I_spawn_thread(
 			"unlist-server",
 			(I_thread_fn)Unlist_server_thread,
 			Server_id()
 	);
-#else
-	Finish_unlist();
-#endif
 #endif/*MASTERSERVER*/
 }
 
@@ -513,15 +486,11 @@ static inline void SendPingToMasterServer(void)
 static void
 Set_api (const char *api)
 {
-#ifdef HAVE_THREADS
 	I_spawn_thread(
 			"change-masterserver",
 			(I_thread_fn)Change_masterserver_thread,
 			strdup(api)
 	);
-#else
-	Finish_masterserver_change(strdup(api));
-#endif
 }
 
 #endif/*MASTERSERVER*/

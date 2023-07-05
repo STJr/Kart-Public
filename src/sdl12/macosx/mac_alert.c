@@ -20,26 +20,3 @@
 ///	Shows alerts, since we can't just print these to the screen when
 ///	launched graphically on a mac.
 
-#ifdef __APPLE_CC__
-
-#include "mac_alert.h"
-#include <CoreFoundation/CoreFoundation.h>
-
-int MacShowAlert(const char *title, const char *message, const char *button1, const char *button2, const char *button3)
-{
-	CFOptionFlags results;
-
-	CFUserNotificationDisplayAlert(0,
-	 kCFUserNotificationStopAlertLevel | kCFUserNotificationNoDefaultButtonFlag,
-	 NULL, NULL, NULL,
-	 CFStringCreateWithCString(NULL, title, kCFStringEncodingASCII),
-	 CFStringCreateWithCString(NULL, message, kCFStringEncodingASCII),
-	 button1 != NULL ? CFStringCreateWithCString(NULL, button1, kCFStringEncodingASCII) : NULL,
-	 button2 != NULL ? CFStringCreateWithCString(NULL, button2, kCFStringEncodingASCII) : NULL,
-	 button3 != NULL ? CFStringCreateWithCString(NULL, button3, kCFStringEncodingASCII) : NULL,
-	 &results);
-
-	return (int)results;
-}
-
-#endif

@@ -28,7 +28,6 @@
 #pragma warning(disable : 4214 4244)
 #endif
 
-#ifdef HAVE_SDL
 #define _MATH_DEFINES_DEFINED
 #include "SDL.h"
 
@@ -42,7 +41,7 @@
 
 #ifdef HAVE_IMAGE
 #include "SDL_image.h"
-#elif (!defined(__APPLE__))
+#else
 #define LOAD_XPM //I want XPM!
 #include "IMG_xpm.c" //Alam: I don't want to add SDL_Image.dll/so
 #define HAVE_IMAGE //I have SDL_Image, sortof
@@ -54,9 +53,6 @@
 
 #include "../doomdef.h"
 
-#ifdef _WIN32
-#include "SDL_syswm.h"
-#endif
 
 #include "../doomstat.h"
 #include "../i_system.h"
@@ -74,13 +70,11 @@
 #include "../command.h"
 #include "sdlmain.h"
 #include "../i_system.h"
-#ifdef HWRENDER
 #include "../hardware/hw_main.h"
 #include "../hardware/hw_drv.h"
 // For dynamic referencing of HW rendering functions
 #include "hwsym_sdl.h"
 #include "ogl_sdl.h"
-#endif
 
 #ifdef HAVE_DISCORDRPC
 #include "../discord.h"
@@ -226,12 +220,10 @@ static void SDLSetMode(INT32 width, INT32 height, SDL_bool fullscreen)
 		}
 	}
 
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
 		OglSdlSurface(vid.width, vid.height);
 	}
-#endif
 
 	if (rendermode == render_soft)
 	{
@@ -1359,13 +1351,11 @@ void I_UpdateNoBlit(void)
 		return;
 	if (exposevideo)
 	{
-#ifdef HWRENDER
 		if (rendermode == render_opengl)
 		{
 			OglSdlFinishUpdate(cv_vidwait.value);
 		}
 		else
-#endif
 		if (rendermode == render_soft)
 		{
 			SDL_RenderCopy(renderer, texture, NULL, NULL);
@@ -1453,12 +1443,10 @@ void I_FinishUpdate(void)
 		SDL_RenderPresent(renderer);
 	}
 
-#ifdef HWRENDER
 	else if (rendermode == render_opengl)
 	{
 		OglSdlFinishUpdate(cv_vidwait.value);
 	}
-#endif
 
 	exposevideo = SDL_FALSE;
 }
@@ -1627,11 +1615,9 @@ void VID_PrepareModeList(void)
 
 	firstEntry = 0;
 
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 		modeList = SDL_ListModes(NULL, SDL_OPENGL|SDL_FULLSCREEN);
 	else
-#endif
 	modeList = SDL_ListModes(NULL, surfaceFlagsF|SDL_HWSURFACE); //Alam: At least hardware surface
 
 	if (disable_fullscreen?0:cv_fullscreen.value) // only fullscreen needs preparation
@@ -1742,10 +1728,8 @@ static SDL_bool Impl_CreateWindow(SDL_bool fullscreen)
 	if (borderlesswindow)
 		flags |= SDL_WINDOW_BORDERLESS;
 
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 		flags |= SDL_WINDOW_OPENGL;
-#endif
 
 	// Create a window
 	window = SDL_CreateWindow("SRB2Kart "VERSIONSTRING, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -1758,7 +1742,6 @@ static SDL_bool Impl_CreateWindow(SDL_bool fullscreen)
 	}
 
 	// Renderer-specific stuff
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
 		sdlglcontext = SDL_GL_CreateContext(window);
@@ -1770,7 +1753,6 @@ static SDL_bool Impl_CreateWindow(SDL_bool fullscreen)
 		SDL_GL_MakeCurrent(window, sdlglcontext);
 	}
 	else
-#endif
 	if (rendermode == render_soft)
 	{
 		flags = 0; // Use this to set SDL_RENDERER_* flags now
@@ -1913,14 +1895,11 @@ void I_StartupGraphics(void)
 	}
 	if (M_CheckParm("-software"))
 		rendermode = render_soft;
-#ifdef HWRENDER
 	else if (M_CheckParm("-opengl"))
 		rendermode = render_opengl;
-#endif
 
 	if (rendermode == render_none)
 	{
-#ifdef HWRENDER
 		char   line[16];
 		char * word;
 		FILE * file = OpenRendererFile("r");
@@ -1946,7 +1925,6 @@ void I_StartupGraphics(void)
 			}
 			fclose(file);
 		}
-#endif
 		if (rendermode == render_none)
 		{
 			rendermode = render_soft;
@@ -1979,7 +1957,6 @@ void I_StartupGraphics(void)
 
 	//SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY>>1,SDL_DEFAULT_REPEAT_INTERVAL<<2);
 	VID_Command_ModeList_f();
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 	{
 		HWD.pfnInit             = hwSym("Init",NULL);
@@ -2024,7 +2001,6 @@ void I_StartupGraphics(void)
 		if (!HWD.pfnInit()) // load the OpenGL library
 			rendermode = render_soft;
 	}
-#endif
 
 	// Fury: we do window initialization after GL setup to allow
 	// SDL_GL_LoadLibrary to work well on Windows
@@ -2111,14 +2087,12 @@ void I_ShutdownGraphics(void)
 	graphics_started = false;
 	I_OutputMsg("shut down\n");
 
-#ifdef HWRENDER
 	if (GLUhandle)
 		hwClose(GLUhandle);
 	if (sdlglcontext)
 	{
 		SDL_GL_DeleteContext(sdlglcontext);
 	}
-#endif
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	framebuffer = SDL_FALSE;
 }
@@ -2140,4 +2114,3 @@ static void Impl_SetVsync(void)
 		SDL_RenderSetVSync(renderer, cv_vidwait.value);
 #endif
 }
-#endif

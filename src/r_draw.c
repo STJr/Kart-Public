@@ -27,9 +27,7 @@
 #include "console.h" // Until buffering gets finished
 #include "k_kart.h" // SRB2kart
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
 // ==========================================================================
 //                     COMMON DATA FOR 8bpp AND 16bpp
@@ -215,10 +213,6 @@ CV_PossibleValue_t Color_cons_t[MAXSKINCOLORS+1];
 */
 void R_InitTranslationTables(void)
 {
-#ifdef _NDS
-	// Ugly temporary NDS hack.
-	transtables = (UINT8*)0x2000000;
-#else
 	// Load here the transparency lookup tables 'TINTTAB'
 	// NOTE: the TINTTAB resource MUST BE aligned on 64k for the asm
 	// optimised code (in other words, transtables pointer low word is 0)
@@ -234,7 +228,6 @@ void R_InitTranslationTables(void)
 	W_ReadLump(W_GetNumForName("TRANS70"), transtables+0x60000);
 	W_ReadLump(W_GetNumForName("TRANS80"), transtables+0x70000);
 	W_ReadLump(W_GetNumForName("TRANS90"), transtables+0x80000);
-#endif
 }
 
 
@@ -770,14 +763,12 @@ void R_DrawViewBorder(void)
 
 	if (rendermode == render_none)
 		return;
-#ifdef HWRENDER
 	if (rendermode != render_soft)
 	{
 		HWR_DrawViewBorder(0);
 		return;
 	}
 	else
-#endif
 
 #ifdef DEBUG
 	fprintf(stderr,"RDVB: vidwidth %d vidheight %d scaledviewwidth %d viewheight %d\n",

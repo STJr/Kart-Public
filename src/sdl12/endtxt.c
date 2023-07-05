@@ -33,17 +33,9 @@
 
 void ShowEndTxt(void)
 {
-#if !(defined (_WIN32_WCE) || defined (_XBOX) || defined (_arch_dreamcast))
 	INT32 i;
 	UINT16 j, att = 0;
 	INT32 nlflag = 1;
-#ifdef _WIN32
-	HANDLE co = GetStdHandle(STD_OUTPUT_HANDLE);
-	DWORD mode, bytesWritten;
-	CONSOLE_SCREEN_BUFFER_INFO backupcon;
-	COORD resizewin = {80,-1};
-	CHAR let = 0;
-#endif
 	UINT16 *ptext;
 	void *data;
 	lumpnum_t endoomnum = W_GetNumForName("ENDOOM");
@@ -61,41 +53,6 @@ void ShowEndTxt(void)
 	/* get the lump with the text */
 	data = ptext = W_CacheLumpNum(endoomnum, PU_CACHE);
 
-#ifdef _WIN32
-	if (co == INVALID_HANDLE_VALUE || GetFileType(co) != FILE_TYPE_CHAR || !GetConsoleMode(co, &mode)) // test if it a good handle
-	{
-		Z_Free(data);
-		return;
-	}
-
-	backupcon.wAttributes = FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE; // Just in case
-	GetConsoleScreenBufferInfo(co, &backupcon); //Store old state
-	resizewin.Y = backupcon.dwSize.Y;
-	if (backupcon.dwSize.X < resizewin.X)
-		SetConsoleScreenBufferSize(co, resizewin);
-
-	for (i=1; i<=80*25; i++) // print 80x25 text and deal with the attributes too
-	{
-		j = (UINT16)(*ptext >> 8); // attribute first
-		let = (char)(*ptext & 0xff); // text second
-		if (j != att) // attribute changed?
-		{
-			att = j; // save current attribute
-			SetConsoleTextAttribute(co, j); //set fg and bg color for buffer
-		}
-
-		WriteConsoleA(co, &let,  1, &bytesWritten, NULL); // now the text
-
-		if (nlflag && !(i % 80) && backupcon.dwSize.X > resizewin.X) // do we need a nl?
-		{
-			att = backupcon.wAttributes;
-			SetConsoleTextAttribute(co, att); // all attributes off
-			WriteConsoleA(co, "\n",  1, &bytesWritten, NULL); // newline to console
-		}
-		ptext++;
-	}
-	SetConsoleTextAttribute(co, backupcon.wAttributes); // all attributes off
-#else
 	/* print 80x25 text and deal with the attributes too */
 	for (i=1; i<=80*25; i++) {
 		/* attribute first */
@@ -227,10 +184,8 @@ void ShowEndTxt(void)
 	}
 	/* all attributes off */
 	printf("\033[0m");
-#endif
 	if (nlflag)
 		printf("\n");
 
 	Z_Free(data);
-#endif
 }

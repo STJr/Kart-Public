@@ -16,7 +16,6 @@
 #include <string.h>
 #include "doomdef.h"
 
-#if !defined (__APPLE__)
 
 // Like the OpenBSD version, but it doesn't check for src not being a valid
 // C string.
@@ -50,6 +49,5 @@ size_t strlcpy(char *dst, const char *src, size_t siz)
 	return strlcat(dst, src, siz);
 }
 
-#endif
 
 #include "strcasestr.c"

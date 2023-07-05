@@ -19,26 +19,16 @@
 ///
 ///	Implementend via FMOD_SOUND API
 
-#ifdef _WINDOWS
-//#define WIN32_LEAN_AND_MEAN
-#define RPC_NO_WINDOWS_H
-#include <windows.h>
-#else
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#endif
 
 #include <stdio.h>
 FILE *logstream = NULL;
 
-#ifdef __MINGW32__
-#include <FMOD/fmod.h>
-#else
 #include <fmod.h>
-#endif
 
 #ifdef FSOUND_INIT_DONTLATENCYADJUST //Alam: why didn't I think about this before? :)
 #define FSOUND_Sample_Load(index,data,mode,length) FSOUND_Sample_Load(index,data,mode,0,length)
@@ -46,11 +36,7 @@ FILE *logstream = NULL;
 #define OLDFMOD //Alam: Yea!
 #endif
 
-#ifdef __MINGW32__
-#include <FMOD/fmod_errors.h>
-#else
 #include <fmod_errors.h>	/* optional */
-#endif
 
 #define MAXCHANNEL 1024
 
@@ -471,14 +457,6 @@ EXPORT INT32 HWRAPI(Startup) (I_Error_t FatalErrorFunction, snddev_t *snd_dev)
 		else
 			DBG_Printf("FMOD(Startup,FSOUND_GetDriverCaps,%s): %s\n",FSOUND_GetDriverName(i), FMOD_ErrorString(FSOUND_GetError()));
 	}
-#if defined (_WIN32) || defined (_WIN64)
-	if (!FSOUND_SetHWND(snd_dev->hWnd))
-	{
-		DBG_Printf("FMOD(Startup,FSOUND_SetHWND): %s\n", FMOD_ErrorString(FSOUND_GetError()));
-		return inited;
-	}
-	else
-#endif
 	{
 		DBG_Printf("Initialising FMOD %.02f\n",FMOD_VERSION);
 		inited = FSOUND_Init(snd_dev->sample_rate,MAXCHANNEL,0);
@@ -1146,65 +1124,3 @@ EXPORT void HWRAPI (KillSource) (INT32 chan)
 	if (fmsample != blankfmsample) FSOUND_Sample_Free(fmsample);
 }
 
-#ifdef _WINDOWS
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, // handle to DLL module
-                    DWORD fdwReason,    // reason for calling function
-                    LPVOID lpvReserved) // reserved
-{
-	// Perform actions based on the reason for calling.
-	UNREFERENCED_PARAMETER(lpvReserved);
-	switch (fdwReason)
-	{
-		case DLL_PROCESS_ATTACH:
-			// Initialize once for each new process.
-			// Return FALSE to fail DLL load.
-#ifdef DEBUG_TO_FILE
-			logstream = fopen("s_fmod.log", "wt");
-			if (logstream == NULL)
-				return FALSE;
-#endif
-			DisableThreadLibraryCalls(hinstDLL);
-			break;
-
-		case DLL_THREAD_ATTACH:
-			// Do thread-specific initialization.
-			break;
-
-		case DLL_THREAD_DETACH:
-			// Do thread-specific cleanup.
-			break;
-
-		case DLL_PROCESS_DETACH:
-			// Perform any necessary cleanup.
-#ifdef DEBUG_TO_FILE
-			if (logstream)
-			{
-				fclose(logstream);
-				logstream = NULL;
-			}
-#endif
-			break;
-	}
-	return TRUE; // Successful DLL_PROCESS_ATTACH.
-}
-#elif !defined (HAVE_SDL)
-
-// **************************************************************************
-//                                                                  FUNCTIONS
-// **************************************************************************
-
-EXPORT void _init()
-{
-#ifdef DEBUG_TO_FILE
-	logstream = fopen("s_fmod.log","wt");
-#endif
-}
-
-EXPORT void _fini()
-{
-#ifdef DEBUG_TO_FILE
-	if (logstream)
-		fclose(logstream);
-#endif
-}
-#endif

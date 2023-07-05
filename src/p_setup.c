@@ -71,14 +71,8 @@
 #include <time.h>
 #endif
 
-#if defined (_WIN32) || defined (_WIN32_WCE)
-#include <malloc.h>
-#include <math.h>
-#endif
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
 #include "hardware/hw_light.h"
-#endif
 
 #include "p_slopes.h"
 
@@ -425,7 +419,6 @@ fixed_t P_SegLength(seg_t *seg)
 	return FixedHypot(dx, dy)<<1;
 }
 
-#ifdef HWRENDER
 /** Computes the length of a seg as a float.
   * This is needed for OpenGL.
   *
@@ -442,7 +435,6 @@ static inline float P_SegLengthFloat(seg_t *seg)
 
 	return (float)hypot(dx, dy);
 }
-#endif
 
 /** Loads the SEGS resource from a level.
   *
@@ -469,11 +461,9 @@ static void P_LoadRawSegs(UINT8 *data, size_t i)
 		li->v2 = &vertexes[SHORT(ml->v2)];
 
 		li->length = P_SegLength(li);
-#ifdef HWRENDER
 		if (rendermode == render_opengl)
 			li->flength = P_SegLengthFloat(li);
 		li->pv1 = li->pv2 = NULL;
-#endif
 
 		li->angle = (SHORT(ml->angle))<<FRACBITS;
 		li->offset = (SHORT(ml->offset))<<FRACBITS;
@@ -753,14 +743,12 @@ static void P_LoadRawSectors(UINT8 *data, size_t i)
 		ss->floorspeed = 0;
 		ss->ceilspeed = 0;
 
-#ifdef HWRENDER // ----- for special tricks with HW renderer -----
 		ss->pseudoSector = false;
 		ss->virtualFloor = false;
 		ss->virtualCeiling = false;
 		ss->sectorLines = NULL;
 		ss->stackList = NULL;
 		ss->lineoutLength = -1.0l;
-#endif // ----- end special tricks -----
 	}
 
 	// set the sky flat num
@@ -1467,7 +1455,6 @@ static void P_LoadRawSideDefs2(void *data)
 					}
 					break;
 				}
-#ifdef HWRENDER
 				else
 				{
 					// for now, full support of toptexture only
@@ -1579,7 +1566,6 @@ static void P_LoadRawSideDefs2(void *data)
 					}
 					break;
 				}
-#endif
 
 			case 413: // Change music
 			{
@@ -2981,9 +2967,7 @@ boolean P_SetupLevel(boolean skipprecip)
 		I_UpdateNoVsync();
 	}*/
 
-#ifdef HAVE_BLUA
 	LUA_InvalidateLevel();
-#endif
 
 	for (ss = sectors; sectors+numsectors != ss; ss++)
 	{
@@ -3142,14 +3126,12 @@ boolean P_SetupLevel(boolean skipprecip)
 	if (loadprecip) //  ugly hack for P_NetUnArchiveMisc (and P_LoadNetGame)
 		P_SpawnPrecipitation();
 
-#ifdef HWRENDER // not win32 only 19990829 by Kin
 	if (rendermode != render_soft && rendermode != render_none)
 	{
 		// Correct missing sidedefs & deep water trick
 		HWR_CorrectSWTricks();
 		HWR_CreatePlanePolygons((INT32)numnodes - 1);
 	}
-#endif
 
 	// oh god I hope this helps
 	// (addendum: apparently it does!
@@ -3357,12 +3339,10 @@ boolean P_SetupLevel(boolean skipprecip)
 	I_PlayCD((UINT8)(gamemap), false);
 
 	// preload graphics
-#ifdef HWRENDER // not win32 only 19990829 by Kin
 	if (rendermode != render_soft && rendermode != render_none)
 	{
 		HWR_PrepLevelCache(numtextures);
 	}
-#endif
 
 	P_MapEnd();
 
@@ -3411,9 +3391,7 @@ boolean P_SetupLevel(boolean skipprecip)
 				G_CopyTiccmd(&players[i].cmd, &netcmds[buf][i], 1);
 		}
 		P_PreTicker(2);
-#ifdef HAVE_BLUA
 		LUAh_MapLoad();
-#endif
 	}
 
 	G_AddMapToBuffer(gamemap-1);

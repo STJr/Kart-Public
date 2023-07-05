@@ -11,7 +11,6 @@
 /// \brief player object library for Lua scripting
 
 #include "doomdef.h"
-#ifdef HAVE_BLUA
 #include "fastcmp.h"
 #include "p_mobj.h"
 #include "d_player.h"
@@ -390,10 +389,8 @@ static int player_get(lua_State *L)
 		lua_pushinteger(L, plr->griefstrikes);
 	else if (fastcmp(field,"splitscreenindex"))
 		lua_pushinteger(L, plr->splitscreenindex);
-#ifdef HWRENDER
 	else if (fastcmp(field,"fovadd"))
 		lua_pushfixed(L, plr->fovadd);
-#endif
 	else if (fastcmp(field,"ping"))
 		lua_pushinteger(L, playerpingtable[( plr - players )]);
 	else {
@@ -660,10 +657,8 @@ static int player_set(lua_State *L)
 		plr->griefstrikes = (UINT8)luaL_checkinteger(L, 3);
 	else if (fastcmp(field,"splitscreenindex"))
 		return NOSET;
-#ifdef HWRENDER
 	else if (fastcmp(field,"fovadd"))
 		plr->fovadd = luaL_checkfixed(L, 3);
-#endif
 	else {
 		lua_getfield(L, LUA_REGISTRYINDEX, LREG_EXTVARS);
 		I_Assert(lua_istable(L, -1));
@@ -891,4 +886,3 @@ int LUA_PlayerLib(lua_State *L)
 	return 0;
 }
 
-#endif

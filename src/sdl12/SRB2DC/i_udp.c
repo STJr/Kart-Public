@@ -349,7 +349,7 @@ static boolean KOSUDP_Ban(int node)
 		return false;
 
 	M_Memcpy(&banned[numbans], &clientaddress[node], sizeof (IPaddress));
-	banned[numbans].port = 0'
+	banned[numbans].port = 0;
 	numbans++;
 	return true;
 }

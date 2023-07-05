@@ -43,7 +43,6 @@
 #include "../doomdef.h"
 #include "../doomstat.h"
 
-#ifdef HWRENDER
 #include "hw_main.h"
 #include "hw_glob.h"
 #include "hw_dll.h"
@@ -916,4 +915,3 @@ void HWR_CorrectSWTricks(void)
 	freeStacklists();
 }
 
-#endif // HWRENDER

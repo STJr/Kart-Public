@@ -29,7 +29,6 @@
 #pragma warning(disable : 4214 4244)
 #endif
 
-#ifdef HAVE_SDL
 
 #include "SDL.h"
 
@@ -144,4 +143,3 @@ void hwClose(void *handle)
 	SDL_UnloadObject(handle);
 #endif
 }
-#endif

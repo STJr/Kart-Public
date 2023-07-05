@@ -11,7 +11,6 @@
 /// \brief basic functions for Lua scripting
 
 #include "doomdef.h"
-#ifdef HAVE_BLUA
 #include "p_local.h"
 #include "p_setup.h" // So we can have P_SetupLevelSky
 #include "p_slopes.h" // P_GetZAt
@@ -3247,4 +3246,3 @@ int LUA_BaseLib(lua_State *L)
 	return 0;
 }
 
-#endif

@@ -12,9 +12,6 @@
 
 #ifdef __GNUC__
 #include <unistd.h>
-#ifdef _XBOX
-#include <openxdk/debug.h>
-#endif
 #endif
 
 #include "doomdef.h"
@@ -36,25 +33,15 @@
 #include "m_menu.h"
 #include "filesrch.h"
 
-#ifdef _WINDOWS
-#include "win32/win_main.h"
-#endif
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
 #define MAXHUDLINES 20
 
-#ifdef HAVE_THREADS
 I_mutex con_mutex;
 
 #  define Lock_state()    I_lock_mutex(&con_mutex)
 #  define Unlock_state() I_unlock_mutex(con_mutex)
-#else/*HAVE_THREADS*/
-#  define Lock_state()
-#  define Unlock_state()
-#endif/*HAVE_THREADS*/
 
 static boolean con_started = false; // console has been initialised
        boolean con_startup = false; // true at game startup, screen need refreshing
@@ -115,11 +102,7 @@ static void CONS_backcolor_Change(void);
 //======================================================================
 //                   CONSOLE VARS AND COMMANDS
 //======================================================================
-#ifdef macintosh
-#define CON_BUFFERSIZE 4096 // my compiler can't handle local vars >32k
-#else
 #define CON_BUFFERSIZE 16384
-#endif
 
 static char con_buffer[CON_BUFFERSIZE];
 
@@ -377,11 +360,7 @@ static void CON_SetupColormaps(void)
 // Setup the console text buffer
 //
 // for WII, libogc already has a CON_Init function, we must rename it here
-#ifdef _WII
-void CON_InitWii(void)
-#else
 void CON_Init(void)
-#endif
 {
 	INT32 i;
 
@@ -1421,15 +1400,10 @@ void CONS_Printf(const char *fmt, ...)
 	va_end(argptr);
 
 	// echo console prints to log file
-#ifndef _arch_dreamcast
 	DEBFILE(txt);
-#endif
 
 	if (!con_started)
 	{
-#if defined (_XBOX) && defined (__GNUC__)
-		if (!keyboard_started) debugPrint(txt);
-#endif
 #ifdef PC_DOS
 		CON_LogMessage(txt);
 		free(txt);
@@ -1455,19 +1429,9 @@ void CONS_Printf(const char *fmt, ...)
 	// if not in display loop, force screen update
 	if (startup)
 	{
-#if (defined (_WINDOWS)) || (defined (__OS2__) && !defined (HAVE_SDL))
-		patch_t *con_backpic = W_CachePatchName("KARTKREW", PU_CACHE);
-
-		// Jimita: CON_DrawBackpic just called V_DrawScaledPatch
-		V_DrawFixedPatch(0, 0, FRACUNIT/2, 0, con_backpic, NULL);
-
-		W_UnlockCachedPatch(con_backpic);
-		I_LoadingScreen(txt);				// Win32/OS2 only
-#else
 		// here we display the console text
 		CON_Drawer();
 		I_FinishUpdate(); // page flip or blit buffer
-#endif
 	}
 }
 

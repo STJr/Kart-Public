@@ -13,7 +13,6 @@
 
 #include "../doomdef.h"
 
-#ifdef HWRENDER
 #include "hw_main.h"
 #include "hw_glob.h"
 #include "hw_drv.h"
@@ -884,4 +883,3 @@ void HWR_GetFadeMask(lumpnum_t fademasklumpnum)
 	Z_ChangeTag(grmip->grInfo.data, PU_HWRCACHE_UNLOCKED);
 }
 
-#endif //HWRENDER

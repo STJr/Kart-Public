@@ -36,15 +36,11 @@
 // item finder
 #include "m_cond.h"
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
-#ifdef HAVE_BLUA
 #include "lua_hud.h"
 #include "lua_hudlib_drawlist.h"
 #include "lua_hook.h"
-#endif
 
 #include "r_fps.h"
 
@@ -179,9 +175,7 @@ hudinfo_t hudinfo[NUMHUDITEMS] =
 	{ 240, 160}, // HUD_LAP
 };
 
-#ifdef HAVE_BLUA
 static huddrawlist_h luahuddrawlist_game;
-#endif
 
 //
 // STATUS BAR CODE
@@ -229,10 +223,8 @@ void ST_doPaletteStuff(void)
 	else
 		palette = 0;
 
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 		palette = 0; // No flashpals here in OpenGL
-#endif
 
 	palette = min(max(palette, 0), 13);
 
@@ -400,9 +392,7 @@ static inline void ST_Stop(void)
 	if (st_stopped)
 		return;
 
-#ifdef HWRENDER
 	if (rendermode != render_opengl)
-#endif
 		V_SetPalette(0);
 
 	st_stopped = true;
@@ -431,9 +421,7 @@ void ST_Init(void)
 
 	ST_LoadGraphics();
 
-#ifdef HAVE_BLUA
 	luahuddrawlist_game = LUA_HUD_CreateDrawList();
-#endif
 }
 
 // change the status bar too, when pressing F12 while viewing a demo.
@@ -1962,7 +1950,6 @@ static void ST_overlayDrawer(void)
 		}*/
 	}
 
-#ifdef HAVE_BLUA
 	if (!(netgame || multiplayer) || !hu_showscores)
 	{
 		if (renderisnewtic)
@@ -1970,13 +1957,10 @@ static void ST_overlayDrawer(void)
 			LUAh_GameHUD(stplyr, luahuddrawlist_game);
 		}
 	}
-#endif // HAVE_BLUA
 
 	// draw level title Tails
 	if (*mapheaderinfo[gamemap-1]->lvlttl != '\0' && !(hu_showscores && (netgame || multiplayer) && !mapreset)
-#ifdef HAVE_BLUA
 	&& LUA_HudEnabled(hud_stagetitle)
-#endif
 	)
 		ST_drawLevelTitle();
 
@@ -1999,9 +1983,7 @@ static void ST_overlayDrawer(void)
 				V_DrawCenteredString(BASEVIDWIDTH/2, STRINGY(132), V_HUDTRANSHALF, M_GetText("Press Jump to respawn."));
 		}
 		else*/ if (stplyr->spectator
-#ifdef HAVE_BLUA
 		&& LUA_HudEnabled(hud_textspectator)
-#endif
 		)
 		{
 			const char *itemtxt = M_GetText("Item - Join Game");
@@ -2154,22 +2136,18 @@ void ST_Drawer(void)
 		st_palette = -1;
 
 	// Do red-/gold-shifts from damage/items
-#ifdef HWRENDER
 	//25/08/99: Hurdler: palette changes is done for all players,
 	//                   not only player1! That's why this part
 	//                   of code is moved somewhere else.
 	if (rendermode == render_soft)
-#endif
 		if (rendermode != render_none) ST_doPaletteStuff();
 
 	if (st_overlay)
 	{
-#ifdef HAVE_BLUA
 		if (renderisnewtic)
 		{
 			LUA_HUD_ClearDrawList(luahuddrawlist_game);
 		}
-#endif // HAVE_BLUA
 		// No deadview!
 		for (i = 0; i <= splitscreen; i++)
 		{
@@ -2177,9 +2155,7 @@ void ST_Drawer(void)
 			ST_overlayDrawer();
 		}
 
-#ifdef HAVE_BLUA
 		LUA_HUD_DrawList(luahuddrawlist_game);
-#endif // HAVE_BLUA
 
 		// draw Midnight Channel's overlay ontop
 		if (mapheaderinfo[gamemap-1]->typeoflevel & TOL_TV)	// Very specific Midnight Channel stuff.

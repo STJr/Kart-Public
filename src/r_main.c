@@ -33,9 +33,7 @@
 #include "doomstat.h" // MAXSPLITSCREENPLAYERS
 #include "r_fps.h" // Frame interpolation/uncapped
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
 //profile stuff ---------------------------------------------------------
 //#define TIMING
@@ -710,10 +708,8 @@ void R_ExecuteSetViewSize(void)
 	}
 
 	// continue to do the software setviewsize as long as we use the reference software view
-#ifdef HWRENDER
 	if (rendermode != render_soft)
 		HWR_SetViewSize();
-#endif
 
 	am_recalc = true;
 }
@@ -1529,7 +1525,6 @@ void R_RegisterEngineStuff(void)
 	// initialized to standard viewheight
 	//CV_RegisterVar(&cv_viewheight);
 
-#ifdef HWRENDER
 	// GL-specific Commands
 	CV_RegisterVar(&cv_grgammablue);
 	CV_RegisterVar(&cv_grgammagreen);
@@ -1547,12 +1542,9 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_grfakecontrast);
 	CV_RegisterVar(&cv_grshearing);
 	CV_RegisterVar(&cv_grshaders);
-#endif
 
-#ifdef HWRENDER
 	if (rendermode != render_soft && rendermode != render_none)
 		HWR_AddCommands();
-#endif
 
 	// Frame interpolation/uncapped
 	CV_RegisterVar(&cv_fpscap);

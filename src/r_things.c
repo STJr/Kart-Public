@@ -31,9 +31,7 @@
 #include "m_cheat.h" // objectplace
 #include "k_kart.h" // SRB2kart
 #include "p_local.h" // stplyr
-#ifdef HWRENDER
 #include "hardware/hw_md2.h"
-#endif
 
 #ifdef PC_DOS
 #include <stdio.h> // for snprintf
@@ -445,10 +443,8 @@ void R_AddSpriteDefs(UINT16 wadnum)
 
 		if (R_AddSingleSpriteDef(spritename, &sprites[i], wadnum, start, end))
 		{
-#ifdef HWRENDER
 			if (rendermode == render_opengl)
 				HWR_AddSpriteMD2(i);
-#endif
 			// if a new sprite was added (not just replaced)
 			addsprites++;
 #ifndef ZDEBUG
@@ -2723,10 +2719,8 @@ void R_InitSkins(void)
 	Forceskin_cons_t[1].strvalue = skin->name;
 
 	//MD2 for sonic doesn't want to load in Linux.
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 		HWR_AddPlayerMD2(0);
-#endif
 }
 
 // returns true if the skin name is found (loaded from pwad)
@@ -3115,10 +3109,8 @@ next_token:
 		// add face graphics
 		ST_LoadFaceGraphics(skin->facerank, skin->facewant, skin->facemmap, numskins);
 
-#ifdef HWRENDER
 		if (rendermode == render_opengl)
 			HWR_AddPlayerMD2(numskins);
-#endif
 
 		numskins++;
 	}

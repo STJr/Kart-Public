@@ -25,20 +25,13 @@
 #include "v_video.h" // pLocalPalette
 #include "dehacked.h"
 
-#if defined (_WIN32) || defined (_WIN32_WCE)
-#include <malloc.h> // alloca(sizeof)
-#endif
 
 #if defined(_MSC_VER)
 #pragma pack(1)
 #endif
 
 // Not sure if this is necessary, but it was in w_wad.c, so I'm putting it here too -Shadow Hog
-#ifdef _WIN32_WCE
-#define AVOID_ERRNO
-#else
 #include <errno.h>
-#endif
 
 //
 // Texture definition.

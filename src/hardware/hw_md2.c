@@ -24,7 +24,6 @@
 #include "../doomdef.h"
 #include "../doomstat.h"
 
-#ifdef HWRENDER
 #include "hw_drv.h"
 #include "hw_light.h"
 #include "hw_md2.h"
@@ -1344,4 +1343,3 @@ void HWR_DrawMD2(gr_vissprite_t *spr)
 	}
 }
 
-#endif //HWRENDER

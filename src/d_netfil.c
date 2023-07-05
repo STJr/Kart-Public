@@ -11,12 +11,10 @@
 /// \brief Transfer a file using HSendPacket.
 
 #include <stdio.h>
-#ifndef _WIN32_WCE
 #ifdef __OS2__
 #include <sys/types.h>
 #endif // __OS2__
 #include <sys/stat.h>
-#endif
 
 #if !defined (UNDER_CE)
 #include <time.h>
@@ -25,7 +23,7 @@
 #if ((defined (_WIN32) && !defined (_WIN32_WCE)) || defined (__DJGPP__)) && !defined (_XBOX)
 #include <io.h>
 #include <direct.h>
-#elif !defined (_WIN32_WCE) && !(defined (_XBOX) && !defined (__GNUC__))
+#else
 #include <sys/types.h>
 #include <dirent.h>
 #include <utime.h>
@@ -34,8 +32,6 @@
 #ifdef __GNUC__
 #include <unistd.h>
 #include <limits.h>
-#elif defined (_WIN32) && !defined (_WIN32_WCE)
-#include <sys/utime.h>
 #endif
 #ifdef __DJGPP__
 #include <dir.h>
@@ -1200,11 +1196,7 @@ filestatus_t findfile(char *filename, const UINT8 *wantedmd5sum, boolean complet
 	// if not found at all, just move on without doing anything
 
 	// finally check "." directory
-#ifdef _arch_dreamcast
-	homecheck = filesearch(filename, "/cd", wantedmd5sum, completepath, 10);
-#else
 	homecheck = filesearch(filename, ".", wantedmd5sum, completepath, 10);
-#endif
 
 	if (homecheck != FS_NOTFOUND) // if not found this time, fall back on the below return statement
 		return homecheck; // otherwise return the result we got

@@ -3454,9 +3454,7 @@ void P_SaveNetGame(void)
 		P_NetArchiveThinkers();
 		P_NetArchiveSpecials();
 	}
-#ifdef HAVE_BLUA
 	LUA_Archive();
-#endif
 
 	WRITEUINT8(save_p, 0x1d); // consistency marker
 }
@@ -3498,9 +3496,7 @@ boolean P_LoadNetGame(void)
 		P_RelinkPointers();
 		P_FinishMobjs();
 	}
-#ifdef HAVE_BLUA
 	LUA_UnArchive();
-#endif
 
 	// This is stupid and hacky, but maybe it'll work!
 	P_SetRandSeed(P_GetInitSeed());

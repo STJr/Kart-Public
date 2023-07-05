@@ -21,7 +21,6 @@
 #pragma warning(disable : 4214 4244)
 #endif
 
-#ifdef HAVE_SDL
 #define _MATH_DEFINES_DEFINED
 
 #include "SDL.h"
@@ -35,7 +34,6 @@
 #include "../doomdef.h"
 #include "../d_main.h"
 
-#ifdef HWRENDER
 #include "../hardware/r_opengl/r_opengl.h"
 #include "../hardware/hw_main.h"
 #include "ogl_sdl.h"
@@ -45,11 +43,7 @@
 
 #ifdef DEBUG_TO_FILE
 #include <stdarg.h>
-#if defined (_WIN32) && !defined (__CYGWIN__)
-#include <direct.h>
-#else
 #include <unistd.h>
-#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #endif
@@ -105,12 +99,8 @@ boolean LoadGL(void)
 
 #if 0
 	GLULibname = "/proc/self/exe";
-#elif defined (_WIN32)
-	GLULibname = "GLU32.DLL";
 #elif defined (__MACH__)
 	GLULibname = "/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib";
-#elif defined (macintos)
-	GLULibname = "OpenGLLibrary";
 #elif defined (__unix__)
 	GLULibname = "libGLU.so.1";
 #elif defined (__HAIKU__)
@@ -252,5 +242,3 @@ EXPORT void HWRAPI(OglSdlSetPalette) (RGBA_t *palette, RGBA_t *pgamma)
 	Flush();
 }
 
-#endif //HWRENDER
-#endif //SDL

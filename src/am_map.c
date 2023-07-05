@@ -21,9 +21,7 @@
 #include "r_state.h"
 #include "r_draw.h"
 
-#ifdef HWRENDER
 #include "hardware/hw_main.h"
-#endif
 
 // For use if I do walls with outsides/insides
 static const UINT8 REDS        = (8*16);
@@ -43,9 +41,6 @@ static const UINT8 NOCLIMBBROWNS      = (2*16);
 static const UINT8 NOCLIMBYELLOWS     = (11*16);
 
 
-#ifdef _NDS
-#undef BACKGROUND
-#endif
 
 // Automap colors
 #define BACKGROUND            DBLACK
@@ -366,10 +361,8 @@ static void AM_LevelInit(void)
 	f_h = vid.height;
 
 	AM_drawFline = AM_drawFline_soft;
-#ifdef HWRENDER
 	if (rendermode == render_opengl)
 		AM_drawFline = HWR_drawAMline;
-#endif
 
 	AM_findMinMaxBoundaries();
 	scale_mtof = FixedDiv(min_scale_mtof*10, 7*FRACUNIT);

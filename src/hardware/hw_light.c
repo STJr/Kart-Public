@@ -12,7 +12,6 @@
 
 #include "../doomdef.h"
 
-#ifdef HWRENDER
 #include "hw_light.h"
 #include "hw_drv.h"
 #include "../i_video.h"
@@ -24,4 +23,3 @@
 #include "../r_main.h"
 #include "../p_local.h"
 
-#endif // HWRENDER
