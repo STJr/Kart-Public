@@ -49,11 +49,12 @@ jobs:
         
       - name: Build
         run: |
+          builddir=$(pwd)
           wget https://github.com/STJr/Kart-Public/releases/download/v1.6/AssetsLinuxOnly.zip
 
           mkdir assets/installer
           pushd assets/installer
-          unzip AssetsLinuxOnly.zip "*.kart" srb2.srb
+          unzip $builddir/AssetsLinuxOnly.zip "*.kart" srb2.srb
           popd
 
           mkdir build
