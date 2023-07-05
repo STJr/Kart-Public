@@ -25,7 +25,15 @@ pkgs.mkShell rec {
     # "-DCMAKE_CXX_FLAGS=--preload-file=assets/Makefile"
   ];
 
-  packages = with pkgs; [ cmake curl game-music-emu libpng libogg emscripten ];
+  packages = with pkgs; [
+    cmake
+    curl
+    game-music-emu
+    libpng
+    libogg
+    emscripten
+    nodejs
+  ];
 
   EM_CACHE = ".emscriptencache";
 
