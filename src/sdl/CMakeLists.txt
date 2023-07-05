@@ -1,10 +1,8 @@
 # Declare SDL2 interface sources
-set(CMAKE_C_COMPILER "emcc")
-set(CMAKE_CXX_COMPILER "emcc")
 set(CMAKE_SYSTEM_NAME "Linux")
 
-add_compile_options("SHELL: -sUSE_SDL=2")
-add_compile_options("SHELL: -sUSE_SDL_MIXER=2")
+add_compile_options("SHELL: -s USE_SDL=2")
+add_compile_options("SHELL: -s USE_SDL_MIXER=2")
 add_link_options("SHELL: -sUSE_SDL=2")
 add_link_options("SHELL: -sUSE_SDL_MIXER=2")
 add_link_options("SHELL: -s ALLOW_MEMORY_GROWTH=1")
