@@ -59,7 +59,10 @@ jobs:
 
           mkdir build
           cd build
-          
+
+          export CC=$(which emcc)
+          export CXX=$(which emcc)
+
           emcmake cmake ..
           emmake make -j2
         
