@@ -12,6 +12,12 @@ module.exports = {
   resolve: {
     extensions: [".js", ".elm"]
   },
+  devServer: {
+    static: {
+      directory: path.join(__dirname, "..", "..", "build", "bin"),
+      publicPath: "/"
+    },
+  },
   plugins: [new HtmlWebpackPlugin({
     title: "SRB2Kart v1.6",
     xhtml: true,
