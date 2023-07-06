@@ -553,6 +553,7 @@ add_definitions(-DCMAKECONFIG)
 #)
 
 add_subdirectory(sdl)
+add_subdirectory(web)
 
 if(NOT ${SRB2_SDL2_AVAILABLE} AND NOT ${SRB2_WIN32_AVAILABLE})
 	message(FATAL_ERROR "There are no targets available to build an SRB2Kart executable. :(")
