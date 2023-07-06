@@ -63,7 +63,7 @@ jobs:
           echo "Setting CC to $(which emcc)"
           echo "Setting CXX to $(which emcc)"
 
-          emcmake cmake -DCMAKE_CXX_COMPILER=$(which emcc) -DCMAKE_CC_COMPILER=$(which emcc) ..
+          emcmake cmake -DCMAKE_CXX_COMPILER=$(which emcc) -DCMAKE_C_COMPILER=$(which emcc) ..
           emmake make -j2
         
       - name: Upload artifact
