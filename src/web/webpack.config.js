@@ -7,7 +7,7 @@ module.exports = {
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
   output: {
     filename: 'index.js',
-    path: path.resolve(__dirname, 'dist'),
+    path: process.env.OUTPUT_PATH || path.resolve(__dirname, 'dist'),
   },
   resolve: {
     extensions: [".js", ".elm"]
