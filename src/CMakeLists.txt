@@ -163,6 +163,7 @@ set(SRB2_CORE_GAME_SOURCES
 	k_kart.c
 	i_time.c
 
+	p_enemy.h
 	p_local.h
 	p_maputl.h
 	p_mobj.h
