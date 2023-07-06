@@ -23,24 +23,6 @@ function(prepend_sources SOURCE_FILES)
 	set(${SOURCE_FILES} ${MODIFIED} PARENT_SCOPE)
 endfunction()
 
-# Macro to add OSX framework
-macro(add_framework fwname appname)
-	find_library(FRAMEWORK_${fwname}
-	NAMES ${fwname}
-	PATHS ${CMAKE_OSX_SYSROOT}/System/Library
-		${CMAKE_OSX_SYSROOT}/Library
-		/System/Library
-		/Library
-	ATH_SUFFIXES Frameworks
-	NO_DEFAULT_PATH)
-    if( ${FRAMEWORK_${fwname}} STREQUAL FRAMEWORK_${fwname}-NOTFOUND)
-        MESSAGE(ERROR ": Framework ${fwname} not found")
-    else()
-        TARGET_LINK_LIBRARIES(${appname} PRIVATE "${FRAMEWORK_${fwname}}/${fwname}")
-        MESSAGE(STATUS "Framework ${fwname} found at ${FRAMEWORK_${fwname}}")
-    endif()
-endmacro()
-
 # Macro to copy Windows DLLs to Debug/Release folder for easy debugging
 # Note: this is general purpose, we could copy anything. Just using for DLLs on MSVC though
 macro(copy_files_to_build_dir target dlllist_var)
@@ -87,10 +69,6 @@ if(${CMAKE_SYSTEM} MATCHES "Linux")
 	endif()
 endif()
 
-if(${CMAKE_SYSTEM} MATCHES "Darwin")
-	add_definitions(-DMACOSX)
-endif()
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
@@ -115,14 +93,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in ${CMAKE_CURRENT_BINAR
 
 ##### PACKAGE CONFIGURATION #####
 
-if(${CMAKE_SYSTEM} MATCHES "Windows")
-	set(CPACK_GENERATOR "ZIP")
-endif()
 if(${CMAKE_SYSTEM} MATCHES "Linux")
 	set(CPACK_GENERATOR "TGZ")
-endif()
-if(${CMAKE_SYSTEM} MATCHES "Darwin")
-	set(CPACK_GENERATOR "DragNDrop")
 endif()
 
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Sonic Robo Blast 2 Kart" CACHE STRING "Program name for display purposes")
