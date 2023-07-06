@@ -16,6 +16,7 @@
 #define __D_NETCMD__
 
 #include "command.h"
+#include "p_enemy.h"
 
 // console vars
 extern consvar_t cv_playername;
