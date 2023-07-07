@@ -51,11 +51,20 @@ parse =
     run <| oneOf [ downloadingData, running, map (\_ -> Nothing) spaces ]
 
 
+byteCountToMB : ByteCount -> String
+byteCountToMB count =
+    (count
+        // 1000000
+        |> String.fromInt
+    )
+        ++ "MB"
+
+
 toString : Status -> String
 toString status =
     case status of
         Downloading { downloaded, total } ->
-            "Downloading (" ++ String.fromInt downloaded ++ "/" ++ String.fromInt total ++ ")"
+            "Downloading (" ++ (downloaded |> byteCountToMB) ++ "/" ++ (total |> byteCountToMB) ++ ")"
 
         Running ->
             "Running..."
