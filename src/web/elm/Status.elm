@@ -51,6 +51,7 @@ parse =
     run <| oneOf [ downloadingData, running, map (\_ -> Nothing) spaces ]
 
 
+toString : Status -> String
 toString status =
     case status of
         Downloading { downloaded, total } ->
