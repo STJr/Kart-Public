@@ -31,6 +31,6 @@ toHtml : Button msg -> Html msg
 toHtml (Button button_) =
     button
         [ onClick button_.onClick
-        , class "transition duration-150 border-solid px-5 py-2 rounded bg-blue-600 text-white drop-shadow-lg hover:bg-blue-400 active:drop-shadow-md active:scale-95"
+        , class "transition duration-150 border-solid px-5 py-2 rounded bg-blue-600 text-white shadow-md hover:bg-blue-400 active:shadow-none active:scale-95"
         ]
         [ text button_.text ]
