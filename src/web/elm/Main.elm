@@ -12,6 +12,9 @@ import Views.Button
 port startGame : () -> Cmd msg
 
 
+port requestFullScreen : () -> Cmd msg
+
+
 port gameOutput : (String -> msg) -> Sub msg
 
 
@@ -58,6 +61,7 @@ type Msg
     = StartGame
     | GotGameOutput String
     | GotStatusMessage String
+    | RequestFullScreen
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -79,6 +83,9 @@ update msg model =
 
                 _ ->
                     ( { model | emStatus = Status.Error }, Cmd.none )
+
+        RequestFullScreen ->
+            ( model, requestFullScreen () )
 
 
 
@@ -107,6 +114,9 @@ viewControls status =
     case status of
         Status.NotStarted ->
             Views.Button.init { text = "Start", onClick = StartGame } |> Views.Button.toHtml
+
+        Status.Running ->
+            Views.Button.init { text = "Fullscreen", onClick = RequestFullScreen } |> Views.Button.toHtml
 
         _ ->
             text ""

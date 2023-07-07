@@ -13,6 +13,15 @@ app.ports.startGame.subscribe((message) => {
   document.body.appendChild(scriptEle);
 });
 
+app.ports.requestFullScreen.subscribe((message) => {
+  const canvas = document.getElementById("canvas");
+  console.log("canvas", canvas);
+
+  if (canvas) {
+    canvas.requestFullscreen();
+  }
+});
+
 const parseEmsText = function (text) {
   if (arguments.length > 1) {
     return Array.prototype.slice.call(arguments).join(" ");
