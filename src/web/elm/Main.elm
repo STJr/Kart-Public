@@ -1,7 +1,7 @@
 port module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, canvas, div, progress, span, text)
+import Html exposing (Html, button, canvas, div, li, progress, span, text, ul)
 import Html.Attributes exposing (height, hidden, id, max, value, width)
 import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy)
@@ -66,7 +66,7 @@ update msg model =
             ( model, startGame () )
 
         GotGameOutput line ->
-            ( { model | outputLines = line :: model.outputLines }, Cmd.none )
+            ( { model | outputLines = model.outputLines ++ [ line ] }, Cmd.none )
 
         GotStatusMessage line ->
             case Status.parse line of
@@ -104,5 +104,5 @@ view model =
     , progress [ value "0", Html.Attributes.max "100", id "progress", hidden True ] []
     , div [ id "spinner" ] []
     , lazy (canvas [ id "canvas", width 500, height 500 ]) []
-    , div [] <| List.map (\line -> span [] [ text line ]) model.outputLines
+    , ul [] <| List.map (\line -> li [] [ text line ]) model.outputLines
     ]
