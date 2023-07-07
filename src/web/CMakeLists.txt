@@ -10,8 +10,15 @@ file(COPY webpack.config.js DESTINATION .)
 file(COPY postcss.config.js DESTINATION .)
 file(COPY tailwind.config.js DESTINATION .)
 
+if("${CMAKE_BUILD_TYPE}" EQUAL "Release")
+  set(NODE_ENV "production")
+else()
+  set(NODE_ENV "development")
+endif()
+
 add_custom_target(
   WEB ALL
-  COMMAND npm install && OUTPUT_PATH="${CMAKE_BINARY_DIR}/bin" npx webpack
+  COMMAND npm install && OUTPUT_PATH="${CMAKE_BINARY_DIR}/bin"
+          NODE_ENV="${NODE_ENV}" npx webpack
   DEPENDS webpack.config.js package.json elm.json
   BYPRODUCTS dist/*)
