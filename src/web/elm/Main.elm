@@ -1,12 +1,14 @@
 port module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, canvas, div, li, progress, span, text, ul)
+import Html exposing (Html, article, button, canvas, div, h1, h2, header, li, main_, p, progress, section, span, text, ul)
 import Html.Attributes exposing (class, height, hidden, id, max, value, width)
 import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy)
+import Msg exposing (Msg(..))
 import Status exposing (Status(..))
 import Views.Button
+import Views.Help
 
 
 port startGame : () -> Cmd msg
@@ -37,12 +39,18 @@ main =
 type alias Model =
     { outputLines : List String
     , emStatus : Status
+    , helpShown : Bool
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { outputLines = [], emStatus = Status.NotStarted }, Cmd.none )
+    ( { outputLines = []
+      , emStatus = Status.NotStarted
+      , helpShown = True
+      }
+    , Cmd.none
+    )
 
 
 subscriptions : Model -> Sub Msg
@@ -55,13 +63,6 @@ subscriptions _ =
 
 
 -- UPDATE
-
-
-type Msg
-    = StartGame
-    | GotGameOutput String
-    | GotStatusMessage String
-    | RequestFullScreen
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -86,6 +87,12 @@ update msg model =
 
         RequestFullScreen ->
             ( model, requestFullScreen () )
+
+        ShowHelp ->
+            ( { model | helpShown = True }, Cmd.none )
+
+        HideHelp ->
+            ( { model | helpShown = False }, Cmd.none )
 
 
 
@@ -124,7 +131,10 @@ viewControls status =
             Views.Button.init { text = "Start", onClick = StartGame } |> Views.Button.toHtml
 
         Status.Running ->
-            Views.Button.init { text = "Fullscreen", onClick = RequestFullScreen } |> Views.Button.toHtml
+            div [ class "flex gap-2" ]
+                [ Views.Button.init { text = "Fullscreen", onClick = RequestFullScreen } |> Views.Button.toHtml
+                , Views.Button.init { text = "Help", onClick = ShowHelp } |> Views.Button.toHtml
+                ]
 
         _ ->
             text ""
@@ -150,5 +160,10 @@ view model =
         , viewConsole model.outputLines
         , viewControls model.emStatus
         , viewStatus model.emStatus
+        , if model.helpShown then
+            Views.Help.view
+
+          else
+            text ""
         ]
     ]
