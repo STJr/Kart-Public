@@ -23,20 +23,19 @@ type Status
 
 downloadingData : Parser Status
 downloadingData =
-    map Downloading
-        (succeed DownloadStatus
-            |. keyword "Downloading"
-            |. spaces
-            |. keyword "data"
-            |. symbol "..."
-            |. spaces
-            |. symbol "("
-            |= int
-            |. symbol "/"
-            |= int
-            |. symbol ")"
-            |. end
-        )
+    succeed DownloadStatus
+        |. keyword "Downloading"
+        |. spaces
+        |. keyword "data"
+        |. symbol "..."
+        |. spaces
+        |. symbol "("
+        |= int
+        |. symbol "/"
+        |= int
+        |. symbol ")"
+        |. end
+        |> map Downloading
 
 
 running : Parser Status
