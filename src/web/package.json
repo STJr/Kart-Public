@@ -15,6 +15,13 @@
     "webpack-cli": "^5.1.4"
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "css-loader": "^6.8.1",
+    "html-loader": "^4.2.0",
+    "postcss": "^8.4.25",
+    "postcss-loader": "^7.3.3",
+    "style-loader": "^3.3.3",
+    "tailwindcss": "^3.3.2",
     "webpack-dev-server": "^4.15.1"
   }
 }

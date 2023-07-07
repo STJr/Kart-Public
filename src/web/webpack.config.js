@@ -32,6 +32,9 @@ module.exports = {
             loader: 'elm-webpack-loader'
         }
       ]
+    }, {
+      test: /\.css$/i,
+      use: ["style-loader", "css-loader", "postcss-loader"],
     }]
   }
 };

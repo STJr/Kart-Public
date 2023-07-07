@@ -1,4 +1,5 @@
 import { Elm } from "../elm/Main";
+import "../style.css";
 
 const app = Elm.Main.init({ node: document.getElementById("main") });
 
