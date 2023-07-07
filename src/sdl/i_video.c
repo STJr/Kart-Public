@@ -1609,7 +1609,7 @@ INT32 VID_GetModeForSize(INT32 w, INT32 h)
 void VID_PrepareModeList(void)
 {
 	// Under SDL2, we just use the windowed modes list, and scale in windowed fullscreen.
-	allow_fullscreen = true;
+	allow_fullscreen = false;
 #if 0
 	INT32 i;
 
