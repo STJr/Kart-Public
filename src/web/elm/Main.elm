@@ -1,20 +1,29 @@
 port module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, canvas, div, progress, text)
+import Html exposing (Html, button, canvas, div, progress, span, text)
 import Html.Attributes exposing (height, hidden, id, max, value, width)
 import Html.Events exposing (onClick)
+import Html.Lazy exposing (lazy)
+import Status exposing (Status)
 
 
 port startGame : () -> Cmd msg
+
+
+port gameOutput : (String -> msg) -> Sub msg
+
+
+port statusMessage : (String -> msg) -> Sub msg
 
 
 
 -- MAIN
 
 
+main : Program () Model Msg
 main =
-    Browser.document { init = init, update = update, view = document, subscriptions = \_ -> Sub.none }
+    Browser.document { init = init, update = update, view = document, subscriptions = subscriptions }
 
 
 
@@ -22,12 +31,22 @@ main =
 
 
 type alias Model =
-    Int
+    { outputLines : List String
+    , emStatus : Status
+    }
 
 
 init : () -> ( Model, Cmd Msg )
-init flags =
-    ( 0, Cmd.none )
+init _ =
+    ( { outputLines = [], emStatus = Status.NotStarted }, Cmd.none )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.batch
+        [ gameOutput GotGameOutput
+        , statusMessage GotStatusMessage
+        ]
 
 
 
@@ -35,22 +54,30 @@ init flags =
 
 
 type Msg
-    = Increment
-    | Decrement
-    | StartGame
+    = StartGame
+    | GotGameOutput String
+    | GotStatusMessage String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Increment ->
-            ( model + 1, Cmd.none )
-
-        Decrement ->
-            ( model - 1, Cmd.none )
-
         StartGame ->
             ( model, startGame () )
+
+        GotGameOutput line ->
+            ( { model | outputLines = line :: model.outputLines }, Cmd.none )
+
+        GotStatusMessage line ->
+            case Status.parse line of
+                Ok Status.Nothing ->
+                    ( model, Cmd.none )
+
+                Ok status ->
+                    ( { model | emStatus = status }, Cmd.none )
+
+                _ ->
+                    ( { model | emStatus = Status.Error }, Cmd.none )
 
 
 
@@ -66,12 +93,16 @@ document model =
 
 view : Model -> List (Html Msg)
 view model =
-    [ div []
-        [ button [ onClick StartGame ] [ text "Start" ]
-        ]
+    [ case model.emStatus of
+        Status.NotStarted ->
+            button [ onClick StartGame ] [ text "Start" ]
+
+        _ ->
+            text ""
     , div [ id "spinner" ] []
-    , div [ id "status" ] []
+    , span [] [ text <| Status.toString model.emStatus ]
     , progress [ value "0", Html.Attributes.max "100", id "progress", hidden True ] []
     , div [ id "spinner" ] []
-    , canvas [ id "canvas", width 500, height 500 ] []
+    , lazy (canvas [ id "canvas", width 500, height 500 ]) []
+    , div [] <| List.map (\line -> span [] [ text line ]) model.outputLines
     ]

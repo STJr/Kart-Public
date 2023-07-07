@@ -6,6 +6,10 @@ pkgs.mkShell rec {
     cmake
     emscripten
     nodejs
+    ccls
+    cmake-language-server
+    rtags
+    elmPackages.elm
     elmPackages.elm-language-server
     elmPackages.elm-format
     elmPackages.elm-review
