@@ -145,7 +145,7 @@ viewStatus status =
 
 view : Model -> List (Html Msg)
 view model =
-    [ Html.main_ [ class "w-screen h-screen flex items-center justify-center flex-col" ]
+    [ Html.main_ [ class "w-screen h-screen flex items-center justify-center flex-col gap-2" ]
         [ viewCanvas
         , viewConsole model.outputLines
         , viewControls model.emStatus
