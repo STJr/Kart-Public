@@ -6,6 +6,7 @@ import Html.Attributes exposing (class, height, hidden, id, max, value, width)
 import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy)
 import Status exposing (Status)
+import Views.Button
 
 
 port startGame : () -> Cmd msg
@@ -91,18 +92,37 @@ document model =
     }
 
 
-view : Model -> List (Html Msg)
-view model =
-    [ case model.emStatus of
+viewCanvas : Html Msg
+viewCanvas =
+    lazy (canvas [ id "canvas", width 500, height 500 ]) []
+
+
+viewConsole : List String -> Html Msg
+viewConsole lines =
+    div [ class "hidden" ] [ ul [] <| List.map (\line -> li [] [ text line ]) lines ]
+
+
+viewControls : Status -> Html Msg
+viewControls status =
+    case status of
         Status.NotStarted ->
-            button [ onClick StartGame ] [ text "Start" ]
+            Views.Button.init { text = "Start", onClick = StartGame } |> Views.Button.toHtml
 
         _ ->
             text ""
-    , div [ id "spinner" ] []
-    , span [ class "text-red-700" ] [ text <| Status.toString model.emStatus ]
-    , progress [ value "0", Html.Attributes.max "100", id "progress", hidden True ] []
-    , div [ id "spinner" ] []
-    , lazy (canvas [ id "canvas", width 500, height 500 ]) []
-    , ul [] <| List.map (\line -> li [] [ text line ]) model.outputLines
+
+
+viewStatus : Status -> Html Msg
+viewStatus status =
+    span [ class "text-red-700" ] [ text <| Status.toString status ]
+
+
+view : Model -> List (Html Msg)
+view model =
+    [ Html.main_ [ class "w-screen h-screen flex items-center justify-center flex-col" ]
+        [ viewCanvas
+        , viewConsole model.outputLines
+        , viewControls model.emStatus
+        , viewStatus model.emStatus
+        ]
     ]
