@@ -21,6 +21,9 @@ Win32_LIB_ASM_Release
 /.vs
 /debian
 /assets/debian
+/assets/installer
 /build
 /.emscriptencache
 /.direnv
+/.ccls-cache
+/CMakeFiles
