@@ -5,7 +5,7 @@ import Html exposing (Html, button, canvas, div, li, progress, span, text, ul)
 import Html.Attributes exposing (class, height, hidden, id, max, value, width)
 import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy)
-import Status exposing (Status)
+import Status exposing (Status(..))
 import Views.Button
 
 
@@ -114,7 +114,15 @@ viewControls status =
 
 viewStatus : Status -> Html Msg
 viewStatus status =
-    span [ class "text-red-700" ] [ text <| Status.toString status ]
+    case status of
+        NotStarted ->
+            text ""
+
+        Running ->
+            text ""
+
+        _ ->
+            span [ class "text-red-700" ] [ text <| Status.toString status ]
 
 
 view : Model -> List (Html Msg)
