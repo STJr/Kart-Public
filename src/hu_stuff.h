@@ -15,8 +15,8 @@
 #define __HU_STUFF_H__
 
 #include "d_event.h"
-#include "r_defs.h"
 #include "w_wad.h"
+#include "r_defs.h"
 
 //------------------------------------
 //           heads up font
@@ -35,11 +35,11 @@
 
 // Level title font
 #define LT_FONTSTART '!' // the first font characters
-#define LT_FONTEND 'Z'   // the last font characters
+#define LT_FONTEND 'Z' // the last font characters
 #define LT_FONTSIZE (LT_FONTEND - LT_FONTSTART + 1)
 
 #define CRED_FONTSTART '!' // the first font character
-#define CRED_FONTEND 'Z'   // the last font character
+#define CRED_FONTEND 'Z' // the last font character
 #define CRED_FONTSIZE (CRED_FONTEND - CRED_FONTSTART + 1)
 
 #define HU_CROSSHAIRS 3 // maximum of 9 - see HU_Init();
@@ -51,35 +51,26 @@ extern char english_shiftxform[];
 //        sorted player lines
 //------------------------------------
 
-typedef struct {
-  UINT32 count;
-  INT32 num;
-  const char *name;
+typedef struct
+{
+	UINT32 count;
+	INT32 num;
+	const char *name;
 } playersort_t;
 
 //------------------------------------
 //           chat stuff
 //------------------------------------
 #define HU_MAXMSGLEN 223
-#define CHAT_BUFSIZE                                                           \
-  64 // that's enough messages, right? We'll delete the older ones when that
-     // gets out of hand.
+#define CHAT_BUFSIZE 64		// that's enough messages, right? We'll delete the older ones when that gets out of hand.
 #define NETSPLITSCREEN // why the hell WOULDN'T we want this?
 #ifdef NETSPLITSCREEN
 #define OLDCHAT (cv_consolechat.value == 1 || dedicated || vid.width < 640)
 #else
 #define OLDCHAT (cv_consolechat.value == 1 || dedicated || vid.width < 640)
 #endif
-#define CHAT_MUTE                                                              \
-  (cv_mute.value &&                                                            \
-   !(server ||                                                                 \
-     IsPlayerAdmin(                                                            \
-         consoleplayer))) // this still allows to open the chat but not to type.
-                          // That's used for scrolling and whatnot.
-#define OLD_MUTE                                                               \
-  (OLDCHAT && cv_mute.value &&                                                 \
-   !(server || IsPlayerAdmin(consoleplayer))) // this is used to prevent oldchat
-                                              // from opening when muted.
+#define CHAT_MUTE (cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))	// this still allows to open the chat but not to type. That's used for scrolling and whatnot.
+#define OLD_MUTE (OLDCHAT && cv_mute.value && !(server || IsPlayerAdmin(consoleplayer)))	// this is used to prevent oldchat from opening when muted.
 
 // some functions
 void HU_AddChatText(const char *text, boolean playsound);
@@ -87,8 +78,7 @@ void HU_AddChatText(const char *text, boolean playsound);
 // set true when entering a chat message
 extern boolean chat_on;
 
-extern patch_t *hu_font[HU_FONTSIZE], *kart_font[KART_FONTSIZE],
-    *tny_font[HU_FONTSIZE]; // SRB2kart
+extern patch_t *hu_font[HU_FONTSIZE], *kart_font[KART_FONTSIZE], *tny_font[HU_FONTSIZE];	// SRB2kart
 extern patch_t *tallnum[10];
 extern patch_t *pingnum[10];
 extern patch_t *pinggfx[5];
@@ -125,17 +115,13 @@ void HU_Drawer(void);
 char HU_dequeueChatChar(void);
 void HU_Erase(void);
 void HU_clearChatChars(void);
-void HU_drawPing(INT32 x, INT32 y, UINT32 ping,
-                 INT32 flags); // Lat': Ping drawer for scoreboard.
-// void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer);
-// void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32
-// scorelines, INT32 whiteplayer);
-void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines,
-                        INT32 whiteplayer, INT32 hilicol);
+void HU_drawPing(INT32 x, INT32 y, UINT32 ping, INT32 flags);	// Lat': Ping drawer for scoreboard.
+//void HU_DrawTeamTabRankings(playersort_t *tab, INT32 whiteplayer);
+//void HU_DrawDualTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer);
+void HU_DrawTabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scorelines, INT32 whiteplayer, INT32 hilicol);
 void HU_DrawEmeralds(INT32 x, INT32 y, INT32 pemeralds);
 
-INT32
-HU_CreateTeamScoresTbl(playersort_t *tab, UINT32 dmtotals[]);
+INT32 HU_CreateTeamScoresTbl(playersort_t *tab, UINT32 dmtotals[]);
 
 // CECHO interface.
 void HU_ClearCEcho(void);

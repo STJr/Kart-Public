@@ -17,14 +17,14 @@
 #include "command.h"
 #include "d_player.h"
 #include "d_think.h"
-#include "doomstat.h" // MAXSPLITSCREENPLAYERS
-#include "m_bbox.h"
 #include "m_fixed.h"
-#include "p_maputl.h"
+#include "m_bbox.h"
 #include "p_tick.h"
 #include "r_defs.h"
+#include "p_maputl.h"
+#include "doomstat.h" // MAXSPLITSCREENPLAYERS
 
-#define FLOATSPEED (FRACUNIT * 4)
+#define FLOATSPEED (FRACUNIT*4)
 
 //#define VIEWHEIGHTS "41"
 
@@ -34,35 +34,28 @@
 // mapblocks are used to check movement
 // against lines and things
 #define MAPBLOCKUNITS 128
-#define MAPBLOCKSIZE (MAPBLOCKUNITS * FRACUNIT)
-#define MAPBLOCKSHIFT (FRACBITS + 7)
-#define MAPBMASK (MAPBLOCKSIZE - 1)
-#define MAPBTOFRAC (MAPBLOCKSHIFT - FRACBITS)
+#define MAPBLOCKSIZE  (MAPBLOCKUNITS*FRACUNIT)
+#define MAPBLOCKSHIFT (FRACBITS+7)
+#define MAPBMASK      (MAPBLOCKSIZE-1)
+#define MAPBTOFRAC    (MAPBLOCKSHIFT-FRACBITS)
 
-// Convenience macro to fix issue with collision along bottom/left edges of
-// blockmap -Red
-#define BMBOUNDFIX(xl, xh, yl, yh)                                             \
-  {                                                                            \
-    if (xl > xh)                                                               \
-      xl = 0;                                                                  \
-    if (yl > yh)                                                               \
-      yl = 0;                                                                  \
-  }
+// Convenience macro to fix issue with collision along bottom/left edges of blockmap -Red
+#define BMBOUNDFIX(xl, xh, yl, yh) {if (xl > xh) xl = 0; if (yl > yh) yl = 0;}
 
 // MAXRADIUS is for precalculated sector block boxes
 // the spider demon is larger,
 // but we do not have any moving sectors nearby
-#define MAXRADIUS (32 * FRACUNIT)
+#define MAXRADIUS (32*FRACUNIT)
 
 // max Z move up or down without jumping
 // above this, a height difference is considered as a 'dropoff'
-#define MAXSTEPMOVE (24 * FRACUNIT)
+#define MAXSTEPMOVE (24*FRACUNIT)
 
-#define USERANGE (64 * FRACUNIT)
-#define MELEERANGE (64 * FRACUNIT)
-#define MISSILERANGE (32 * 64 * FRACUNIT)
+#define USERANGE (64*FRACUNIT)
+#define MELEERANGE (64*FRACUNIT)
+#define MISSILERANGE (32*64*FRACUNIT)
 
-#define AIMINGTOSLOPE(aiming) FINESINE((aiming >> ANGLETOFINESHIFT) & FINEMASK)
+#define AIMINGTOSLOPE(aiming) FINESINE((aiming>>ANGLETOFINESHIFT) & FINEMASK)
 
 #define mariomode (maptol & TOL_MARIO)
 #define twodlevel (maptol & TOL_2D)
@@ -81,51 +74,52 @@ void P_RemoveThinker(thinker_t *thinker);
 //
 // P_USER
 //
-typedef struct camera_s {
-  boolean chase;
-  angle_t aiming;
+typedef struct camera_s
+{
+	boolean chase;
+	angle_t aiming;
 
-  // Things used by FS cameras.
-  fixed_t viewheight;
-  angle_t startangle;
+	// Things used by FS cameras.
+	fixed_t viewheight;
+	angle_t startangle;
 
-  // Camera demobjerization
-  // Info for drawing: position.
-  fixed_t x, y, z;
-  boolean reset;
+	// Camera demobjerization
+	// Info for drawing: position.
+	fixed_t x, y, z;
+	boolean reset;
 
-  // More drawing info: to determine current sprite.
-  angle_t angle; // orientation
+	//More drawing info: to determine current sprite.
+	angle_t angle; // orientation
 
-  struct subsector_s *subsector;
+	struct subsector_s *subsector;
 
-  // The closest interval over all contacted Sectors (or Things).
-  fixed_t floorz;
-  fixed_t ceilingz;
+	// The closest interval over all contacted Sectors (or Things).
+	fixed_t floorz;
+	fixed_t ceilingz;
 
-  // For movement checking.
-  fixed_t radius;
-  fixed_t height;
+	// For movement checking.
+	fixed_t radius;
+	fixed_t height;
 
-  fixed_t relativex;
+	fixed_t relativex;
 
-  // Momentums, used to update position.
-  fixed_t momx, momy, momz;
+	// Momentums, used to update position.
+	fixed_t momx, momy, momz;
 
-  // SRB2Kart: camera pans while drifting
-  fixed_t pan;
+	// SRB2Kart: camera pans while drifting
+	fixed_t pan;
 } camera_t;
 
 // demo freecam or something before i commit die
 struct demofreecam_s {
 
-  camera_t *cam;     // this is useful when the game is paused, notably
-  mobj_t *soundmobj; // mobj to play sound from, used in s_sound
-
-  angle_t localangle;   // keeps track of the cam angle for cmds
-  angle_t localaiming;  // ditto with aiming
-  boolean turnheld;     // holding turn button for gradual turn speed
-  boolean keyboardlook; // keyboard look
+	camera_t *cam;	// this is useful when the game is paused, notably
+	mobj_t *soundmobj;	// mobj to play sound from, used in s_sound
+	
+	angle_t localangle;	// keeps track of the cam angle for cmds
+	angle_t localaiming;	// ditto with aiming
+	boolean turnheld;	// holding turn button for gradual turn speed
+	boolean keyboardlook;	// keyboard look
 };
 
 extern struct demofreecam_s democam;
@@ -155,8 +149,7 @@ void P_ResetCamera(player_t *player, camera_t *thiscam);
 boolean P_TryCameraMove(fixed_t x, fixed_t y, camera_t *thiscam);
 void P_SlideCameraMove(camera_t *thiscam);
 void P_DemoCameraMovement(camera_t *cam);
-boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam,
-                          boolean resetcalled);
+boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcalled);
 void P_InitCameraCmd(void);
 boolean P_PlayerInPain(player_t *player);
 void P_DoPlayerPain(player_t *player, mobj_t *source, mobj_t *inflictor);
@@ -179,8 +172,7 @@ void P_SpawnShieldOrb(player_t *player);
 mobj_t *P_SpawnGhostMobj(mobj_t *mobj);
 void P_GivePlayerRings(player_t *player, INT32 num_rings);
 void P_GivePlayerLives(player_t *player, INT32 numlives);
-UINT8
-P_GetNextEmerald(void);
+UINT8 P_GetNextEmerald(void);
 void P_GiveEmerald(boolean spawnObj);
 void P_ResetScore(player_t *player);
 boolean P_AutoPause(void);
@@ -189,12 +181,12 @@ void P_DoJumpShield(player_t *player);
 void P_BlackOw(player_t *player);
 void P_ElementalFireTrail(player_t *player);
 
-// void P_DoPityCheck(player_t *player);
+//void P_DoPityCheck(player_t *player);
 void P_PlayerThink(player_t *player);
 void P_PlayerAfterThink(player_t *player);
 void P_DoPlayerExit(player_t *player);
 void P_DoTimeOver(player_t *player);
-// void P_NightserizePlayer(player_t *player, INT32 ptime);
+//void P_NightserizePlayer(player_t *player, INT32 ptime);
 
 void P_InstaThrust(mobj_t *mo, angle_t angle, fixed_t move);
 fixed_t P_ReturnThrustX(mobj_t *mo, angle_t angle, fixed_t move);
@@ -203,18 +195,15 @@ void P_InstaThrustEvenIn2D(mobj_t *mo, angle_t angle, fixed_t move);
 
 boolean P_LookForEnemies(player_t *player);
 void P_NukeEnemies(mobj_t *inflictor, mobj_t *source, fixed_t radius);
-void P_HomingAttack(mobj_t *source,
-                    mobj_t *enemy); /// \todo doesn't belong in p_user
-// boolean P_SuperReady(player_t *player);
+void P_HomingAttack(mobj_t *source, mobj_t *enemy); /// \todo doesn't belong in p_user
+//boolean P_SuperReady(player_t *player);
 boolean P_AnalogMove(player_t *player);
 /*boolean P_TransferToNextMare(player_t *player);
 UINT8 P_FindLowestMare(void);*/
-UINT8
-P_FindLowestLap(void);
-UINT8
-P_FindHighestLap(void);
+UINT8 P_FindLowestLap(void);
+UINT8 P_FindHighestLap(void);
 void P_FindEmerald(void);
-// void P_TransferToAxis(player_t *player, INT32 axisnum);
+//void P_TransferToAxis(player_t *player, INT32 axisnum);
 boolean P_PlayerMoving(INT32 pnum);
 void P_Telekinesis(player_t *player, fixed_t thrust, fixed_t range);
 
@@ -222,6 +211,7 @@ void P_PlayLivesJingle(player_t *player);
 void P_PlayRinglossSound(mobj_t *source);
 void P_PlayDeathSound(mobj_t *source);
 void P_PlayVictorySound(mobj_t *source);
+
 
 //
 // P_MOBJ
@@ -236,13 +226,13 @@ void P_PlayVictorySound(mobj_t *source);
 extern mapthing_t *itemrespawnque[ITEMQUESIZE];
 extern tic_t itemrespawntime[ITEMQUESIZE];
 extern size_t iquehead, iquetail;
-extern consvar_t cv_gravity /*, cv_viewheight*/;
+extern consvar_t cv_gravity/*, cv_viewheight*/;
 
 void P_RespawnSpecials(void);
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
 
-mobj_t *P_SpawnShadowMobj(mobj_t *caster);
+mobj_t *P_SpawnShadowMobj(mobj_t * caster);
 
 void P_RecalcPrecipInSector(sector_t *sector);
 void P_PrecipitationEffects(void);
@@ -252,7 +242,7 @@ boolean P_MobjWasRemoved(mobj_t *th);
 void P_RemoveSavegameMobj(mobj_t *th);
 boolean P_SetPlayerMobjState(mobj_t *mobj, statenum_t state);
 boolean P_SetMobjState(mobj_t *mobj, statenum_t state);
-// void P_RunShields(void);
+//void P_RunShields(void);
 void P_RunOverlays(void);
 void P_RunShadows(void);
 void P_MobjThinker(mobj_t *mobj);
@@ -260,76 +250,51 @@ boolean P_RailThinker(mobj_t *mobj);
 void P_PushableThinker(mobj_t *mobj);
 void P_SceneryThinker(mobj_t *mobj);
 
-fixed_t P_MobjFloorZ(mobj_t *mobj, sector_t *sector, sector_t *boundsec,
-                     fixed_t x, fixed_t y, line_t *line, boolean lowest,
-                     boolean perfect);
-fixed_t P_MobjCeilingZ(mobj_t *mobj, sector_t *sector, sector_t *boundsec,
-                       fixed_t x, fixed_t y, line_t *line, boolean lowest,
-                       boolean perfect);
-#define P_GetFloorZ(mobj, sector, x, y, line)                                  \
-  P_MobjFloorZ(mobj, sector, NULL, x, y, line, false, false)
-#define P_GetCeilingZ(mobj, sector, x, y, line)                                \
-  P_MobjCeilingZ(mobj, sector, NULL, x, y, line, true, false)
-#define P_GetFOFTopZ(mobj, sector, fof, x, y, line)                            \
-  P_MobjCeilingZ(mobj, sectors + fof->secnum, sector, x, y, line, false, false)
-#define P_GetFOFBottomZ(mobj, sector, fof, x, y, line)                         \
-  P_MobjFloorZ(mobj, sectors + fof->secnum, sector, x, y, line, true, false)
-#define P_GetSpecialBottomZ(mobj, src, bound)                                  \
-  P_MobjFloorZ(mobj, src, bound, mobj->x, mobj->y, NULL, src != bound, true)
-#define P_GetSpecialTopZ(mobj, src, bound)                                     \
-  P_MobjCeilingZ(mobj, src, bound, mobj->x, mobj->y, NULL, src == bound, true)
 
-fixed_t P_CameraFloorZ(camera_t *mobj, sector_t *sector, sector_t *boundsec,
-                       fixed_t x, fixed_t y, line_t *line, boolean lowest,
-                       boolean perfect);
-fixed_t P_CameraCeilingZ(camera_t *mobj, sector_t *sector, sector_t *boundsec,
-                         fixed_t x, fixed_t y, line_t *line, boolean lowest,
-                         boolean perfect);
-#define P_CameraGetFloorZ(mobj, sector, x, y, line)                            \
-  P_CameraFloorZ(mobj, sector, NULL, x, y, line, false, false)
-#define P_CameraGetCeilingZ(mobj, sector, x, y, line)                          \
-  P_CameraCeilingZ(mobj, sector, NULL, x, y, line, true, false)
-#define P_CameraGetFOFTopZ(mobj, sector, fof, x, y, line)                      \
-  P_CameraCeilingZ(mobj, sectors + fof->secnum, sector, x, y, line, false,     \
-                   false)
-#define P_CameraGetFOFBottomZ(mobj, sector, fof, x, y, line)                   \
-  P_CameraFloorZ(mobj, sectors + fof->secnum, sector, x, y, line, true, false)
+fixed_t P_MobjFloorZ(mobj_t *mobj, sector_t *sector, sector_t *boundsec, fixed_t x, fixed_t y, line_t *line, boolean lowest, boolean perfect);
+fixed_t P_MobjCeilingZ(mobj_t *mobj, sector_t *sector, sector_t *boundsec, fixed_t x, fixed_t y, line_t *line, boolean lowest, boolean perfect);
+#define P_GetFloorZ(mobj, sector, x, y, line) P_MobjFloorZ(mobj, sector, NULL, x, y, line, false, false)
+#define P_GetCeilingZ(mobj, sector, x, y, line) P_MobjCeilingZ(mobj, sector, NULL, x, y, line, true, false)
+#define P_GetFOFTopZ(mobj, sector, fof, x, y, line) P_MobjCeilingZ(mobj, sectors + fof->secnum, sector, x, y, line, false, false)
+#define P_GetFOFBottomZ(mobj, sector, fof, x, y, line) P_MobjFloorZ(mobj, sectors + fof->secnum, sector, x, y, line, true, false)
+#define P_GetSpecialBottomZ(mobj, src, bound) P_MobjFloorZ(mobj, src, bound, mobj->x, mobj->y, NULL, src != bound, true)
+#define P_GetSpecialTopZ(mobj, src, bound) P_MobjCeilingZ(mobj, src, bound, mobj->x, mobj->y, NULL, src == bound, true)
+
+fixed_t P_CameraFloorZ(camera_t *mobj, sector_t *sector, sector_t *boundsec, fixed_t x, fixed_t y, line_t *line, boolean lowest, boolean perfect);
+fixed_t P_CameraCeilingZ(camera_t *mobj, sector_t *sector, sector_t *boundsec, fixed_t x, fixed_t y, line_t *line, boolean lowest, boolean perfect);
+#define P_CameraGetFloorZ(mobj, sector, x, y, line) P_CameraFloorZ(mobj, sector, NULL, x, y, line, false, false)
+#define P_CameraGetCeilingZ(mobj, sector, x, y, line) P_CameraCeilingZ(mobj, sector, NULL, x, y, line, true, false)
+#define P_CameraGetFOFTopZ(mobj, sector, fof, x, y, line) P_CameraCeilingZ(mobj, sectors + fof->secnum, sector, x, y, line, false, false)
+#define P_CameraGetFOFBottomZ(mobj, sector, fof, x, y, line) P_CameraFloorZ(mobj, sectors + fof->secnum, sector, x, y, line, true, false)
 
 boolean P_InsideANonSolidFFloor(mobj_t *mobj, ffloor_t *rover);
 boolean P_CheckDeathPitCollide(mobj_t *mo);
 boolean P_CheckSolidLava(mobj_t *mo, ffloor_t *rover);
 
 mobj_t *P_SpawnMissile(mobj_t *source, mobj_t *dest, mobjtype_t type);
-mobj_t *P_SpawnXYZMissile(mobj_t *source, mobj_t *dest, mobjtype_t type,
-                          fixed_t x, fixed_t y, fixed_t z);
-mobj_t *P_SpawnPointMissile(mobj_t *source, fixed_t xa, fixed_t ya, fixed_t za,
-                            mobjtype_t type, fixed_t x, fixed_t y, fixed_t z);
-mobj_t *P_SpawnAlteredDirectionMissile(mobj_t *source, mobjtype_t type,
-                                       fixed_t x, fixed_t y, fixed_t z,
-                                       INT32 shiftingAngle);
-mobj_t *P_SPMAngle(mobj_t *source, mobjtype_t type, angle_t angle,
-                   UINT8 aimtype, UINT32 flags2);
-#define P_SpawnPlayerMissile(s, t, f) P_SPMAngle(s, t, s->angle, true, f)
+mobj_t *P_SpawnXYZMissile(mobj_t *source, mobj_t *dest, mobjtype_t type, fixed_t x, fixed_t y, fixed_t z);
+mobj_t *P_SpawnPointMissile(mobj_t *source, fixed_t xa, fixed_t ya, fixed_t za, mobjtype_t type, fixed_t x, fixed_t y, fixed_t z);
+mobj_t *P_SpawnAlteredDirectionMissile(mobj_t *source, mobjtype_t type, fixed_t x, fixed_t y, fixed_t z, INT32 shiftingAngle);
+mobj_t *P_SPMAngle(mobj_t *source, mobjtype_t type, angle_t angle, UINT8 aimtype, UINT32 flags2);
+#define P_SpawnPlayerMissile(s,t,f) P_SPMAngle(s,t,s->angle,true,f)
 #ifdef SEENAMES
-#define P_SpawnNameFinder(s, t) P_SPMAngle(s, t, s->angle, true, 0)
+#define P_SpawnNameFinder(s,t) P_SPMAngle(s,t,s->angle,true,0)
 #endif
 void P_ColorTeamMissile(mobj_t *missile, player_t *source);
-SINT8
-P_MobjFlip(mobj_t *mobj);
+SINT8 P_MobjFlip(mobj_t *mobj);
 fixed_t P_GetMobjGravity(mobj_t *mo);
 FUNCMATH boolean P_WeaponOrPanel(mobjtype_t type);
 
-boolean P_CameraThinker(player_t *player, camera_t *thiscam,
-                        boolean resetcalled);
+boolean P_CameraThinker(player_t *player, camera_t *thiscam, boolean resetcalled);
 
 void P_Attract(mobj_t *source, mobj_t *enemy, boolean nightsgrab);
 mobj_t *P_GetClosestAxis(mobj_t *source);
 
 void P_FlashPal(player_t *pl, UINT16 type, UINT16 duration);
-#define PAL_WHITE 1
-#define PAL_MIXUP 2
-#define PAL_RECYCLE 3
-#define PAL_NUKE 4
+#define PAL_WHITE    1
+#define PAL_MIXUP    2
+#define PAL_RECYCLE  3
+#define PAL_NUKE     4
 
 //
 // P_ENEMY
@@ -349,8 +314,7 @@ boolean P_SkimCheckMeleeRange(mobj_t *actor);
 boolean P_CheckMissileRange(mobj_t *actor);
 
 void P_NewChaseDir(mobj_t *actor);
-boolean P_LookForPlayers(mobj_t *actor, boolean allaround, boolean tracer,
-                         fixed_t dist);
+boolean P_LookForPlayers(mobj_t *actor, boolean allaround, boolean tracer, fixed_t dist);
 
 //
 // P_MAP
@@ -391,8 +355,7 @@ void P_SlideMove(mobj_t *mo, boolean forceslide);
 void P_BouncePlayerMove(mobj_t *mo);
 void P_BounceMove(mobj_t *mo);
 boolean P_CheckSight(mobj_t *t1, mobj_t *t2);
-void P_CheckHoopPosition(mobj_t *hoopthing, fixed_t x, fixed_t y, fixed_t z,
-                         fixed_t radius);
+void P_CheckHoopPosition(mobj_t *hoopthing, fixed_t x, fixed_t y, fixed_t z, fixed_t radius);
 
 boolean P_CheckSector(sector_t *sector, boolean crunch);
 
@@ -414,39 +377,35 @@ boolean P_DoSpring(mobj_t *spring, mobj_t *object);
 //
 extern UINT8 *rejectmatrix; // for fast sight rejection
 extern INT32 *blockmaplump; // offsets in blockmap are from here
-extern INT32 *blockmap;     // Big blockmap
+extern INT32 *blockmap; // Big blockmap
 extern INT32 bmapwidth;
 extern INT32 bmapheight; // in mapblocks
 extern fixed_t bmaporgx;
-extern fixed_t bmaporgy;    // origin of block map
+extern fixed_t bmaporgy; // origin of block map
 extern mobj_t **blocklinks; // for thing chains
 
 //
 // P_INTER
 //
-typedef struct BasicFF_s {
-  INT32 ForceX;           ///< The X of the Force's Vel
-  INT32 ForceY;           ///< The Y of the Force's Vel
-  const player_t *player; ///< Player of Rumble
-  // All
-  UINT32 Duration; ///< The total duration of the effect, in microseconds
-  INT32 Gain; ///< /The gain to be applied to the effect, in the range from 0
-              ///< through 10,000.
-  // All, CONSTANTFORCE �10,000 to 10,000
-  INT32
-  Magnitude; ///< Magnitude of the effect, in the range from 0 through 10,000.
+typedef struct BasicFF_s
+{
+	INT32 ForceX; ///< The X of the Force's Vel
+	INT32 ForceY; ///< The Y of the Force's Vel
+	const player_t *player; ///< Player of Rumble
+	//All
+	UINT32 Duration; ///< The total duration of the effect, in microseconds
+	INT32 Gain; ///< /The gain to be applied to the effect, in the range from 0 through 10,000.
+	//All, CONSTANTFORCE �10,000 to 10,000
+	INT32 Magnitude; ///< Magnitude of the effect, in the range from 0 through 10,000.
 } BasicFF_t;
 
-void P_ForceFeed(const player_t *player, INT32 attack, INT32 fade,
-                 tic_t duration, INT32 period);
+void P_ForceFeed(const player_t *player, INT32 attack, INT32 fade, tic_t duration, INT32 period);
 void P_ForceConstant(const BasicFF_t *FFInfo);
 void P_RampConstant(const BasicFF_t *FFInfo, INT32 Start, INT32 End);
 void P_RemoveShield(player_t *player);
-boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source,
-                     INT32 damage);
+boolean P_DamageMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source, INT32 damage);
 void P_KillMobj(mobj_t *target, mobj_t *inflictor, mobj_t *source);
-void P_PlayerRingBurst(player_t *player,
-                       INT32 num_rings); /// \todo better fit in p_user.c
+void P_PlayerRingBurst(player_t *player, INT32 num_rings); /// \todo better fit in p_user.c
 void P_PlayerWeaponPanelBurst(player_t *player);
 void P_PlayerWeaponAmmoBurst(player_t *player);
 void P_PlayerEmeraldBurst(player_t *player, boolean toss);
@@ -455,7 +414,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher, boolean heightcheck);
 void P_PlayerFlagBurst(player_t *player, boolean toss);
 void P_CheckTimeLimit(void);
 void P_CheckPointLimit(void);
-// void P_CheckSurvivors(void);
+//void P_CheckSurvivors(void);
 boolean P_CheckRacers(void);
 
 boolean P_CanPickupItem(player_t *player, UINT8 weapon);
@@ -470,14 +429,13 @@ extern INT32 ceilmovesound;
 
 // Factor to scale scrolling effect into mobj-carrying properties = 3/32.
 // (This is so scrolling floors and objects on them can move at same speed.)
-#define CARRYFACTOR (FRACUNIT - ORIG_FRICTION)
+#define CARRYFACTOR (FRACUNIT-ORIG_FRICTION)
 
 void P_MixUp(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
-             INT16 starpostx, INT16 starposty, INT16 starpostz,
-             INT32 starpostnum, tic_t starposttime, angle_t starpostangle,
-             INT32 flags2);
-boolean P_Teleport(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z,
-                   angle_t angle, boolean flash, boolean dontstopmove);
+			INT16 starpostx, INT16 starposty, INT16 starpostz,
+			INT32 starpostnum, tic_t starposttime, angle_t starpostangle,
+			INT32 flags2);
+boolean P_Teleport(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle, boolean flash, boolean dontstopmove);
 boolean P_SetMobjStateNF(mobj_t *mobj, statenum_t state);
 boolean P_CheckMissileSpawn(mobj_t *th);
 void P_Thrust(mobj_t *mo, angle_t angle, fixed_t move);

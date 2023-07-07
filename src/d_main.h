@@ -15,15 +15,15 @@
 #define __D_MAIN__
 
 #include "d_event.h"
-#include "w_wad.h" // for MAX_WADFILES
+#include "w_wad.h"   // for MAX_WADFILES
 
 // make sure not to write back the config until it's been correctly loaded
 extern tic_t rendergametic;
 
-extern char srb2home[256]; // Alam: My Home
-extern boolean usehome;    // Alam: which path?
-extern const char *pandf;  // Alam: how to path?
-extern char srb2path[256]; // Alam: SRB2's Home
+extern char srb2home[256]; //Alam: My Home
+extern boolean usehome; //Alam: which path?
+extern const char *pandf; //Alam: how to path?
+extern char srb2path[256]; //Alam: SRB2's Home
 
 // Sets the main loop in emscripten
 void D_SRB2Loop(void);
@@ -37,8 +37,8 @@ void D_SRB2Main(void);
 
 // Called by IO functions when input is detected.
 void D_PostEvent(const event_t *ev);
-#if defined(PC_DOS) && !defined(DOXYGEN)
-void D_PostEvent_end(void); // delimiter for locking memory
+#if defined (PC_DOS) && !defined (DOXYGEN)
+void D_PostEvent_end(void);    // delimiter for locking memory
 #endif
 
 void D_ProcessEvents(void);

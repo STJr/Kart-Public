@@ -15,22 +15,23 @@
 
 #include "m_fixed.h" // for get_number
 
-typedef enum {
-  UNDO_NONE = 0x00,
-  UNDO_NEWLINE = 0x01,
-  UNDO_SPACE = 0x02,
-  UNDO_CUTLINE = 0x04,
-  UNDO_HEADER = 0x07,
-  UNDO_ENDTEXT = 0x08,
-  UNDO_TODO = 0,
-  UNDO_DONE = 0,
+typedef enum
+{
+	UNDO_NONE    = 0x00,
+	UNDO_NEWLINE = 0x01,
+	UNDO_SPACE   = 0x02,
+	UNDO_CUTLINE = 0x04,
+	UNDO_HEADER  = 0x07,
+	UNDO_ENDTEXT = 0x08,
+	UNDO_TODO = 0,
+	UNDO_DONE = 0,
 } undotype_f;
 
 #ifdef DELFILE
 void DEH_WriteUndoline(const char *value, const char *data, undotype_f flags);
 void DEH_UnloadDehackedWad(UINT16 wad);
 #else // null the undo lines
-#define DEH_WriteUndoline(a, b, c)
+#define DEH_WriteUndoline(a,b,c)
 #endif
 
 void DEH_LoadDehackedLump(lumpnum_t lumpnum);
@@ -61,11 +62,12 @@ extern UINT8 superstack;
 
 // the code was first write for a file
 // converted to use memory with this functions
-typedef struct {
-  char *data;
-  char *curpos;
-  size_t size;
-  UINT16 wad;
+typedef struct
+{
+	char *data;
+	char *curpos;
+	size_t size;
+	UINT16 wad;
 } MYFILE;
 #define myfeof(a) (a->data + a->size <= a->curpos)
 char *myfgets(char *buf, size_t bufsize, MYFILE *f);

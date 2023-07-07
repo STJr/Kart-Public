@@ -12,9 +12,9 @@
 
 #include <stdlib.h>
 
-#include "m_misc.h"
-#include "m_queue.h"
 #include "z_zone.h"
+#include "m_queue.h"
+#include "m_misc.h"
 
 //
 // M_QueueInit
@@ -22,10 +22,11 @@
 // Sets up a queue. Can be called again to reset a used queue
 // structure.
 //
-void M_QueueInit(mqueue_t *queue) {
-  queue->head.next = NULL;
-  queue->tail = &(queue->head);
-  queue->rover = &(queue->head);
+void M_QueueInit(mqueue_t *queue)
+{
+	queue->head.next = NULL;
+	queue->tail = &(queue->head);
+	queue->rover = &(queue->head);
 }
 
 //
@@ -33,9 +34,10 @@ void M_QueueInit(mqueue_t *queue) {
 //
 // Inserts the given item into the queue.
 //
-void M_QueueInsert(mqueueitem_t *item, mqueue_t *queue) {
-  // link in at the tail (this works even for the first node!)
-  queue->tail = queue->tail->next = item;
+void M_QueueInsert(mqueueitem_t *item, mqueue_t *queue)
+{
+	// link in at the tail (this works even for the first node!)
+	queue->tail = queue->tail->next = item;
 }
 
 //
@@ -45,11 +47,12 @@ void M_QueueInsert(mqueueitem_t *item, mqueue_t *queue) {
 // or NULL once the end is reached. The iterator can be reset
 // using M_QueueResetIterator.
 //
-mqueueitem_t *M_QueueIterator(mqueue_t *queue) {
-  if (queue->rover == NULL)
-    return NULL;
+mqueueitem_t *M_QueueIterator(mqueue_t *queue)
+{
+	if (queue->rover == NULL)
+		return NULL;
 
-  return (queue->rover = queue->rover->next);
+	return (queue->rover = queue->rover->next);
 }
 
 //
@@ -57,24 +60,29 @@ mqueueitem_t *M_QueueIterator(mqueue_t *queue) {
 //
 // Returns the queue iterator to the beginning.
 //
-void M_QueueResetIterator(mqueue_t *queue) { queue->rover = &(queue->head); }
+void M_QueueResetIterator(mqueue_t *queue)
+{
+	queue->rover = &(queue->head);
+}
 
 //
 // M_QueueFree
 //
 // Frees all the elements in the queue
 //
-void M_QueueFree(mqueue_t *queue) {
-  mqueueitem_t *rover = queue->head.next;
+void M_QueueFree(mqueue_t *queue)
+{
+	mqueueitem_t *rover = queue->head.next;
 
-  while (rover) {
-    mqueueitem_t *next = rover->next;
-    free(rover);
+	while (rover)
+	{
+		mqueueitem_t *next = rover->next;
+		free(rover);
 
-    rover = next;
-  }
+		rover = next;
+	}
 
-  M_QueueInit(queue);
+	M_QueueInit(queue);
 }
 
 // EOF

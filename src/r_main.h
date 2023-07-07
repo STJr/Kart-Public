@@ -61,10 +61,8 @@ extern lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
 #define NUMCOLORMAPS 32
 
 // Utility functions.
-INT32
-R_PointOnSide(fixed_t x, fixed_t y, node_t *node);
-INT32
-R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line);
+INT32 R_PointOnSide(fixed_t x, fixed_t y, node_t *node);
+INT32 R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line);
 angle_t R_PointToAngle(fixed_t x, fixed_t y);
 angle_t R_PointToAngle2(fixed_t px2, fixed_t py2, fixed_t px1, fixed_t py1);
 angle_t R_PointToAngleEx(INT32 x2, INT32 y2, INT32 x1, INT32 y1);
@@ -75,8 +73,7 @@ fixed_t R_ScaleFromGlobalAngle(angle_t visangle);
 subsector_t *R_PointInSubsector(fixed_t x, fixed_t y);
 subsector_t *R_IsPointInSubsector(fixed_t x, fixed_t y);
 
-boolean R_DoCulling(line_t *cullheight, line_t *viewcullheight, fixed_t vz,
-                    fixed_t bottomh, fixed_t toph);
+boolean R_DoCulling(line_t *cullheight, line_t *viewcullheight, fixed_t vz, fixed_t bottomh, fixed_t toph);
 
 //
 // REFRESH - the actual rendering functions.
@@ -88,8 +85,7 @@ extern consvar_t cv_chasecam, cv_chasecam2, cv_chasecam3, cv_chasecam4;
 extern consvar_t cv_flipcam, cv_flipcam2, cv_flipcam3, cv_flipcam4;
 extern consvar_t cv_shadow, cv_shadowoffs;
 extern consvar_t cv_translucency;
-extern consvar_t /*cv_precipdensity,*/ cv_drawdist,
-    /*cv_drawdist_nights,*/ cv_drawdist_precip;
+extern consvar_t /*cv_precipdensity,*/ cv_drawdist, /*cv_drawdist_nights,*/ cv_drawdist_precip;
 extern consvar_t cv_fov;
 extern consvar_t cv_skybox;
 extern consvar_t cv_tailspickup;

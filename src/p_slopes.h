@@ -34,11 +34,11 @@ pslope_t *P_SlopeById(UINT16 id);
 fixed_t P_GetZAt(pslope_t *slope, fixed_t x, fixed_t y);
 
 // Returns the height of the sector at (x, y)
-fixed_t P_GetSectorFloorZAt(const sector_t *sector, fixed_t x, fixed_t y);
+fixed_t P_GetSectorFloorZAt  (const sector_t *sector, fixed_t x, fixed_t y);
 fixed_t P_GetSectorCeilingZAt(const sector_t *sector, fixed_t x, fixed_t y);
 
 // Returns the height of the FOF at (x, y)
-fixed_t P_GetFFloorTopZAt(const ffloor_t *ffloor, fixed_t x, fixed_t y);
+fixed_t P_GetFFloorTopZAt   (const ffloor_t *ffloor, fixed_t x, fixed_t y);
 fixed_t P_GetFFloorBottomZAt(const ffloor_t *ffloor, fixed_t x, fixed_t y);
 
 // Lots of physics-based bullshit
@@ -47,6 +47,7 @@ void P_ReverseQuantizeMomentumToSlope(vector3_t *momentum, pslope_t *slope);
 void P_SlopeLaunch(mobj_t *mo);
 void P_HandleSlopeLanding(mobj_t *thing, pslope_t *slope);
 void P_ButteredSlope(mobj_t *mo);
+
 
 // EOF
 #endif // #ifdef ESLOPE

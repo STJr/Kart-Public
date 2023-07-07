@@ -34,30 +34,79 @@ void LUA_HUD_ClearDrawList(huddrawlist_h list);
 void LUA_HUD_DestroyDrawList(huddrawlist_h list);
 boolean LUA_HUD_IsDrawListValid(huddrawlist_h list);
 
-void LUA_HUD_AddDraw(huddrawlist_h list, INT32 x, INT32 y, patch_t *patch,
-                     INT32 flags, UINT8 *colormap);
-void LUA_HUD_AddDrawScaled(huddrawlist_h list, fixed_t x, fixed_t y,
-                           fixed_t scale, patch_t *patch, INT32 flags,
-                           UINT8 *colormap);
-void LUA_HUD_AddDrawNum(huddrawlist_h list, INT32 x, INT32 y, INT32 num,
-                        INT32 flags);
-void LUA_HUD_AddDrawPaddedNum(huddrawlist_h list, INT32 x, INT32 y, INT32 num,
-                              INT32 digits, INT32 flags);
-void LUA_HUD_AddDrawFill(huddrawlist_h list, INT32 x, INT32 y, INT32 w, INT32 h,
-                         INT32 c);
-void LUA_HUD_AddDrawString(huddrawlist_h list, fixed_t x, fixed_t y,
-                           const char *str, INT32 flags, INT32 align);
-void LUA_HUD_AddDrawKartString(huddrawlist_h list, fixed_t x, fixed_t y,
-                               const char *str, INT32 flags);
-void LUA_HUD_AddDrawLevelTitle(huddrawlist_h list, INT32 x, INT32 y,
-                               const char *str, INT32 flags);
-void LUA_HUD_AddFadeScreen(huddrawlist_h list, UINT16 color, UINT8 strength);
+void LUA_HUD_AddDraw(
+	huddrawlist_h list,
+	INT32 x,
+	INT32 y,
+	patch_t *patch,
+	INT32 flags,
+	UINT8 *colormap
+);
+void LUA_HUD_AddDrawScaled(
+	huddrawlist_h list,
+	fixed_t x,
+	fixed_t y,
+	fixed_t scale,
+	patch_t *patch,
+	INT32 flags,
+	UINT8 *colormap
+);
+void LUA_HUD_AddDrawNum(
+	huddrawlist_h list,
+	INT32 x,
+	INT32 y,
+	INT32 num,
+	INT32 flags
+);
+void LUA_HUD_AddDrawPaddedNum(
+	huddrawlist_h list,
+	INT32 x,
+	INT32 y,
+	INT32 num,
+	INT32 digits,
+	INT32 flags
+);
+void LUA_HUD_AddDrawFill(
+	huddrawlist_h list,
+	INT32 x,
+	INT32 y,
+	INT32 w,
+	INT32 h,
+	INT32 c
+);
+void LUA_HUD_AddDrawString(
+	huddrawlist_h list,
+	fixed_t x,
+	fixed_t y,
+	const char *str,
+	INT32 flags,
+	INT32 align
+);
+void LUA_HUD_AddDrawKartString(
+	huddrawlist_h list,
+	fixed_t x,
+	fixed_t y,
+	const char *str,
+	INT32 flags
+);
+void LUA_HUD_AddDrawLevelTitle(
+	huddrawlist_h list,
+	INT32 x,
+	INT32 y,
+	const char *str,
+	INT32 flags
+);
+void LUA_HUD_AddFadeScreen(
+	huddrawlist_h list,
+	UINT16 color,
+	UINT8 strength
+);
 
 // Draws the given draw list
 void LUA_HUD_DrawList(huddrawlist_h list);
 
 #ifdef __cplusplus
 } // extern "C"
-#endif
+#endif 
 
 #endif // __LUA_HUDLIB_DRAWLIST__

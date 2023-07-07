@@ -15,9 +15,9 @@
 ///        The default sky map is 256 columns and repeats 4 times
 ///        on a 320 screen.
 
-#include "r_sky.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "r_sky.h"
 #include "r_local.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -29,58 +29,59 @@
 //
 
 /**	\brief Needed to store the number of the dummy sky flat.
-        Used for rendering, as well as tracking projectiles etc.
+	Used for rendering, as well as tracking projectiles etc.
 */
 INT32 skyflatnum;
 
 /**	\brief the lump number of the sky texture
- */
+*/
 INT32 skytexture;
 
 /**	\brief the horizon line in a 256x128 sky texture
- */
+*/
 INT32 skytexturemid;
 
 /**	\brief the scale of the sky
- */
+*/
 fixed_t skyscale;
 
 /** \brief used for keeping track of the current sky
- */
+*/
 INT32 levelskynum;
 INT32 globallevelskynum;
 
 /**	\brief	The R_SetupSkyDraw function
 
-        Called at loadlevel after skytexture is set, or when sky texture
-   changes.
+	Called at loadlevel after skytexture is set, or when sky texture changes.
 
-        \warning wallcolfunc should be set at R_ExecuteSetViewSize()
-        I don't bother because we don't use low detail anymore
+	\warning wallcolfunc should be set at R_ExecuteSetViewSize()
+	I don't bother because we don't use low detail anymore
 
-        \return	void
+	\return	void
 */
-void R_SetupSkyDraw(void) {
-  // the horizon line in a 256x128 sky texture
-  skytexturemid = (textures[skytexture]->height / 2) << FRACBITS;
+void R_SetupSkyDraw(void)
+{
+	// the horizon line in a 256x128 sky texture
+	skytexturemid = (textures[skytexture]->height/2)<<FRACBITS;
 
-  // get the right drawer, it was set by screen.c, depending on the
-  // current video mode bytes per pixel (quick fix)
-  wallcolfunc = walldrawerfunc;
+	// get the right drawer, it was set by screen.c, depending on the
+	// current video mode bytes per pixel (quick fix)
+	wallcolfunc = walldrawerfunc;
 
-  R_SetSkyScale();
+	R_SetSkyScale();
 }
 
 /**	\brief	The R_SetSkyScale function
 
-        set the correct scale for the sky at setviewsize
+	set the correct scale for the sky at setviewsize
 
-        \return void
+	\return void
 */
-void R_SetSkyScale(void) {
-  fixed_t difference = vid.fdupx - (vid.dupx << FRACBITS);
-  fixed_t scr = FRACUNIT;
-  if (splitscreen > 1)
-    scr *= 2;
-  skyscale = FixedDiv(scr, vid.fdupx + difference);
+void R_SetSkyScale(void)
+{
+	fixed_t difference = vid.fdupx-(vid.dupx<<FRACBITS);
+	fixed_t scr = FRACUNIT;
+	if (splitscreen > 1)
+		scr *= 2;
+	skyscale = FixedDiv(scr, vid.fdupx+difference);
 }

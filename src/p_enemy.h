@@ -1,6 +1,6 @@
 #include "p_mobj.h"
 
-// Real Prototypes to A_*
+//Real Prototypes to A_*
 void A_Fall(mobj_t *actor);
 void A_Look(mobj_t *actor);
 void A_Chase(mobj_t *actor);
@@ -136,21 +136,21 @@ void A_RandomStateRange(mobj_t *actor);
 void A_DualAction(mobj_t *actor);
 void A_RemoteAction(mobj_t *actor);
 void A_ToggleFlameJet(mobj_t *actor);
-void A_ItemPop(mobj_t *actor);               // SRB2kart
-void A_JawzChase(mobj_t *actor);             // SRB2kart
-void A_JawzExplode(mobj_t *actor);           // SRB2kart
-void A_SPBChase(mobj_t *actor);              // SRB2kart
-void A_MineExplode(mobj_t *actor);           // SRB2kart
-void A_BallhogExplode(mobj_t *actor);        // SRB2kart
+void A_ItemPop(mobj_t *actor); // SRB2kart
+void A_JawzChase(mobj_t *actor); // SRB2kart
+void A_JawzExplode(mobj_t *actor); // SRB2kart
+void A_SPBChase(mobj_t *actor); // SRB2kart
+void A_MineExplode(mobj_t *actor); // SRB2kart
+void A_BallhogExplode(mobj_t *actor); // SRB2kart
 void A_LightningFollowPlayer(mobj_t *actor); // SRB2kart
-void A_FZBoomFlash(mobj_t *actor);           // SRB2kart
-void A_FZBoomSmoke(mobj_t *actor);           // SRB2kart
-void A_RandomShadowFrame(mobj_t *actor);     // SRB2kart
-void A_RoamingShadowThinker(mobj_t *actor);  // SRB2kart
-void A_MayonakaArrow(mobj_t *actor);         // SRB2kart
-void A_ReaperThinker(mobj_t *actor);         // SRB2kart
-void A_MementosTPParticles(mobj_t *actor);   // SRB2kart
-void A_FlameParticle(mobj_t *actor);         // SRB2kart
+void A_FZBoomFlash(mobj_t *actor); // SRB2kart
+void A_FZBoomSmoke(mobj_t *actor); // SRB2kart
+void A_RandomShadowFrame(mobj_t *actor);	// SRB2kart
+void A_RoamingShadowThinker(mobj_t *actor);	//SRB2kart
+void A_MayonakaArrow(mobj_t *actor);	//SRB2kart
+void A_ReaperThinker(mobj_t *actor);	//SRB2kart
+void A_MementosTPParticles(mobj_t *actor);	//SRB2kart
+void A_FlameParticle(mobj_t *actor); // SRB2kart
 void A_OrbitNights(mobj_t *actor);
 void A_GhostMe(mobj_t *actor);
 void A_SetObjectState(mobj_t *actor);
@@ -189,7 +189,7 @@ void A_SetScale(mobj_t *actor);
 void A_RemoteDamage(mobj_t *actor);
 void A_HomingChase(mobj_t *actor);
 void A_TrapShot(mobj_t *actor);
-// for p_enemy.c
+//for p_enemy.c
 void A_Boss1Chase(mobj_t *actor);
 void A_Boss2Chase(mobj_t *actor);
 void A_Boss2Pogo(mobj_t *actor);

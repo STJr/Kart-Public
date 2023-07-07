@@ -16,6 +16,7 @@
 /// \file
 /// \brief MiniGL API for Doom Legacy
 
+
 // tell r_opengl.cpp to compile for MiniGL Drivers
 #define MINI_GL_COMPATIBILITY
 
@@ -25,8 +26,8 @@
 #define DRIVER_STRING "HWRAPI Init(): SRB2Kart MiniGL renderer"
 
 // Include this at end
-#include "../r_opengl/ogl_win.c"
 #include "../r_opengl/r_opengl.c"
+#include "../r_opengl/ogl_win.c"
 
 // That's all ;-)
 // Just, be sure to do the right changes in r_opengl.cpp

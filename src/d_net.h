@@ -25,7 +25,7 @@
 #define BROADCASTADDR MAXNETNODES
 #define NETSPLITSCREEN // Kart's splitscreen netgame feature
 
-#define STATLENGTH (TICRATE * 2)
+#define STATLENGTH (TICRATE*2)
 
 // stat of net
 extern INT32 ticruned, ticmiss;
@@ -37,24 +37,20 @@ extern INT32 getbytes;
 extern INT64 sendbytes; // Realtime updated
 
 extern SINT8 nodetoplayer[MAXNETNODES];
-extern SINT8 nodetoplayer2[MAXNETNODES]; // Say the numplayer for this node if
-                                         // any (splitscreen)
-extern SINT8 nodetoplayer3[MAXNETNODES]; // Say the numplayer for this node if
-                                         // any (splitscreen == 2)
-extern SINT8 nodetoplayer4[MAXNETNODES]; // Say the numplayer for this node if
-                                         // any (splitscreen == 3)
+extern SINT8 nodetoplayer2[MAXNETNODES]; // Say the numplayer for this node if any (splitscreen)
+extern SINT8 nodetoplayer3[MAXNETNODES]; // Say the numplayer for this node if any (splitscreen == 2)
+extern SINT8 nodetoplayer4[MAXNETNODES]; // Say the numplayer for this node if any (splitscreen == 3)
 extern UINT8 playerpernode[MAXNETNODES]; // Used specially for splitscreen
-extern boolean nodeingame[MAXNETNODES];  // Set false as nodes leave game
+extern boolean nodeingame[MAXNETNODES]; // Set false as nodes leave game
 
 extern boolean serverrunning;
 
-INT32
-Net_GetFreeAcks(boolean urgent);
+INT32 Net_GetFreeAcks(boolean urgent);
 void Net_AckTicker(void);
 
 // If reliable return true if packet sent, 0 else
 boolean HSendPacket(INT32 node, boolean reliable, UINT8 acknum,
-                    size_t packetlength);
+	size_t packetlength);
 boolean HGetPacket(void);
 void D_SetDoomcom(void);
 #ifndef NONET

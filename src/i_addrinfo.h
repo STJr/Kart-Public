@@ -17,16 +17,16 @@
 #endif
 
 #ifndef AI_PASSIVE
-#define AI_PASSIVE 0x01
+#define AI_PASSIVE     0x01
 #endif
 #ifndef AI_NUMERICHOST
 #define AI_NUMERICHOST 0x04
 #endif
 #ifndef AI_V4MAPPED
-#define AI_V4MAPPED 0x08
+#define AI_V4MAPPED    0x08
 #endif
 #ifndef AI_ADDRCONFIG
-#define AI_ADDRCONFIG 0x20
+#define AI_ADDRCONFIG  0x20
 #endif
 
 #ifdef _WIN32
@@ -41,25 +41,25 @@
 
 #ifdef _PS3 // PSL1GHT v2
 struct my_addrinfo {
-  int ai_flags;
-  int ai_family;
-  int ai_socktype;
-  int ai_protocol;
-  size_t ai_addrlen;
-  struct sockaddr *ai_addr;
-  struct my_addrinfo *ai_next;
+	int                 ai_flags;
+	int                 ai_family;
+	int                 ai_socktype;
+	int                 ai_protocol;
+	size_t              ai_addrlen;
+	struct sockaddr    *ai_addr;
+	struct my_addrinfo *ai_next;
 };
-#elif defined(_WIN32) // already use the stub for Win32
+#elif defined (_WIN32) // already use the stub for Win32
 // w32api, ws2tcpip.h, r1.12
 struct my_addrinfo {
-  int ai_flags;
-  int ai_family;
-  int ai_socktype;
-  int ai_protocol;
-  size_t ai_addrlen;
-  char *ai_canonname;
-  struct sockaddr *ai_addr;
-  struct my_addrinfo *ai_next;
+        int     ai_flags;
+        int     ai_family;
+        int     ai_socktype;
+        int     ai_protocol;
+        size_t  ai_addrlen;
+        char   *ai_canonname;
+        struct sockaddr  *ai_addr;
+        struct my_addrinfo  *ai_next;
 };
 #else
 #define my_addrinfo addrinfo
@@ -70,10 +70,12 @@ void WS_addrinfocleanup(void);
 #ifndef my_addrinfo
 void I_freeaddrinfo(struct my_addrinfo *res);
 int I_getaddrinfo(const char *node, const char *service,
-                  const struct my_addrinfo *hints, struct my_addrinfo **res);
-#elif !defined(test_stub)
+                         const struct my_addrinfo *hints,
+                         struct my_addrinfo **res);
+#elif !defined (test_stub)
 #define I_getaddrinfo getaddrinfo
 #define I_freeaddrinfo freeaddrinfo
 #endif
+
 
 #endif

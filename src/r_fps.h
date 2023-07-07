@@ -2,8 +2,8 @@
 //-----------------------------------------------------------------------------
 // Copyright (C) 1993-1996 by id Software, Inc.
 // Copyright (C) 1998-2000 by DooM Legacy Team.
-// Copyright (C) 1999-2000 by Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian
-// Schulze, Andrey Budko (prboom) Copyright (C) 1999-2019 by Sonic Team Junior.
+// Copyright (C) 1999-2000 by Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze, Andrey Budko (prboom)
+// Copyright (C) 1999-2019 by Sonic Team Junior.
 //
 // This program is free software distributed under the
 // terms of the GNU General Public License, version 2.
@@ -21,106 +21,102 @@
 
 extern consvar_t cv_fpscap;
 
-UINT32
-R_GetFramerateCap(void);
+UINT32 R_GetFramerateCap(void);
 boolean R_UsingFrameInterpolation(void);
 
-enum viewcontext_e {
-  VIEWCONTEXT_PLAYER1 = 0,
-  VIEWCONTEXT_PLAYER2,
-  VIEWCONTEXT_PLAYER3,
-  VIEWCONTEXT_PLAYER4,
-  VIEWCONTEXT_SKY1,
-  VIEWCONTEXT_SKY2,
-  VIEWCONTEXT_SKY3,
-  VIEWCONTEXT_SKY4
+enum viewcontext_e
+{
+	VIEWCONTEXT_PLAYER1 = 0,
+	VIEWCONTEXT_PLAYER2,
+	VIEWCONTEXT_PLAYER3,
+	VIEWCONTEXT_PLAYER4,
+	VIEWCONTEXT_SKY1,
+	VIEWCONTEXT_SKY2,
+	VIEWCONTEXT_SKY3,
+	VIEWCONTEXT_SKY4
 };
 
 typedef struct {
-  fixed_t x;
-  fixed_t y;
-  fixed_t z;
-  boolean sky;
-  sector_t *sector;
-  player_t *player;
+	fixed_t x;
+	fixed_t y;
+	fixed_t z;
+	boolean sky;
+	sector_t *sector;
+	player_t *player;
 
-  angle_t angle;
-  angle_t aim;
-  fixed_t cos;
-  fixed_t sin;
-  mobj_t *mobj;
+	angle_t angle;
+	angle_t aim;
+	fixed_t cos;
+	fixed_t sin;
+	mobj_t *mobj;
 } viewvars_t;
 
 extern viewvars_t *newview;
 
 typedef struct {
-  fixed_t x;
-  fixed_t y;
-  fixed_t z;
-  subsector_t *subsector;
-  angle_t angle;
-  fixed_t scale;
+	fixed_t x;
+	fixed_t y;
+	fixed_t z;
+	subsector_t *subsector;
+	angle_t angle;
+	fixed_t scale;
 } interpmobjstate_t;
 
 // Level interpolators
 
 // The union tag for levelinterpolator_t
 typedef enum {
-  LVLINTERP_SectorPlane,
-  LVLINTERP_SectorScroll,
-  LVLINTERP_SideScroll,
-  LVLINTERP_Polyobj,
-  LVLINTERP_DynSlope,
+	LVLINTERP_SectorPlane,
+	LVLINTERP_SectorScroll,
+	LVLINTERP_SideScroll,
+	LVLINTERP_Polyobj,
+	LVLINTERP_DynSlope,
 } levelinterpolator_type_e;
 
 // Tagged union of a level interpolator
 typedef struct levelinterpolator_s {
-  levelinterpolator_type_e type;
-  thinker_t *thinker;
-  union {
-    struct {
-      sector_t *sector;
-      fixed_t oldheight;
-      fixed_t bakheight;
-      boolean ceiling;
-    } sectorplane;
-    struct {
-      sector_t *sector;
-      fixed_t oldxoffs, oldyoffs, bakxoffs, bakyoffs;
-      boolean ceiling;
-    } sectorscroll;
-    struct {
-      side_t *side;
-      fixed_t oldtextureoffset, oldrowoffset, baktextureoffset, bakrowoffset;
-    } sidescroll;
-    struct {
-      polyobj_t *polyobj;
-      fixed_t *oldvertices;
-      fixed_t *bakvertices;
-      size_t vertices_size;
-      fixed_t oldcx, oldcy, bakcx, bakcy;
-    } polyobj;
-    struct {
-      pslope_t *slope;
-      vector3_t oldo, bako;
-      vector2_t oldd, bakd;
-      fixed_t oldzdelta, bakzdelta;
-    } dynslope;
-  };
+	levelinterpolator_type_e type;
+	thinker_t *thinker;
+	union {
+		struct {
+			sector_t *sector;
+			fixed_t oldheight;
+			fixed_t bakheight;
+			boolean ceiling;
+		} sectorplane;
+		struct {
+			sector_t *sector;
+			fixed_t oldxoffs, oldyoffs, bakxoffs, bakyoffs;
+			boolean ceiling;
+		} sectorscroll;
+		struct {
+			side_t *side;
+			fixed_t oldtextureoffset, oldrowoffset, baktextureoffset, bakrowoffset;
+		} sidescroll;
+		struct {
+			polyobj_t *polyobj;
+			fixed_t *oldvertices;
+			fixed_t *bakvertices;
+			size_t vertices_size;
+			fixed_t oldcx, oldcy, bakcx, bakcy;
+		} polyobj;
+		struct {
+			pslope_t *slope;
+			vector3_t oldo, bako;
+			vector2_t oldd, bakd;
+			fixed_t oldzdelta, bakzdelta;
+		} dynslope;
+	};
 } levelinterpolator_t;
 
-// Interpolates the current view variables (r_state.h) against the selected view
-// context in R_SetViewContext
+// Interpolates the current view variables (r_state.h) against the selected view context in R_SetViewContext
 void R_InterpolateView(fixed_t frac);
-// Buffer the current new views into the old views. Call once after each real
-// tic.
+// Buffer the current new views into the old views. Call once after each real tic.
 void R_UpdateViewInterpolation(void);
-// Reset the view states (e.g. after level load) so R_InterpolateView doesn't
-// interpolate invalid data
+// Reset the view states (e.g. after level load) so R_InterpolateView doesn't interpolate invalid data
 void R_ResetViewInterpolation(UINT8 p);
 // Update old view for seamless relative teleport
-void R_RelativeTeleportViewInterpolation(UINT8 p, fixed_t xdiff, fixed_t ydiff,
-                                         fixed_t zdiff, angle_t angdiff);
+void R_RelativeTeleportViewInterpolation(UINT8 p, fixed_t xdiff, fixed_t ydiff, fixed_t zdiff, angle_t angdiff);
 // Set the current view context (the viewvars pointed to by newview)
 void R_SetViewContext(enum viewcontext_e _viewcontext);
 
@@ -130,13 +126,10 @@ angle_t R_InterpolateAngle(angle_t from, angle_t to);
 // Evaluate the interpolated mobj state for the given mobj
 void R_InterpolateMobjState(mobj_t *mobj, fixed_t frac, interpmobjstate_t *out);
 // Evaluate the interpolated mobj state for the given precipmobj
-void R_InterpolatePrecipMobjState(precipmobj_t *mobj, fixed_t frac,
-                                  interpmobjstate_t *out);
+void R_InterpolatePrecipMobjState(precipmobj_t *mobj, fixed_t frac, interpmobjstate_t *out);
 
-void R_CreateInterpolator_SectorPlane(thinker_t *thinker, sector_t *sector,
-                                      boolean ceiling);
-void R_CreateInterpolator_SectorScroll(thinker_t *thinker, sector_t *sector,
-                                       boolean ceiling);
+void R_CreateInterpolator_SectorPlane(thinker_t *thinker, sector_t *sector, boolean ceiling);
+void R_CreateInterpolator_SectorScroll(thinker_t *thinker, sector_t *sector, boolean ceiling);
 void R_CreateInterpolator_SideScroll(thinker_t *thinker, side_t *side);
 void R_CreateInterpolator_Polyobj(thinker_t *thinker, polyobj_t *polyobj);
 void R_CreateInterpolator_DynSlope(thinker_t *thinker, pslope_t *slope);

@@ -15,8 +15,8 @@
 #ifndef __F_FINALE__
 #define __F_FINALE__
 
-#include "d_event.h"
 #include "doomtype.h"
+#include "d_event.h"
 
 //
 // FINALE
@@ -50,8 +50,7 @@ void F_GameEvaluationTicker(void);
 void F_CreditTicker(void);
 void F_CreditDrawer(void);
 
-void F_StartCustomCutscene(INT32 cutscenenum, boolean precutscene,
-                           boolean resetplayer);
+void F_StartCustomCutscene(INT32 cutscenenum, boolean precutscene, boolean resetplayer);
 void F_CutsceneDrawer(void);
 void F_EndCutScene(void);
 
@@ -77,44 +76,45 @@ void F_WipeStartScreen(void);
 void F_WipeEndScreen(void);
 void F_RunWipe(UINT8 wipetype, boolean drawMenu);
 
-enum {
-  wipe_credits_intermediate, // makes a good 0 I guess.
+enum
+{
+	wipe_credits_intermediate, // makes a good 0 I guess.
 
-  wipe_level_toblack,
-  wipe_intermission_toblack,
-  wipe_voting_toblack,
-  wipe_continuing_toblack,
-  wipe_titlescreen_toblack,
-  wipe_timeattack_toblack,
-  wipe_credits_toblack,
-  wipe_evaluation_toblack,
-  wipe_gameend_toblack,
-  wipe_intro_toblack,
-  wipe_cutscene_toblack,
+	wipe_level_toblack,
+	wipe_intermission_toblack,
+	wipe_voting_toblack,
+	wipe_continuing_toblack,
+	wipe_titlescreen_toblack,
+	wipe_timeattack_toblack,
+	wipe_credits_toblack,
+	wipe_evaluation_toblack,
+	wipe_gameend_toblack,
+	wipe_intro_toblack,
+	wipe_cutscene_toblack,
 
-  // custom intermissions
-  wipe_specinter_toblack,
-  wipe_multinter_toblack,
-  wipe_speclevel_towhite,
+	// custom intermissions
+	wipe_specinter_toblack,
+	wipe_multinter_toblack,
+	wipe_speclevel_towhite,
 
-  wipe_level_final,
-  wipe_intermission_final,
-  wipe_voting_final,
-  wipe_continuing_final,
-  wipe_titlescreen_final,
-  wipe_timeattack_final,
-  wipe_credits_final,
-  wipe_evaluation_final,
-  wipe_gameend_final,
-  wipe_intro_final,
-  wipe_cutscene_final,
+	wipe_level_final,
+	wipe_intermission_final,
+	wipe_voting_final,
+	wipe_continuing_final,
+	wipe_titlescreen_final,
+	wipe_timeattack_final,
+	wipe_credits_final,
+	wipe_evaluation_final,
+	wipe_gameend_final,
+	wipe_intro_final,
+	wipe_cutscene_final,
 
-  // custom intermissions
-  wipe_specinter_final,
-  wipe_multinter_final,
+	// custom intermissions
+	wipe_specinter_final,
+	wipe_multinter_final,
 
-  NUMWIPEDEFS,
-  WIPEFINALSHIFT = wipe_level_final - wipe_level_toblack
+	NUMWIPEDEFS,
+	WIPEFINALSHIFT = wipe_level_final - wipe_level_toblack
 };
 
 extern UINT8 wipedefs[NUMWIPEDEFS];

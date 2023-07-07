@@ -31,7 +31,7 @@
  * For best compression, use 15 or 16 (or more).
  */
 #ifndef HLOG
-#define HLOG 15
+# define HLOG 15
 #endif
 
 /*
@@ -41,7 +41,7 @@
  */
 
 #ifndef VERY_FAST
-#define VERY_FAST 1
+# define VERY_FAST 1
 #endif
 
 /*
@@ -52,14 +52,14 @@
  * possibly disable this for text data.
  */
 #ifndef ULTRA_FAST
-#define ULTRA_FAST 0
+# define ULTRA_FAST 0
 #endif
 
 /*
  * Unconditionally aligning does not cost very much, so do it if unsure
  */
 #ifndef STRICT_ALIGN
-#if !(defined(__i386) || defined(__amd64)) || defined(__clang__)
+#if !(defined(__i386) || defined (__amd64)) || defined (__clang__)
 #define STRICT_ALIGN 1
 #else
 #define STRICT_ALIGN 0
@@ -72,9 +72,9 @@
  */
 #ifndef USE_MEMCPY
 #ifdef _MSC_VER
-#define USE_MEMCPY 0
+# define USE_MEMCPY 0
 #else
-#define USE_MEMCPY 1
+# define USE_MEMCPY 1
 #endif
 #endif
 
@@ -83,7 +83,7 @@
  * modern cpus and large (>>64k) blocks)
  */
 #ifndef INIT_HTAB
-#define INIT_HTAB 1
+# define INIT_HTAB 1
 #endif
 
 /*
@@ -92,7 +92,7 @@
  * the documentation in lzf.h.
  */
 #ifndef AVOID_ERRNO
-#define AVOID_ERRNO 0
+# define AVOID_ERRNO 0
 #endif
 
 /*
@@ -101,7 +101,7 @@
  * NOTE: this breaks the prototype in lzf.h.
  */
 #ifndef LZF_STATE_ARG
-#define LZF_STATE_ARG 0
+# define LZF_STATE_ARG 0
 #endif
 
 /*
@@ -113,7 +113,7 @@
  * (<1% slowdown), but might slow down older cpus considerably.
  */
 #ifndef CHECK_INPUT
-#define CHECK_INPUT 1
+# define CHECK_INPUT 1
 #endif
 
 /*****************************************************************************/
@@ -125,126 +125,140 @@ typedef const u8 *LZF_STATE[1 << (HLOG)];
 
 #if !STRICT_ALIGN
 /* for unaligned accesses we need a 16 bit datatype. */
-#include <limits.h>
-#if USHRT_MAX == 65535
-typedef unsigned short u16;
-#elif UINT_MAX == 65535
-typedef unsigned int u16;
-#else
-#undef STRICT_ALIGN
-#define STRICT_ALIGN 1
-#endif
+# include <limits.h>
+# if USHRT_MAX == 65535
+    typedef unsigned short u16;
+# elif UINT_MAX == 65535
+    typedef unsigned int u16;
+# else
+#  undef STRICT_ALIGN
+#  define STRICT_ALIGN 1
+# endif
 #endif
 
 #if ULTRA_FAST
-#if defined(VERY_FAST)
-#undef VERY_FAST
-#endif
+# if defined(VERY_FAST)
+#  undef VERY_FAST
+# endif
 #endif
 
 #if USE_MEMCPY || INIT_HTAB
-#ifdef __cplusplus
-#include <cstring>
-#else
-#include <string.h>
-#endif
+# ifdef __cplusplus
+#  include <cstring>
+# else
+#  include <string.h>
+# endif
 #endif
 
 #endif
+
 
 /*
  * lzfP.h ends here. lzf_d.c follows.
  */
 
 #if AVOID_ERRNO || defined(_WIN32_WCE)
-#define SET_ERRNO(n)
+# define SET_ERRNO(n)
 #else
-#include <errno.h>
-#define SET_ERRNO(n) errno = (n)
+# include <errno.h>
+# define SET_ERRNO(n) errno = (n)
 #endif
 
-size_t lzf_decompress(const void *const in_data, size_t in_len, void *out_data,
-                      size_t out_len) {
-  u8 const *ip = (const u8 *)in_data;
-  u8 *op = (u8 *)out_data;
-  u8 const *const in_end = ip + in_len;
-  u8 *const out_end = op + out_len;
+size_t
+lzf_decompress (const void *const in_data,  size_t in_len,
+                void             *out_data, size_t out_len)
+{
+	u8 const *ip = (const u8 *)in_data;
+	u8       *op = (u8 *)out_data;
+	u8 const *const in_end  = ip + in_len;
+	u8       *const out_end = op + out_len;
 
-  do {
-    unsigned int ctrl = *ip++;
+	do
+	{
+		unsigned int ctrl = *ip++;
 
-    if (ctrl < (1 << 5)) /* literal run */
-    {
-      ctrl++;
+		if (ctrl < (1 << 5)) /* literal run */
+		{
+			ctrl++;
 
-      if (op + ctrl > out_end) {
-        SET_ERRNO(E2BIG);
-        return 0;
-      }
+			if (op + ctrl > out_end)
+			{
+				SET_ERRNO (E2BIG);
+				return 0;
+			}
 
 #if CHECK_INPUT
-      if (ip + ctrl > in_end) {
-        SET_ERRNO(EINVAL);
-        return 0;
-      }
+			if (ip + ctrl > in_end)
+			{
+				SET_ERRNO (EINVAL);
+				return 0;
+			}
 #endif
 
 #if USE_MEMCPY
-      M_Memcpy(op, ip, ctrl);
-      op += ctrl;
-      ip += ctrl;
+			M_Memcpy (op, ip, ctrl);
+			op += ctrl;
+			ip += ctrl;
 #else
-      do
-        *op++ = *ip++;
-      while (--ctrl);
+			do
+				*op++ = *ip++;
+			while (--ctrl);
 #endif
-    } else /* back reference */
-    {
-      unsigned int len = ctrl >> 5;
+		}
+		else /* back reference */
+		{
+			unsigned int len = ctrl >> 5;
 
-      u8 *ref = op - ((ctrl & 0x1f) << 8) - 1;
+			u8 *ref = op - ((ctrl & 0x1f) << 8) - 1;
 
 #if CHECK_INPUT
-      if (ip >= in_end) {
-        SET_ERRNO(EINVAL);
-        return 0;
-      }
+			if (ip >= in_end)
+			{
+				SET_ERRNO (EINVAL);
+				return 0;
+			}
 #endif
-      if (len == 7) {
-        len += *ip++;
+			if (len == 7)
+			{
+				len += *ip++;
 #if CHECK_INPUT
-        if (ip >= in_end) {
-          SET_ERRNO(EINVAL);
-          return 0;
-        }
+				if (ip >= in_end)
+				{
+					SET_ERRNO (EINVAL);
+					return 0;
+				}
 #endif
-      }
+			}
 
-      ref -= *ip++;
+			ref -= *ip++;
 
-      if (op + len + 2 > out_end) {
-        SET_ERRNO(E2BIG);
-        return 0;
-      }
+			if (op + len + 2 > out_end)
+			{
+				SET_ERRNO (E2BIG);
+				return 0;
+			}
 
-      if (ref < (u8 *)out_data) {
-        SET_ERRNO(EINVAL);
-        return 0;
-      }
+			if (ref < (u8 *)out_data)
+			{
+				SET_ERRNO (EINVAL);
+				return 0;
+			}
 
-      *op++ = *ref++;
-      *op++ = *ref++;
+			*op++ = *ref++;
+			*op++ = *ref++;
 
-      do
-        *op++ = *ref++;
-      while (--len);
-    }
-  } while (ip < in_end);
+			do
+				*op++ = *ref++;
+			while (--len);
+		}
+	}
+	while (ip < in_end);
 
-  return op - (u8 *)out_data;
+	return op - (u8 *)out_data;
 }
 
-/*
+
+ /*
  * lzf_d.c ends here. lzf_c.c follows.
  */
 
@@ -257,9 +271,9 @@ size_t lzf_decompress(const void *const in_data, size_t in_len, void *out_data,
  * it works ;)
  */
 #ifndef FRST
-#define FRST(p) (((p[0]) << 8) | p[1])
-#define NEXT(v, p) (((v) << 8) | p[2])
-#define IDX(h) ((((h ^ (h << 5)) >> (3 * 8 - HLOG)) - h * 5) & (HSIZE - 1))
+# define FRST(p) (((p[0]) << 8) | p[1])
+# define NEXT(v,p) (((v) << 8) | p[2])
+# define IDX(h) ((((h ^ (h << 5)) >> (3*8 - HLOG)) - h*5) & (HSIZE - 1))
 #endif
 /*
  * IDX works because it is very similar to a multiplicative hash, e.g.
@@ -272,14 +286,14 @@ size_t lzf_decompress(const void *const in_data, size_t in_len, void *out_data,
 
 #if 0
 /* original lzv-like hash function, much worse and thus slower */
-#define FRST(p) (p[0] << 5) ^ p[1]
-#define NEXT(v, p) ((v) << 5) ^ p[2]
-#define IDX(h) ((h) & (HSIZE - 1))
+# define FRST(p) (p[0] << 5) ^ p[1]
+# define NEXT(v,p) ((v) << 5) ^ p[2]
+# define IDX(h) ((h) & (HSIZE - 1))
 #endif
 
-#define MAX_LIT (1 << 5)
-#define MAX_OFF (1 << 13)
-#define MAX_REF ((1 << 8) + (1 << 3))
+#define        MAX_LIT        (1 <<  5)
+#define        MAX_OFF        (1 << 13)
+#define        MAX_REF        ((1 <<  8) + (1 << 3))
 
 /*
  * compressed format
@@ -290,149 +304,164 @@ size_t lzf_decompress(const void *const in_data, size_t in_len, void *out_data,
  *
  */
 
-size_t lzf_compress(const void *const in_data, size_t in_len, void *out_data,
-                    size_t out_len
+size_t
+lzf_compress (const void *const in_data,size_t in_len,
+              void *out_data, size_t out_len
 #if LZF_STATE_ARG
-                    ,
-                    LZF_STATE *htab
+              , LZF_STATE *htab
 #endif
-) {
+              )
+{
 #if !LZF_STATE_ARG
-  LZF_STATE htab;
+	LZF_STATE htab;
 #endif
-  const u8 **hslot;
-  const u8 *ip = (const u8 *)in_data;
-  u8 *op = (u8 *)out_data;
-  const u8 *in_end = ip + in_len;
-  u8 *out_end = op + out_len;
-  const u8 *ref = NULL;
+	const u8 **hslot;
+	const u8 *ip = (const u8 *)in_data;
+	      u8 *op = (u8 *)out_data;
+	const u8 *in_end  = ip + in_len;
+	      u8 *out_end = op + out_len;
+	const u8 *ref = NULL;
 
-  unsigned int hval = FRST(ip);
-  size_t off;
-  int lit = 0;
+	unsigned int hval = FRST (ip);
+	size_t off;
+	int lit = 0;
 
 #if INIT_HTAB
-#if USE_MEMCPY
-  memset(htab, 0, sizeof(htab));
-#else
-  for (hslot = htab; hslot < htab + HSIZE; hslot++)
-    *hslot++ = ip;
-#endif
+# if USE_MEMCPY
+	memset (htab, 0, sizeof (htab));
+# else
+	for (hslot = htab; hslot < htab + HSIZE; hslot++)
+		*hslot++ = ip;
+# endif
 #endif
 
-  for (;;) {
-    if (ip < in_end - 2) {
-      hval = NEXT(hval, ip);
-      hslot = htab + IDX(hval);
-      ref = *hslot;
-      *hslot = ip;
+	for (;;)
+	{
+		if (ip < in_end - 2)
+		{
+			hval = NEXT (hval, ip);
+			hslot = htab + IDX (hval);
+			ref = *hslot; *hslot = ip;
 
-      if (
+			if (
 #if INIT_HTAB && !USE_MEMCPY
-          ref < ip /* the next test will actually take care of this, but this is
-                      faster */
-          &&
+			     ref < ip /* the next test will actually take care of this, but this is faster */
+			     &&
 #endif
-          (off = ip - ref - 1) < MAX_OFF && ip + 4 < in_end &&
-          ref > (const u8 *)in_data
+			     (off = ip - ref - 1) < MAX_OFF
+			     && ip + 4 < in_end
+			     && ref > (const u8 *)in_data
 #if STRICT_ALIGN
-          && ref[0] == ip[0] && ref[1] == ip[1] && ref[2] == ip[2]
+			     && ref[0] == ip[0]
+			     && ref[1] == ip[1]
+			     && ref[2] == ip[2]
 #else
-          && *(const u16 *)ref == *(const u16 *)ip && ref[2] == ip[2]
+			     && *(const u16 *)ref == *(const u16 *)ip
+			     && ref[2] == ip[2]
 #endif
-      ) {
-        /* match found at *ref++ */
-        unsigned int len = 2;
-        size_t maxlen = in_end - ip - len;
-        maxlen = maxlen > MAX_REF ? MAX_REF : maxlen;
+			     )
+			{
+				/* match found at *ref++ */
+				unsigned int len = 2;
+				size_t maxlen = in_end - ip - len;
+				maxlen = maxlen > MAX_REF ? MAX_REF : maxlen;
 
-        if (op + lit + 1 + 3 >= out_end)
-          return 0;
+				if (op + lit + 1 + 3 >= out_end)
+					return 0;
 
-        do
-          len++;
-        while (len < maxlen && ref[len] == ip[len]);
+				do
+					len++;
+				while (len < maxlen && ref[len] == ip[len]);
 
-        if (lit) {
-          *op++ = (u8)(lit - 1);
-          lit = -lit;
-          do
-            *op++ = ip[lit];
-          while (++lit);
-        }
+				if (lit)
+				{
+					*op++ = (u8)(lit - 1);
+					lit = -lit;
+					do
+						*op++ = ip[lit];
+					while (++lit);
+				}
 
-        len -= 2;
-        ip++;
+				len -= 2;
+				ip++;
 
-        if (len < 7) {
-          *op++ = (u8)((off >> 8) + (len << 5));
-        } else {
-          *op++ = (u8)((off >> 8) + (7 << 5));
-          *op++ = (u8)(len - 7);
-        }
+				if (len < 7)
+				{
+					*op++ = (u8)((off >> 8) + (len << 5));
+				}
+				else
+				{
+					*op++ = (u8)((off >> 8) + (  7 << 5));
+					*op++ = (u8)(len - 7);
+				}
 
-        *op++ = (u8)off;
+				*op++ = (u8)off;
 
 #if ULTRA_FAST || VERY_FAST
-        ip += len;
+				ip += len;
 #if VERY_FAST && !ULTRA_FAST
-        --ip;
+				--ip;
 #endif
-        hval = FRST(ip);
+				hval = FRST (ip);
 
-        hval = NEXT(hval, ip);
-        htab[IDX(hval)] = ip;
-        ip++;
+				hval = NEXT (hval, ip);
+				htab[IDX (hval)] = ip;
+				ip++;
 
 #if VERY_FAST && !ULTRA_FAST
-        hval = NEXT(hval, ip);
-        htab[IDX(hval)] = ip;
-        ip++;
+				hval = NEXT (hval, ip);
+				htab[IDX (hval)] = ip;
+				ip++;
 #endif
 #else
-        do {
-          hval = NEXT(hval, ip);
-          htab[IDX(hval)] = ip;
-          ip++;
-        } while (len--);
+				do
+				{
+					hval = NEXT (hval, ip);
+					htab[IDX (hval)] = ip;
+					ip++;
+				}
+				while (len--);
 #endif
-        continue;
-      }
-    } else if (ip == in_end)
-      break;
+				continue;
+			}
+		}
+		else if (ip == in_end)
+			break;
 
-    /* one more literal byte we must copy */
-    lit++;
-    ip++;
+		/* one more literal byte we must copy */
+		lit++;
+		ip++;
 
-    if (lit == MAX_LIT) {
-      if (op + 1 + MAX_LIT >= out_end)
-        return 0;
+		if (lit == MAX_LIT)
+		{
+			if (op + 1 + MAX_LIT >= out_end)
+				return 0;
 
-      *op++ = MAX_LIT - 1;
+			*op++ = MAX_LIT - 1;
 #if USE_MEMCPY
-      M_Memcpy(op, ip - MAX_LIT, MAX_LIT);
-      op += MAX_LIT;
-      lit = 0;
+			M_Memcpy (op, ip - MAX_LIT, MAX_LIT);
+			op += MAX_LIT;
+			lit = 0;
 #else
-      lit = -lit;
-      do
-        *op++ = ip[lit];
-      while (++lit);
+			lit = -lit;
+			do
+				*op++ = ip[lit];
+			while (++lit);
 #endif
-    }
-  }
+		}
+	}
 
-  if (lit) {
-    if (op + lit + 1 >= out_end)
-      return 0;
+	if (lit)
+	{
+		if (op + lit + 1 >= out_end)
+			return 0;
 
-    *op++ = (u8)(lit - 1);
-    lit = -lit;
-    do
-      *op++ = ip[lit];
-    while (++lit);
-  }
+		*op++ = (u8)(lit - 1);
+		lit = -lit;
+		do
+			*op++ = ip[lit];
+		while (++lit);
+	}
 
-  return op - (u8 *)out_data;
+	return op - (u8 *) out_data;
 }

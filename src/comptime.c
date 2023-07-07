@@ -11,5 +11,6 @@
 const char *compbranch = SRB2_COMP_BRANCH;
 const char *comprevision = SRB2_COMP_REVISION;
 
+
 const char *compdate = __DATE__;
 const char *comptime = __TIME__;

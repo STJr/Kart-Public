@@ -22,89 +22,101 @@
 #define NORMAL_SEP 128
 
 // abuse?
-#define STATIC_SOURCES_NUM 6 // Total number of static sources
+#define STATIC_SOURCES_NUM      6       // Total number of static sources
 
 #define MIN_DISTANCE 160.0f
 #define MAX_DISTANCE 1200.0f
 
-typedef struct source_pos_s {
-  double x;
-  double y;
-  double z;
+typedef struct source_pos_s
+{
+	double   x;
+	double   y;
+	double   z;
 } source_pos_t;
 
-typedef struct source3D_pos_s {
-  float x;
-  float y;
-  float z;
-  // float   angle;
-  float momx;
-  float momy;
-  float momz;
+typedef struct source3D_pos_s
+{
+	float   x;
+	float   y;
+	float   z;
+	//float   angle;
+	float   momx;
+	float   momy;
+	float   momz;
 
 } source3D_pos_t;
 
-enum { NORMAL_PITCH = 128 };
+
+enum {NORMAL_PITCH = 128};
 
 /*typedef struct source2D_data_s
 {
-        INT32     volume;
-        INT32     sep;
+	INT32     volume;
+	INT32     sep;
 
 } source2D_data_t;*/
 
+
 // General 3D sound source description
-typedef struct source3D_data_s {
-  float min_distance;  //
-  float max_distance;  //
-  INT32 head_relative; //
-  INT32 permanent;     //
-  source3D_pos_t pos;  // source position in 3D
+typedef struct source3D_data_s
+{
+	float           min_distance;       //
+	float           max_distance;       //
+	INT32           head_relative;      //
+	INT32           permanent;          //
+	source3D_pos_t  pos;                // source position in 3D
 
 } source3D_data_t;
 
+
 // Sound data
-typedef struct sfx_data_s {
-  size_t length;
-  void *data;
-  INT32 priority;
-  INT32 sep; // Only when source is 2D sound
+typedef struct sfx_data_s
+{
+	size_t  length;
+	void    *data;
+	INT32   priority;
+	INT32   sep;                    // Only when source is 2D sound
 } sfx_data_t;
 
+
 // Sound cone (for 3D sources)
-typedef struct cone_def_s {
-  float inner;
-  float outer;
-  INT32 outer_gain;
-  /*float   f_angle;
-  float   h_angle;*/
+typedef struct cone_def_s
+{
+	float   inner;
+	float   outer;
+	INT32   outer_gain;
+	/*float   f_angle;
+	float   h_angle;*/
 } cone_def_t;
 
-typedef struct listener_data_s {
-  // Listener position
-  double x;
-  double y;
-  double z;
 
-  // Listener front and head orientation (degrees)
-  double f_angle;
-  double h_angle;
+typedef struct listener_data_s
+{
+	// Listener position
+	double  x;
+	double  y;
+	double  z;
 
-  // Listener momentums
-  double momx;
-  double momy;
-  double momz;
+	// Listener front and head orientation (degrees)
+	double  f_angle;
+	double  h_angle;
+
+	// Listener momentums
+	double  momx;
+	double  momy;
+	double  momz;
 } listener_data_t;
 
-typedef struct snddev_s {
-  INT32 sample_rate;
-  INT32 bps;
-  size_t numsfxs;
+typedef struct snddev_s
+{
+	INT32   sample_rate;
+	INT32   bps;
+	size_t  numsfxs;
 
 // Windows specific data
-#if defined(_WIN32) && !defined(_XBOX)
-  UINT32 cooplevel;
-  HWND hWnd;
+#if defined (_WIN32) && !defined (_XBOX)
+	UINT32   cooplevel;
+	HWND    hWnd;
 #endif
 } snddev_t;
 

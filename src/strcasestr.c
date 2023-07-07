@@ -23,78 +23,89 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-static inline int trycmp(char **pp, char *cp, const char *q, size_t qn) {
-  char *p;
-  p = (*pp);
-  if (strncasecmp(p, q, qn) == 0)
-    return 0;
-  (*pp) = strchr(&p[1], (*cp));
-  return 1;
+static inline int
+trycmp (char **pp, char *cp,
+		const char *q, size_t qn)
+{
+	char *p;
+	p = (*pp);
+	if (strncasecmp(p, q, qn) == 0)
+		return 0;
+	(*pp) = strchr(&p[1], (*cp));
+	return 1;
 }
 
-static inline void swapp(char ***ppap, char ***ppbp, char **cpap, char **cpbp) {
-  char **pp;
-  char *p;
+static inline void
+swapp (char ***ppap, char ***ppbp, char **cpap, char **cpbp)
+{
+	char **pp;
+	char  *p;
 
-  pp = *ppap;
-  *ppap = *ppbp;
-  *ppbp = pp;
+	pp    = *ppap;
+	*ppap = *ppbp;
+	*ppbp =  pp;
 
-  p = *cpap;
-  *cpap = *cpbp;
-  *cpbp = p;
+	p     = *cpap;
+	*cpap = *cpbp;
+	*cpbp =   p;
 }
 
-char *strcasestr(const char *s, const char *q) {
-  size_t qn;
+char *
+strcasestr (const char *s, const char *q)
+{
+	size_t  qn;
 
-  char uc;
-  char lc;
+	char    uc;
+	char    lc;
 
-  char *up;
-  char *lp;
+	char   *up;
+	char   *lp;
 
-  char **ppa;
-  char **ppb;
+	char **ppa;
+	char **ppb;
 
-  char *cpa;
-  char *cpb;
+	char  *cpa;
+	char  *cpb;
 
-  uc = toupper(*q);
-  lc = tolower(*q);
+	uc = toupper(*q);
+	lc = tolower(*q);
 
-  up = strchr(s, uc);
-  lp = strchr(s, lc);
+	up = strchr(s, uc);
+	lp = strchr(s, lc);
 
-  if (!((intptr_t)up | (intptr_t)lp))
-    return 0;
+	if (!( (intptr_t)up|(intptr_t)lp ))
+		return 0;
 
-  if (!lp || (up && up < lp)) {
-    ppa = &up;
-    ppb = &lp;
+	if (!lp || ( up && up < lp ))
+	{
+		ppa = &up;
+		ppb = &lp;
 
-    cpa = &uc;
-    cpb = &lc;
-  } else {
-    ppa = &lp;
-    ppb = &up;
+		cpa = &uc;
+		cpb = &lc;
+	}
+	else
+	{
+		ppa = &lp;
+		ppb = &up;
 
-    cpa = &lc;
-    cpb = &uc;
-  }
+		cpa = &lc;
+		cpb = &uc;
+	}
 
-  qn = strlen(q);
+	qn = strlen(q);
 
-  for (;;) {
-    if (trycmp(ppa, cpa, q, qn) == 0)
-      return (*ppa);
+	for (;;)
+	{
+		if (trycmp(ppa, cpa, q, qn) == 0)
+			return (*ppa);
 
-    if (!((intptr_t)up | (intptr_t)lp))
-      break;
+		if (!( (intptr_t)up|(intptr_t)lp ))
+			break;
 
-    if (!(*ppa) || ((*ppb) && (*ppb) < (*ppa)))
-      swapp(&ppa, &ppb, &cpa, &cpb);
-  }
+		if (!(*ppa) || ( (*ppb) && (*ppb) < (*ppa) ))
+			swapp(&ppa, &ppb, &cpa, &cpb);
+	}
 
-  return 0;
+	return 0;
 }

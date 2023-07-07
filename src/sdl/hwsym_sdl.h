@@ -16,7 +16,7 @@
 /// \file
 /// \brief Tool for dynamic referencing of hardware rendering/3D sound functions
 
-void *hwSym(const char *funcName, void *handle);
+void *hwSym(const char *funcName,void *handle);
 
 void *hwOpen(const char *hwfile);
 

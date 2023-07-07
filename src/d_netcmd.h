@@ -57,7 +57,7 @@ extern consvar_t cv_joyscale4;
 // splitscreen with second mouse
 extern consvar_t cv_mouse2port;
 extern consvar_t cv_usemouse2;
-#if (defined(__unix__) && !defined(MSDOS)) || defined(UNIXCOMMON)
+#if (defined (__unix__) && !defined (MSDOS)) || defined (UNIXCOMMON)
 extern consvar_t cv_mouse2opt;
 #endif
 
@@ -94,14 +94,13 @@ extern consvar_t cv_mute;
 extern consvar_t cv_killingdead;
 extern consvar_t cv_pause;
 
-extern consvar_t cv_restrictskinchange, cv_allowteamchange, cv_ingamecap,
-    cv_respawntime;
+extern consvar_t cv_restrictskinchange, cv_allowteamchange, cv_ingamecap, cv_respawntime;
 extern consvar_t cv_spectatorreentry, cv_antigrief;
 
-/*extern consvar_t cv_teleporters, cv_superring, cv_supersneakers,
-cv_invincibility; extern consvar_t cv_jumpshield, cv_watershield, cv_ringshield,
-cv_forceshield, cv_bombshield; extern consvar_t cv_1up, cv_eggmanbox; extern
-consvar_t cv_recycler;*/
+/*extern consvar_t cv_teleporters, cv_superring, cv_supersneakers, cv_invincibility;
+extern consvar_t cv_jumpshield, cv_watershield, cv_ringshield, cv_forceshield, cv_bombshield;
+extern consvar_t cv_1up, cv_eggmanbox;
+extern consvar_t cv_recycler;*/
 
 // SRB2kart items
 extern consvar_t cv_sneaker, cv_rocketsneaker, cv_invincibility, cv_banana;
@@ -129,10 +128,8 @@ extern consvar_t cv_karteliminatelast;
 
 extern consvar_t cv_votetime;
 
-extern consvar_t cv_kartdebugitem, cv_kartdebugamount, cv_kartdebugshrink,
-    cv_kartdebugdistribution, cv_kartdebughuddrop;
-extern consvar_t cv_kartdebugcheckpoint, cv_kartdebugnodes,
-    cv_kartdebugcolorize;
+extern consvar_t cv_kartdebugitem, cv_kartdebugamount, cv_kartdebugshrink, cv_kartdebugdistribution, cv_kartdebughuddrop;
+extern consvar_t cv_kartdebugcheckpoint, cv_kartdebugnodes, cv_kartdebugcolorize;
 
 extern consvar_t cv_itemfinder;
 
@@ -147,8 +144,7 @@ extern consvar_t cv_rollingdemos;
 
 extern consvar_t cv_ringslinger, cv_soundtest;
 
-extern consvar_t cv_specialrings, cv_powerstones, cv_matchboxes,
-    cv_competitionboxes;
+extern consvar_t cv_specialrings, cv_powerstones, cv_matchboxes, cv_competitionboxes;
 
 extern consvar_t cv_maxping;
 extern consvar_t cv_pingtimeout;
@@ -159,38 +155,39 @@ extern consvar_t cv_skipmapcheck;
 
 extern consvar_t cv_sleep;
 
-typedef enum {
-  XD_NAMEANDCOLOR = 1,
-  XD_WEAPONPREF,   // 2
-  XD_KICK,         // 3
-  XD_NETVAR,       // 4
-  XD_SAY,          // 5
-  XD_MAP,          // 6
-  XD_EXITLEVEL,    // 7
-  XD_ADDFILE,      // 8
-  XD_PAUSE,        // 9
-  XD_ADDPLAYER,    // 10
-  XD_TEAMCHANGE,   // 11
-  XD_CLEARSCORES,  // 12
-  XD_LOGIN,        // 13
-  XD_VERIFIED,     // 14
-  XD_RANDOMSEED,   // 15
-  XD_RUNSOC,       // 16
-  XD_REQADDFILE,   // 17
-  XD_DELFILE,      // 18
-  XD_SETMOTD,      // 19
-  XD_RESPAWN,      // 20
-  XD_DEMOTED,      // 21
-  XD_SETUPVOTE,    // 22
-  XD_MODIFYVOTE,   // 23
-  XD_PICKVOTE,     // 24
-  XD_REMOVEPLAYER, // 25
-  XD_DISCORD,      // 26
+typedef enum
+{
+	XD_NAMEANDCOLOR = 1,
+	XD_WEAPONPREF,  // 2
+	XD_KICK,        // 3
+	XD_NETVAR,      // 4
+	XD_SAY,         // 5
+	XD_MAP,         // 6
+	XD_EXITLEVEL,   // 7
+	XD_ADDFILE,     // 8
+	XD_PAUSE,       // 9
+	XD_ADDPLAYER,   // 10
+	XD_TEAMCHANGE,  // 11
+	XD_CLEARSCORES, // 12
+	XD_LOGIN,       // 13
+	XD_VERIFIED,    // 14
+	XD_RANDOMSEED,  // 15
+	XD_RUNSOC,      // 16
+	XD_REQADDFILE,  // 17
+	XD_DELFILE,     // 18
+	XD_SETMOTD,     // 19
+	XD_RESPAWN,     // 20
+	XD_DEMOTED,     // 21
+	XD_SETUPVOTE,   // 22
+	XD_MODIFYVOTE,  // 23
+	XD_PICKVOTE,    // 24
+	XD_REMOVEPLAYER,// 25
+	XD_DISCORD,     // 26
 #ifdef HAVE_BLUA
-  XD_LUACMD, // 27
-  XD_LUAVAR, // 28
+	XD_LUACMD,      // 27
+	XD_LUAVAR,      // 28
 #endif
-  MAXNETXCMD
+	MAXNETXCMD
 } netxcmd_t;
 
 extern const char *netxcmdnames[MAXNETXCMD - 1];
@@ -200,19 +197,18 @@ extern const char *netxcmdnames[MAXNETXCMD - 1];
 #endif
 
 #ifdef _MSC_VER
-#pragma warning(disable : 4214)
+#pragma warning(disable :  4214)
 #endif
 
-// Packet composition for Command_TeamChange_f() ServerTeamChange, etc.
-// bitwise structs make packing bits a little easier, but byte alignment harder?
-// todo: decide whether to make the other netcommands conform, or just get rid
-// of this experiment.
+//Packet composition for Command_TeamChange_f() ServerTeamChange, etc.
+//bitwise structs make packing bits a little easier, but byte alignment harder?
+//todo: decide whether to make the other netcommands conform, or just get rid of this experiment.
 typedef struct {
-  UINT32 playernum : 5;    // value 0 to 31
-  UINT32 newteam : 5;      // value 0 to 31
-  UINT32 verification : 1; // value 0 to 1
-  UINT32 autobalance : 1;  // value 0 to 1
-  UINT32 scrambled : 1;    // value 0 to 1
+	UINT32 playernum    : 5;  // value 0 to 31
+	UINT32 newteam      : 5;  // value 0 to 31
+	UINT32 verification : 1;  // value 0 to 1
+	UINT32 autobalance  : 1;  // value 0 to 1
+	UINT32 scrambled    : 1;  // value 0 to 1
 } ATTRPACK changeteam_packet_t;
 
 #ifdef _MSC_VER
@@ -220,17 +216,16 @@ typedef struct {
 #endif
 
 typedef struct {
-  UINT16 l; // liitle endian
-  UINT16 b; // big enian
+	UINT16 l; // liitle endian
+	UINT16 b; // big enian
 } ATTRPACK changeteam_value_t;
 
-// Since we do not want other files/modules to know about this data buffer we
-// union it here with a Short Int. Other files/modules will hand the INT16 back
-// to us and we will decode it here. We don't have to use a union, but we would
-// then send four bytes instead of two.
+//Since we do not want other files/modules to know about this data buffer we union it here with a Short Int.
+//Other files/modules will hand the INT16 back to us and we will decode it here.
+//We don't have to use a union, but we would then send four bytes instead of two.
 typedef union {
-  changeteam_packet_t packet;
-  changeteam_value_t value;
+	changeteam_packet_t packet;
+	changeteam_value_t value;
 } ATTRPACK changeteam_union;
 
 #if defined(_MSC_VER)
@@ -243,11 +238,8 @@ void D_RegisterClientCommands(void);
 void D_SendPlayerConfig(void);
 void Command_ExitGame_f(void);
 void Command_Retry_f(void);
-void D_GameTypeChanged(
-    INT32 lastgametype); // not a real _OnChange function anymore
-void D_MapChange(INT32 pmapnum, INT32 pgametype, boolean pencoremode,
-                 boolean presetplayers, INT32 pdelay, boolean pskipprecutscene,
-                 boolean pfromlevelselect);
+void D_GameTypeChanged(INT32 lastgametype); // not a real _OnChange function anymore
+void D_MapChange(INT32 pmapnum, INT32 pgametype, boolean pencoremode, boolean presetplayers, INT32 pdelay, boolean pskipprecutscene, boolean pfromlevelselect);
 void D_SetupVote(void);
 void D_ModifyClientVote(SINT8 voted, UINT8 splitplayer);
 void D_PickVote(void);
@@ -260,7 +252,6 @@ void ItemFinder_OnChange(void);
 void D_SetPassword(const char *pw);
 
 // used for the player setup menu
-UINT8
-CanChangeSkin(INT32 playernum);
+UINT8 CanChangeSkin(INT32 playernum);
 
 #endif

@@ -26,39 +26,38 @@
 // A single patch from a texture definition,
 //  basically a rectangular area within
 //  the texture rectangle.
-typedef struct {
-  // Block origin (always UL), which has already accounted for the internal
-  // origin of the patch.
-  INT16 originx, originy;
-  UINT16 wad, lump;
+typedef struct
+{
+	// Block origin (always UL), which has already accounted for the internal origin of the patch.
+	INT16 originx, originy;
+	UINT16 wad, lump;
 } texpatch_t;
 
 // A maptexturedef_t describes a rectangular texture,
 //  which is composed of one or more mappatch_t structures
 //  that arrange graphic patches.
-typedef struct {
-  // Keep name for switch changing, etc.
-  char name[8];
-  INT16 width, height;
-  boolean holes;
+typedef struct
+{
+	// Keep name for switch changing, etc.
+	char name[8];
+	INT16 width, height;
+	boolean holes;
 
-  // All the patches[patchcount] are drawn back to front into the cached
-  // texture.
-  INT16 patchcount;
-  texpatch_t patches[0];
+	// All the patches[patchcount] are drawn back to front into the cached texture.
+	INT16 patchcount;
+	texpatch_t patches[0];
 } texture_t;
 
 // all loaded and prepared textures from the start of the game
 extern texture_t **textures;
 
-// texture width is a power of 2, so it can easily repeat along sidedefs using a
-// simple mask
+// texture width is a power of 2, so it can easily repeat along sidedefs using a simple mask
 extern INT32 *texturewidthmask;
 
 extern fixed_t *textureheight; // needed for texture pegging
 
 extern INT16 color8to16[256]; // remap color index to highcolor
-extern INT16 *hicolormaps;    // remap high colors to high colors..
+extern INT16 *hicolormaps; // remap high colors to high colors..
 
 extern CV_PossibleValue_t Color_cons_t[];
 
@@ -66,8 +65,7 @@ extern CV_PossibleValue_t Color_cons_t[];
 void R_LoadTextures(void);
 void R_FlushTextureCache(void);
 
-INT32
-R_GetTextureNum(INT32 texnum);
+INT32 R_GetTextureNum(INT32 texnum);
 void R_CheckTextureCache(INT32 tex);
 
 // Retrieve column data for span blitting.
@@ -88,28 +86,22 @@ lumpnum_t R_GetFlatNumForName(const char *name);
 // Called by P_Ticker for switches and animations,
 // returns the texture number for the texture name.
 void R_ClearTextureNumCache(boolean btell);
-INT32
-R_TextureNumForName(const char *name);
-INT32
-R_CheckTextureNumForName(const char *name);
+INT32 R_TextureNumForName(const char *name);
+INT32 R_CheckTextureNumForName(const char *name);
 
 void R_ReInitColormaps(UINT16 num, lumpnum_t newencoremap);
 void R_ClearColormaps(void);
-INT32
-R_ColormapNumForName(char *name);
-INT32
-R_CreateColormap(char *p1, char *p2, char *p3);
+INT32 R_ColormapNumForName(char *name);
+INT32 R_CreateColormap(char *p1, char *p2, char *p3);
 #ifdef HASINVERT
 void R_MakeInvertmap(void);
 #endif
 const char *R_ColormapNameForNum(INT32 num);
 
-UINT8
-NearestColor(UINT8 r, UINT8 g, UINT8 b);
+UINT8 NearestColor(UINT8 r, UINT8 g, UINT8 b);
 
 extern INT32 numtextures;
 
-UINT8
-NearestColor(UINT8 r, UINT8 g, UINT8 b);
+UINT8 NearestColor(UINT8 r, UINT8 g, UINT8 b);
 
 #endif

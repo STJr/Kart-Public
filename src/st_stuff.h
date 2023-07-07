@@ -14,9 +14,9 @@
 #ifndef __STSTUFF_H__
 #define __STSTUFF_H__
 
+#include "doomtype.h"
 #include "d_event.h"
 #include "d_player.h"
-#include "doomtype.h"
 #include "r_defs.h"
 
 //
@@ -50,8 +50,7 @@ void ST_UnloadGraphics(void);
 void ST_LoadGraphics(void);
 
 // face load graphics, called when skin changes
-void ST_LoadFaceGraphics(char *rankstr, char *wantstr, char *mmapstr,
-                         INT32 playernum);
+void ST_LoadFaceGraphics(char *rankstr, char *wantstr, char *mmapstr, INT32 playernum);
 void ST_ReloadSkinFaceGraphics(void);
 #ifdef DELFILE
 void ST_UnLoadFaceGraphics(INT32 skinnum);
@@ -67,7 +66,7 @@ boolean ST_SameTeam(player_t *a, player_t *b);
 //--------------------
 
 extern boolean st_overlay; // sb overlay on or off when fullscreen
-extern INT32 st_palette;   // 0 is default, any others are special palettes.
+extern INT32 st_palette; // 0 is default, any others are special palettes.
 
 extern lumpnum_t st_borderpatchnum;
 // patches, also used in intermission
@@ -83,49 +82,51 @@ extern patch_t *livesback;
 extern patch_t *ngradeletters[7];
 
 /** HUD location information (don't move this comment)
- */
-typedef struct {
-  INT32 x, y;
+  */
+typedef struct
+{
+	INT32 x, y;
 } hudinfo_t;
 
-typedef enum {
-  HUD_LIVESNAME,
-  HUD_LIVESPIC,
-  HUD_LIVESNUM,
-  HUD_LIVESX,
+typedef enum
+{
+	HUD_LIVESNAME,
+	HUD_LIVESPIC,
+	HUD_LIVESNUM,
+	HUD_LIVESX,
 
-  HUD_RINGS,
-  HUD_RINGSSPLIT,
-  HUD_RINGSNUM,
-  HUD_RINGSNUMSPLIT,
+	HUD_RINGS,
+	HUD_RINGSSPLIT,
+	HUD_RINGSNUM,
+	HUD_RINGSNUMSPLIT,
 
-  HUD_SCORE,
-  HUD_SCORENUM,
+	HUD_SCORE,
+	HUD_SCORENUM,
 
-  HUD_TIME,
-  HUD_TIMESPLIT,
-  HUD_MINUTES,
-  HUD_MINUTESSPLIT,
-  HUD_TIMECOLON,
-  HUD_TIMECOLONSPLIT,
-  HUD_SECONDS,
-  HUD_SECONDSSPLIT,
-  HUD_TIMETICCOLON,
-  HUD_TICS,
+	HUD_TIME,
+	HUD_TIMESPLIT,
+	HUD_MINUTES,
+	HUD_MINUTESSPLIT,
+	HUD_TIMECOLON,
+	HUD_TIMECOLONSPLIT,
+	HUD_SECONDS,
+	HUD_SECONDSSPLIT,
+	HUD_TIMETICCOLON,
+	HUD_TICS,
 
-  HUD_SS_TOTALRINGS,
-  HUD_SS_TOTALRINGS_SPLIT,
+	HUD_SS_TOTALRINGS,
+	HUD_SS_TOTALRINGS_SPLIT,
 
-  HUD_GETRINGS,
-  HUD_GETRINGSNUM,
-  HUD_TIMELEFT,
-  HUD_TIMELEFTNUM,
-  HUD_TIMEUP,
-  HUD_HUNTPICS,
-  HUD_GRAVBOOTSICO,
-  HUD_LAP,
+	HUD_GETRINGS,
+	HUD_GETRINGSNUM,
+	HUD_TIMELEFT,
+	HUD_TIMELEFTNUM,
+	HUD_TIMEUP,
+	HUD_HUNTPICS,
+	HUD_GRAVBOOTSICO,
+	HUD_LAP,
 
-  NUMHUDITEMS
+	NUMHUDITEMS
 } hudnum_t;
 
 extern hudinfo_t hudinfo[NUMHUDITEMS];

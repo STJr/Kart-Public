@@ -10,8 +10,8 @@
 /// \file  console.h
 /// \brief Console drawing and input
 
-#include "command.h"
 #include "d_event.h"
+#include "command.h"
 #include "i_threads.h"
 
 #ifdef _WII
@@ -37,21 +37,19 @@ extern INT32 con_clipviewtop;
 // 0 means console if off, or moving out
 extern INT32 con_destlines;
 
-extern INT32 con_clearlines;   // lines of top of screen to refresh
-extern boolean con_hudupdate;  // hud messages have changed, need refresh
+extern INT32 con_clearlines; // lines of top of screen to refresh
+extern boolean con_hudupdate; // hud messages have changed, need refresh
 extern UINT32 con_scalefactor; // console text scale factor
 
 extern consvar_t cons_backcolor, cons_menuhighlight;
 
-extern UINT8 *yellowmap, *purplemap, *greenmap, *bluemap, *graymap, *redmap,
-    *orangemap, *skymap, *goldmap, *lavendermap, *teamap, *steelmap, *pinkmap,
-    *brownmap, *peachmap;
+extern UINT8 *yellowmap, *purplemap, *greenmap, *bluemap, *graymap, *redmap, *orangemap,\
+ *skymap, *goldmap, *lavendermap, *teamap, *steelmap, *pinkmap, *brownmap, *peachmap;
 
 // Console bg color (auto updated to match)
 extern UINT8 *consolebgmap;
 
-INT32
-CON_ShiftChar(INT32 ch);
+INT32 CON_ShiftChar(INT32 ch);
 
 void CON_SetupBackColormap(void);
 void CON_ClearHUD(void); // clear heads up messages

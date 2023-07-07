@@ -11,32 +11,23 @@
 
 /* https://tools.ietf.org/html/rfc5389 */
 
-#if defined(__linux__)
+#if defined (__linux__)
 #include <sys/random.h>
 #else
 #error "Need CSPRNG."
 #endif
 
-#include "command.h"
-#include "d_clisrv.h"
 #include "doomdef.h"
+#include "d_clisrv.h"
+#include "command.h"
 #include "i_net.h"
 #include "stun.h"
 
 /* https://gist.github.com/zziuni/3741933 */
 /* I can only trust google to keep their shit up :y */
 consvar_t cv_stunserver = {
-    "stunserver",
-    "stun.l.google.com:19302",
-    CV_SAVE,
-    NULL,
-    NULL,
-    0,
-    NULL,
-    NULL,
-    0,
-    0,
-    NULL /* C90 moment */
+	"stunserver", "stun.l.google.com:19302", CV_SAVE, NULL,
+	NULL, 0, NULL, NULL, 0, 0, NULL/* C90 moment */
 };
 
 static stun_callback_t stun_callback;
@@ -47,10 +38,10 @@ static stun_callback_t stun_callback;
 
 /* 6. STUN Message Structure */
 
-#define BIND_REQUEST 0x0001
+#define BIND_REQUEST  0x0001
 #define BIND_RESPONSE 0x0101
 
-static const UINT32 MAGIC_COOKIE = MSBF_LONG(0x2112A442);
+static const UINT32 MAGIC_COOKIE = MSBF_LONG (0x2112A442);
 
 static char transaction_id[12];
 
@@ -62,130 +53,169 @@ static char transaction_id[12];
 
 #define STUN_IPV4 0x01
 
-static SINT8 STUN_node(void) {
-  SINT8 node;
+static SINT8
+STUN_node (void)
+{
+	SINT8 node;
 
-  char *const colon = strchr(cv_stunserver.zstring, ':');
+	char * const colon = strchr(cv_stunserver.zstring, ':');
 
-  const char *const host = cv_stunserver.zstring;
-  const char *const port = &colon[1];
+	const char * const host = cv_stunserver.zstring;
+	const char * const port = &colon[1];
 
-  I_Assert(I_NetMakeNodewPort != NULL);
+	I_Assert(I_NetMakeNodewPort != NULL);
 
-  if (colon != NULL) {
-    *colon = '\0';
+	if (colon != NULL)
+	{
+		*colon = '\0';
 
-    node = I_NetMakeNodewPort(host, port);
+		node = I_NetMakeNodewPort(host, port);
 
-    *colon = ':';
-  } else {
-    node = I_NetMakeNodewPort(host, STUN_PORT);
-  }
+		*colon = ':';
+	}
+	else
+	{
+		node = I_NetMakeNodewPort(host, STUN_PORT);
+	}
 
-  return node;
+	return node;
 }
 
-static void csprng(void *const buffer, const size_t size) {
-#if defined(__linux__)
-  getrandom(buffer, size, 0U);
+static void
+csprng
+(
+		void * const buffer,
+		const size_t size
+){
+#if   defined (__linux__)
+	getrandom(buffer, size, 0U);
 #endif
 }
 
-void STUN_bind(stun_callback_t callback) {
-  /* 6. STUN Message Structure */
+void
+STUN_bind (stun_callback_t callback)
+{
+	/* 6. STUN Message Structure */
 
-  const UINT16 type = MSBF_SHORT(BIND_REQUEST);
+	const UINT16 type = MSBF_SHORT (BIND_REQUEST);
 
-  const SINT8 node = STUN_node();
+	const SINT8 node = STUN_node();
 
-  doomcom->remotenode = node;
-  doomcom->datalength = 20;
+	doomcom->remotenode = node;
+	doomcom->datalength = 20;
 
-  csprng(transaction_id, 12U);
+	csprng(transaction_id, 12U);
 
-  memcpy(&doomcom->data[0], &type, 2U);
-  memset(&doomcom->data[2], 0, 2U);
-  memcpy(&doomcom->data[4], &MAGIC_COOKIE, 4U);
-  memcpy(&doomcom->data[8], transaction_id, 12U);
+	memcpy(&doomcom->data[0], &type,           2U);
+	memset(&doomcom->data[2], 0,               2U);
+	memcpy(&doomcom->data[4], &MAGIC_COOKIE,   4U);
+	memcpy(&doomcom->data[8], transaction_id, 12U);
 
-  stun_callback = callback;
+	stun_callback = callback;
 
-  I_NetSend();
-  Net_CloseConnection(node); /* will handle response at I_NetGet */
+	I_NetSend();
+	Net_CloseConnection(node);/* will handle response at I_NetGet */
 }
 
-static size_t STUN_xor_mapped_address(const char *const value) {
-  const UINT32 xaddr = *(const UINT32 *)&value[4];
-  const UINT32 addr = xaddr ^ MAGIC_COOKIE;
+static size_t
+STUN_xor_mapped_address (const char * const value)
+{
+	const UINT32 xaddr = *(const UINT32 *)&value[4];
+	const UINT32  addr = xaddr ^ MAGIC_COOKIE;
 
-  (*stun_callback)(addr);
+	(*stun_callback)(addr);
 
-  return 0U;
+	return 0U;
 }
 
-static size_t align4(size_t n) { return n + n % 4U; }
-
-static size_t STUN_parse_attribute(const char *const attribute) {
-  /* 15. STUN Attributes */
-  const UINT16 type = MSBF_SHORT(*(const UINT16 *)&attribute[0]);
-  const UINT16 length = MSBF_SHORT(*(const UINT16 *)&attribute[2]);
-
-  /* 15.2 XOR-MAPPED-ADDRESS */
-  if (type == XOR_MAPPED_ADDRESS && length == 8U &&
-      (unsigned char)attribute[5] == STUN_IPV4) {
-    return STUN_xor_mapped_address(&attribute[4]);
-  }
-
-  return align4(4U + length);
+static size_t
+align4 (size_t n)
+{
+	return n + n % 4U;
 }
 
-boolean STUN_got_response(const char *const buffer, const size_t size) {
-  const char *const end = &buffer[size];
+static size_t
+STUN_parse_attribute (const char * const attribute)
+{
+	/* 15. STUN Attributes */
+	const UINT16 type   = MSBF_SHORT (*(const UINT16 *)&attribute[0]);
+	const UINT16 length = MSBF_SHORT (*(const UINT16 *)&attribute[2]);
 
-  const char *p = &buffer[20];
+	/* 15.2 XOR-MAPPED-ADDRESS */
+	if (
+			type   == XOR_MAPPED_ADDRESS &&
+			length == 8U &&
+			(unsigned char)attribute[5] == STUN_IPV4
+	){
+		return STUN_xor_mapped_address(&attribute[4]);
+	}
 
-  UINT16 type;
-  UINT16 length;
+	return align4(4U + length);
+}
 
-  /*
-  Check for STUN response.
+boolean
+STUN_got_response
+(
+		const char * const buffer,
+		const size_t       size
+){
+	const char * const end = &buffer[size];
 
-  Header is 20 bytes.
-  XOR-MAPPED-ADDRESS attribute is required.
-  Each attribute has a 2 byte header.
-  The XOR-MAPPED-ADDRESS attribute also has a 8 byte value.
-  This totals 10 bytes for the attribute.
-  */
+	const char * p = &buffer[20];
 
-  if (size < 30U || stun_callback == NULL) {
-    return false;
-  }
+	UINT16 type;
+	UINT16 length;
 
-  /* 6. STUN Message Structure */
+	/*
+	Check for STUN response.
 
-  if (*(const UINT32 *)&buffer[4] == MAGIC_COOKIE &&
-      memcmp(&buffer[8], transaction_id, 12U) == 0) {
-    type = MSBF_SHORT(*(const UINT16 *)&buffer[0]);
-    length = MSBF_SHORT(*(const UINT16 *)&buffer[2]);
+	Header is 20 bytes.
+	XOR-MAPPED-ADDRESS attribute is required.
+	Each attribute has a 2 byte header.
+	The XOR-MAPPED-ADDRESS attribute also has a 8 byte value.
+	This totals 10 bytes for the attribute.
+	*/
 
-    if ((type >> 14) == 0U && (length & 0x02) == 0U && (20U + length) <= size) {
-      if (type == BIND_RESPONSE) {
-        do {
-          length = STUN_parse_attribute(p);
+	if (size < 30U || stun_callback == NULL)
+	{
+		return false;
+	}
 
-          if (length == 0U) {
-            break;
-          }
+	/* 6. STUN Message Structure */
 
-          p += length;
-        } while (p < end);
-      }
+	if (
+			*(const UINT32 *)&buffer[4] == MAGIC_COOKIE &&
+			memcmp(&buffer[8], transaction_id, 12U) == 0
+	){
+		type   = MSBF_SHORT (*(const UINT16 *)&buffer[0]);
+		length = MSBF_SHORT (*(const UINT16 *)&buffer[2]);
 
-      stun_callback = NULL;
+		if (
+				(type >> 14)    == 0U &&
+				(length & 0x02) == 0U &&
+				(20U + length)  <= size
+		){
+			if (type == BIND_RESPONSE)
+			{
+				do
+				{
+					length = STUN_parse_attribute(p);
 
-      return true;
-    }
-  }
+					if (length == 0U)
+					{
+						break;
+					}
 
-  return false;
+					p += length;
+				}
+				while (p < end) ;
+			}
+
+			stun_callback = NULL;
+
+			return true;
+		}
+	}
+
+	return false;
 }

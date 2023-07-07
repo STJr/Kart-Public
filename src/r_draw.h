@@ -19,12 +19,12 @@
 // -------------------------------
 // COMMON STUFF FOR 8bpp AND 16bpp
 // -------------------------------
-extern UINT8 *ylookup[MAXVIDHEIGHT * 4];
-extern UINT8 *ylookup1[MAXVIDHEIGHT * 4];
-extern UINT8 *ylookup2[MAXVIDHEIGHT * 4];
-extern UINT8 *ylookup3[MAXVIDHEIGHT * 4];
-extern UINT8 *ylookup4[MAXVIDHEIGHT * 4];
-extern INT32 columnofs[MAXVIDWIDTH * 4];
+extern UINT8 *ylookup[MAXVIDHEIGHT*4];
+extern UINT8 *ylookup1[MAXVIDHEIGHT*4];
+extern UINT8 *ylookup2[MAXVIDHEIGHT*4];
+extern UINT8 *ylookup3[MAXVIDHEIGHT*4];
+extern UINT8 *ylookup4[MAXVIDHEIGHT*4];
+extern INT32 columnofs[MAXVIDWIDTH*4];
 extern UINT8 *topleft;
 
 // -------------------------
@@ -39,8 +39,7 @@ extern UINT8 dc_hires;
 extern UINT8 *dc_source; // first pixel in a column
 
 // translucency stuff here
-extern UINT8
-    *transtables; // translucency tables, should be (*transtables)[5][256][256]
+extern UINT8 *transtables; // translucency tables, should be (*transtables)[5][256][256]
 extern UINT8 *dc_transmap;
 
 // translation stuff here
@@ -50,7 +49,7 @@ extern UINT8 *dc_translation;
 extern struct r_lightlist_s *dc_lightlist;
 extern INT32 dc_numlights, dc_maxlights;
 
-// Fix TUTIFRUTI
+//Fix TUTIFRUTI
 extern INT32 dc_texheight;
 
 // -----------------------
@@ -64,10 +63,10 @@ extern UINT8 *ds_source; // start of a 64*64 tile image
 extern UINT8 *ds_transmap;
 
 typedef struct {
-  float x, y, z;
+	float x, y, z;
 } floatv3_t;
 
-extern pslope_t *ds_slope;            // Current slope being used
+extern pslope_t *ds_slope; // Current slope being used
 extern floatv3_t ds_su, ds_sv, ds_sz; // Vectors for... stuff?
 extern float focallengthf, zeroheight;
 
@@ -102,22 +101,20 @@ extern lumpnum_t viewborderlump[8];
 
 #define GTC_CACHE 1
 #define GTC_MENUCACHE GTC_CACHE
-//@TODO Add a separate caching mechanism for menu colormaps distinct from
-// in-level GTC_CACHE. For now this is still preferable to memory leaks...
+//@TODO Add a separate caching mechanism for menu colormaps distinct from in-level GTC_CACHE. For now this is still preferable to memory leaks...
 
-#define TC_DEFAULT -1
-#define TC_BOSS -2
+#define TC_DEFAULT    -1
+#define TC_BOSS       -2
 #define TC_METALSONIC -3 // For Metal Sonic battle
-#define TC_ALLWHITE -4   // For Cy-Brak-demon
-#define TC_RAINBOW -5    // For invincibility power
-#define TC_BLINK -6      // For item blinking
+#define TC_ALLWHITE   -4 // For Cy-Brak-demon
+#define TC_RAINBOW    -5 // For invincibility power
+#define TC_BLINK      -6 // For item blinking
 
 // Initialize color translation tables, for player rendering etc.
 void R_InitTranslationTables(void);
-UINT8 *R_GetTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 flags);
+UINT8* R_GetTranslationColormap(INT32 skinnum, skincolors_t color, UINT8 flags);
 void R_FlushTranslationColormapCache(void);
-UINT8
-R_GetColorByName(const char *name);
+UINT8 R_GetColorByName(const char *name);
 
 // Custom player skin translation
 void R_InitViewBuffer(INT32 width, INT32 height);
@@ -137,19 +134,19 @@ void R_DrawViewBorder(void);
 // -----------------
 
 void R_DrawColumn_8(void);
-#define R_DrawWallColumn_8 R_DrawColumn_8
+#define R_DrawWallColumn_8	R_DrawColumn_8
 void R_DrawShadeColumn_8(void);
 void R_DrawTranslucentColumn_8(void);
 
 #ifdef USEASM
 void ASMCALL R_DrawColumn_8_ASM(void);
-#define R_DrawWallColumn_8_ASM R_DrawColumn_8_ASM
+#define R_DrawWallColumn_8_ASM	R_DrawColumn_8_ASM
 void ASMCALL R_DrawShadeColumn_8_ASM(void);
 void ASMCALL R_DrawTranslucentColumn_8_ASM(void);
 void ASMCALL R_Draw2sMultiPatchColumn_8_ASM(void);
 
 void ASMCALL R_DrawColumn_8_MMX(void);
-#define R_DrawWallColumn_8_MMX R_DrawColumn_8_MMX
+#define R_DrawWallColumn_8_MMX	R_DrawColumn_8_MMX
 
 void ASMCALL R_Draw2sMultiPatchColumn_8_MMX(void);
 void ASMCALL R_DrawSpan_8_MMX(void);
@@ -184,4 +181,4 @@ void R_DrawSpan_16(void);
 #endif
 
 // =========================================================================
-#endif // __R_DRAW__
+#endif  // __R_DRAW__

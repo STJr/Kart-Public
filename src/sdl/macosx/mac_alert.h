@@ -22,8 +22,6 @@
 
 #ifdef __APPLE_CC__
 
-extern int MacShowAlert(const char *title, const char *message,
-                        const char *button1, const char *button2,
-                        const char *button3);
+extern int MacShowAlert(const char *title, const char *message, const char *button1, const char *button2, const char *button3);
 
 #endif

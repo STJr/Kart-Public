@@ -1,10 +1,10 @@
 /*
-        From the 'Wizard2' engine by Spaddlewit Inc. ( http://www.spaddlewit.com
-   ) An experimental work-in-progress.
+	From the 'Wizard2' engine by Spaddlewit Inc. ( http://www.spaddlewit.com )
+	An experimental work-in-progress.
 
-        Donated to Sonic Team Junior and adapted to work with
-        Sonic Robo Blast 2. The license of this code matches whatever
-        the licensing is for Sonic Robo Blast 2.
+	Donated to Sonic Team Junior and adapted to work with
+	Sonic Robo Blast 2. The license of this code matches whatever
+	the licensing is for Sonic Robo Blast 2.
 */
 
 #ifndef _HW_MODEL_H_
@@ -12,8 +12,9 @@
 
 #include "../doomtype.h"
 
-typedef struct {
-  float x, y, z;
+typedef struct
+{
+	float x, y, z;
 } vector_t;
 
 extern vector_t vectorXaxis;
@@ -22,63 +23,69 @@ extern vector_t vectorZaxis;
 
 void VectorRotate(vector_t *rotVec, const vector_t *axisVec, float angle);
 
-typedef struct {
-  float ambient[4], diffuse[4], specular[4], emissive[4];
-  float shininess;
-  boolean spheremap;
-  //	Texture::texture_t *texture;
-  //	Texture::texture_t *lightmap;
+typedef struct
+{
+	float ambient[4], diffuse[4], specular[4], emissive[4];
+	float shininess;
+	boolean spheremap;
+//	Texture::texture_t *texture;
+//	Texture::texture_t *lightmap;
 } material_t;
 
-typedef struct {
-  material_t *material; // Pointer to the allocated 'materials' list in model_t
-  float *vertices;
-  float *normals;
-  float *tangents;
-  char *colors;
-  unsigned int vboID;
-  vector_t *polyNormals;
+typedef struct
+{
+	material_t *material; // Pointer to the allocated 'materials' list in model_t
+	float *vertices;
+	float *normals;
+	float *tangents;
+	char *colors;
+	unsigned int vboID;
+	vector_t *polyNormals;
 } mdlframe_t;
 
-typedef struct {
-  material_t *material;
-  short *vertices;
-  char *normals;
-  char *tangents;
-  unsigned int vboID;
+typedef struct
+{
+	material_t *material;
+	short *vertices;
+	char *normals;
+	char *tangents;
+	unsigned int vboID;
 } tinyframe_t;
 
 // Equivalent to MD3's many 'surfaces'
-typedef struct mesh_s {
-  int numVertices;
-  int numTriangles;
+typedef struct mesh_s
+{
+	int numVertices;
+	int numTriangles;
 
-  float *uvs;
-  float *lightuvs;
+	float *uvs;
+	float *lightuvs;
 
-  int numFrames;
-  mdlframe_t *frames;
-  tinyframe_t *tinyframes;
-  unsigned short *indices;
+	int numFrames;
+	mdlframe_t *frames;
+	tinyframe_t *tinyframes;
+	unsigned short *indices;
 } mesh_t;
 
-typedef struct tag_s {
-  char name[64];
-  //	matrix_t transform;
+typedef struct tag_s
+{
+	char name[64];
+//	matrix_t transform;
 } tag_t;
 
-typedef struct model_s {
-  int maxNumFrames;
+typedef struct model_s
+{
+	int maxNumFrames;
 
-  int numMaterials;
-  material_t *materials;
-  int numMeshes;
-  mesh_t *meshes;
-  int numTags;
-  tag_t *tags;
+	int numMaterials;
+	material_t *materials;
+	int numMeshes;
+	mesh_t *meshes;
+	int numTags;
+	tag_t *tags;
 
-  char *mdlFilename;
-  boolean unloaded;
+	char *mdlFilename;
+	boolean unloaded;
 } model_t;
 
 extern int numModels;
