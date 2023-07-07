@@ -12,6 +12,10 @@ add_link_options("SHELL: -s STACK_SIZE=65536000")
 add_link_options("--preload-file=${CMAKE_BINARY_DIR}/assets/out@/")
 add_link_options("SHELL: --use-preload-plugins")
 
+if("${CMAKE_BUILD_TYPE}" EQUAL "Release")
+	add_compile_options("SHELL: -O3")
+endif()
+
 set(SRB2_SDL2_SOURCES
 	dosstr.c
 	endtxt.c
