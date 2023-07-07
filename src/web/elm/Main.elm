@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Browser
 import Html exposing (Html, article, button, canvas, div, h1, h2, header, li, main_, p, progress, section, span, text, ul)
-import Html.Attributes exposing (class, height, hidden, id, max, value, width)
+import Html.Attributes exposing (class, classList, height, hidden, id, max, value, width)
 import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy)
 import Msg exposing (Msg(..))
@@ -106,12 +106,17 @@ document model =
     }
 
 
-viewCanvas : Html Msg
-viewCanvas =
+viewCanvas : Model -> Html Msg
+viewCanvas model =
     lazy
         (canvas
             [ id "canvas"
             , class "border-double border-8 border-blue-100 rounded-md shadow-md"
+            , if model.emStatus == Running then
+                class "block"
+
+              else
+                class "hidden"
             , width 500
             , height 500
             ]
@@ -156,7 +161,7 @@ viewStatus status =
 view : Model -> List (Html Msg)
 view model =
     [ Html.main_ [ class "w-screen h-screen flex items-center justify-center flex-col gap-2" ]
-        [ viewCanvas
+        [ viewCanvas model
         , viewConsole model.outputLines
         , viewControls model.emStatus
         , viewStatus model.emStatus
