@@ -101,7 +101,15 @@ document model =
 
 viewCanvas : Html Msg
 viewCanvas =
-    lazy (canvas [ id "canvas", width 500, height 500 ]) []
+    lazy
+        (canvas
+            [ id "canvas"
+            , class "border-double border-8 border-blue-100 rounded-md shadow-md"
+            , width 500
+            , height 500
+            ]
+        )
+        []
 
 
 viewConsole : List String -> Html Msg
