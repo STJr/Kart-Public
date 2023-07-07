@@ -10,11 +10,7 @@ file(COPY webpack.config.js DESTINATION .)
 file(COPY postcss.config.js DESTINATION .)
 file(COPY tailwind.config.js DESTINATION .)
 
-if("${CMAKE_BUILD_TYPE}" EQUAL "Release")
-  set(NODE_ENV "production")
-else()
-  set(NODE_ENV "development")
-endif()
+set(NODE_ENV "$<$<STREQUAL:${CMAKE_BUILD_TYPE},Release>:production>")
 
 add_custom_target(
   WEB ALL
