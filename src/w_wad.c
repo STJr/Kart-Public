@@ -29,6 +29,7 @@
 #include "zlib.h"
 #endif
 
+#include <emscripten.h>
 #ifdef __GNUC__
 #include <unistd.h>
 #endif
@@ -886,6 +887,36 @@ INT32 W_InitMultipleFiles(char **filenames, boolean addons)
 		I_Error("W_InitMultipleFiles: no files found");
 
 	return overallrc;
+}
+
+EM_JS(void, start_load_files, (), {
+  Module.filesLoaded = false;
+});
+
+EM_JS(void, finish_load_files, (), {
+  Module.filesLoaded = true;
+});
+
+EM_JS(boolean, files_loaded, (), {
+  return Module.filesLoaded;
+});
+
+
+void W_InitMultipleFilesAsync(void* arg) {
+	char** filenames = (char**)arg;
+	start_load_files();
+	W_InitMultipleFiles(filenames, true);
+	finish_load_files();
+}
+
+boolean W_WaitFilesLoaded(void) {
+	while (1) {
+		if (files_loaded()) {
+			return true;
+		}
+
+		emscripten_sleep(500);
+	}
 }
 
 /** Make sure a lump number is valid.

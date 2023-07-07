@@ -1187,43 +1187,12 @@ void D_SRB2Main(void)
 
 	// load wad, including the main wad file
 	CONS_Printf("W_InitMultipleFiles(): Adding IWAD and main PWADs.\n");
-	if (!W_InitMultipleFiles(startupwadfiles, false))
-#ifdef _DEBUG
-		CONS_Error("A WAD file was not found or not valid.\nCheck the log to see which ones.\n");
-#else
-		I_Error("A WAD file was not found or not valid.\nCheck the log to see which ones.\n");
-#endif
+
+	emscripten_async_call(W_InitMultipleFilesAsync, startupwadfiles, 0);
+	W_WaitFilesLoaded();
 	D_CleanFile(startupwadfiles);
 
 	mainwads = 0;
-
-#ifndef DEVELOP
-	// Check MD5s of autoloaded files
-	// Note: Do not add any files that ignore MD5!
-	W_VerifyFileMD5(mainwads, ASSET_HASH_SRB2_SRB);						// srb2.srb/srb2.wad
-#ifdef USE_PATCH_DTA
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_DTA);		// patch.dta
-#endif
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_GFX_KART);			// gfx.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_TEXTURES_KART);	// textures.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_CHARS_KART);		// chars.kart
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_MAPS_KART);		// maps.kart -- 4 - If you touch this, make sure to touch up the majormods stuff below.
-#ifdef USE_PATCH_KART
-	mainwads++; W_VerifyFileMD5(mainwads, ASSET_HASH_PATCH_KART);		// patch.kart
-#endif
-#else
-#ifdef USE_PATCH_DTA
-	mainwads++;	// patch.dta
-#endif
-	mainwads++;	// gfx.kart
-	mainwads++;	// textures.kart
-	mainwads++;	// chars.kart
-	mainwads++;	// maps.kart
-#ifdef USE_PATCH_KART
-	mainwads++;	// patch.kart
-#endif
-
-#endif //ifndef DEVELOP
 
 	//
 	// search for maps
@@ -1251,8 +1220,8 @@ void D_SRB2Main(void)
 		}
 	}
 
-	if (!W_InitMultipleFiles(startuppwads, true))
-		CONS_Error("A PWAD file was not found or not valid.\nCheck the log to see which ones.\n");
+	emscripten_async_call(W_InitMultipleFilesAsync, &startuppwads, 0);
+	W_WaitFilesLoaded();
 	D_CleanFile(startuppwads);
 
 	//

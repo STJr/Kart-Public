@@ -137,6 +137,8 @@ void W_UnloadWadFile(UINT16 num);
 // W_InitMultipleFiles returns 1 if all is okay, 0 otherwise,
 // so that it stops with a message if a file was not found, but not if all is okay.
 INT32 W_InitMultipleFiles(char **filenames, boolean addons);
+void W_InitMultipleFilesAsync(void* arg);
+boolean W_WaitFilesLoaded(void);
 
 #define W_FileHasFolders(wadfile) ((wadfile)->type == RET_PK3)
 
