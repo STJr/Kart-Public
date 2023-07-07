@@ -47,7 +47,7 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { outputLines = []
       , emStatus = Status.NotStarted
-      , helpShown = True
+      , helpShown = False
       }
     , Cmd.none
     )
