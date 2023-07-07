@@ -12,7 +12,8 @@
 /// \brief MapObj data. Map Objects or mobjs are actors, entities,
 ///        thinker, take-your-pick
 ///
-///        anything that moves, acts, or suffers state changes of more or less violent nature.
+///        anything that moves, acts, or suffers state changes of more or less
+///        violent nature.
 
 #ifndef __D_THINK__
 #define __D_THINK__
@@ -29,10 +30,9 @@
 typedef void (*actionf_v)();
 typedef void (*actionf_p1)(void *);
 
-typedef union
-{
-	actionf_v acv;
-	actionf_p1 acp1;
+typedef union {
+  actionf_v acv;
+  actionf_p1 acp1;
 } actionf_t;
 
 // Historically, "think_t" is yet another function pointer to a routine
@@ -40,15 +40,14 @@ typedef union
 typedef actionf_t think_t;
 
 // Doubly linked list of actors.
-typedef struct thinker_s
-{
-	struct thinker_s *prev;
-	struct thinker_s *next;
-	think_t function;
+typedef struct thinker_s {
+  struct thinker_s *prev;
+  struct thinker_s *next;
+  think_t function;
 
-	// killough 11/98: count of how many other objects reference
-	// this one using pointers. Used for garbage collection.
-	INT32 references;
+  // killough 11/98: count of how many other objects reference
+  // this one using pointers. Used for garbage collection.
+  INT32 references;
 } thinker_t;
 
 #endif

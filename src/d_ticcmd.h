@@ -14,8 +14,8 @@
 #ifndef __D_TICCMD__
 #define __D_TICCMD__
 
-#include "m_fixed.h"
 #include "doomtype.h"
+#include "m_fixed.h"
 
 #ifdef __GNUG__
 #pragma interface
@@ -24,21 +24,20 @@
 #define MAXPREDICTTICS 12
 
 // Button/action code definitions.
-typedef enum
-{
-	BT_ACCELERATE	= 1,		// Accelerate
-	BT_DRIFT		= 1<<2,		// Drift (direction is cmd->driftturn)
-	BT_BRAKE		= 1<<3,		// Brake
-	BT_ATTACK		= 1<<4,		// Use Item
-	BT_FORWARD		= 1<<5,		// Aim Item Forward
-	BT_BACKWARD		= 1<<6,		// Aim Item Backward
+typedef enum {
+  BT_ACCELERATE = 1,    // Accelerate
+  BT_DRIFT = 1 << 2,    // Drift (direction is cmd->driftturn)
+  BT_BRAKE = 1 << 3,    // Brake
+  BT_ATTACK = 1 << 4,   // Use Item
+  BT_FORWARD = 1 << 5,  // Aim Item Forward
+  BT_BACKWARD = 1 << 6, // Aim Item Backward
 
-	// free: 1<<7 to 1<<12
+  // free: 1<<7 to 1<<12
 
-	// Lua garbage
-	BT_CUSTOM1		= 1<<13,
-	BT_CUSTOM2		= 1<<14,
-	BT_CUSTOM3		= 1<<15,
+  // Lua garbage
+  BT_CUSTOM1 = 1 << 13,
+  BT_CUSTOM2 = 1 << 14,
+  BT_CUSTOM3 = 1 << 15,
 } buttoncode_t;
 
 // The data sampled per tick (single player)
@@ -54,15 +53,15 @@ typedef enum
 #pragma pack(1)
 #endif
 
-typedef struct
-{
-	SINT8 forwardmove; // -MAXPLMOVE to MAXPLMOVE (50)
-	SINT8 sidemove; // -MAXPLMOVE to MAXPLMOVE (50)
-	INT16 angleturn; // <<16 for angle delta - saved as 1 byte into demos
-	INT16 aiming; // vertical aiming, see G_BuildTicCmd
-	UINT16 buttons;
-	INT16 driftturn; // SRB2Kart: Used for getting drift turn speed
-	UINT8 latency; // Netgames: how many tics ago was this ticcmd generated from this player's end?
+typedef struct {
+  SINT8 forwardmove; // -MAXPLMOVE to MAXPLMOVE (50)
+  SINT8 sidemove;    // -MAXPLMOVE to MAXPLMOVE (50)
+  INT16 angleturn;   // <<16 for angle delta - saved as 1 byte into demos
+  INT16 aiming;      // vertical aiming, see G_BuildTicCmd
+  UINT16 buttons;
+  INT16 driftturn; // SRB2Kart: Used for getting drift turn speed
+  UINT8 latency;   // Netgames: how many tics ago was this ticcmd generated from
+                   // this player's end?
 } ATTRPACK ticcmd_t;
 
 #if defined(_MSC_VER)

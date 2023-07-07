@@ -18,8 +18,8 @@
 
 #include <stdio.h>
 
-#if defined (HAVE_LIMITS_H) || (defined (_LIBC) && _LIBC) || defined (_WIN32)
-# include <limits.h>
+#if defined(HAVE_LIMITS_H) || (defined(_LIBC) && _LIBC) || defined(_WIN32)
+#include <limits.h>
 #endif
 
 #define MD5_LEN 16
@@ -32,46 +32,46 @@
    is usually not possible.  */
 
 #ifdef _LIBC
-# include <sys/types.h>
+#include <sys/types.h>
 typedef u_int32_t md5_uint32;
 #else
-# if defined __STDC__ && __STDC__
-#  define UINT_MAX_32_BITS 4294967295U
-# else
-#  define UINT_MAX_32_BITS 0xFFFFFFFF
-# endif
+#if defined __STDC__ && __STDC__
+#define UINT_MAX_32_BITS 4294967295U
+#else
+#define UINT_MAX_32_BITS 0xFFFFFFFF
+#endif
 
 /* If UINT_MAX isn't defined, assume it's a 32-bit type.
    This should be valid for all systems GNU cares about because
    that doesn't include 16-bit systems, and only modern systems
    (that certainly have <limits.h>) have 64+-bit integral types.  */
 
-# ifndef UINT_MAX
-#  define UINT_MAX UINT_MAX_32_BITS
-# endif
+#ifndef UINT_MAX
+#define UINT_MAX UINT_MAX_32_BITS
+#endif
 
-# if UINT_MAX == UINT_MAX_32_BITS
-   typedef unsigned int md5_uint32;
-# else
-#  if USHRT_MAX == UINT_MAX_32_BITS
-    typedef unsigned short md5_uint32;
-#  else
-#   if ULONG_MAX == UINT_MAX_32_BITS
-     typedef unsigned long md5_uint32;
-#   else
-     /* The following line is intended to evoke an error.
-        Using #error is not portable enough.  */
-     "Cannot determine unsigned 32-bit data type."
-#   endif
-#  endif
-# endif
+#if UINT_MAX == UINT_MAX_32_BITS
+typedef unsigned int md5_uint32;
+#else
+#if USHRT_MAX == UINT_MAX_32_BITS
+typedef unsigned short md5_uint32;
+#else
+#if ULONG_MAX == UINT_MAX_32_BITS
+typedef unsigned long md5_uint32;
+#else
+/* The following line is intended to evoke an error.
+   Using #error is not portable enough.  */
+"Cannot determine unsigned 32-bit data type."
+#endif
+#endif
+#endif
 #endif
 
 #undef __P
-#if defined (__STDC__) && __STDC__
-#define	__P(x) x
+#if defined(__STDC__) && __STDC__
+#define __P(x) x
 #else
-#define	__P(x) ()
+#define __P(x) ()
 #endif
 
 /*
@@ -120,12 +120,12 @@ extern void *md5_read_ctx __P ((const struct md5_ctx *ctx, void *resbuf));
 /* Compute MD5 message digest for bytes read from STREAM.  The
    resulting message digest number will be written into the 16 bytes
    beginning at RESBLOCK.  */
-int md5_stream __P ((FILE *stream, void *resblock));
+int md5_stream __P((FILE * stream, void *resblock));
 
 /* Compute MD5 message digest for LEN bytes beginning at BUFFER.  The
    result is always in little endian byte order, so that a byte-wise
    output yields to the wanted ASCII representation of the message
    digest.  */
-extern void *md5_buffer __P ((const char *buffer, size_t len, void *resblock));
+extern void *md5_buffer __P((const char *buffer, size_t len, void *resblock));
 
 #endif

@@ -14,56 +14,56 @@
 #ifndef __I_SOUND__
 #define __I_SOUND__
 
+#include "command.h"
 #include "doomdef.h"
 #include "sounds.h"
-#include "command.h"
 
 // copied from SDL mixer, plus GME
 typedef enum {
-	MU_NONE,
-	MU_CMD,
-	MU_WAV,
-	MU_MOD,
-	MU_MID,
-	MU_OGG,
-	MU_MP3,
-	MU_MP3_MAD_UNUSED, // use MU_MP3 instead
-	MU_FLAC,
-	MU_MODPLUG_UNUSED, // use MU_MOD instead
-	MU_GME
+  MU_NONE,
+  MU_CMD,
+  MU_WAV,
+  MU_MOD,
+  MU_MID,
+  MU_OGG,
+  MU_MP3,
+  MU_MP3_MAD_UNUSED, // use MU_MP3 instead
+  MU_FLAC,
+  MU_MODPLUG_UNUSED, // use MU_MOD instead
+  MU_GME
 } musictype_t;
 
 /**	\brief Sound subsystem runing and waiting
-*/
+ */
 extern UINT8 sound_started;
 
 /**	\brief info of samplerate
-*/
+ */
 extern consvar_t cv_samplerate;
-//extern consvar_t cv_rndsoundpitch;
+// extern consvar_t cv_rndsoundpitch;
 
 /**	\brief	The I_GetSfx function
 
-	\param	sfx	sfx to setup
+        \param	sfx	sfx to setup
 
-	\return	data for sfx
+        \return	data for sfx
 */
 void *I_GetSfx(sfxinfo_t *sfx);
 
 /**	\brief	The I_FreeSfx function
 
-	\param	sfx	sfx to be freed up
+        \param	sfx	sfx to be freed up
 
-	\return	void
+        \return	void
 */
 void I_FreeSfx(sfxinfo_t *sfx);
 
 /**	\brief Init at program start...
-*/
+ */
 void I_StartupSound(void);
 
 /**	\brief ... shut down and relase at program termination.
-*/
+ */
 void I_ShutdownSound(void);
 
 /// ------------------------
@@ -71,52 +71,54 @@ void I_ShutdownSound(void);
 /// ------------------------
 
 /**	\brief	Starts a sound in a particular sound channel.
-	\param	id	sfxid
-	\param	vol	volume for sound
-	\param	sep	left-right balancle
-	\param	pitch	not used
-	\param	priority	not used
+        \param	id	sfxid
+        \param	vol	volume for sound
+        \param	sep	left-right balancle
+        \param	pitch	not used
+        \param	priority	not used
 
-	\return	sfx handle
+        \return	sfx handle
 */
-INT32 I_StartSound(sfxenum_t id, UINT8 vol, UINT8 sep, UINT8 pitch, UINT8 priority, INT32 channel);
+INT32
+I_StartSound(sfxenum_t id, UINT8 vol, UINT8 sep, UINT8 pitch, UINT8 priority,
+             INT32 channel);
 
 /**	\brief	Stops a sound channel.
 
-	\param	handle	stop sfx handle
+        \param	handle	stop sfx handle
 
-	\return	void
+        \return	void
 */
 void I_StopSound(INT32 handle);
 
 /**	\brief Some digital sound drivers need this.
-*/
+ */
 void I_UpdateSound(void);
 
 /**	\brief	Called by S_*() functions to see if a channel is still playing.
 
-	\param	handle	sfx handle
+        \param	handle	sfx handle
 
-	\return	0 if no longer playing, 1 if playing.
+        \return	0 if no longer playing, 1 if playing.
 */
 boolean I_SoundIsPlaying(INT32 handle);
 
 /**	\brief	Updates the sfx handle
 
-	\param	handle	sfx handle
-	\param	vol	volume
-	\param	sep	separation
-	\param	pitch	ptich
+        \param	handle	sfx handle
+        \param	vol	volume
+        \param	sep	separation
+        \param	pitch	ptich
 
-	\return	void
+        \return	void
 */
 void I_UpdateSoundParams(INT32 handle, UINT8 vol, UINT8 sep, UINT8 pitch);
 
 /**	\brief	The I_SetSfxVolume function
 
-	\param	volume	volume to set at
+        \param	volume	volume to set at
 
-	\return	void
+        \return	void
 */
 void I_SetSfxVolume(UINT8 volume);
 
@@ -125,11 +127,11 @@ void I_SetSfxVolume(UINT8 volume);
 /// ------------------------
 
 /** \brief Init the music systems
-*/
+ */
 void I_InitMusic(void);
 
 /** \brief Shutdown the music systems
-*/
+ */
 void I_ShutdownMusic(void);
 
 /// ------------------------
@@ -150,13 +152,16 @@ boolean I_SetSongSpeed(float speed);
 //  MUSIC SEEKING
 /// ------------------------
 
-UINT32 I_GetSongLength(void);
+UINT32
+I_GetSongLength(void);
 
 boolean I_SetSongLoopPoint(UINT32 looppoint);
-UINT32 I_GetSongLoopPoint(void);
+UINT32
+I_GetSongLoopPoint(void);
 
 boolean I_SetSongPosition(UINT32 position);
-UINT32 I_GetSongPosition(void);
+UINT32
+I_GetSongPosition(void);
 
 /// ------------------------
 //  MUSIC PLAYBACK
@@ -164,65 +169,65 @@ UINT32 I_GetSongPosition(void);
 
 /**	\brief	Registers a song handle to song data.
 
-	\param	data	pointer to song data
-	\param	len	len of data
+        \param	data	pointer to song data
+        \param	len	len of data
 
-	\return	song handle
+        \return	song handle
 
-	\todo Remove this
+        \todo Remove this
 */
 boolean I_LoadSong(char *data, size_t len);
 
 /**	\brief	See ::I_LoadSong, then think backwards
 
-	\param	handle	song handle
+        \param	handle	song handle
 
-	\sa I_LoadSong
-	\todo remove midi handle
+        \sa I_LoadSong
+        \todo remove midi handle
 */
 void I_UnloadSong(void);
 
 /**	\brief	Called by anything that wishes to start music
 
-	\param	handle	Song handle
-	\param	looping	looping it if true
+        \param	handle	Song handle
+        \param	looping	looping it if true
 
-	\return	if true, it's playing the song
+        \return	if true, it's playing the song
 
-	\todo pass music name, not handle
+        \todo pass music name, not handle
 */
 boolean I_PlaySong(boolean looping);
 
 /**	\brief	Stops a song over 3 seconds
 
-	\param	handle	Song handle
-	\return	void
+        \param	handle	Song handle
+        \return	void
 
-	/todo drop handle
+        /todo drop handle
 */
 void I_StopSong(void);
 
 /**	\brief	PAUSE game handling.
 
-	\param	handle	song handle
+        \param	handle	song handle
 
-	\return	void
+        \return	void
 */
 void I_PauseSong(void);
 
 /**	\brief	RESUME game handling
 
-	\param	handle	song handle
+        \param	handle	song handle
 
-	\return	void
+        \return	void
 */
 void I_ResumeSong(void);
 
 /**	\brief	The I_SetMusicVolume function
 
-	\param	volume	volume to set at
+        \param	volume	volume to set at
 
-	\return	void
+        \return	void
 */
 void I_SetMusicVolume(UINT8 volume);
 
@@ -234,7 +239,8 @@ boolean I_SetSongTrack(INT32 track);
 
 void I_SetInternalMusicVolume(UINT8 volume);
 void I_StopFadingSong(void);
-boolean I_FadeSongFromVolume(UINT8 target_volume, UINT8 source_volume, UINT32 ms, void (*callback)(void));
+boolean I_FadeSongFromVolume(UINT8 target_volume, UINT8 source_volume,
+                             UINT32 ms, void (*callback)(void));
 boolean I_FadeSong(UINT8 target_volume, UINT32 ms, void (*callback)(void));
 boolean I_FadeOutStopSong(UINT32 ms);
 boolean I_FadeInPlaySong(UINT32 ms, boolean looping);
@@ -244,47 +250,47 @@ boolean I_FadeInPlaySong(UINT32 ms, boolean looping);
 /// ------------------------
 
 /**	\brief  cd music interface
-*/
+ */
 extern UINT8 cdaudio_started;
 
 /**	\brief Startup the CD system
-*/
+ */
 void I_InitCD(void);
 
 /**	\brief Stop the CD playback
-*/
+ */
 void I_StopCD(void);
 
 /**	\brief Pause the CD playback
-*/
+ */
 void I_PauseCD(void);
 
 /**	\brief Resume the CD playback
-*/
+ */
 void I_ResumeCD(void);
 
 /**	\brief Shutdown the CD system
-*/
+ */
 void I_ShutdownCD(void);
 
 /**	\brief Update the CD info
-*/
+ */
 void I_UpdateCD(void);
 
 /**	\brief	The I_PlayCD function
 
-	\param	track	CD track number
-	\param	looping	if true, loop the track
+        \param	track	CD track number
+        \param	looping	if true, loop the track
 
-	\return	void
+        \return	void
 */
 void I_PlayCD(UINT8 track, UINT8 looping);
 
 /**	\brief	The I_SetVolumeCD function
 
-	\param	volume	volume level to set at
+        \param	volume	volume level to set at
 
-	\return	return 0 on failure
+        \return	return 0 on failure
 */
 boolean I_SetVolumeCD(INT32 volume);
 

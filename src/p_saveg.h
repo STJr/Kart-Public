@@ -28,16 +28,15 @@ boolean P_LoadNetGame(void);
 
 mobj_t *P_FindNewPosition(UINT32 oldposition);
 
-typedef struct
-{
-	UINT8 skincolor;
-	UINT8 skin;
-	UINT8 botskin;
-	UINT8 botcolor;
-	INT32 score;
-	INT32 lives;
-	INT32 continues;
-	UINT16 emeralds;
+typedef struct {
+  UINT8 skincolor;
+  UINT8 skin;
+  UINT8 botskin;
+  UINT8 botcolor;
+  INT32 score;
+  INT32 lives;
+  INT32 continues;
+  UINT16 emeralds;
 } savedata_t;
 
 extern savedata_t savedata;

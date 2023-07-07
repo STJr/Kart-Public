@@ -37,13 +37,14 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#ifdef STATIC_OPENGL // Because of the 1.3 functions, you'll need GLext to compile it if static
+#ifdef STATIC_OPENGL // Because of the 1.3 functions, you'll need GLext to
+                     // compile it if static
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glext.h>
 #endif
 #endif
 
-#define  _CREATE_DLL_  // necessary for Unix AND Windows
+#define _CREATE_DLL_ // necessary for Unix AND Windows
 #include "../../doomdef.h"
 #include "../hw_drv.h"
 
@@ -51,14 +52,14 @@
 //                                                                DEFINITIONS
 // ==========================================================================
 
-#define MIN(x,y) (((x)<(y)) ? (x) : (y))
-#define MAX(x,y) (((x)>(y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
-#undef DEBUG_TO_FILE            // maybe defined in previous *.h
-#define DEBUG_TO_FILE           // output debugging msgs to ogllog.txt
+#undef DEBUG_TO_FILE  // maybe defined in previous *.h
+#define DEBUG_TO_FILE // output debugging msgs to ogllog.txt
 
 #ifdef DEBUG_TO_FILE
-extern FILE             *gllogstream;
+extern FILE *gllogstream;
 #endif
 
 // ==========================================================================
@@ -70,22 +71,23 @@ void *GetGLFunc(const char *proc);
 boolean SetupGLfunc(void);
 void SetupGLFunc4(void);
 void Flush(void);
-INT32 isExtAvailable(const char *extension, const GLubyte *start);
+INT32
+isExtAvailable(const char *extension, const GLubyte *start);
 void SetModelView(GLint w, GLint h);
 void SetStates(void);
 #ifdef USE_PALETTED_TEXTURE
 extern PFNGLCOLORTABLEEXTPROC glColorTableEXT;
-extern GLubyte                palette_tex[256*3];
+extern GLubyte palette_tex[256 * 3];
 #endif
 
 #ifndef GL_EXT_texture_filter_anisotropic
-#define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 #endif
 
 #ifdef USE_WGL_SWAP
-typedef BOOL (APIENTRY *PFNWGLEXTSWAPCONTROLPROC) (int);
-typedef int (APIENTRY *PFNWGLEXTGETSWAPINTERVALPROC) (void);
+typedef BOOL(APIENTRY *PFNWGLEXTSWAPCONTROLPROC)(int);
+typedef int(APIENTRY *PFNWGLEXTGETSWAPINTERVALPROC)(void);
 extern PFNWGLEXTSWAPCONTROLPROC wglSwapIntervalEXT;
 extern PFNWGLEXTGETSWAPINTERVALPROC wglGetSwapIntervalEXT;
 #endif
@@ -96,11 +98,11 @@ extern PFNWGLEXTGETSWAPINTERVALPROC wglGetSwapIntervalEXT;
 #define pglGetString glGetString
 #else
 /* 1.0 Miscellaneous functions */
-typedef void (APIENTRY * PFNglClear) (GLbitfield mask);
+typedef void(APIENTRY *PFNglClear)(GLbitfield mask);
 extern PFNglClear pglClear;
-typedef void (APIENTRY * PFNglGetIntegerv) (GLenum pname, GLint *params);
+typedef void(APIENTRY *PFNglGetIntegerv)(GLenum pname, GLint *params);
 extern PFNglGetIntegerv pglGetIntegerv;
-typedef const GLubyte* (APIENTRY  * PFNglGetString) (GLenum name);
+typedef const GLubyte *(APIENTRY *PFNglGetString)(GLenum name);
 extern PFNglGetString pglGetString;
 #if 0
 typedef void (APIENTRY * PFNglEnableClientState) (GLenum cap); // redefined in r_opengl.c
@@ -112,25 +114,24 @@ static PFNglEnableClientState pglEnableClientState;
 //                                                                     GLOBAL
 // ==========================================================================
 
-extern const GLubyte	*gl_version;
-extern const GLubyte	*gl_renderer;
-extern const GLubyte	*gl_extensions;
+extern const GLubyte *gl_version;
+extern const GLubyte *gl_renderer;
+extern const GLubyte *gl_extensions;
 
-extern RGBA_t			myPaletteData[];
-extern GLint			screen_width;
-extern GLint			screen_height;
-extern GLbyte			screen_depth;
-extern GLint			maximumAnisotropy;
+extern RGBA_t myPaletteData[];
+extern GLint screen_width;
+extern GLint screen_height;
+extern GLbyte screen_depth;
+extern GLint maximumAnisotropy;
 
 /**	\brief OpenGL flags for video driver
-*/
-extern INT32            oglflags;
-extern GLint            textureformatGL;
+ */
+extern INT32 oglflags;
+extern GLint textureformatGL;
 
-typedef enum
-{
-	GLF_NOZBUFREAD = 0x01,
-	GLF_NOTEXENV   = 0x02,
+typedef enum {
+  GLF_NOZBUFREAD = 0x01,
+  GLF_NOTEXENV = 0x02,
 } oglflags_t;
 
 #endif

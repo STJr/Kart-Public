@@ -16,25 +16,27 @@
 #include "lua_hudlib_drawlist.h"
 
 enum hud {
-	hud_stagetitle = 0,
-	hud_textspectator,
+  hud_stagetitle = 0,
+  hud_textspectator,
 
-	hud_time,
-	hud_gametypeinfo,
-	hud_minimap,
-	hud_item,
-	hud_position,
-	hud_check,			// "CHECK" f-zero indicator
-	hud_minirankings,	// Rankings to the left
-	hud_battlebumpers,	// mini rankings battle bumpers.
-	hud_battlefullscreen,	// battle huge text (WAIT, WIN, LOSE ...) + karma comeback time
-	hud_battlecomebacktimer,	// comeback timer in battlefullscreen. separated for ease of use.
-	hud_wanted,
-	hud_speedometer,
-	hud_freeplay,
-	hud_rankings,		// Tab rankings
+  hud_time,
+  hud_gametypeinfo,
+  hud_minimap,
+  hud_item,
+  hud_position,
+  hud_check,               // "CHECK" f-zero indicator
+  hud_minirankings,        // Rankings to the left
+  hud_battlebumpers,       // mini rankings battle bumpers.
+  hud_battlefullscreen,    // battle huge text (WAIT, WIN, LOSE ...) + karma
+                           // comeback time
+  hud_battlecomebacktimer, // comeback timer in battlefullscreen. separated for
+                           // ease of use.
+  hud_wanted,
+  hud_speedometer,
+  hud_freeplay,
+  hud_rankings, // Tab rankings
 
-	hud_MAX
+  hud_MAX
 };
 
 extern boolean hud_running;

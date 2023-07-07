@@ -14,7 +14,7 @@
 #ifndef _HW_LIGHTS_
 #define _HW_LIGHTS_
 
-#include "hw_glob.h"
 #include "hw_defs.h"
+#include "hw_glob.h"
 
 #endif

@@ -13,8 +13,8 @@
 #ifndef __M_ANIGIF_H__
 #define __M_ANIGIF_H__
 
-#include "doomdef.h"
 #include "command.h"
+#include "doomdef.h"
 #include "screen.h"
 
 #if NUMSCREENS > 2
@@ -22,9 +22,11 @@
 #endif
 
 #ifdef HAVE_ANIGIF
-INT32 GIF_open(const char *filename);
+INT32
+GIF_open(const char *filename);
 void GIF_frame(void);
-INT32 GIF_close(void);
+INT32
+GIF_close(void);
 #endif
 
 extern consvar_t cv_gif_optimize, cv_gif_downscale;

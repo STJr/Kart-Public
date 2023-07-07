@@ -29,7 +29,6 @@
 #pragma warning(disable : 4214 4244)
 #endif
 
-
 #include "SDL.h"
 
 #ifdef _MSC_VER
@@ -40,7 +39,7 @@
 #include "SDL_loadso.h"
 #endif
 
-#define  _CREATE_DLL_  // necessary for Unix AND Windows
+#define _CREATE_DLL_ // necessary for Unix AND Windows
 
 #include "../hardware/hw_drv.h"
 #include "ogl_sdl.h"
@@ -52,132 +51,126 @@
 #include "../hardware/hw3dsdrv.h"
 #endif
 
-#define GETFUNC(func) \
-	else if (0 == strcmp(#func, funcName)) \
-		funcPointer = &func \
-//
-//
+#define GETFUNC(func)                                                          \
+  else if (0 == strcmp(#func, funcName)) funcPointer = &func //
+                                                             //
 /**	\brief	The *hwSym function
 
-	Stupid function to return function addresses
+        Stupid function to return function addresses
 
-	\param	funcName	the name of the function
-	\param	handle	an object to look in(NULL for self)
+        \param	funcName	the name of the function
+        \param	handle	an object to look in(NULL for self)
 
-	\return	void
+        \return	void
 */
 //
-void *hwSym(const char *funcName,void *handle)
-{
-	void *funcPointer = NULL;
-	if (0 == strcmp("SetPalette", funcName))
-		funcPointer = &OglSdlSetPalette;
+void *hwSym(const char *funcName, void *handle) {
+  void *funcPointer = NULL;
+  if (0 == strcmp("SetPalette", funcName))
+    funcPointer = &OglSdlSetPalette;
 
-	GETFUNC(Init);
-	GETFUNC(Draw2DLine);
-	GETFUNC(DrawPolygon);
-	GETFUNC(SetBlend);
-	GETFUNC(ClearBuffer);
-	GETFUNC(SetTexture);
-	GETFUNC(ReadRect);
-	GETFUNC(GClipRect);
-	GETFUNC(ClearMipMapCache);
-	GETFUNC(SetSpecialState);
-	GETFUNC(GetTextureUsed);
-	GETFUNC(DrawModel);
-	GETFUNC(CreateModelVBOs);
-	GETFUNC(SetTransform);
-	GETFUNC(PostImgRedraw);
-	GETFUNC(FlushScreenTextures);
-	GETFUNC(StartScreenWipe);
-	GETFUNC(EndScreenWipe);
-	GETFUNC(DoScreenWipe);
-	GETFUNC(DrawIntermissionBG);
-	GETFUNC(MakeScreenTexture);
-	GETFUNC(MakeScreenFinalTexture);
-	GETFUNC(DrawScreenFinalTexture);
-	
-	GETFUNC(RenderSkyDome);
+  GETFUNC(Init);
+  GETFUNC(Draw2DLine);
+  GETFUNC(DrawPolygon);
+  GETFUNC(SetBlend);
+  GETFUNC(ClearBuffer);
+  GETFUNC(SetTexture);
+  GETFUNC(ReadRect);
+  GETFUNC(GClipRect);
+  GETFUNC(ClearMipMapCache);
+  GETFUNC(SetSpecialState);
+  GETFUNC(GetTextureUsed);
+  GETFUNC(DrawModel);
+  GETFUNC(CreateModelVBOs);
+  GETFUNC(SetTransform);
+  GETFUNC(PostImgRedraw);
+  GETFUNC(FlushScreenTextures);
+  GETFUNC(StartScreenWipe);
+  GETFUNC(EndScreenWipe);
+  GETFUNC(DoScreenWipe);
+  GETFUNC(DrawIntermissionBG);
+  GETFUNC(MakeScreenTexture);
+  GETFUNC(MakeScreenFinalTexture);
+  GETFUNC(DrawScreenFinalTexture);
 
-	GETFUNC(LoadShaders);
-	GETFUNC(KillShaders);
-	GETFUNC(SetShader);
-	GETFUNC(UnSetShader);
+  GETFUNC(RenderSkyDome);
 
-	GETFUNC(LoadCustomShader);
-	GETFUNC(InitCustomShaders);
-	
-	GETFUNC(StartBatching);
-	GETFUNC(RenderBatches);
+  GETFUNC(LoadShaders);
+  GETFUNC(KillShaders);
+  GETFUNC(SetShader);
+  GETFUNC(UnSetShader);
+
+  GETFUNC(LoadCustomShader);
+  GETFUNC(InitCustomShaders);
+
+  GETFUNC(StartBatching);
+  GETFUNC(RenderBatches);
 
 #ifdef STATIC3DS
-	GETFUNC(Startup);
-	GETFUNC(AddSfx);
-	GETFUNC(AddSource);
-	GETFUNC(StartSource);
-	GETFUNC(StopSource);
-	GETFUNC(GetHW3DSVersion);
-	GETFUNC(BeginFrameUpdate);
-	GETFUNC(EndFrameUpdate);
-	GETFUNC(IsPlaying);
-	GETFUNC(UpdateListener);
-	GETFUNC(UpdateSourceParms);
-	GETFUNC(SetGlobalSfxVolume);
-	GETFUNC(SetCone);
-	GETFUNC(Update3DSource);
-	GETFUNC(ReloadSource);
-	GETFUNC(KillSource);
-	GETFUNC(Shutdown);
-	GETFUNC(GetHW3DSTitle);
+  GETFUNC(Startup);
+  GETFUNC(AddSfx);
+  GETFUNC(AddSource);
+  GETFUNC(StartSource);
+  GETFUNC(StopSource);
+  GETFUNC(GetHW3DSVersion);
+  GETFUNC(BeginFrameUpdate);
+  GETFUNC(EndFrameUpdate);
+  GETFUNC(IsPlaying);
+  GETFUNC(UpdateListener);
+  GETFUNC(UpdateSourceParms);
+  GETFUNC(SetGlobalSfxVolume);
+  GETFUNC(SetCone);
+  GETFUNC(Update3DSource);
+  GETFUNC(ReloadSource);
+  GETFUNC(KillSource);
+  GETFUNC(Shutdown);
+  GETFUNC(GetHW3DSTitle);
 #endif
 #ifdef NOLOADSO
-	else
-		funcPointer = handle;
+  else funcPointer = handle;
 #else
-	else if (handle)
-		funcPointer = SDL_LoadFunction(handle,funcName);
+  else if (handle) funcPointer = SDL_LoadFunction(handle, funcName);
 #endif
-	if (!funcPointer)
-		I_OutputMsg("hwSym for %s: %s\n", funcName, SDL_GetError());
-	return funcPointer;
+  if (!funcPointer)
+    I_OutputMsg("hwSym for %s: %s\n", funcName, SDL_GetError());
+  return funcPointer;
 }
 
 /**	\brief	The *hwOpen function
 
-	\param	hwfile	Open a handle to the SO
+        \param	hwfile	Open a handle to the SO
 
-	\return	Handle to SO
+        \return	Handle to SO
 
 
 */
 
-void *hwOpen(const char *hwfile)
-{
+void *hwOpen(const char *hwfile) {
 #ifdef NOLOADSO
-	(void)hwfile;
-	return NULL;
+  (void)hwfile;
+  return NULL;
 #else
-	void *tempso = NULL;
-	tempso = SDL_LoadObject(hwfile);
-	if (!tempso) I_OutputMsg("hwOpen of %s: %s\n", hwfile, SDL_GetError());
-	return tempso;
+  void *tempso = NULL;
+  tempso = SDL_LoadObject(hwfile);
+  if (!tempso)
+    I_OutputMsg("hwOpen of %s: %s\n", hwfile, SDL_GetError());
+  return tempso;
 #endif
 }
 
 /**	\brief	The hwClose function
 
-	\param	handle	Close the handle of the SO
+        \param	handle	Close the handle of the SO
 
-	\return	void
+        \return	void
 
 
 */
 
-void hwClose(void *handle)
-{
+void hwClose(void *handle) {
 #ifdef NOLOADSO
-	(void)handle;
+  (void)handle;
 #else
-	SDL_UnloadObject(handle);
+  SDL_UnloadObject(handle);
 #endif
 }

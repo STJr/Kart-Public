@@ -18,26 +18,24 @@
 #include "g_state.h"
 
 // Input event types.
-typedef enum
-{
-	ev_keydown,
-	ev_keyup,
-	ev_console,
-	ev_mouse,
-	ev_joystick,
-	ev_mouse2,
-	ev_joystick2,
-	ev_joystick3,
-	ev_joystick4,
+typedef enum {
+  ev_keydown,
+  ev_keyup,
+  ev_console,
+  ev_mouse,
+  ev_joystick,
+  ev_mouse2,
+  ev_joystick2,
+  ev_joystick3,
+  ev_joystick4,
 } evtype_t;
 
 // Event structure.
-typedef struct
-{
-	evtype_t type;
-	INT32 data1; // keys / mouse/joystick buttons
-	INT32 data2; // mouse/joystick x move
-	INT32 data3; // mouse/joystick y move
+typedef struct {
+  evtype_t type;
+  INT32 data1; // keys / mouse/joystick buttons
+  INT32 data2; // mouse/joystick x move
+  INT32 data3; // mouse/joystick y move
 } event_t;
 
 //

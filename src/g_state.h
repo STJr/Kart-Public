@@ -16,39 +16,37 @@
 #include "doomtype.h"
 
 // the current state of the game
-typedef enum
-{
-	GS_NULL = 0,        // At beginning.
+typedef enum {
+  GS_NULL = 0, // At beginning.
 
-	// Fadable gamestates
-	GS_LEVEL,           // Playing, in a level.
-	GS_INTERMISSION,    // Gazing at the intermission screen.
-	GS_VOTING,          // SRB2Kart: MP voting screen
-	GS_CONTINUING,      // continue screen
+  // Fadable gamestates
+  GS_LEVEL,        // Playing, in a level.
+  GS_INTERMISSION, // Gazing at the intermission screen.
+  GS_VOTING,       // SRB2Kart: MP voting screen
+  GS_CONTINUING,   // continue screen
 
-	GS_TITLESCREEN,     // title screen
-	GS_TIMEATTACK,      // time attack menu
-	GS_CREDITS,         // credit sequence
-	GS_EVALUATION,      // Evaluation at the end of a game.
-	GS_GAMEEND,         // game end sequence
+  GS_TITLESCREEN, // title screen
+  GS_TIMEATTACK,  // time attack menu
+  GS_CREDITS,     // credit sequence
+  GS_EVALUATION,  // Evaluation at the end of a game.
+  GS_GAMEEND,     // game end sequence
 
-	// Hardcoded fades or other fading methods
-	GS_INTRO,           // introduction
-	GS_CUTSCENE,        // custom cutscene
+  // Hardcoded fades or other fading methods
+  GS_INTRO,    // introduction
+  GS_CUTSCENE, // custom cutscene
 
-	// Not fadable
-	GS_DEDICATEDSERVER, // new state for dedicated server
-	GS_WAITINGPLAYERS   // waiting for players in a net game
+  // Not fadable
+  GS_DEDICATEDSERVER, // new state for dedicated server
+  GS_WAITINGPLAYERS   // waiting for players in a net game
 } gamestate_t;
 
-typedef enum
-{
-	ga_nothing,
-	ga_completed,
-	ga_worlddone,
-	ga_startcont,
-	ga_continued,
-	ga_startvote,
+typedef enum {
+  ga_nothing,
+  ga_completed,
+  ga_worlddone,
+  ga_startcont,
+  ga_continued,
+  ga_startvote,
 } gameaction_t;
 
 extern gamestate_t gamestate;

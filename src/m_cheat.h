@@ -14,10 +14,10 @@
 #ifndef __M_CHEAT__
 #define __M_CHEAT__
 
+#include "command.h"
 #include "d_event.h"
 #include "d_player.h"
 #include "p_mobj.h"
-#include "command.h"
 
 boolean cht_Responder(event_t *ev);
 void cht_Init(void);
@@ -29,7 +29,7 @@ void Command_ObjectPlace_f(void);
 void Command_Writethings_f(void);
 
 extern consvar_t cv_opflags, cv_mapthingnum, cv_speed;
-//extern consvar_t cv_snapto, cv_grid;
+// extern consvar_t cv_snapto, cv_grid;
 
 extern boolean objectplacing;
 extern mobjtype_t op_currentthing;

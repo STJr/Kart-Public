@@ -14,9 +14,9 @@
 #ifndef _HWR_GLOB_H_
 #define _HWR_GLOB_H_
 
-#include "hw_defs.h"
 #include "../m_misc.h"
 #include "../r_defs.h"
+#include "hw_defs.h"
 
 // Uncomment this to enable the OpenGL loading screen
 //#define HWR_LOADING_SCREEN
@@ -35,12 +35,14 @@ void HWR_FreeTextureCache(void);
 void HWR_FreeExtraSubsectors(void);
 
 void HWR_GetFlat(lumpnum_t flatlumpnum, boolean noencoremap);
-// ^ some flats must NOT be remapped to encore, since we remap them as we cache them for ease, adding a toggle here seems wise.
+// ^ some flats must NOT be remapped to encore, since we remap them as we cache
+// them for ease, adding a toggle here seems wise.
 
 GLTexture_t *HWR_GetTexture(INT32 tex);
 void HWR_GetPatch(GLPatch_t *gpatch);
 void HWR_GetMappedPatch(GLPatch_t *gpatch, const UINT8 *colormap);
-void HWR_MakePatch(patch_t *patch, GLPatch_t *grPatch, GLMipmap_t *grMipmap, boolean makebitmap);
+void HWR_MakePatch(patch_t *patch, GLPatch_t *grPatch, GLMipmap_t *grMipmap,
+                   boolean makebitmap);
 void HWR_UnlockCachedPatch(GLPatch_t *gpatch);
 void HWR_SetPalette(RGBA_t *palette);
 GLPatch_t *HWR_GetCachedGLPatchPwad(UINT16 wad, UINT16 lump);

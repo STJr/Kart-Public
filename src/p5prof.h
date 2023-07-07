@@ -19,7 +19,7 @@
  *
  *********************************************************/
 /**\file
-	\brief  This file provides macros to profile your code.
+        \brief  This file provides macros to profile your code.
 
  Here's how they work...
 
@@ -103,176 +103,155 @@
 
 #ifdef __GNUC__
 
-#define RDTSC(_dst) \
+#define RDTSC(_dst)                                                            \
 __asm__("
-     .byte 0x0F,0x31
-     movl %%edx,(%%edi)
-     movl %%eax,4(%%edi)"\
-: : "D" (_dst) : "eax", "edx", "edi")
+.byte 0x0F, 0x31 movl % % edx, (% % edi) movl % % eax,
+    4(% % edi) "\
+: : " D " (_dst) : " eax ", " edx ", " edi ")
 
 // the old code... swapped it
 //     movl %%edx,(%%edi)
 //     movl %%eax,4(%%edi)"
-#define RDMSR(_msri, _msrd) \
+#define RDMSR(_msri, _msrd)                                                    \
 __asm__("
-     .byte 0x0F,0x32
-     movl %%eax,(%%edi)
-     movl %%edx,4(%%edi)"\
-: : "c" (_msri), "D" (_msrd) : "eax", "ecx", "edx", "edi")
+        .byte 0x0F,
+    0x32 movl % % eax, (% % edi) movl % % edx,
+    4(% % edi) "\
+: : " c " (_msri), " D " (_msrd) : " eax ", " ecx ", " edx ", " edi ")
 
-#define WRMSR(_msri, _msrd) \
+#define WRMSR(_msri, _msrd)                                                    \
 __asm__("
-     xorl %%edx,%%edx
-     .byte 0x0F,0x30"\
-: : "c" (_msri), "a" (_msrd) : "eax", "ecx", "edx")
+        xorl
+        % % edx,
+    % % edx.byte 0x0F,
+    0x30 "\
+: : " c " (_msri), " a " (_msrd) : " eax ", " ecx ", " edx ")
 
-#define RDMSR_0x12_0x13(_msr12, _msr13) \
+#define RDMSR_0x12_0x13(_msr12, _msr13)                                        \
 __asm__("
-     movl $0x12,%%ecx
-     .byte 0x0F,0x32
-     movl %%edx,(%%edi)
-     movl %%eax,4(%%edi)
-     movl $0x13,%%ecx
-     .byte 0x0F,0x32
-     movl %%edx,(%%esi)
-     movl %%eax,4(%%esi)"\
-: : "D" (_msr12), "S" (_msr13) : "eax", "ecx", "edx", "edi")
+    movl $0x12,
+    % % ecx.byte 0x0F, 0x32 movl % % edx, (% % edi) movl % % eax,
+    4(% % edi) movl $0x13, % % ecx.byte 0x0F, 0x32 movl % % edx,
+    (% % esi) movl % % eax,
+    4(% % esi) "\
+: : " D " (_msr12), " S " (_msr13) : " eax ", " ecx ", " edx ", " edi ")
 
-#define ZERO_MSR_0x12_0x13() \
+#define ZERO_MSR_0x12_0x13()                                                   \
 __asm__("
-     xorl %%edx,%%edx
-     xorl %%eax,%%eax
-     movl $0x12,%%ecx
-     .byte 0x0F,0x30
-     movl $0x13,%%ecx
-     .byte 0x0F,0x30"\
-: : : "eax", "ecx", "edx")
+        xorl
+        % % edx,
+    % % edx xorl % % eax, % % eax movl $0x12, % % ecx.byte 0x0F,
+    0x30 movl $0x13, % % ecx.byte 0x0F,
+    0x30 "\
+: : : " eax ", " ecx ", " edx ")
 
-#elif defined (__WATCOMC__)
+#elif defined(__WATCOMC__)
 
 extern void RDTSC(UINT32 *dst);
-#pragma aux RDTSC =\
-   "db 0x0F,0x31"\
-   "mov [edi],edx"\
-   "mov [4+edi],eax"\
-   parm [edi]\
-   modify [eax edx edi];
+#pragma aux RDTSC = "db 0x0F,0x31"                                             \
+                    "mov [edi],edx"                                            \
+                    "mov [4+edi],eax" parm[edi] modify[eax edx edi];
 
 extern void RDMSR(UINT32 msri, UINT32 *msrd);
-#pragma aux RDMSR =\
-   "db 0x0F,0x32"\
-   "mov [edi],edx"\
-   "mov [4+edi],eax"\
-   parm [ecx] [edi]\
-   modify [eax ecx edx edi];
+#pragma aux RDMSR = "db 0x0F,0x32"                                             \
+                    "mov [edi],edx"                                            \
+                    "mov [4+edi],eax" parm[ecx][edi] modify[eax ecx edx edi];
 
 extern void WRMSR(UINT32 msri, UINT32 msrd);
-#pragma aux WRMSR =\
-   "xor edx,edx"\
-   "db 0x0F,0x30"\
-   parm [ecx] [eax]\
-   modify [eax ecx edx];
+#pragma aux WRMSR = "xor edx,edx"                                              \
+                    "db 0x0F,0x30" parm[ecx][eax] modify[eax ecx edx];
 
 extern void RDMSR_0x12_0x13(UINT32 *msr12, UINT32 *msr13);
-#pragma aux RDMSR_0x12_0x13 =\
-   "mov ecx,0x12"\
-   "db 0x0F,0x32"\
-   "mov [edi],edx"\
-   "mov [4+edi],eax"\
-   "mov ecx,0x13"\
-   "db 0x0F,0x32"\
-   "mov [esi],edx"\
-   "mov [4+esi],eax"\
-   parm [edi] [esi]\
-   modify [eax ecx edx edi esi];
+#pragma aux RDMSR_0x12_0x13 =                                                  \
+    "mov ecx,0x12"                                                             \
+    "db 0x0F,0x32"                                                             \
+    "mov [edi],edx"                                                            \
+    "mov [4+edi],eax"                                                          \
+    "mov ecx,0x13"                                                             \
+    "db 0x0F,0x32"                                                             \
+    "mov [esi],edx"                                                            \
+    "mov [4+esi],eax" parm[edi][esi] modify[eax ecx edx edi esi];
 
 extern void ZERO_MSR_0x12_0x13(void);
-#pragma aux ZERO_MSR_0x12_0x13 =\
-   "xor edx,edx"\
-   "xor eax,eax"\
-   "mov ecx,0x12"\
-   "db 0x0F,0x30"\
-   "mov ecx,0x13"\
-   "db 0x0F,0x30"\
-   modify [eax ecx edx];
+#pragma aux ZERO_MSR_0x12_0x13 = "xor edx,edx"                                 \
+                                 "xor eax,eax"                                 \
+                                 "mov ecx,0x12"                                \
+                                 "db 0x0F,0x30"                                \
+                                 "mov ecx,0x13"                                \
+                                 "db 0x0F,0x30" modify[eax ecx edx];
 
 #endif
 
-typedef enum
-{
-   DataRead,
-     DataWrite,
-     DataTLBMiss,
-     DataReadMiss,
-     DataWriteMiss,
-     WriteHitEM,
-     DataCacheLinesWritten,
-     DataCacheSnoops,
-     DataCacheSnoopHit,
-     MemAccessBothPipes,
-     BankConflict,
-     MisalignedDataRef,
-     CodeRead,
-     CodeTLBMiss,
-     CodeCacheMiss,
-     SegRegLoad,
-     RESERVED0,
-     RESERVED1,
-     Branch,
-     BTBHit,
-     TakenBranchOrBTBHit,
-     PipelineFlush,
-     InstructionsExeced,
-     InstructionsExecedVPipe,
-     BusUtilizationClocks,
-     PipelineStalledWriteBackup,
-     PipelineStalledDateMemRead,
-     PipeLineStalledWriteEM,
-     LockedBusCycle,
-     IOReadOrWriteCycle,
-     NonCacheableMemRef,
-     AGI,
-     RESERVED2,
-     RESERVED3,
-     FPOperation,
-     Breakpoint0Match,
-     Breakpoint1Match,
-     Breakpoint2Match,
-     Breakpoint3Match,
-     HWInterrupt,
-     DataReadOrWrite,
-     DataReadOrWriteMiss
-};
+    typedef enum {
+      DataRead,
+      DataWrite,
+      DataTLBMiss,
+      DataReadMiss,
+      DataWriteMiss,
+      WriteHitEM,
+      DataCacheLinesWritten,
+      DataCacheSnoops,
+      DataCacheSnoopHit,
+      MemAccessBothPipes,
+      BankConflict,
+      MisalignedDataRef,
+      CodeRead,
+      CodeTLBMiss,
+      CodeCacheMiss,
+      SegRegLoad,
+      RESERVED0,
+      RESERVED1,
+      Branch,
+      BTBHit,
+      TakenBranchOrBTBHit,
+      PipelineFlush,
+      InstructionsExeced,
+      InstructionsExecedVPipe,
+      BusUtilizationClocks,
+      PipelineStalledWriteBackup,
+      PipelineStalledDateMemRead,
+      PipeLineStalledWriteEM,
+      LockedBusCycle,
+      IOReadOrWriteCycle,
+      NonCacheableMemRef,
+      AGI,
+      RESERVED2,
+      RESERVED3,
+      FPOperation,
+      Breakpoint0Match,
+      Breakpoint1Match,
+      Breakpoint2Match,
+      Breakpoint3Match,
+      HWInterrupt,
+      DataReadOrWrite,
+      DataReadOrWriteMiss
+    };
 
 #define PROF_CYCLES (0x100)
 #define PROF_EVENTS (0x000)
-#define RING_012    (0x40)
-#define RING_3      (0x80)
-#define RING_0123   (RING_012 | RING_3)
+#define RING_012 (0x40)
+#define RING_3 (0x80)
+#define RING_0123 (RING_012 | RING_3)
 
 /*void ProfSetProfiles(UINT32 msr12, UINT32 msr13);*/
-#define ProfSetProfiles(_msr12, _msr13)\
-{\
-   UINT32 prof;\
-\
-   prof = (_msr12) | ((_msr13) << 16);\
-   WRMSR(0x11, prof);\
-}
+#define ProfSetProfiles(_msr12, _msr13)                                        \
+  {                                                                            \
+    UINT32 prof;                                                               \
+                                                                               \
+    prof = (_msr12) | ((_msr13) << 16);                                        \
+    WRMSR(0x11, prof);                                                         \
+  }
 
 /*void ProfBeginProfiles(void);*/
-#define ProfBeginProfiles()\
-   ZERO_MSR_0x12_0x13();
+#define ProfBeginProfiles() ZERO_MSR_0x12_0x13();
 
 /*void ProfGetProfiles(UINT32 msr12[2], UINT32 msr13[2]);*/
-#define ProfGetProfiles(_msr12, _msr13)\
-   RDMSR_0x12_0x13(_msr12, _msr13);
+#define ProfGetProfiles(_msr12, _msr13) RDMSR_0x12_0x13(_msr12, _msr13);
 
 /*void ProfZeroTimer(void);*/
-#define ProfZeroTimer()\
-   WRMSR(0x10, 0);
+#define ProfZeroTimer() WRMSR(0x10, 0);
 
 /*void ProfReadTimer(UINT32 timer[2]);*/
-#define ProfReadTimer(timer)\
-   RDMSR(0x10, timer);
+#define ProfReadTimer(timer) RDMSR(0x10, timer);
 
 /*EOF*/

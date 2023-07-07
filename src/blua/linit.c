@@ -4,26 +4,21 @@
 ** See Copyright Notice in lua.h
 */
 
-
 #define linit_c
 #define LUA_LIB
 
 #include "lua.h"
 
-#include "lualib.h"
 #include "lauxlib.h"
+#include "lualib.h"
 
+static const luaL_Reg lualibs[] = {{"", luaopen_base},
+                                   {LUA_TABLIBNAME, luaopen_table},
+                                   {LUA_IOLIBNAME, luaopen_io},
+                                   {LUA_STRLIBNAME, luaopen_string},
+                                   {NULL, NULL}};
 
-static const luaL_Reg lualibs[] = {
-  {"", luaopen_base},
-  {LUA_TABLIBNAME, luaopen_table},
-  {LUA_IOLIBNAME, luaopen_io},
-  {LUA_STRLIBNAME, luaopen_string},
-  {NULL, NULL}
-};
-
-
-LUALIB_API void luaL_openlibs (lua_State *L) {
+LUALIB_API void luaL_openlibs(lua_State *L) {
   const luaL_Reg *lib = lualibs;
   for (; lib->func; lib++) {
     lua_pushcfunction(L, lib->func);

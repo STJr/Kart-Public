@@ -14,41 +14,40 @@
 #ifndef __R_PLANE__
 #define __R_PLANE__
 
-#include "screen.h" // needs MAXVIDWIDTH/MAXVIDHEIGHT
-#include "r_data.h"
 #include "p_polyobj.h"
+#include "r_data.h"
+#include "screen.h" // needs MAXVIDWIDTH/MAXVIDHEIGHT
 
 //
 // Now what is a visplane, anyway?
 // Simple: kinda floor/ceiling polygon optimised for SRB2 rendering.
 //
-typedef struct visplane_s
-{
-	struct visplane_s *next;
+typedef struct visplane_s {
+  struct visplane_s *next;
 
-	fixed_t height;
-	fixed_t viewx, viewy, viewz;
-	angle_t viewangle;
-	angle_t plangle;
-	INT32 picnum;
-	INT32 lightlevel;
-	INT32 minx, maxx;
+  fixed_t height;
+  fixed_t viewx, viewy, viewz;
+  angle_t viewangle;
+  angle_t plangle;
+  INT32 picnum;
+  INT32 lightlevel;
+  INT32 minx, maxx;
 
-	// colormaps per sector
-	extracolormap_t *extra_colormap;
+  // colormaps per sector
+  extracolormap_t *extra_colormap;
 
-	// leave pads for [minx-1]/[maxx+1]
-	UINT16 padtopstart, top[MAXVIDWIDTH], padtopend;
-	UINT16 padbottomstart, bottom[MAXVIDWIDTH], padbottomend;
-	INT32 high, low; // R_PlaneBounds should set these.
+  // leave pads for [minx-1]/[maxx+1]
+  UINT16 padtopstart, top[MAXVIDWIDTH], padtopend;
+  UINT16 padbottomstart, bottom[MAXVIDWIDTH], padbottomend;
+  INT32 high, low; // R_PlaneBounds should set these.
 
-	fixed_t xoffs, yoffs; // Scrolling flats.
+  fixed_t xoffs, yoffs; // Scrolling flats.
 
-	struct ffloor_s *ffloor;
-	polyobj_t *polyobj;
-	pslope_t *slope;
+  struct ffloor_s *ffloor;
+  polyobj_t *polyobj;
+  pslope_t *slope;
 
-	boolean noencore;
+  boolean noencore;
 } visplane_t;
 
 extern visplane_t *floorplane;
@@ -59,7 +58,7 @@ extern INT16 *lastopening, *openings;
 extern size_t maxopenings;
 
 extern INT16 floorclip[MAXVIDWIDTH], ceilingclip[MAXVIDWIDTH];
-extern fixed_t frontscale[MAXVIDWIDTH], yslopetab[MAXVIDHEIGHT*16];
+extern fixed_t frontscale[MAXVIDWIDTH], yslopetab[MAXVIDHEIGHT * 16];
 extern fixed_t cachedheight[MAXVIDHEIGHT];
 extern fixed_t cacheddistance[MAXVIDHEIGHT];
 extern fixed_t cachedxstep[MAXVIDHEIGHT];
@@ -70,18 +69,19 @@ extern fixed_t *yslope;
 extern lighttable_t **planezlight;
 
 void R_InitPlanes(void);
-void R_PortalStoreClipValues(INT32 start, INT32 end, INT16 *ceil, INT16 *floor, fixed_t *scale);
-void R_PortalRestoreClipValues(INT32 start, INT32 end, INT16 *ceil, INT16 *floor, fixed_t *scale);
+void R_PortalStoreClipValues(INT32 start, INT32 end, INT16 *ceil, INT16 *floor,
+                             fixed_t *scale);
+void R_PortalRestoreClipValues(INT32 start, INT32 end, INT16 *ceil,
+                               INT16 *floor, fixed_t *scale);
 void R_ClearPlanes(void);
 
 void R_MapPlane(INT32 y, INT32 x1, INT32 x2);
 void R_MakeSpans(INT32 x, INT32 t1, INT32 b1, INT32 t2, INT32 b2);
 void R_DrawPlanes(void);
-visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel, fixed_t xoff, fixed_t yoff, angle_t plangle,
-	extracolormap_t *planecolormap, ffloor_t *ffloor
-	, polyobj_t *polyobj
-	, pslope_t *slope
-	, boolean noencore);
+visplane_t *R_FindPlane(fixed_t height, INT32 picnum, INT32 lightlevel,
+                        fixed_t xoff, fixed_t yoff, angle_t plangle,
+                        extracolormap_t *planecolormap, ffloor_t *ffloor,
+                        polyobj_t *polyobj, pslope_t *slope, boolean noencore);
 visplane_t *R_CheckPlane(visplane_t *pl, INT32 start, INT32 stop);
 void R_ExpandPlane(visplane_t *pl, INT32 start, INT32 stop);
 void R_PlaneBounds(visplane_t *plane);
@@ -89,25 +89,24 @@ void R_PlaneBounds(visplane_t *plane);
 // Draws a single visplane.
 void R_DrawSinglePlane(visplane_t *pl);
 
-typedef struct planemgr_s
-{
-	visplane_t *plane;
-	fixed_t height;
-	fixed_t f_pos; // F for Front sector
-	fixed_t b_pos; // B for Back sector
-	fixed_t f_frac, f_step;
-	fixed_t b_frac, b_step;
-	INT16 f_clip[MAXVIDWIDTH];
-	INT16 c_clip[MAXVIDWIDTH];
+typedef struct planemgr_s {
+  visplane_t *plane;
+  fixed_t height;
+  fixed_t f_pos; // F for Front sector
+  fixed_t b_pos; // B for Back sector
+  fixed_t f_frac, f_step;
+  fixed_t b_frac, b_step;
+  INT16 f_clip[MAXVIDWIDTH];
+  INT16 c_clip[MAXVIDWIDTH];
 
-	// For slope rendering; the height at the other end
-	fixed_t f_pos_slope;
-	fixed_t b_pos_slope;
+  // For slope rendering; the height at the other end
+  fixed_t f_pos_slope;
+  fixed_t b_pos_slope;
 
-	struct pslope_s *slope;
+  struct pslope_s *slope;
 
-	struct ffloor_s *ffloor;
-	polyobj_t *polyobj;
+  struct ffloor_s *ffloor;
+  polyobj_t *polyobj;
 } visffloor_t;
 
 extern visffloor_t ffloor[MAXFFLOORS];

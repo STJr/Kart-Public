@@ -18,8 +18,8 @@
 #pragma interface
 #endif
 
-#include "doomdef.h"
 #include "command.h"
+#include "doomdef.h"
 
 /// \brief program net id
 #define DOOMCOM_ID (INT32)0x12345678l
@@ -40,50 +40,48 @@ extern INT32 net_bandwidth; // in byte/s
 #pragma pack(1)
 #endif
 
-typedef struct
-{
-	/// Supposed to be DOOMCOM_ID
-	INT32 id;
+typedef struct {
+  /// Supposed to be DOOMCOM_ID
+  INT32 id;
 
-	/// SRB2 executes an INT32 to execute commands.
-	INT16 intnum;
-	/// Communication between SRB2 and the driver.
-	/// Is CMD_SEND or CMD_GET.
-	INT16 command;
-	/// Is dest for send, set by get (-1 = no packet).
-	INT16 remotenode;
+  /// SRB2 executes an INT32 to execute commands.
+  INT16 intnum;
+  /// Communication between SRB2 and the driver.
+  /// Is CMD_SEND or CMD_GET.
+  INT16 command;
+  /// Is dest for send, set by get (-1 = no packet).
+  INT16 remotenode;
 
-	/// Number of bytes in doomdata to be sent
-	INT16 datalength;
+  /// Number of bytes in doomdata to be sent
+  INT16 datalength;
 
-	/// Info common to all nodes.
-	/// Console is always node 0.
-	INT16 numnodes;
-	/// Flag: 1 = no duplication, 2-5 = dup for slow nets.
-	INT16 ticdup;
-	/// Flag: 1 = send a backup tic in every packet.
-	INT16 extratics;
-	/// kind of game
-	INT16 gametype;
-	/// Flag: -1 = new game, 0-5 = load savegame
-	INT16 savegame;
-	/// currect map
-	INT16 map;
+  /// Info common to all nodes.
+  /// Console is always node 0.
+  INT16 numnodes;
+  /// Flag: 1 = no duplication, 2-5 = dup for slow nets.
+  INT16 ticdup;
+  /// Flag: 1 = send a backup tic in every packet.
+  INT16 extratics;
+  /// kind of game
+  INT16 gametype;
+  /// Flag: -1 = new game, 0-5 = load savegame
+  INT16 savegame;
+  /// currect map
+  INT16 map;
 
-	/// Info specific to this node.
-	INT16 consoleplayer;
-	/// Number of "slots": the highest player number in use plus one.
-	INT16 numslots;
+  /// Info specific to this node.
+  INT16 consoleplayer;
+  /// Number of "slots": the highest player number in use plus one.
+  INT16 numslots;
 
-	/// The packet data to be sent.
-	char data[MAXPACKETLENGTH];
+  /// The packet data to be sent.
+  char data[MAXPACKETLENGTH];
 } ATTRPACK doomcom_t;
 
-typedef struct
-{
-	INT32 magic;
-	INT32 addr;
-	INT16 port;
+typedef struct {
+  INT32 magic;
+  INT32 addr;
+  INT16 port;
 } ATTRPACK holepunch_t;
 
 #if defined(_MSC_VER)
@@ -94,26 +92,26 @@ extern doomcom_t *doomcom;
 extern holepunch_t *holepunchpacket;
 
 /**	\brief return packet in doomcom struct
-*/
+ */
 extern boolean (*I_NetGet)(void);
 
 /**	\brief ask to driver if there is data waiting
-*/
+ */
 extern boolean (*I_NetCanGet)(void);
 
 /**	\brief send packet within doomcom struct
-*/
+ */
 extern void (*I_NetSend)(void);
 
 /**	\brief ask to driver if all is ok to send data now
-*/
+ */
 extern boolean (*I_NetCanSend)(void);
 
 /**	\brief	close a connection
 
-	\param	nodenum	node to be closed
+        \param	nodenum	node to be closed
 
-	\return	void
+        \return	void
 
 
 */
@@ -121,9 +119,9 @@ extern void (*I_NetFreeNodenum)(INT32 nodenum);
 
 /**	\brief	open a connection with specified address
 
-	\param	address	address to connect to
+        \param	address	address to connect to
 
-	\return	number of node
+        \return	number of node
 
 
 */
@@ -131,51 +129,48 @@ extern SINT8 I_NetMakeNode(const char *address);
 
 /**	\brief	open a connection with specified address and port
 
-	\param	address	address to connect to
+        \param	address	address to connect to
 
-	\param	port	port to connect to
+        \param	port	port to connect to
 
-	\return	number of node
+        \return	number of node
 
 
 */
 extern SINT8 (*I_NetMakeNodewPort)(const char *address, const char *port);
 
 /**	\brief open connection
-*/
+ */
 extern boolean (*I_NetOpenSocket)(void);
 
 /**	\brief close all connections no more allow geting any packet
-*/
+ */
 extern void (*I_NetCloseSocket)(void);
 
-
 /**	\brief send a hole punching request
-*/
+ */
 extern void (*I_NetRequestHolePunch)(INT32 node);
 
 /**	\brief register this machine on the hole punching server
-*/
+ */
 extern void (*I_NetRegisterHolePunch)(void);
 
-
-extern boolean (*I_Ban) (INT32 node);
+extern boolean (*I_Ban)(INT32 node);
 extern void (*I_ClearBans)(void);
-extern const char *(*I_GetNodeAddress) (INT32 node);
-extern const char *(*I_GetBanAddress) (size_t ban);
-extern const char *(*I_GetBanMask) (size_t ban);
-extern const char *(*I_GetBanUsername) (size_t ban);
-extern const char *(*I_GetBanReason) (size_t ban);
-extern time_t (*I_GetUnbanTime) (size_t ban);
-extern boolean (*I_SetBanAddress) (const char *address,const char *mask);
-extern boolean (*I_SetBanUsername) (const char *username);
-extern boolean (*I_SetBanReason) (const char *reason);
-extern boolean (*I_SetUnbanTime) (time_t timestamp);
+extern const char *(*I_GetNodeAddress)(INT32 node);
+extern const char *(*I_GetBanAddress)(size_t ban);
+extern const char *(*I_GetBanMask)(size_t ban);
+extern const char *(*I_GetBanUsername)(size_t ban);
+extern const char *(*I_GetBanReason)(size_t ban);
+extern time_t (*I_GetUnbanTime)(size_t ban);
+extern boolean (*I_SetBanAddress)(const char *address, const char *mask);
+extern boolean (*I_SetBanUsername)(const char *username);
+extern boolean (*I_SetBanReason)(const char *reason);
+extern boolean (*I_SetUnbanTime)(time_t timestamp);
 
-typedef struct
-{
-	size_t banid;
-	time_t timeleft;
+typedef struct {
+  size_t banid;
+  time_t timeleft;
 } bannednode_t;
 extern bannednode_t *bannednode;
 

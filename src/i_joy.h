@@ -18,11 +18,11 @@
 /*!
   \brief	-JOYAXISRANGE to +JOYAXISRANGE for each axis
 
-	(1024-1) so we can do a right shift instead of division
-	(doesnt matter anyway, just give enough precision)
-	a gamepad will return -1, 0, or 1 in the event data
-	an analog type joystick will return a value
-	from -JOYAXISRANGE to +JOYAXISRANGE for each axis
+        (1024-1) so we can do a right shift instead of division
+        (doesnt matter anyway, just give enough precision)
+        a gamepad will return -1, 0, or 1 in the event data
+        an analog type joystick will return a value
+        from -JOYAXISRANGE to +JOYAXISRANGE for each axis
 */
 
 #define JOYAXISRANGE 1023
@@ -32,25 +32,23 @@
 "JOYBUTTONS is greater than INT64 bits can hold"
 #endif
 
-/**	\brief	The struct JoyType_s
+    /**	\brief	The struct JoyType_s
 
- share some joystick information (maybe 2 for splitscreen), to the game input code,
- actually, we need to know if it is a gamepad or analog controls
-*/
+     share some joystick information (maybe 2 for splitscreen), to the game
+     input code, actually, we need to know if it is a gamepad or analog controls
+    */
 
-struct JoyType_s
-{
-	/*! if true, we MUST Poll() to get new joystick data,
-	that is: we NEED the DIRECTINPUTDEVICE2 ! (watchout NT compatibility) */
-	INT32 bJoyNeedPoll;
-	/*! this joystick is a gamepad, read: digital axes
-	if FALSE, interpret the joystick event data as JOYAXISRANGE (see above) */
-	INT32 bGamepadStyle;
-
+    struct JoyType_s {
+  /*! if true, we MUST Poll() to get new joystick data,
+  that is: we NEED the DIRECTINPUTDEVICE2 ! (watchout NT compatibility) */
+  INT32 bJoyNeedPoll;
+  /*! this joystick is a gamepad, read: digital axes
+  if FALSE, interpret the joystick event data as JOYAXISRANGE (see above) */
+  INT32 bGamepadStyle;
 };
 typedef struct JoyType_s JoyType_t;
 /**	\brief Joystick info
-	for palyer[sic] 1-4's joystick/gamepad
+        for palyer[sic] 1-4's joystick/gamepad
 */
 
 extern JoyType_t Joystick, Joystick2, Joystick3, Joystick4;

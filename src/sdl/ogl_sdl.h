@@ -26,9 +26,9 @@ void OglSdlFinishUpdate(boolean vidwait);
 
 extern SDL_Renderer *renderer;
 extern SDL_GLContext sdlglcontext;
-extern Uint16      realwidth;
-extern Uint16      realheight;
+extern Uint16 realwidth;
+extern Uint16 realheight;
 
 #ifdef _CREATE_DLL_
-EXPORT void HWRAPI( OglSdlSetPalette ) (RGBA_t *palette, RGBA_t *pgamma);
+EXPORT void HWRAPI(OglSdlSetPalette)(RGBA_t *palette, RGBA_t *pgamma);
 #endif

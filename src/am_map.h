@@ -16,22 +16,20 @@
 
 #include "d_event.h"
 
-typedef struct
-{
-	INT32 x, y;
+typedef struct {
+  INT32 x, y;
 } fpoint_t;
 
-typedef struct
-{
-	fpoint_t a, b;
+typedef struct {
+  fpoint_t a, b;
 } fline_t;
 
 // Used by ST StatusBar stuff.
-#define AM_MSGHEADER (('a'<<24)+('m'<<16))
-#define AM_MSGENTERED (AM_MSGHEADER | ('e'<<8))
-#define AM_MSGEXITED (AM_MSGHEADER | ('x'<<8))
+#define AM_MSGHEADER (('a' << 24) + ('m' << 16))
+#define AM_MSGENTERED (AM_MSGHEADER | ('e' << 8))
+#define AM_MSGEXITED (AM_MSGHEADER | ('x' << 8))
 
-extern boolean am_recalc; // true if screen size changes
+extern boolean am_recalc;     // true if screen size changes
 extern boolean automapactive; // In AutoMap mode?
 
 // Called by main loop.

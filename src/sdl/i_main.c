@@ -15,23 +15,22 @@
 // GNU General Public License for more details.
 //-----------------------------------------------------------------------------
 /// \file
-/// \brief Main program, simply calls D_SRB2Main and D_SRB2Loop, the high level loop.
+/// \brief Main program, simply calls D_SRB2Main and D_SRB2Loop, the high level
+/// loop.
 
-#include "../doomdef.h"
-#include "../m_argv.h"
 #include "../d_main.h"
+#include "../doomdef.h"
 #include "../i_system.h"
+#include "../m_argv.h"
 
 #ifdef __GNUC__
 #include <unistd.h>
 #endif
 
-
 #ifdef HAVE_TTF
 #include "SDL.h"
 #include "i_ttf.h"
 #endif
-
 
 #ifdef SDLMAIN
 #include "SDL_main.h"
@@ -41,7 +40,7 @@ extern int SDL_main(int argc, char *argv[]);
 
 #ifdef LOGMESSAGES
 FILE *logstream = NULL;
-char  logfilename[1024];
+char logfilename[1024];
 #endif
 
 #ifndef DOXYGEN
@@ -54,20 +53,14 @@ char  logfilename[1024];
 #endif
 #endif
 
-
-
-
-
-
-
 /**	\brief	The main function
 
-	\param	argc	number of arg
-	\param	*argv	string table
+        \param	argc	number of arg
+        \param	*argv	string table
 
-	\return	int
+        \return	int
 */
-#if defined (__GNUC__) && (__GNUC__ >= 4)
+#if defined(__GNUC__) && (__GNUC__ >= 4)
 #pragma GCC diagnostic ignored "-Wmissing-noreturn"
 #endif
 
@@ -77,43 +70,42 @@ int SDL_main(int argc, char **argv)
 int main(int argc, char **argv)
 #endif
 {
-	const char *logdir = NULL;
-	myargc = argc;
-	myargv = argv; /// \todo pull out path to exe from this string
+  const char *logdir = NULL;
+  myargc = argc;
+  myargv = argv; /// \todo pull out path to exe from this string
 
 #ifdef HAVE_TTF
-	I_StartupTTF(FONTPOINTSIZE, SDL_INIT_VIDEO, SDL_SWSURFACE);
+  I_StartupTTF(FONTPOINTSIZE, SDL_INIT_VIDEO, SDL_SWSURFACE);
 #endif
 
-
-	logdir = D_Home();
+  logdir = D_Home();
 
 #ifdef LOGMESSAGES
 #ifdef DEFAULTDIR
-	if (logdir)
-		strcpy(logfilename, va("%s/"DEFAULTDIR"/log.txt",logdir));
-	else
+  if (logdir)
+    strcpy(logfilename, va("%s/" DEFAULTDIR "/log.txt", logdir));
+  else
 #endif
-		strcpy(logfilename, "./log.txt");
+    strcpy(logfilename, "./log.txt");
 
-	logstream = fopen(logfilename, "wt");
+  logstream = fopen(logfilename, "wt");
 #endif
 
-	//I_OutputMsg("I_StartupSystem() ...\n");
-	I_StartupSystem();
+  // I_OutputMsg("I_StartupSystem() ...\n");
+  I_StartupSystem();
 
-	// startup SRB2
-	CONS_Printf("Setting up SRB2Kart...\n");
-	D_SRB2Main();
-	CONS_Printf("Entering main game loop...\n");
-	// never return
-	D_SRB2Loop();
+  // startup SRB2
+  CONS_Printf("Setting up SRB2Kart...\n");
+  D_SRB2Main();
+  CONS_Printf("Entering main game loop...\n");
+  // never return
+  D_SRB2Loop();
 
 #ifdef BUGTRAP
-	// This is safe even if BT didn't start.
-	ShutdownBugTrap();
+  // This is safe even if BT didn't start.
+  ShutdownBugTrap();
 #endif
 
-	// return to OS
-	return 0;
+  // return to OS
+  return 0;
 }

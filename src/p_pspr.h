@@ -37,7 +37,8 @@
 
 /// \brief Frame flags: only the frame number
 #define FF_FRAMEMASK 0x1ff
-/// \brief Frame flags: Thin, paper-like sprite (for collision equivalent, see MF_PAPERCOLLISION)
+/// \brief Frame flags: Thin, paper-like sprite (for collision equivalent, see
+/// MF_PAPERCOLLISION)
 #define FF_PAPERSPRITE 0x800
 /// \brief Frame flags: Simple stateless animation
 #define FF_ANIMATE 0x4000
@@ -48,37 +49,36 @@
 /// \brief shift for FF_TRANSMASK
 #define FF_TRANSSHIFT 16
 /// \brief preshifted translucency flags
-#define FF_TRANS10 (tr_trans10<<FF_TRANSSHIFT)
-#define FF_TRANS20 (tr_trans20<<FF_TRANSSHIFT)
-#define FF_TRANS30 (tr_trans30<<FF_TRANSSHIFT)
-#define FF_TRANS40 (tr_trans40<<FF_TRANSSHIFT)
-#define FF_TRANS50 (tr_trans50<<FF_TRANSSHIFT)
-#define FF_TRANS60 (tr_trans60<<FF_TRANSSHIFT)
-#define FF_TRANS70 (tr_trans70<<FF_TRANSSHIFT)
-#define FF_TRANS80 (tr_trans80<<FF_TRANSSHIFT)
-#define FF_TRANS90 (tr_trans90<<FF_TRANSSHIFT)
+#define FF_TRANS10 (tr_trans10 << FF_TRANSSHIFT)
+#define FF_TRANS20 (tr_trans20 << FF_TRANSSHIFT)
+#define FF_TRANS30 (tr_trans30 << FF_TRANSSHIFT)
+#define FF_TRANS40 (tr_trans40 << FF_TRANSSHIFT)
+#define FF_TRANS50 (tr_trans50 << FF_TRANSSHIFT)
+#define FF_TRANS60 (tr_trans60 << FF_TRANSSHIFT)
+#define FF_TRANS70 (tr_trans70 << FF_TRANSSHIFT)
+#define FF_TRANS80 (tr_trans80 << FF_TRANSSHIFT)
+#define FF_TRANS90 (tr_trans90 << FF_TRANSSHIFT)
 
 /**	\brief translucency tables
 
-	\todo add another asm routine which use the fg and bg indexes in the
-	inverse order so the 20-80 becomes 80-20 translucency, no need
-	for other tables (thus 1090,2080,5050,8020,9010, and fire special)
+        \todo add another asm routine which use the fg and bg indexes in the
+        inverse order so the 20-80 becomes 80-20 translucency, no need
+        for other tables (thus 1090,2080,5050,8020,9010, and fire special)
 
-	\todo render all this obsolete by writing some goddamn realtime
-	translucency and 32-bit color support
+        \todo render all this obsolete by writing some goddamn realtime
+        translucency and 32-bit color support
 */
-typedef enum
-{
-	tr_trans10 = 1,
-	tr_trans20,
-	tr_trans30,
-	tr_trans40,
-	tr_trans50,
-	tr_trans60,
-	tr_trans70,
-	tr_trans80,
-	tr_trans90,
-	NUMTRANSMAPS
+typedef enum {
+  tr_trans10 = 1,
+  tr_trans20,
+  tr_trans30,
+  tr_trans40,
+  tr_trans50,
+  tr_trans60,
+  tr_trans70,
+  tr_trans80,
+  tr_trans90,
+  NUMTRANSMAPS
 } transnum_t;
 
 #endif

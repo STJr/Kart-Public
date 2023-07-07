@@ -23,54 +23,56 @@
 #define FINEANGLES 8192
 #define FINEMASK (FINEANGLES - 1)
 #define ANGLETOFINESHIFT 19 // 0x100000000 to 0x2000
-#define FINEANGLE_C(x) ((FixedAngle((x)*FRACUNIT)>>ANGLETOFINESHIFT) & FINEMASK) // ((x*(ANGLE_45/45))>>ANGLETOFINESHIFT) & FINEMASK
+#define FINEANGLE_C(x)                                                         \
+  ((FixedAngle((x)*FRACUNIT) >> ANGLETOFINESHIFT) &                            \
+   FINEMASK) // ((x*(ANGLE_45/45))>>ANGLETOFINESHIFT) & FINEMASK
 
 #if !(defined _NDS) || !(defined NONET)
 // Effective size is 10240.
-extern fixed_t finesine[5*FINEANGLES/4];
+extern fixed_t finesine[5 * FINEANGLES / 4];
 
 // Re-use data, is just PI/2 phase shift.
 extern fixed_t *finecosine;
 
 // Effective size is 4096.
-extern fixed_t finetangent[FINEANGLES/2];
+extern fixed_t finetangent[FINEANGLES / 2];
 #endif
 
-#define ANG1   0x00B60B61 //0.B6~
-#define ANG2   0x016C16C1 //.6C1~
-#define ANG10  0x071C71C7 //.1C7~
-#define ANG15  0x0AAAAAAB //A.AA~
-#define ANG20  0x0E38E38E //.38E~
-#define ANG30  0x15555555 //.555~
-#define ANG60  0x2AAAAAAB //A.AA~
-#define ANG64h 0x2DDDDDDE //D.DD~
-#define ANG105 0x4AAAAAAB //A.AA~
+#define ANG1 0x00B60B61   // 0.B6~
+#define ANG2 0x016C16C1   //.6C1~
+#define ANG10 0x071C71C7  //.1C7~
+#define ANG15 0x0AAAAAAB  // A.AA~
+#define ANG20 0x0E38E38E  //.38E~
+#define ANG30 0x15555555  //.555~
+#define ANG60 0x2AAAAAAB  // A.AA~
+#define ANG64h 0x2DDDDDDE // D.DD~
+#define ANG105 0x4AAAAAAB // A.AA~
 #define ANG210 0x95555555 //.555~
 #define ANG255 0xB5555555 //.555~
-#define ANG340 0xF1C71C72 //1.C7~
-#define ANG350 0xF8E38E39 //8.E3~
+#define ANG340 0xF1C71C72 // 1.C7~
+#define ANG350 0xF8E38E39 // 8.E3~
 
 #define ANGLE_11hh 0x08000000
-#define ANGLE_22h  0x10000000
-#define ANGLE_45   0x20000000
-#define ANGLE_67h  0x30000000
-#define ANGLE_90   0x40000000
+#define ANGLE_22h 0x10000000
+#define ANGLE_45 0x20000000
+#define ANGLE_67h 0x30000000
+#define ANGLE_90 0x40000000
 #define ANGLE_112h 0x50000000
-#define ANGLE_135  0x60000000
+#define ANGLE_135 0x60000000
 #define ANGLE_157h 0x70000000
-#define ANGLE_180  0x80000000
+#define ANGLE_180 0x80000000
 #define ANGLE_202h 0x90000000
-#define ANGLE_225  0xA0000000
+#define ANGLE_225 0xA0000000
 #define ANGLE_247h 0xB0000000
-#define ANGLE_270  0xC0000000
+#define ANGLE_270 0xC0000000
 #define ANGLE_292h 0xD0000000
-#define ANGLE_315  0xE0000000
+#define ANGLE_315 0xE0000000
 #define ANGLE_337h 0xF0000000
-#define ANGLE_MAX  0xFFFFFFFF
+#define ANGLE_MAX 0xFFFFFFFF
 
 // SRB2kart
-#define ANGLE_120  0x53333333
-#define ANGLE_240  0xA6666666
+#define ANGLE_120 0x53333333
+#define ANGLE_240 0xA6666666
 
 typedef UINT32 angle_t;
 
@@ -83,17 +85,17 @@ typedef UINT32 angle_t;
 #define DBITS (FRACBITS - SLOPEBITS)
 
 // The +1 size is to handle the case when x == y without additional checking.
-extern angle_t tantoangle[SLOPERANGE+1];
+extern angle_t tantoangle[SLOPERANGE + 1];
 
 // Utility function, called by R_PointToAngle.
 FUNCMATH unsigned SlopeDiv(unsigned num, unsigned den);
 // Only called by R_PointToAngleEx
-UINT64 SlopeDivEx(unsigned int num, unsigned int den);
+UINT64
+SlopeDivEx(unsigned int num, unsigned int den);
 
 // 360 - angle_t(ANGLE_45) = ANGLE_315
-FUNCMATH FUNCINLINE static ATTRINLINE angle_t InvAngle(angle_t a)
-{
-	return (ANGLE_MAX-a)+1;
+FUNCMATH FUNCINLINE static ATTRINLINE angle_t InvAngle(angle_t a) {
+  return (ANGLE_MAX - a) + 1;
 }
 // angle_t to fixed_t f(ANGLE_45) = 45*FRACUNIT
 FUNCMATH fixed_t AngleFixed(angle_t af);
@@ -106,12 +108,19 @@ FUNCMATH angle_t FixedAngleC(fixed_t fa, fixed_t factor);
 FUNCMATH angle_t FixedAcos(fixed_t x);
 
 /// Fixed Point Vector functions
-angle_t FV2_AngleBetweenVectors(const vector2_t *Vector1, const vector2_t *Vector2);
-angle_t FV3_AngleBetweenVectors(const vector3_t *Vector1, const vector3_t *Vector2);
-boolean FV2_InsidePolygon(const vector2_t *vIntersection, const vector2_t *Poly, const INT32 vertexCount);
-boolean FV3_InsidePolygon(const vector3_t *vIntersection, const vector3_t *Poly, const INT32 vertexCount);
-boolean FV3_IntersectedPolygon(const vector3_t *vPoly, const vector3_t *vLine, const INT32 vertexCount, vector3_t *collisionPoint);
-void FV3_Rotate(vector3_t *rotVec, const vector3_t *axisVec, const angle_t angle);
+angle_t FV2_AngleBetweenVectors(const vector2_t *Vector1,
+                                const vector2_t *Vector2);
+angle_t FV3_AngleBetweenVectors(const vector3_t *Vector1,
+                                const vector3_t *Vector2);
+boolean FV2_InsidePolygon(const vector2_t *vIntersection, const vector2_t *Poly,
+                          const INT32 vertexCount);
+boolean FV3_InsidePolygon(const vector3_t *vIntersection, const vector3_t *Poly,
+                          const INT32 vertexCount);
+boolean FV3_IntersectedPolygon(const vector3_t *vPoly, const vector3_t *vLine,
+                               const INT32 vertexCount,
+                               vector3_t *collisionPoint);
+void FV3_Rotate(vector3_t *rotVec, const vector3_t *axisVec,
+                const angle_t angle);
 /// Fixed Point Matrix functions
 void FM_Rotate(matrix_t *dest, angle_t angle, fixed_t x, fixed_t y, fixed_t z);
 
@@ -121,14 +130,21 @@ void FM_Rotate(matrix_t *dest, angle_t angle, fixed_t x, fixed_t y, fixed_t z);
 #if (defined _NDS) && (defined NONET)
 // Use the NDS's trig functions. This would break netplay, so we only do
 // it if NONET is defined.
-#define FINESINE(n) ((fixed_t)sinLerp((INT16)(((INT32)(n))<<(ANGLETOFINESHIFT-17))) << (FRACBITS - 12))
-#define FINECOSINE(n) ((fixed_t)cosLerp((INT16)(((INT32)(n))<<(ANGLETOFINESHIFT-17))) << (FRACBITS - 12))
-#define FINETANGENT(n) ((fixed_t)tanLerp((INT16)(((INT32)(n)-(FINEANGLES>>2))<<(ANGLETOFINESHIFT-17))) << (FRACBITS - 12))
+#define FINESINE(n)                                                            \
+  ((fixed_t)sinLerp((INT16)(((INT32)(n)) << (ANGLETOFINESHIFT - 17)))          \
+   << (FRACBITS - 12))
+#define FINECOSINE(n)                                                          \
+  ((fixed_t)cosLerp((INT16)(((INT32)(n)) << (ANGLETOFINESHIFT - 17)))          \
+   << (FRACBITS - 12))
+#define FINETANGENT(n)                                                         \
+  ((fixed_t)tanLerp(                                                           \
+       (INT16)(((INT32)(n) - (FINEANGLES >> 2)) << (ANGLETOFINESHIFT - 17)))   \
+   << (FRACBITS - 12))
 #else
 // These macros should be used in case FRACBITS < FINE_FRACBITS.
-#define FINESINE(n) (finesine[n]>>(FINE_FRACBITS-FRACBITS))
-#define FINECOSINE(n) (finecosine[n]>>(FINE_FRACBITS-FRACBITS))
-#define FINETANGENT(n) (finetangent[n]>>(FINE_FRACBITS-FRACBITS))
+#define FINESINE(n) (finesine[n] >> (FINE_FRACBITS - FRACBITS))
+#define FINECOSINE(n) (finecosine[n] >> (FINE_FRACBITS - FRACBITS))
+#define FINETANGENT(n) (finetangent[n] >> (FINE_FRACBITS - FRACBITS))
 #endif
 
 #endif

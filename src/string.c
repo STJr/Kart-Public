@@ -12,42 +12,37 @@
 /// \brief String functions that we need but are missing on some
 ///        operating systems.
 
+#include "doomdef.h"
 #include <stddef.h>
 #include <string.h>
-#include "doomdef.h"
-
 
 // Like the OpenBSD version, but it doesn't check for src not being a valid
 // C string.
-size_t strlcat(char *dst, const char *src, size_t siz)
-{
-	size_t dstlen, n = siz;
-	char *p = dst;
+size_t strlcat(char *dst, const char *src, size_t siz) {
+  size_t dstlen, n = siz;
+  char *p = dst;
 
-	dstlen = strlen(dst);
-	n -= dstlen;
-	p += dstlen;
+  dstlen = strlen(dst);
+  n -= dstlen;
+  p += dstlen;
 
-	while (n > 1 && *src != '\0')
-	{
-		*p++ = *src++;
-		n--;
-	}
+  while (n > 1 && *src != '\0') {
+    *p++ = *src++;
+    n--;
+  }
 
-	if (n >= 1)
-		*p = '\0';
+  if (n >= 1)
+    *p = '\0';
 
-	return strlen(src) + dstlen;
+  return strlen(src) + dstlen;
 }
 
-size_t strlcpy(char *dst, const char *src, size_t siz)
-{
-	if (siz == 0)
-		return strlen(dst);
+size_t strlcpy(char *dst, const char *src, size_t siz) {
+  if (siz == 0)
+    return strlen(dst);
 
-	dst[0] = '\0';
-	return strlcat(dst, src, siz);
+  dst[0] = '\0';
+  return strlcat(dst, src, siz);
 }
-
 
 #include "strcasestr.c"

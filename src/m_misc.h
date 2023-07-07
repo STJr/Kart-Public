@@ -18,21 +18,18 @@
 #include "doomtype.h"
 #include "tables.h"
 
-#include "d_event.h" // Screenshot responder
 #include "command.h"
+#include "d_event.h" // Screenshot responder
 
-typedef enum {
-	MM_OFF = 0,
-	MM_APNG,
-	MM_GIF,
-	MM_SCREENSHOT
-} moviemode_t;
+typedef enum { MM_OFF = 0, MM_APNG, MM_GIF, MM_SCREENSHOT } moviemode_t;
 extern moviemode_t moviemode;
 
 extern consvar_t cv_screenshot_option, cv_screenshot_folder;
 extern consvar_t cv_moviemode;
-extern consvar_t cv_zlib_memory, cv_zlib_level, cv_zlib_strategy, cv_zlib_window_bits;
-extern consvar_t cv_zlib_memorya, cv_zlib_levela, cv_zlib_strategya, cv_zlib_window_bitsa;
+extern consvar_t cv_zlib_memory, cv_zlib_level, cv_zlib_strategy,
+    cv_zlib_window_bits;
+extern consvar_t cv_zlib_memorya, cv_zlib_levela, cv_zlib_strategya,
+    cv_zlib_window_bitsa;
 extern consvar_t cv_apng_delay;
 
 void M_StartMovie(void);
@@ -42,13 +39,14 @@ void M_StopMovie(void);
 // the file where game vars and settings are saved
 #ifdef DC
 #define CONFIGFILENAME "srb2dc.cfg"
-#elif defined (PSP)
+#elif defined(PSP)
 #define CONFIGFILENAME "srb2psp.cfg"
 #else
 #define CONFIGFILENAME "kartconfig.cfg"
 #endif
 
-INT32 M_MapNumber(char first, char second);
+INT32
+M_MapNumber(char first, char second);
 
 boolean FIL_WriteFile(char const *name, const void *source, size_t length);
 size_t FIL_ReadFileTag(char const *name, UINT8 **buffer, INT32 tag);
@@ -59,12 +57,13 @@ boolean FIL_WriteFileOK(char const *name);
 boolean FIL_ReadFileOK(char const *name);
 boolean FIL_FileOK(char const *name);
 
-void FIL_DefaultExtension (char *path, const char *extension);
+void FIL_DefaultExtension(char *path, const char *extension);
 void FIL_ForceExtension(char *path, const char *extension);
 boolean FIL_CheckExtension(const char *in);
 
 #ifdef HAVE_PNG
-boolean M_SavePNG(const char *filename, void *data, int width, int height, const UINT8 *palette);
+boolean M_SavePNG(const char *filename, void *data, int width, int height,
+                  const UINT8 *palette);
 #endif
 
 extern boolean takescreenshot;
@@ -80,7 +79,8 @@ void M_FirstLoadConfig(void);
 // save game config: cvars, aliases..
 void M_SaveConfig(const char *filename);
 
-INT32 axtoi(const char *hexStg);
+INT32
+axtoi(const char *hexStg);
 
 const char *GetRevisionString(void);
 

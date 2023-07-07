@@ -9,7 +9,8 @@
 // See the 'LICENSE' file for more details.
 //-----------------------------------------------------------------------------
 /// \file  r_local.h
-/// \brief Refresh (R_*) module, global header. All the rendering/drawing stuff is here
+/// \brief Refresh (R_*) module, global header. All the rendering/drawing stuff
+/// is here
 
 #ifndef __R_LOCAL__
 #define __R_LOCAL__
@@ -25,14 +26,14 @@
 
 #include "m_bbox.h"
 
-#include "r_main.h"
 #include "r_bsp.h"
-#include "r_segs.h"
-#include "r_plane.h"
-#include "r_sky.h"
 #include "r_data.h"
-#include "r_things.h"
 #include "r_draw.h"
+#include "r_main.h"
+#include "r_plane.h"
+#include "r_segs.h"
+#include "r_sky.h"
+#include "r_things.h"
 
 extern drawseg_t *firstseg;
 

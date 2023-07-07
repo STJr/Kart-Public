@@ -19,4 +19,3 @@
 ///
 ///	Shows alerts, since we can't just print these to the screen when
 ///	launched graphically on a mac.
-

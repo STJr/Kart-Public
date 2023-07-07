@@ -14,7 +14,7 @@
 
 typedef void (*stun_callback_t)(UINT32 address);
 
-void    STUN_bind (stun_callback_t);
-boolean STUN_got_response (const char * const buffer, const size_t size);
+void STUN_bind(stun_callback_t);
+boolean STUN_got_response(const char *const buffer, const size_t size);
 
-#endif/*KART_STUN_H*/
+#endif /*KART_STUN_H*/

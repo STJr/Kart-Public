@@ -16,8 +16,8 @@
 
 // Need data structure definitions.
 #include "d_player.h"
-#include "r_data.h"
 #include "doomstat.h" // MAXSPLITSCREENPLAYERS
+#include "r_data.h"
 
 #ifdef __GNUG__
 #pragma interface
@@ -28,12 +28,11 @@
 //
 
 // needed for pre rendering (fracs)
-typedef struct
-{
-	fixed_t width;
-	fixed_t offset;
-	fixed_t topoffset;
-	fixed_t height;
+typedef struct {
+  fixed_t width;
+  fixed_t offset;
+  fixed_t topoffset;
+  fixed_t height;
 } sprcache_t;
 
 extern sprcache_t *spritecachedinfo;
@@ -91,7 +90,9 @@ extern fixed_t viewx, viewy, viewz;
 extern angle_t viewangle, aimingangle;
 extern UINT8 viewssnum; // splitscreen view number
 extern boolean viewsky, skyVisible;
-extern boolean skyVisiblePerPlayer[MAXSPLITSCREENPLAYERS]; // saved values of skyVisible of each splitscreen player
+extern boolean
+    skyVisiblePerPlayer[MAXSPLITSCREENPLAYERS]; // saved values of skyVisible of
+                                                // each splitscreen player
 extern sector_t *viewsector;
 extern player_t *viewplayer;
 extern UINT8 portalrender;
@@ -105,8 +106,8 @@ extern consvar_t cv_maxportals;
 extern angle_t clipangle;
 extern angle_t doubleclipangle;
 
-extern INT32 viewangletox[FINEANGLES/2];
-extern angle_t xtoviewangle[MAXVIDWIDTH+1];
+extern INT32 viewangletox[FINEANGLES / 2];
+extern angle_t xtoviewangle[MAXVIDWIDTH + 1];
 
 extern fixed_t rw_distance;
 extern angle_t rw_normalangle;

@@ -22,17 +22,16 @@
 #pragma pack()
 #endif
 
-typedef struct
-{
-	char        filename[32];
-	float       scale;
-	float       offset;
-	model_t     *model;
-	void        *grpatch;
-	void        *blendgrpatch;
-	boolean     notfound;
-	INT32       skin;
-	boolean     error;
+typedef struct {
+  char filename[32];
+  float scale;
+  float offset;
+  model_t *model;
+  void *grpatch;
+  void *blendgrpatch;
+  boolean notfound;
+  INT32 skin;
+  boolean error;
 } md2_t;
 
 extern md2_t md2_models[NUMSPRITES];

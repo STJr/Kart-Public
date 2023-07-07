@@ -29,29 +29,27 @@
 #pragma warning(disable : 4706)
 #endif
 
-typedef struct mdllistitem_s
-{
-	struct mdllistitem_s *next;
-	struct mdllistitem_s **prev;
+typedef struct mdllistitem_s {
+  struct mdllistitem_s *next;
+  struct mdllistitem_s **prev;
 } mdllistitem_t;
 
-FUNCINLINE static ATTRINLINE void M_DLListInsert(mdllistitem_t *item, mdllistitem_t **head)
-{
-	mdllistitem_t *next = *head;
+FUNCINLINE static ATTRINLINE void M_DLListInsert(mdllistitem_t *item,
+                                                 mdllistitem_t **head) {
+  mdllistitem_t *next = *head;
 
-	if ((item->next = next))
-		next->prev = &item->next;
-	item->prev = head;
-	*head = item;
+  if ((item->next = next))
+    next->prev = &item->next;
+  item->prev = head;
+  *head = item;
 }
 
-FUNCINLINE static ATTRINLINE void M_DLListRemove(mdllistitem_t *item)
-{
-	mdllistitem_t **prev = item->prev;
-	mdllistitem_t *next  = item->next;
+FUNCINLINE static ATTRINLINE void M_DLListRemove(mdllistitem_t *item) {
+  mdllistitem_t **prev = item->prev;
+  mdllistitem_t *next = item->next;
 
-	if ((*prev = next))
-		next->prev = prev;
+  if ((*prev = next))
+    next->prev = prev;
 }
 
 #endif

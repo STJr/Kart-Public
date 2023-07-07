@@ -18,122 +18,121 @@
 
 // DEHackEd structure for each is listed after the condition type
 // [required] <optional>
-typedef enum
-{
-	UC_PLAYTIME,        // PLAYTIME [tics]
-	UC_MATCHESPLAYED,   // SRB2Kart: MATCHESPLAYED [x played]
-	UC_GAMECLEAR,       // GAMECLEAR <x times>
-	UC_ALLEMERALDS,     // ALLEMERALDS <x times>
-	//UC_ULTIMATECLEAR,   // ULTIMATECLEAR <x times>
-	//UC_OVERALLSCORE,    // OVERALLSCORE [score to beat]
-	UC_OVERALLTIME,     // OVERALLTIME [time to beat, tics]
-	//UC_OVERALLRINGS,    // OVERALLRINGS [rings to beat]
-	UC_MAPVISITED,      // MAPVISITED [map number]
-	UC_MAPBEATEN,       // MAPBEATEN [map number]
-	UC_MAPALLEMERALDS,  // MAPALLEMERALDS [map number]
-	//UC_MAPULTIMATE,     // MAPULTIMATE [map number]
-	//UC_MAPPERFECT,      // MAPPERFECT [map number]
-	//UC_MAPSCORE,        // MAPSCORE [map number] [score to beat]
-	UC_MAPTIME,         // MAPTIME [map number] [time to beat, tics]
-	//UC_MAPRINGS,        // MAPRINGS [map number] [rings to beat]
-	//UC_NIGHTSSCORE,     // NIGHTSSCORE [map number] <mare, omit or "0" for overall> [score to beat]
-	//UC_NIGHTSTIME,      // NIGHTSTIME [map number] <mare, omit "0" overall> [time to beat, tics]
-	//UC_NIGHTSGRADE,     // NIGHTSGRADE [map number] <mare, omit "0" overall> [grade]
-	UC_TRIGGER,         // TRIGGER [trigger number]
-	UC_TOTALEMBLEMS,    // TOTALEMBLEMS [number of emblems]
-	UC_EMBLEM,          // EMBLEM [emblem number]
-	UC_EXTRAEMBLEM,     // EXTRAEMBLEM [extra emblem number]
-	UC_CONDITIONSET,    // CONDITIONSET [condition set number]
+typedef enum {
+  UC_PLAYTIME,      // PLAYTIME [tics]
+  UC_MATCHESPLAYED, // SRB2Kart: MATCHESPLAYED [x played]
+  UC_GAMECLEAR,     // GAMECLEAR <x times>
+  UC_ALLEMERALDS,   // ALLEMERALDS <x times>
+  // UC_ULTIMATECLEAR,   // ULTIMATECLEAR <x times>
+  // UC_OVERALLSCORE,    // OVERALLSCORE [score to beat]
+  UC_OVERALLTIME, // OVERALLTIME [time to beat, tics]
+  // UC_OVERALLRINGS,    // OVERALLRINGS [rings to beat]
+  UC_MAPVISITED,     // MAPVISITED [map number]
+  UC_MAPBEATEN,      // MAPBEATEN [map number]
+  UC_MAPALLEMERALDS, // MAPALLEMERALDS [map number]
+  // UC_MAPULTIMATE,     // MAPULTIMATE [map number]
+  // UC_MAPPERFECT,      // MAPPERFECT [map number]
+  // UC_MAPSCORE,        // MAPSCORE [map number] [score to beat]
+  UC_MAPTIME, // MAPTIME [map number] [time to beat, tics]
+  // UC_MAPRINGS,        // MAPRINGS [map number] [rings to beat]
+  // UC_NIGHTSSCORE,     // NIGHTSSCORE [map number] <mare, omit or "0" for
+  // overall> [score to beat] UC_NIGHTSTIME,      // NIGHTSTIME [map number]
+  // <mare, omit "0" overall> [time to beat, tics] UC_NIGHTSGRADE,     //
+  // NIGHTSGRADE [map number] <mare, omit "0" overall> [grade]
+  UC_TRIGGER,      // TRIGGER [trigger number]
+  UC_TOTALEMBLEMS, // TOTALEMBLEMS [number of emblems]
+  UC_EMBLEM,       // EMBLEM [emblem number]
+  UC_EXTRAEMBLEM,  // EXTRAEMBLEM [extra emblem number]
+  UC_CONDITIONSET, // CONDITIONSET [condition set number]
 } conditiontype_t;
 
 // Condition Set information
-typedef struct
-{
-	UINT32 id;           /// <- The ID of this condition.
-	                     ///    In an unlock condition, all conditions with the same ID
-	                     ///    must be true to fulfill the unlockable requirements.
-	                     ///    Only one ID set needs to be true, however.
-	conditiontype_t type;/// <- The type of condition
-	INT32 requirement;   /// <- The requirement for this variable.
-	INT16 extrainfo1;    /// <- Extra information for the condition when needed.
-	INT16 extrainfo2;    /// <- Extra information for the condition when needed.
+typedef struct {
+  UINT32 id; /// <- The ID of this condition.
+             ///    In an unlock condition, all conditions with the same ID
+             ///    must be true to fulfill the unlockable requirements.
+             ///    Only one ID set needs to be true, however.
+  conditiontype_t type; /// <- The type of condition
+  INT32 requirement;    /// <- The requirement for this variable.
+  INT16 extrainfo1;     /// <- Extra information for the condition when needed.
+  INT16 extrainfo2;     /// <- Extra information for the condition when needed.
 } condition_t;
-typedef struct
-{
-	UINT32 numconditions;   /// <- number of conditions.
-	condition_t *condition; /// <- All conditionals to be checked.
-	UINT8 achieved;         /// <- Whether this conditional has been achieved already or not.
-	                        ///    (Conditional checking is skipped if true -- it's assumed you can't relock an unlockable)
+typedef struct {
+  UINT32 numconditions;   /// <- number of conditions.
+  condition_t *condition; /// <- All conditionals to be checked.
+  UINT8
+  achieved; /// <- Whether this conditional has been achieved already or not.
+            ///    (Conditional checking is skipped if true -- it's assumed
+            ///    you can't relock an unlockable)
 } conditionset_t;
 
 // Emblem information
 #define ET_GLOBAL 0 // Global map emblem, var == color
-#define ET_SKIN   1 // Skin specific emblem, var == skin
+#define ET_SKIN 1   // Skin specific emblem, var == skin
 //#define ET_SCORE  2
-#define ET_TIME   2
+#define ET_TIME 2
 //#define ET_RINGS  4
 //#define ET_NGRADE 5
 //#define ET_NTIME  6
 
-typedef struct
-{
-	UINT8 type;      ///< Emblem type
-	INT16 x;         ///< X coordinate.
-	INT16 y;         ///< Y coordinate.
-	INT16 z;         ///< Z coordinate.
-	INT16 level;     ///< Level on which this emblem can be found.
-	UINT8 sprite;    ///< emblem sprite to use, 0 - 25
-	UINT8 color;     ///< skincolor to use
-	INT32 var;       ///< If needed, specifies information on the target amount to achieve (or target skin)
-	char hint[110];  ///< Hint for emblem hints menu
-	UINT8 collected; ///< Do you have this emblem?
+typedef struct {
+  UINT8 type;      ///< Emblem type
+  INT16 x;         ///< X coordinate.
+  INT16 y;         ///< Y coordinate.
+  INT16 z;         ///< Z coordinate.
+  INT16 level;     ///< Level on which this emblem can be found.
+  UINT8 sprite;    ///< emblem sprite to use, 0 - 25
+  UINT8 color;     ///< skincolor to use
+  INT32 var;       ///< If needed, specifies information on the target amount to
+                   ///< achieve (or target skin)
+  char hint[110];  ///< Hint for emblem hints menu
+  UINT8 collected; ///< Do you have this emblem?
 } emblem_t;
-typedef struct
-{
-	char name[20];       ///< Name of the goal (used in the "emblem awarded" cecho)
-	char description[40];///< Description of goal (used in statistics)
-	UINT8 conditionset;  ///< Condition set that awards this emblem.
-	UINT8 sprite;        ///< emblem sprite to use, 0 - 25
-	UINT8 color;         ///< skincolor to use
-	UINT8 collected;     ///< Do you have this emblem?
+typedef struct {
+  char name[20]; ///< Name of the goal (used in the "emblem awarded" cecho)
+  char description[40]; ///< Description of goal (used in statistics)
+  UINT8 conditionset;   ///< Condition set that awards this emblem.
+  UINT8 sprite;         ///< emblem sprite to use, 0 - 25
+  UINT8 color;          ///< skincolor to use
+  UINT8 collected;      ///< Do you have this emblem?
 } extraemblem_t;
 
 // Unlockable information
-typedef struct
-{
-	char name[64];
-	char objective[64];
-	UINT8 showconditionset;
-	UINT8 conditionset;
-	INT16 type;
-	INT16 variable;
-	UINT8 nocecho;
-	UINT8 nochecklist;
-	UINT8 unlocked;
+typedef struct {
+  char name[64];
+  char objective[64];
+  UINT8 showconditionset;
+  UINT8 conditionset;
+  INT16 type;
+  INT16 variable;
+  UINT8 nocecho;
+  UINT8 nochecklist;
+  UINT8 unlocked;
 } unlockable_t;
 
 // I have NO idea why these are going negative, but whatever.
-#define SECRET_NONE			-6 // Does nil.  Use with levels locked by UnlockRequired
-#define SECRET_ITEMFINDER	-5 // Enables Item Finder/Emblem Radar
-#define SECRET_EMBLEMHINTS	-4 // Enables Emblem Hints
-#define SECRET_PANDORA		-3 // Enables Pandora's Box
-#define SECRET_RECORDATTACK	-2 // Enables Record Attack on the main menu
-#define SECRET_NIGHTSMODE	-1 // Enables NiGHTS Mode on the main menu
-#define SECRET_HEADER		 0 // Does nothing on its own, just serves as a header for the menu
-#define SECRET_LEVELSELECT	 1 // Selectable level select
-#define SECRET_WARP			 2 // Selectable warp
-#define SECRET_SOUNDTEST	 3 // Sound Test
-#define SECRET_CREDITS		 4 // Enables Credits
-#define SECRET_ENCORE		 5 // Enables Encore mode cvar
-#define SECRET_HELLATTACK	 6 // Map Hell in record attack
-#define SECRET_HARDSPEED	 7 // Enables Hard gamespeed
+#define SECRET_NONE -6 // Does nil.  Use with levels locked by UnlockRequired
+#define SECRET_ITEMFINDER -5   // Enables Item Finder/Emblem Radar
+#define SECRET_EMBLEMHINTS -4  // Enables Emblem Hints
+#define SECRET_PANDORA -3      // Enables Pandora's Box
+#define SECRET_RECORDATTACK -2 // Enables Record Attack on the main menu
+#define SECRET_NIGHTSMODE -1   // Enables NiGHTS Mode on the main menu
+#define SECRET_HEADER                                                          \
+  0 // Does nothing on its own, just serves as a header for the menu
+#define SECRET_LEVELSELECT 1 // Selectable level select
+#define SECRET_WARP 2        // Selectable warp
+#define SECRET_SOUNDTEST 3   // Sound Test
+#define SECRET_CREDITS 4     // Enables Credits
+#define SECRET_ENCORE 5      // Enables Encore mode cvar
+#define SECRET_HELLATTACK 6  // Map Hell in record attack
+#define SECRET_HARDSPEED 7   // Enables Hard gamespeed
 
 // If you have more secrets than these variables allow in your game,
 // you seriously need to get a life.
 #define MAXCONDITIONSETS 128
-#define MAXEMBLEMS       512
-#define MAXEXTRAEMBLEMS   16
-#define MAXUNLOCKABLES    32
+#define MAXEMBLEMS 512
+#define MAXEXTRAEMBLEMS 16
+#define MAXUNLOCKABLES 32
 
 extern conditionset_t conditionSets[MAXCONDITIONSETS];
 extern emblem_t emblemlocations[MAXEMBLEMS];
@@ -147,7 +146,8 @@ extern UINT32 unlocktriggers;
 
 // Condition Set Setup
 void M_SetupDefaultConditionSets(void);
-void M_AddRawCondition(UINT8 set, UINT8 id, conditiontype_t c, INT32 r, INT16 x1, INT16 x2);
+void M_AddRawCondition(UINT8 set, UINT8 id, conditiontype_t c, INT32 r,
+                       INT16 x1, INT16 x2);
 
 // Clearing secrets
 void M_ClearConditionSet(UINT8 set);
@@ -155,16 +155,23 @@ void M_ClearSecrets(void);
 
 // Updating conditions and unlockables
 void M_CheckUnlockConditions(void);
-UINT8 M_CheckCondition(condition_t *cn);
-UINT8 M_UpdateUnlockablesAndExtraEmblems(boolean force);
+UINT8
+M_CheckCondition(condition_t *cn);
+UINT8
+M_UpdateUnlockablesAndExtraEmblems(boolean force);
 void M_SilentUpdateUnlockablesAndEmblems(void);
-UINT8 M_CheckLevelEmblems(void);
+UINT8
+M_CheckLevelEmblems(void);
 
 // Checking unlockable status
-UINT8 M_AnySecretUnlocked(void);
-UINT8 M_SecretUnlocked(INT32 type);
-UINT8 M_MapLocked(INT32 mapnum);
-INT32 M_CountEmblems(void);
+UINT8
+M_AnySecretUnlocked(void);
+UINT8
+M_SecretUnlocked(INT32 type);
+UINT8
+M_MapLocked(INT32 mapnum);
+INT32
+M_CountEmblems(void);
 
 // Emblem shit
 emblem_t *M_GetLevelEmblems(INT32 mapnum);
@@ -176,9 +183,11 @@ const char *M_GetExtraEmblemPatch(extraemblem_t *em);
 // If you're looking to compare stats for unlocks or what not, use these
 // They stop checking upon reaching the target number so they
 // should be (theoretically?) slightly faster.
-UINT8 M_GotEnoughEmblems(INT32 number);
-//UINT8 M_GotHighEnoughScore(INT32 tscore);
-UINT8 M_GotLowEnoughTime(INT32 tictime);
-//UINT8 M_GotHighEnoughRings(INT32 trings);
+UINT8
+M_GotEnoughEmblems(INT32 number);
+// UINT8 M_GotHighEnoughScore(INT32 tscore);
+UINT8
+M_GotLowEnoughTime(INT32 tictime);
+// UINT8 M_GotHighEnoughRings(INT32 trings);
 
 #define M_Achieved(a) ((a) >= MAXCONDITIONSETS || conditionSets[a].achieved)

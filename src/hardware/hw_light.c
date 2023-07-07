@@ -12,14 +12,13 @@
 
 #include "../doomdef.h"
 
-#include "hw_light.h"
-#include "hw_drv.h"
 #include "../i_video.h"
-#include "../z_zone.h"
-#include "../m_random.h"
 #include "../m_bbox.h"
-#include "../w_wad.h"
-#include "../r_state.h"
-#include "../r_main.h"
+#include "../m_random.h"
 #include "../p_local.h"
-
+#include "../r_main.h"
+#include "../r_state.h"
+#include "../w_wad.h"
+#include "../z_zone.h"
+#include "hw_drv.h"
+#include "hw_light.h"

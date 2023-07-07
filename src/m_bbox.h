@@ -17,21 +17,21 @@
 #include "m_fixed.h"
 
 /**	\brief	Bounding box coordinate storage
-*/
+ */
 
-enum
-{
-	BOXTOP, /// top side of bbox
-	BOXBOTTOM, /// bottom side of bbox
-	BOXLEFT, /// left side of bbox
-	BOXRIGHT /// right side of bbox
-}; /// bbox coordinates
+enum {
+  BOXTOP,    /// top side of bbox
+  BOXBOTTOM, /// bottom side of bbox
+  BOXLEFT,   /// left side of bbox
+  BOXRIGHT   /// right side of bbox
+};           /// bbox coordinates
 
 // Bounding box functions.
 void M_ClearBox(fixed_t *box);
 
 void M_AddToBox(fixed_t *box, fixed_t x, fixed_t y);
 boolean M_PointInBox(fixed_t *box, fixed_t x, fixed_t y);
-boolean M_CircleTouchBox(fixed_t *box, fixed_t circlex, fixed_t circley, fixed_t circleradius);
+boolean M_CircleTouchBox(fixed_t *box, fixed_t circlex, fixed_t circley,
+                         fixed_t circleradius);
 
 #endif
