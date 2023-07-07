@@ -1314,8 +1314,6 @@ void I_OsPolling(void)
 {
 	SDL_Keymod mod;
 
-	if (consolevent)
-		I_GetConsoleEvents();
 	if (SDL_WasInit(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) == (SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER))
 	{
 		SDL_GameControllerUpdate();
