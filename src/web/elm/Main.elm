@@ -133,7 +133,10 @@ viewControls : Status -> Html Msg
 viewControls status =
     case status of
         Status.NotStarted ->
-            Views.Button.init { text = "Start", onClick = StartGame } |> Views.Button.toHtml
+            div [ class "flex flex-col items-center" ]
+                [ Views.Button.init { text = "Start", onClick = StartGame } |> Views.Button.toHtml
+                , p [] [ span [] [ text "WARNING: This will download approximately 500MB of data" ] ]
+                ]
 
         Status.Running ->
             div [ class "flex gap-2" ]
