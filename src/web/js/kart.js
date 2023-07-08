@@ -60,10 +60,15 @@ export class Kart {
     this.Command_ListWADS_f = this.Module.cwrap("Command_ListWADS_f", "void");
   };
 
-  addFile = (filename, base64String) => {
-    const data = Uint8Array.from(atob(base64String), (c) => c.charCodeAt(0));
-    FS.writeFile(filename, data);
+  addFile = async (file) => {
+    const filename = file.name;
+    const fileStream = FS.open(filename, "w");
 
+    for await (const chunk of file.stream()) {
+      FS.write(fileStream, chunk, 0, chunk.length);
+    }
+
+    FS.close(fileStream);
     this.P_AddWadFile(filename);
   };
 

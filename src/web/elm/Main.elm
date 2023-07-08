@@ -31,7 +31,7 @@ port requestFullScreen : () -> Cmd msg
 port listWads : () -> Cmd msg
 
 
-port addFile : ( String, String ) -> Cmd msg
+port addFile : () -> Cmd msg
 
 
 port gameOutput : (String -> msg) -> Sub msg
@@ -143,26 +143,8 @@ update msg model =
             , listWads ()
             )
 
-        AddWadFile filename ->
-            ( model, addFile ( filename, "" ) )
-
         ClickedAddAddon ->
-            ( model, Select.file [ "application/octet-stream" ] AddonLoaded )
-
-        AddonLoaded file ->
-            ( model, Task.perform (FileBytesDecoded <| File.name file) (File.toBytes file) )
-
-        FileBytesDecoded filename bytes ->
-            let
-                base64 =
-                    Base64.fromBytes bytes
-            in
-            case base64 of
-                Just data ->
-                    ( model, addFile ( filename, data ) )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( model, addFile () )
 
 
 
