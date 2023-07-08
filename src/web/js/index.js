@@ -22,6 +22,10 @@ app.ports.requestFullScreen.subscribe((message) => {
   }
 });
 
+app.ports.listWads.subscribe((message) => {
+  window.Module.ccall("Command_ListWADS_f", "void", ["void"], []);
+});
+
 const parseEmsText = function (text) {
   if (arguments.length > 1) {
     return Array.prototype.slice.call(arguments).join(" ");

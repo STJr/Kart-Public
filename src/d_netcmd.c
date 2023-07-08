@@ -139,7 +139,7 @@ static void Command_View_f (void);
 static void Command_SetViews_f(void);
 
 static void Command_Addfile(void);
-static void Command_ListWADS_f(void);
+extern void Command_ListWADS_f(void);
 #ifdef DELFILE
 static void Command_Delfile(void);
 #endif
@@ -4570,7 +4570,7 @@ static void Got_Addfilecmd(UINT8 **cp, INT32 playernum)
 	G_SetGameModified(true, false);
 }
 
-static void Command_ListWADS_f(void)
+extern void Command_ListWADS_f(void)
 {
 	INT32 i = numwadfiles;
 	char *tempname;

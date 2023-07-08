@@ -1,12 +1,18 @@
 port module Main exposing (..)
 
+import Addon
 import Browser
+import CommandHandler
+import Commands exposing (Command(..))
+import Commands.ListWads
+import Game exposing (Game)
 import Html exposing (Html, article, button, canvas, div, h1, h2, header, li, main_, p, progress, section, span, text, ul)
 import Html.Attributes exposing (class, classList, height, hidden, id, max, value, width)
 import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy)
 import Msg exposing (Msg(..))
 import Status exposing (Status(..))
+import Views.AddonPicker
 import Views.Button
 import Views.Help
 
@@ -15,6 +21,9 @@ port startGame : () -> Cmd msg
 
 
 port requestFullScreen : () -> Cmd msg
+
+
+port listWads : () -> Cmd msg
 
 
 port gameOutput : (String -> msg) -> Sub msg
@@ -40,6 +49,9 @@ type alias Model =
     { outputLines : List String
     , emStatus : Status
     , helpShown : Bool
+    , addonPickerShown : Bool
+    , game : Game
+    , commandState : Maybe Command
     }
 
 
@@ -48,6 +60,9 @@ init _ =
     ( { outputLines = []
       , emStatus = Status.NotStarted
       , helpShown = False
+      , addonPickerShown = False
+      , game = Game.init
+      , commandState = Maybe.Nothing
       }
     , Cmd.none
     )
@@ -72,7 +87,22 @@ update msg model =
             ( model, startGame () )
 
         GotGameOutput line ->
-            ( { model | outputLines = model.outputLines ++ [ line ] }, Cmd.none )
+            let
+                handleLineResult =
+                    Commands.handleLine line model.commandState model.game
+            in
+            case handleLineResult of
+                CommandHandler.Finished game ->
+                    ( { model | commandState = Maybe.Nothing, game = game }, Cmd.none )
+
+                CommandHandler.Pending newState ->
+                    ( { model | commandState = Just (Commands.ListWads newState) }, Cmd.none )
+
+                CommandHandler.Error ->
+                    ( model, Cmd.none )
+
+                CommandHandler.Nothing ->
+                    ( model, Cmd.none )
 
         GotStatusMessage line ->
             case Status.parse line of
@@ -93,6 +123,17 @@ update msg model =
 
         HideHelp ->
             ( { model | helpShown = False }, Cmd.none )
+
+        HideAddonPicker ->
+            ( { model | addonPickerShown = False }, Cmd.none )
+
+        ShowAddonPicker ->
+            ( { model
+                | commandState = Just (Commands.ListWads Commands.ListWads.init)
+                , addonPickerShown = True
+              }
+            , listWads ()
+            )
 
 
 
@@ -142,6 +183,7 @@ viewControls status =
             div [ class "flex gap-2" ]
                 [ Views.Button.init { text = "Fullscreen", onClick = RequestFullScreen } |> Views.Button.toHtml
                 , Views.Button.init { text = "Help", onClick = ShowHelp } |> Views.Button.toHtml
+                , Views.Button.init { text = "Addon Manager", onClick = ShowAddonPicker } |> Views.Button.toHtml
                 ]
 
         _ ->
@@ -168,10 +210,7 @@ view model =
         , viewConsole model.outputLines
         , viewControls model.emStatus
         , viewStatus model.emStatus
-        , if model.helpShown then
-            Views.Help.view
-
-          else
-            text ""
+        , Views.Help.view model.helpShown
+        , Views.AddonPicker.view model.addonPickerShown <| Game.getAddons model.game
         ]
     ]

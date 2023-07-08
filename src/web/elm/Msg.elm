@@ -8,3 +8,5 @@ type Msg
     | RequestFullScreen
     | ShowHelp
     | HideHelp
+    | ShowAddonPicker
+    | HideAddonPicker

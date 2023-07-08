@@ -1,28 +1,26 @@
 module Views.Help exposing (view)
 
-import Html exposing (Html, article, h1, h2, header, li, main_, section, span, text, ul)
+import Html exposing (Html, h2, li, section, span, text, ul)
 import Html.Attributes exposing (class)
 import Msg exposing (Msg(..))
-import Views.Button
 import Views.KeyboardCombo
+import Views.Modal
 
 
-view : Html Msg
-view =
-    article [ class "absolute min-w-fit h-1/2 overflow-auto flex items-center flex-col bg-black text-white rounded opacity-95" ]
-        [ header [ class "flex" ]
-            [ h1
-                [ class "m-5 text-xl font-bold" ]
-                [ text "Welcome to SRB2Kart WASM!" ]
-            , Views.Button.init { text = "X", onClick = HideHelp } |> Views.Button.toHtml
-            ]
-        , main_ []
+view : Bool -> Html Msg
+view isOpen =
+    Views.Modal.init
+        { header = "Welcome to SRB2Kart WASM!"
+        , content =
             [ section []
                 [ h2 [ class "text-lg mb-2" ] [ text "Controls" ]
                 , controlsView
                 ]
             ]
-        ]
+        , isOpen = isOpen
+        , onClose = HideHelp
+        }
+        |> Views.Modal.toHtml
 
 
 
