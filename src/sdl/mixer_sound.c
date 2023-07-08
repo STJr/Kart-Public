@@ -52,7 +52,6 @@
 #define GME_TREBLE 5.0f
 #define GME_BASS 1.0f
 
-#ifdef HAVE_ZLIB
 #ifndef _MSC_VER
 #ifndef _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
@@ -68,7 +67,6 @@
 #endif
 
 #include "zlib.h"
-#endif // HAVE_ZLIB
 #endif // HAVE_LIBGME
 
 UINT8 sound_started = false;
@@ -344,7 +342,6 @@ void *I_GetSfx(sfxinfo_t *sfx)
 	if (((UINT8 *)lump)[0] == 0x1F
 		&& ((UINT8 *)lump)[1] == 0x8B)
 	{
-#ifdef HAVE_ZLIB
 		UINT8 *inflatedData;
 		size_t inflatedLen;
 		z_stream stream;
@@ -394,9 +391,6 @@ void *I_GetSfx(sfxinfo_t *sfx)
 		else // Hold up, zlib's got a problem
 			CONS_Alert(CONS_ERROR,"Encountered %s when running inflateInit: %s\n", get_zlib_error(zErr), stream.msg);
 		Z_Free(inflatedData); // GME didn't open jack, but don't let that stop us from freeing this up
-#else
-		return NULL; // No zlib support
-#endif
 	}
 	// Try to read it as a GME sound
 	else if (!gme_open_data(lump, sfx->length, &emu, 44100))
@@ -892,7 +886,6 @@ boolean I_LoadSong(char *data, size_t len)
 	if ((UINT8)data[0] == 0x1F
 		&& (UINT8)data[1] == 0x8B)
 	{
-#ifdef HAVE_ZLIB
 		UINT8 *inflatedData;
 		size_t inflatedLen;
 		z_stream stream;
@@ -927,10 +920,6 @@ boolean I_LoadSong(char *data, size_t len)
 			CONS_Alert(CONS_ERROR, "Encountered %s when running inflateInit: %s\n", get_zlib_error(zErr), stream.msg);
 		Z_Free(inflatedData); // GME didn't open jack, but don't let that stop us from freeing this up
 		return false;
-#else
-		CONS_Alert(CONS_ERROR,"Cannot decompress VGZ; no zlib support\n");
-		return false;
-#endif
 	}
 	else if (!gme_open_data(data, len, &gme, 44100))
 		return true;

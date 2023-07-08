@@ -1,10 +1,14 @@
 port module Main exposing (..)
 
 import Addon
+import Base64
 import Browser
+import Bytes.Encode
 import CommandHandler
 import Commands exposing (Command(..))
 import Commands.ListWads
+import File
+import File.Select as Select
 import Game exposing (Game)
 import Html exposing (Html, article, button, canvas, div, h1, h2, header, li, main_, p, progress, section, span, text, ul)
 import Html.Attributes exposing (class, classList, height, hidden, id, max, value, width)
@@ -12,6 +16,7 @@ import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy)
 import Msg exposing (Msg(..))
 import Status exposing (Status(..))
+import Task
 import Views.AddonPicker
 import Views.Button
 import Views.Help
@@ -24,6 +29,9 @@ port requestFullScreen : () -> Cmd msg
 
 
 port listWads : () -> Cmd msg
+
+
+port addFile : ( String, String ) -> Cmd msg
 
 
 port gameOutput : (String -> msg) -> Sub msg
@@ -135,6 +143,27 @@ update msg model =
             , listWads ()
             )
 
+        AddWadFile filename ->
+            ( model, addFile ( filename, "" ) )
+
+        ClickedAddAddon ->
+            ( model, Select.file [ "application/octet-stream" ] AddonLoaded )
+
+        AddonLoaded file ->
+            ( model, Task.perform (FileBytesDecoded <| File.name file) (File.toBytes file) )
+
+        FileBytesDecoded filename bytes ->
+            let
+                base64 =
+                    Base64.fromBytes bytes
+            in
+            case base64 of
+                Just data ->
+                    ( model, addFile ( filename, data ) )
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 
 -- VIEW
@@ -184,6 +213,7 @@ viewControls status =
                 [ Views.Button.init { text = "Fullscreen", onClick = RequestFullScreen } |> Views.Button.toHtml
                 , Views.Button.init { text = "Help", onClick = ShowHelp } |> Views.Button.toHtml
                 , Views.Button.init { text = "Addon Manager", onClick = ShowAddonPicker } |> Views.Button.toHtml
+                , Views.Button.init { text = "Add Addon", onClick = ClickedAddAddon } |> Views.Button.toHtml
                 ]
 
         _ ->

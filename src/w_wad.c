@@ -11,7 +11,6 @@
 /// \file  w_wad.c
 /// \brief Handles WAD file header, directory, lump I/O
 
-#ifdef HAVE_ZLIB
 #ifndef _MSC_VER
 #ifndef _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
@@ -27,7 +26,6 @@
 #endif
 
 #include "zlib.h"
-#endif
 
 #include <emscripten.h>
 #ifdef __GNUC__
@@ -616,11 +614,9 @@ static lumpinfo_t* ResGetLumpsZip (FILE* handle, UINT16* nlmp)
 		case 0:
 			lump_p->compression = CM_NOCOMPRESSION;
 			break;
-#ifdef HAVE_ZLIB
 		case 8:
 			lump_p->compression = CM_DEFLATE;
 			break;
-#endif
 		case 14:
 			lump_p->compression = CM_LZF;
 			break;
@@ -1346,7 +1342,6 @@ boolean W_IsLumpFolder(UINT16 wad, UINT16 lump)
 	return false; // WADs don't have folders
 }
 
-#ifdef HAVE_ZLIB
 /* report a zlib or i/o error */
 void zerr(int ret)
 {
@@ -1371,7 +1366,6 @@ void zerr(int ret)
         CONS_Printf("zlib version mismatch!\n");
     }
 }
-#endif
 
 #define NO_PNG_LUMPS
 
@@ -1482,7 +1476,6 @@ size_t W_ReadLumpHeaderPwad(UINT16 wad, UINT16 lump, void *dest, size_t size, si
 #endif
 
 		}
-#ifdef HAVE_ZLIB
 	case CM_DEFLATE: // Is it compressed via DEFLATE? Very common in ZIPs/PK3s, also what most doom-related editors support.
 		{
 			UINT8 *rawData; // The lump's raw data.
@@ -1539,7 +1532,6 @@ size_t W_ReadLumpHeaderPwad(UINT16 wad, UINT16 lump, void *dest, size_t size, si
 #endif
 			return size;
 		}
-#endif
 	default:
 		I_Error("wad %d, lump %d: unsupported compression type!", wad, lump);
 	}

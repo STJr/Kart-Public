@@ -39,7 +39,7 @@
 // protos.
 //========
 static boolean COM_Exists(const char *com_name);
-static void COM_ExecuteString(char *com_text);
+extern void COM_ExecuteString(char *com_text);
 
 static void COM_Alias_f(void);
 static void COM_Echo_f(void);
@@ -545,7 +545,7 @@ const char *COM_CompleteCommand(const char *partial, INT32 skips)
   *
   * \param ptext A single line of text.
   */
-static void COM_ExecuteString(char *ptext)
+extern void COM_ExecuteString(char *ptext)
 {
 	xcommand_t *cmd;
 	cmdalias_t *a;

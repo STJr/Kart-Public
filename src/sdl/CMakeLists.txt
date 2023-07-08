@@ -3,14 +3,14 @@ set(CMAKE_SYSTEM_NAME "Linux")
 
 add_compile_options("SHELL: -s USE_SDL=2")
 add_compile_options("SHELL: -s USE_SDL_MIXER=2")
-add_compile_options("SHELL: -s EXPORTED_RUNTIME_METHODS=ccall,cwrap")
-add_compile_options("SHELL: -s EXPORTED_FUNCTIONS=_Command_ListWADS_f")
+add_compile_options("SHELL: -s USE_ZLIB=1")
 
-
+add_link_options("SHELL: -lidbfs.js")
 add_link_options("SHELL: -s EXPORTED_RUNTIME_METHODS=ccall,cwrap")
-add_link_options("SHELL: -s EXPORTED_FUNCTIONS=_main,_Command_ListWADS_f")
+add_link_options("SHELL: -s EXPORTED_FUNCTIONS=_main,_Command_ListWADS_f,_COM_ExecuteString,_P_AddWadFile")
 add_link_options("SHELL: -s ASYNCIFY")
 add_link_options("SHELL: -sUSE_SDL=2")
+add_link_options("SHELL: -sUSE_ZLIB=1")
 add_link_options("SHELL: -sUSE_SDL_MIXER=2")
 add_link_options("SHELL: -s ALLOW_MEMORY_GROWTH=1")
 add_link_options("SHELL: -s INITIAL_MEMORY=655360000")

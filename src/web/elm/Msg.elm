@@ -1,5 +1,8 @@
 module Msg exposing (Msg(..))
 
+import Bytes exposing (Bytes)
+import File exposing (File)
+
 
 type Msg
     = StartGame
@@ -10,3 +13,7 @@ type Msg
     | HideHelp
     | ShowAddonPicker
     | HideAddonPicker
+    | AddWadFile String
+    | AddonLoaded File
+    | ClickedAddAddon
+    | FileBytesDecoded String Bytes
