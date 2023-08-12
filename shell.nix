@@ -6,7 +6,8 @@ pkgs.mkShell rec {
     cmake
     emscripten
     nodejs
-    ccls
+    # ccls
+    clang-tools
     cmake-language-server
     rtags
     elmPackages.elm
@@ -14,6 +15,11 @@ pkgs.mkShell rec {
     elmPackages.elm-format
     elmPackages.elm-review
     nodePackages.prettier
+
+    # For development
+    SDL2
+    SDL_net
+    SDL2_mixer
   ];
   shellHook = ''
     export EM_CACHE=$(pwd)/.emscriptencache
