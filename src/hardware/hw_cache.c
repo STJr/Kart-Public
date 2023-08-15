@@ -479,14 +479,39 @@ void HWR_InitTextureCache(void)
 // Callback function for HWR_FreeTextureCache.
 static void FreeMipmapColormap(INT32 patchnum, void *patch)
 {
-	GLPatch_t* const grpatch = patch;
+	GLPatch_t* const pat = patch;
 	(void)patchnum; //unused
-	while (grpatch->mipmap->nextcolormap)
+	
+	// The patch must be valid, obviously
+	if (!pat)
+		return;
+
+	// The mipmap must be valid, obviously
+	while (pat->mipmap)
 	{
-		GLMipmap_t *grmip = grpatch->mipmap->nextcolormap;
-		grpatch->mipmap->nextcolormap = grmip->nextcolormap;
-		if (grmip->grInfo.data) Z_Free(grmip->grInfo.data);
-		free(grmip);
+		// Confusing at first, but pat->mipmap->nextcolormap
+		// at the beginning of the loop is the first colormap
+		// from the linked list of colormaps.
+		GLMipmap_t *next = NULL;
+
+		// No mipmap in this patch, break out of the loop.
+		if (!pat->mipmap)
+			break;
+
+		// No colormap mipmap either.
+		if (!pat->mipmap->nextcolormap)
+			break;
+
+		// Set the first colormap to the one that comes after it.
+		next = pat->mipmap->nextcolormap;
+		pat->mipmap->nextcolormap = next->nextcolormap;
+
+		// Free image data from memory.
+		if (next->grInfo.data)
+			Z_Free(next->grInfo.data);
+
+		// Free the old colormap from memory.
+		free(next);
 	}
 }
 
@@ -503,7 +528,7 @@ void HWR_FreeTextureCache(void)
 
 	// Alam: free the Z_Blocks before freeing it's users
 
-	// free all skin after each level: must be done after pfnClearMipMapCache!
+	// free all patch colormaps after each level: must be done after ClearMipMapCache!
 	for (i = 0; i < numwadfiles; i++)
 		M_AATreeIterate(wadfiles[i]->hwrcache, FreeMipmapColormap);
 
