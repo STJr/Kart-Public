@@ -1,5 +1,6 @@
 import { Elm } from "../elm/Main";
 import { Kart } from "./kart";
+import "./polyfillReadableStreamAsyncIterator";
 import "../style.css";
 
 const app = Elm.Main.init({ node: document.getElementById("main") });
