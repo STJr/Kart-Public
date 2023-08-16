@@ -12,7 +12,5 @@
       packages.x86_64-linux.wasm = srb2kart-wasm;
       packages.x86_64-linux.web = srb2kart-web;
       packages.x86_64-linux.default = srb2kart;
-
-      # devShells.x86_64-linux.default = pkgs.callPackage ./shell.nix { };
     };
 }
