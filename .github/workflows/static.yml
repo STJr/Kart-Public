@@ -33,49 +33,18 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Pages
         uses: actions/configure-pages@v3
-      
-      - name: Setup emsdk
-        uses: mymindstorm/setup-emsdk@v11
-        with:
-          # Make sure to set a version number!
-          version: 3.1.42
-          # This is the name of the cache folder.
-          # The cache folder will be placed in the build directory,
-          # so make sure it doesn't conflict with anything!
-          actions-cache-folder: 'emsdk-cache'
-          
-      - name: Get CMake
-        uses: symbitic/install-cmake@master
-        
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v22
+
       - name: Build
-        run: |
-          builddir=$(pwd)
-          wget https://github.com/STJr/Kart-Public/releases/download/v1.6/AssetsLinuxOnly.zip
+        run: nix build
 
-          mkdir assets/installer
-          pushd assets/installer
-          unzip $builddir/AssetsLinuxOnly.zip "*.kart" srb2.srb
-          popd
-
-          mkdir build
-          cd build
-
-          echo "Setting CC to $(which emcc)"
-          echo "Setting CXX to $(which emcc)"
-
-          emcmake cmake \
-            -DCMAKE_CXX_COMPILER=$(which emcc) \
-            -DCMAKE_C_COMPILER=$(which emcc) \
-            -DCMAKE_BUILD_TYPE=Release \
-            ..
-
-          emmake make -j2
-        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          # Upload entire repository
-          path: './build/bin'
+          path: "result"
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
