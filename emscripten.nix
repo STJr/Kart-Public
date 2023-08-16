@@ -1,10 +1,14 @@
 { lib, stdenv, fetchurl, fetchFromGitHub, substituteAll, cmake, curl, nasm
 , unzip, game-music-emu, libpng, SDL2, SDL2_mixer, zlib, buildEmscriptenPackage
-, libelf, emscripten, openssl, emscriptenPackages, libogg, emscriptenStdenv }:
+, libelf, openssl, emscripten, emscriptenPackages, libogg, emscriptenStdenv
+, breakpointHook, debug ? true }:
 
 let
 
   release_tag = "v1.6";
+
+  patchedEmscripten = emscripten.overrideAttrs
+    (prev: { patches = prev.patches ++ [ ./add_nix_local_ports.patch ]; });
 
   assets = fetchurl {
     url =
@@ -13,8 +17,8 @@ let
   };
 
   sdl2Port = fetchurl {
-    url = "https://github.com/libsdl-org/SDL/archive/release-2.28.1.zip";
-    sha256 = "sha256-FKwMsBatjzIqSA9p/ng6WrCnyAJTQpVHJZ7MNV/Kp0c=";
+    url = "https://github.com/libsdl-org/SDL/archive/release-2.24.2.zip";
+    sha256 = "sha256-3DPf2yTCi3V/MjReqOymemAwydywhK6MeLwnoh5zeto=";
   };
 
   zlibPort = fetchurl {
@@ -22,121 +26,72 @@ let
     sha256 = "sha256-FSWVKgpWdYF5JhOpcjMz1/jMILh6gfkg+4vH4/IlFCg=";
   };
 
+  oggPort = fetchurl {
+    url = "https://github.com/emscripten-ports/ogg/archive/version_1.zip";
+    sha256 = "sha256-IvWZu+YGX/mPxWXy22Zl2lSBgc+QmCuJ/cQtg/vGNws=";
+  };
+
+  vorbisPort = fetchurl {
+    url = "https://github.com/emscripten-ports/vorbis/archive/version_1.zip";
+    sha256 = "sha256-snyqUYYgCLEJyxN18DnXb2ItYOpzrTCOG1oJh0Vp/n4=";
+  };
+
+  sdl2MixerPort = fetchurl {
+    url = "https://github.com/libsdl-org/SDL_mixer/archive/release-2.0.4.zip";
+    sha256 = "sha256-4Ajep3iVJ89tEz+DiZfTL/t2E3W/pCUCspkUUa7TxFg=";
+  };
+
 in stdenv.mkDerivation rec {
-  pname = "srb2kart";
+  pname = "srb2kart-wasm";
   version = "1.6.0";
 
   src = ./.;
 
-  nativeBuildInputs = [ cmake nasm unzip emscripten ];
+  nativeBuildInputs = [ cmake nasm unzip patchedEmscripten ];
 
-  buildInputs = [
-    curl
-    game-music-emu
-    libpng
-    SDL2
-    SDL2_mixer
-    emscriptenPackages.zlib
-    libogg
-  ];
+  buildInputs = [ curl emscriptenPackages.zlib libogg ];
 
   cmakeFlags = [
-    "-DGME_INCLUDE_DIR=${game-music-emu}/include"
-    # "-DGME_LIBRARY=${game-music-emu}/lib/libgme.so"
-    "-DPNG_PNG_INCLUDE_DIR=${lib.getDev libpng}/include"
-    # "-DPNG_LIBRARY=${lib.getDev libpng}"
-    "-DSDL2_MIXER_INCLUDE_DIR=${lib.getDev SDL2_mixer}/include/SDL2"
-    "-DSDL2_INCLUDE_DIR=${lib.getDev SDL2}/include/SDL2"
-    # "-DSDL2_LIBRARY=${lib.getDev SDL2}"
-    "-DCURL_INCLUDE_DIR=${lib.getDev curl}/include"
-    # "-DCURL_LIBRARY=${lib.getDev curl}"
-    "-DZLIB_INCLUDE_DIR=${lib.getDev emscriptenPackages.zlib}/include"
-    "-DLIBELF_INCLUDE_DIR=${lib.getDev libelf}/include"
-    "-DLIBELF_INCLUDE_DIRS=${lib.getDev libelf}/include"
-    # "-DZLIB_LIBRARY=${lib.getDev zlib}"
-    "-DLINUX64=1"
-    "-DMACOSX=0"
     "-DCMAKE_INSTALL_PREFIX=$out"
+    "-DCMAKE_BUILD_TYPE=${if debug then "Debug" else "Release"}"
+    "-DCMAKE_C_COMPILER=${patchedEmscripten}/bin/emcc"
   ];
 
-  patches = [ ./wadlocation.patch ];
+  dontStrip = debug;
+
+  NIX_LOCAL_PORTS =
+    "zlib=${zlibPort},sdl2=${sdl2Port},ogg=${oggPort},vorbis=${vorbisPort},sdl2_mixer=${sdl2MixerPort}";
 
   configurePhase = ''
-    # FIXME: Some tests require writing at $HOME
-    HOME=$TMPDIR
-    export LINUX=1
-    BUILDDIR=$(pwd)
-
-    echo $SSL_CERT_FILE
-    # export SSL_CERT_FILE="/etc/ssl/certs/ca-bundle.crt"
-    unset SSL_CERT_FILE
-    echo $SSL_CERT_FILE
-
-    echo $SSL_CERT_DIR
-    unset $SSL_CERT_DIR
-    echo $SSL_CERT_DIR
-
-    export SSL_CERT_FILE="/etc/ssl/certs/ca-bundle.crt"
-    export SSL_CERT_DIR="/etc/ssl/certs"
-
-    mkdir -p .emscriptencache
-    export EM_CACHE=$(pwd)/.emscriptencache
-
-    echo "LSING ports"
-    # ls -la ports/zlib-1.2.13
-    # ls -la $SSL_CERT_FILE
-
-    export CC="${emscripten}/bin/emcc"
-    export CXX="${emscripten}/bin/emcc"
     runHook preConfigure
 
+    SRCDIR=$(pwd)
+
     mkdir -p $out
-    cd $out
 
-    echo "$CC"
-    echo "$CXX"
-    emcmake cmake ${toString cmakeFlags} "$BUILDDIR"
+    export EM_CACHE=$(pwd)/.emscriptencache
+    mkdir -p $EM_CACHE
 
+    mkdir build
+    pushd build
+    emcmake cmake ${toString cmakeFlags} "$SRCDIR"
 
     runHook postConfigure
   '';
 
-  postPatch = ''
-    substituteInPlace src/sdl/i_system.c \
-        --replace '@wadlocation@' $out
-  '';
-
   preConfigure = ''
-    mkdir ports
-    pushd ports
-    unzip ${sdl2Port}
-    tar xzfv ${zlibPort}
-    popd
-
-    mkdir assets/installer
+    mkdir -p assets/installer
     pushd assets/installer
     unzip ${assets} "*.kart" srb2.srb
     popd
   '';
 
   buildPhase = ''
-    export SSL_CERT_FILE="/etc/ssl/certs/ca-bundle.crt"
-    export SSL_CERT_DIR="/etc/ssl/certs"
-
     emmake make
   '';
 
   installPhase = ''
     emmake make install
-  '';
-
-  postInstall = ''
-    mkdir -p $out/bin $out/share/games/SRB2Kart
-
-    ls -la $out/bin
-
-    # mv $out/srb2kart* $out/bin/
-    mv $out/*.kart $out/share/games/SRB2Kart
   '';
 
   checkPhase = "";

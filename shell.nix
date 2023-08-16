@@ -20,6 +20,19 @@ pkgs.mkShell rec {
     SDL2
     SDL_net
     SDL2_mixer
+    (python38.withPackages (ps:
+      with ps; [
+        websockets
+        (buildPythonPackage rec {
+          pname = "asyncudp";
+          version = "0.11.0";
+          src = fetchPypi {
+            inherit pname version;
+            sha256 = "sha256-yKtkWfTcjrxC9AHTvXLCpsaAjRDkIjHzngxDOsZGq/k=";
+          };
+          doCheck = false;
+        })
+      ]))
   ];
   shellHook = ''
     export EM_CACHE=$(pwd)/.emscriptencache

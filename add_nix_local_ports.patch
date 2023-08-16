@@ -1,0 +1,27 @@
+diff --git a/tools/ports/__init__.py b/tools/ports/__init__.py
+index b6bb3ed7a..e888e24ad 100644
+--- a/tools/ports/__init__.py
++++ b/tools/ports/__init__.py
+@@ -251,15 +251,13 @@ class Ports:
+ 
+     def retrieve():
+       # retrieve from remote server
+-      logger.info(f'retrieving port: {name} from {url}')
+-      try:
+-        import requests
+-        response = requests.get(url)
+-        data = response.content
+-      except ImportError:
+-        from urllib.request import urlopen
+-        f = urlopen(url)
+-        data = f.read()
++      ports = os.environ.get('NIX_LOCAL_PORTS')
++      local_ports = [pair.split('=', 1) for pair in ports.split(',')]
++      local_name, local_path = next(filter(lambda x: x[0] == name, local_ports))
++
++      logger.info(f'retrieving port: {local_name} from {local_path}')
++      f = open(local_path, "rb")
++      data = f.read()
+ 
+       if sha512hash:
+         actual_hash = hashlib.sha512(data).hexdigest()

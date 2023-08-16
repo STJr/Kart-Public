@@ -3,9 +3,7 @@ set(CMAKE_SYSTEM_NAME "Linux")
 
 add_compile_options("SHELL: -s USE_SDL=2")
 add_compile_options("SHELL: -s USE_SDL_MIXER=2")
-add_compile_options("SHELL: -s USE_SDL_NET=2")
 add_compile_options("SHELL: -s USE_ZLIB=1")
-add_compile_options("SHELL: -g3")
 
 add_link_options("SHELL: -lidbfs.js")
 add_link_options("SHELL: -s EXPORTED_RUNTIME_METHODS=ccall,cwrap")
@@ -18,12 +16,16 @@ add_link_options("SHELL: -lwebsocket.js")
 add_link_options("SHELL: -s ALLOW_MEMORY_GROWTH=1")
 add_link_options("SHELL: -s INITIAL_MEMORY=655360000")
 add_link_options("SHELL: -s STACK_SIZE=65536000")
-add_link_options("SHELL: -g3")
 add_link_options("--preload-file=${CMAKE_BINARY_DIR}/assets/out@/")
 add_link_options("SHELL: --use-preload-plugins")
 
 if("${CMAKE_BUILD_TYPE}" EQUAL "Release")
 	add_compile_options("SHELL: -O3")
+endif()
+
+if("${CMAKE_BUILD_TYPE}" EQUAL "Debug")
+	add_link_options("SHELL: -g3")
+	add_compile_options("SHELL: -g3")
 endif()
 
 set(SRB2_SDL2_SOURCES
@@ -91,7 +93,7 @@ if(${SRB2_CONFIG_HWRENDER})
 	source_group("Hardware\\OpenGL Renderer" FILES ${SRB2_R_OPENGL_SOURCES} ${SRB2_R_OPENGL_HEADERS})
 endif()
 
-add_executable(SRB2SDL2 MACOSX_BUNDLE WIN32 ${SRB2_SDL2_TOTAL_SOURCES})
+add_executable(SRB2SDL2 ${SRB2_SDL2_TOTAL_SOURCES})
 set_target_properties(SRB2SDL2 PROPERTIES OUTPUT_NAME ${SRB2_SDL2_EXE_NAME} SUFFIX ".js")
 
 target_link_libraries(SRB2SDL2 PRIVATE
@@ -135,8 +137,13 @@ target_compile_definitions(SRB2SDL2 PRIVATE
 
 
 #### Installation ####
-install(TARGETS SRB2SDL2 SRB2SDL2
-	RUNTIME DESTINATION .
-)
+# install(TARGETS SRB2SDL2 SRB2SDL2
+# 	RUNTIME DESTINATION .
+# )
+install(FILES
+	"$<TARGET_FILE_DIR:SRB2SDL2>/${SRB2_SDL2_EXE_NAME}.js"
+	"$<TARGET_FILE_DIR:SRB2SDL2>/${SRB2_SDL2_EXE_NAME}.wasm"
+	"$<TARGET_FILE_DIR:SRB2SDL2>/${SRB2_SDL2_EXE_NAME}.data"
+	DESTINATION .)
 
 set(SRB2_SDL2_AVAILABLE YES PARENT_SCOPE)
