@@ -220,7 +220,7 @@ Windows x86:
     - - |
           # make
           echo -e "\e[0Ksection_start:`date +%s`:make[collapsed=false]\r\e[0KCompiling SRB2"
-      - make --directory=src --keep-going CCACHE=1 ERRORMODE=1 MINGW=1 || make --directory=src --keep-going CCACHE=1 ERRORMODE=1 MINGW=1
+      - make --directory=src --keep-going CCACHE=1 ERRORMODE=1 MINGW=1 SDL=1 || make --directory=src --keep-going CCACHE=1 ERRORMODE=1 MINGW=1 SDL=1
       - |
           # make
           echo -e "\e[0Ksection_end:`date +%s`:make\r\e[0K"
@@ -373,7 +373,7 @@ Windows x64:
     - - |
           # make
           echo -e "\e[0Ksection_start:`date +%s`:make[collapsed=false]\r\e[0KCompiling SRB2"
-      - make --directory=src --keep-going CCACHE=1 ERRORMODE=1 MINGW64=1 || make --directory=src --keep-going CCACHE=1 ERRORMODE=1 MINGW64=1
+      - make --directory=src --keep-going CCACHE=1 ERRORMODE=1 MINGW64=1 SDL=1 || make --directory=src --keep-going CCACHE=1 ERRORMODE=1 MINGW64=1 SDL=1
       - |
           # make
           echo -e "\e[0Ksection_end:`date +%s`:make\r\e[0K"
