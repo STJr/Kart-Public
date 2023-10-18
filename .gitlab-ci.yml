@@ -96,7 +96,7 @@ variables:
     - - |
           # apt_common
           echo -e "\e[0Ksection_start:`date +%s`:apt_common[collapsed=true]\r\e[0KInstalling common packages"
-      - apt-get install make git ccache
+      - apt-get install make git ccache nasm
       - |
           # apt_common
           echo -e "\e[0Ksection_end:`date +%s`:apt_common\r\e[0K"
