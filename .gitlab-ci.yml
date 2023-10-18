@@ -392,7 +392,7 @@ Debian stable Clang:
 
   variables:
     CC: clang
-    CFLAGS: -Wno-cast-align
+    WFLAGS: -Wno-cast-align
 
   script:
     - - |
@@ -433,4 +433,4 @@ Debian testing Clang:
 
   variables:
     CC: clang
-    CFLAGS: -Wno-cast-align -Wno-deprecated-non-prototype
+    WFLAGS: -Wno-cast-align -Wno-deprecated-non-prototype
