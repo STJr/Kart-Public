@@ -8085,6 +8085,7 @@ boolean P_SpectatorJoinGame(player_t *player)
 		
 		//center camera if its not already
 		if ((P_IsLocalPlayer(player)) && localaiming[0] != 0)
+			localaiming[0] = 0;
 
 		//Reset away view
 		if (P_IsLocalPlayer(player) && displayplayers[0] != consoleplayer)
