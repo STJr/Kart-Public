@@ -733,7 +733,7 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 
 	if (pfloor->master->flags & ML_TFERLINE)
 	{
-		size_t linenum = curline->linedef-backsector->lines[0];
+		size_t linenum = min(curline->linedef-backsector->lines[0], pfloor->master->frontsector->linecount);
 		newline = pfloor->master->frontsector->lines[0] + linenum;
 		texnum = R_GetTextureNum(sides[newline->sidenum[0]].midtexture);
 	}
