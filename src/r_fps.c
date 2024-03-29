@@ -23,6 +23,10 @@
 #include "z_zone.h"
 #include "console.h" // con_startup_loadprogress
 
+#ifdef HWRENDER
+#include "hardware/hw_main.h" // for cv_grshearing
+#endif
+
 static CV_PossibleValue_t fpscap_cons_t[] = {
 #ifdef DEVELOP
 	// Lower values are actually pretty useful for debugging interp problems!
@@ -119,7 +123,11 @@ static void R_SetupFreelook(player_t *player, boolean skybox)
 
 	// clip it in the case we are looking a hardware 90 degrees full aiming
 	// (lmps, network and use F12...)
-	if (rendermode == render_soft)
+	if (rendermode == render_soft
+#ifdef HWRENDER
+	|| (rendermode == render_opengl && cv_grshearing.value)
+#endif
+	)
 	{
 		G_SoftwareClipAimingPitch((INT32 *)&aimingangle);
 	}
