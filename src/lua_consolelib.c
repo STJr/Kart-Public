@@ -382,7 +382,7 @@ static int lib_cvRegisterVar(lua_State *L)
 				cvar->PossibleValue = cvpv;
 			} else
 				FIELDERROR("PossibleValue", va("%s or CV_PossibleValue_t expected, got %s", lua_typename(L, LUA_TTABLE), luaL_typename(L, -1)))
-		} else if (cvar->flags & CV_CALL && (i == 5 || (k && fasticmp(k, "func")))) {
+		} else if ((i == 5 || (k && fasticmp(k, "func")))) {
 			if (!lua_isfunction(L, 4))
 				TYPEERROR("func", LUA_TFUNCTION)
 			lua_getfield(L, LUA_REGISTRYINDEX, "CV_OnChange");
