@@ -829,6 +829,10 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 //
 boolean P_PlayerInPain(player_t *player)
 {
+	// If the player doesn't have a mobj, it can't be in pain.
+	if (!player->mo)
+		return false;
+
 	// no silly, sliding isn't pain
 	if (!(player->pflags & PF_SLIDING) && player->mo->state == &states[player->mo->info->painstate] && player->powers[pw_flashing])
 		return true;
