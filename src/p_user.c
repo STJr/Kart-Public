@@ -8054,10 +8054,16 @@ boolean P_SpectatorJoinGame(player_t *player)
 		player->kartstuff[k_spectatewait] = 0;
 		player->ctfteam = changeto;
 		player->playerstate = PST_REBORN;
-		
+
 		//center camera if its not already
-		if ((P_IsLocalPlayer(player)) && localaiming[0] != 0)
+		if ((P_IsLocalPlayer(player)) && player == &players[consoleplayer] && localaiming[0] != 0)
 			localaiming[0] = 0;
+		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[1]] && localaiming[1] != 0)
+			localaiming[1] = 0;
+		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[2]] && localaiming[2] != 0)
+			localaiming[2] = 0;
+		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[3]] && localaiming[3] != 0)
+			localaiming[3] = 0;
 
 		//Reset away view
 		if (P_IsLocalPlayer(player) && displayplayers[0] != consoleplayer)
@@ -8082,10 +8088,16 @@ boolean P_SpectatorJoinGame(player_t *player)
 		player->pflags &= ~PF_WANTSTOJOIN;
 		player->kartstuff[k_spectatewait] = 0;
 		player->playerstate = PST_REBORN;
-		
+
 		//center camera if its not already
-		if ((P_IsLocalPlayer(player)) && localaiming[0] != 0)
+		if ((P_IsLocalPlayer(player)) && player == &players[consoleplayer] && localaiming[0] != 0)
 			localaiming[0] = 0;
+		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[1]] && localaiming[1] != 0)
+			localaiming[1] = 0;
+		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[2]] && localaiming[2] != 0)
+			localaiming[2] = 0;
+		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[3]] && localaiming[3] != 0)
+			localaiming[3] = 0;
 
 		//Reset away view
 		if (P_IsLocalPlayer(player) && displayplayers[0] != consoleplayer)
