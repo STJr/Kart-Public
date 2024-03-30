@@ -8005,6 +8005,18 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	return (x == thiscam->x && y == thiscam->y && z == thiscam->z && angle == thiscam->aiming);
 }
 
+void P_ResetLocalCamAiming(player_t *player)
+{
+	for (int i = 0; i <= splitscreen; i++)
+	{
+		UINT8 id = (i == 0) ? consoleplayer : displayplayers[i];
+		if (player - players == id)
+		{
+			localaiming[i] = 0;
+		}
+	}
+}
+
 boolean P_SpectatorJoinGame(player_t *player)
 {
 	// Team changing isn't allowed.
@@ -8055,15 +8067,8 @@ boolean P_SpectatorJoinGame(player_t *player)
 		player->ctfteam = changeto;
 		player->playerstate = PST_REBORN;
 
-		//center camera if its not already
-		if ((P_IsLocalPlayer(player)) && player == &players[consoleplayer] && localaiming[0] != 0)
-			localaiming[0] = 0;
-		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[1]] && localaiming[1] != 0)
-			localaiming[1] = 0;
-		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[2]] && localaiming[2] != 0)
-			localaiming[2] = 0;
-		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[3]] && localaiming[3] != 0)
-			localaiming[3] = 0;
+		//center camera
+		P_ResetLocalCamAiming(player);
 
 		//Reset away view
 		if (P_IsLocalPlayer(player) && displayplayers[0] != consoleplayer)
@@ -8089,15 +8094,8 @@ boolean P_SpectatorJoinGame(player_t *player)
 		player->kartstuff[k_spectatewait] = 0;
 		player->playerstate = PST_REBORN;
 
-		//center camera if its not already
-		if ((P_IsLocalPlayer(player)) && player == &players[consoleplayer] && localaiming[0] != 0)
-			localaiming[0] = 0;
-		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[1]] && localaiming[1] != 0)
-			localaiming[1] = 0;
-		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[2]] && localaiming[2] != 0)
-			localaiming[2] = 0;
-		else if ((P_IsLocalPlayer(player)) && player == &players[displayplayers[3]] && localaiming[3] != 0)
-			localaiming[3] = 0;
+		//center camera
+		P_ResetLocalCamAiming(player);
 
 		//Reset away view
 		if (P_IsLocalPlayer(player) && displayplayers[0] != consoleplayer)
