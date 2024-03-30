@@ -1116,6 +1116,10 @@ void HU_Ticker(void)
 	}
 
 	if (cechotimer > 0) --cechotimer;
+	
+	// Animate the desynch dots
+	if (hu_resynching)
+		resynch_ticker++;	//tic tic tic tic tic	
 
 	HU_TickSongCredits();
 }
