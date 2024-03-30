@@ -1464,7 +1464,7 @@ void Command_Ping_f(void)
 
 	if (!server && playeringame[consoleplayer])
 	{
-		CONS_Printf("\nYour ping is %d frames (%d ms)\n", playerpingtable[consoleplayer], (INT32)(playerpingtable[i] * (1000.00f / TICRATE)));
+		CONS_Printf("\nYour ping is %d frames (%d ms)\n", playerpingtable[consoleplayer], (INT32)(playerpingtable[consoleplayer] * (1000.00f / TICRATE)));
 	}
 }
 
