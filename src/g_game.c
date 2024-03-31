@@ -1503,22 +1503,20 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		{
 			cmd->buttons |= BT_ACCELERATE;
 			// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
-			forward += ((axis * forwardmove[1]) >> 10)*2;
+			forward += ((axis * forwardmove[1]) / (JOYAXISRANGE-1));
 		}
 
 		axis = JoyAxis(AXISBRAKE, ssplayer);
 		if (InputDown(gc_brake, ssplayer) || (gamepadjoystickmove && axis > 0))
 		{
 			cmd->buttons |= BT_BRAKE;
-			if (cmd->buttons & BT_ACCELERATE || cmd->forwardmove <= 0)
-				forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
+			forward -= forwardmove[0];	// 25 - Halved value so clutching is possible
 		}
 		else if (analogjoystickmove && axis > 0)
 		{
 			cmd->buttons |= BT_BRAKE;
 			// JOYAXISRANGE is supposed to be 1023 (divide by 1024)
-			if (cmd->buttons & BT_ACCELERATE || cmd->forwardmove <= 0)
-				forward -= ((axis * forwardmove[0]) >> 10);
+			forward -= ((axis * forwardmove[0]) / (JOYAXISRANGE-1));
 		}
 
 		// But forward/backward IS used for aiming.
@@ -6747,7 +6745,11 @@ void G_BeginRecording(void)
 
 	// Full replay title
 	demo_p += 64;
-	snprintf(demo.titlename, 64, "%s - %s", G_BuildMapTitle(gamemap), modeattacking ? "Time Attack" : connectedservername);
+	{
+		char *title = G_BuildMapTitle(gamemap);
+		snprintf(demo.titlename, 64, "%s - %s", title, modeattacking ? "Time Attack" : connectedservername);
+		Z_Free(title);
+	}
 
 	// demo checksum
 	demo_p += 16;

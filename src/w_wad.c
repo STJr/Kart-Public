@@ -1862,7 +1862,7 @@ static int W_VerifyWAD(FILE *fp, lumpchecklist_t *checklist, boolean status)
 			continue;
 
 		for (j = 0; j < NUMSPRITES; j++)
-			if (sprnames[j] && !strncmp(lumpinfo.name, sprnames[j], 4)) // Sprites
+			if (!strncmp(lumpinfo.name, sprnames[j], 4)) // Sprites
 				continue;
 
 		if (! W_VerifyName(lumpinfo.name, checklist, status))

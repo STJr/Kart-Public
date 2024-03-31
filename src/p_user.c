@@ -829,6 +829,10 @@ void P_NightserizePlayer(player_t *player, INT32 nighttime)
 //
 boolean P_PlayerInPain(player_t *player)
 {
+	// If the player doesn't have a mobj, it can't be in pain.
+	if (!player->mo)
+		return false;
+
 	// no silly, sliding isn't pain
 	if (!(player->pflags & PF_SLIDING) && player->mo->state == &states[player->mo->info->painstate] && player->powers[pw_flashing])
 		return true;
@@ -8005,6 +8009,18 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 	return (x == thiscam->x && y == thiscam->y && z == thiscam->z && angle == thiscam->aiming);
 }
 
+void P_ResetLocalCamAiming(player_t *player)
+{
+	for (int i = 0; i <= splitscreen; i++)
+	{
+		UINT8 id = (i == 0) ? consoleplayer : displayplayers[i];
+		if (player - players == id)
+		{
+			localaiming[i] = 0;
+		}
+	}
+}
+
 boolean P_SpectatorJoinGame(player_t *player)
 {
 	// Team changing isn't allowed.
@@ -8055,6 +8071,9 @@ boolean P_SpectatorJoinGame(player_t *player)
 		player->ctfteam = changeto;
 		player->playerstate = PST_REBORN;
 
+		//center camera
+		P_ResetLocalCamAiming(player);
+
 		//Reset away view
 		if (P_IsLocalPlayer(player) && displayplayers[0] != consoleplayer)
 			displayplayers[0] = consoleplayer;
@@ -8078,6 +8097,9 @@ boolean P_SpectatorJoinGame(player_t *player)
 		player->pflags &= ~PF_WANTSTOJOIN;
 		player->kartstuff[k_spectatewait] = 0;
 		player->playerstate = PST_REBORN;
+
+		//center camera
+		P_ResetLocalCamAiming(player);
 
 		//Reset away view
 		if (P_IsLocalPlayer(player) && displayplayers[0] != consoleplayer)

@@ -11,7 +11,7 @@
 
 /* https://tools.ietf.org/html/rfc5389 */
 
-#if defined (__linux__)
+#if defined (__unix__)
 #include <sys/random.h>
 #elif defined (_WIN32)
 #define _CRT_RAND_S

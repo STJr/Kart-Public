@@ -263,6 +263,9 @@ boolean P_SetMobjState(mobj_t *mobj, statenum_t state)
 		I_Error("P_SetMobjState used for player mobj. Use P_SetPlayerMobjState instead!\n(State called: %d)", state);
 #endif
 
+	if (mobj->player != NULL)
+		return P_SetPlayerMobjState(mobj, state);
+
 	if (recursion++) // if recursion detected,
 		memset(seenstate = tempstate, 0, sizeof tempstate); // clear state table
 
@@ -590,29 +593,41 @@ void P_ExplodeMissile(mobj_t *mo)
 		P_RadiusAttack(mo, mo, 96*FRACUNIT);
 
 		explodemo = P_SpawnMobj(mo->x, mo->y, mo->z, MT_EXPLODE);
-		P_SetScale(explodemo, mo->scale);
-		explodemo->destscale = mo->destscale;
-		explodemo->momx += (P_RandomByte() % 32) * FixedMul(FRACUNIT/8, explodemo->scale);
-		explodemo->momy += (P_RandomByte() % 32) * FixedMul(FRACUNIT/8, explodemo->scale);
-		S_StartSound(explodemo, sfx_pop);
+		if (!P_MobjWasRemoved(explodemo))
+		{
+			P_SetScale(explodemo, mo->scale);
+			explodemo->destscale = mo->destscale;
+			explodemo->momx += (P_RandomByte() % 32) * FixedMul(FRACUNIT/8, explodemo->scale);
+			explodemo->momy += (P_RandomByte() % 32) * FixedMul(FRACUNIT/8, explodemo->scale);
+			S_StartSound(explodemo, sfx_pop);
+		}
 		explodemo = P_SpawnMobj(mo->x, mo->y, mo->z, MT_EXPLODE);
-		P_SetScale(explodemo, mo->scale);
-		explodemo->destscale = mo->destscale;
-		explodemo->momx += (P_RandomByte() % 64) * FixedMul(FRACUNIT/8, explodemo->scale);
-		explodemo->momy -= (P_RandomByte() % 64) * FixedMul(FRACUNIT/8, explodemo->scale);
-		S_StartSound(explodemo, sfx_dmpain);
+		if (!P_MobjWasRemoved(explodemo))
+		{
+			P_SetScale(explodemo, mo->scale);
+			explodemo->destscale = mo->destscale;
+			explodemo->momx += (P_RandomByte() % 64) * FixedMul(FRACUNIT/8, explodemo->scale);
+			explodemo->momy -= (P_RandomByte() % 64) * FixedMul(FRACUNIT/8, explodemo->scale);
+			S_StartSound(explodemo, sfx_dmpain);
+		}
 		explodemo = P_SpawnMobj(mo->x, mo->y, mo->z, MT_EXPLODE);
-		P_SetScale(explodemo, mo->scale);
-		explodemo->destscale = mo->destscale;
-		explodemo->momx -= (P_RandomByte() % 128) * FixedMul(FRACUNIT/8, explodemo->scale);
-		explodemo->momy += (P_RandomByte() % 128) * FixedMul(FRACUNIT/8, explodemo->scale);
-		S_StartSound(explodemo, sfx_pop);
+		if (!P_MobjWasRemoved(explodemo))
+		{
+			P_SetScale(explodemo, mo->scale);
+			explodemo->destscale = mo->destscale;
+			explodemo->momx -= (P_RandomByte() % 128) * FixedMul(FRACUNIT/8, explodemo->scale);
+			explodemo->momy += (P_RandomByte() % 128) * FixedMul(FRACUNIT/8, explodemo->scale);
+			S_StartSound(explodemo, sfx_pop);
+		}
 		explodemo = P_SpawnMobj(mo->x, mo->y, mo->z, MT_EXPLODE);
-		P_SetScale(explodemo, mo->scale);
-		explodemo->destscale = mo->destscale;
-		explodemo->momx -= (P_RandomByte() % 96) * FixedMul(FRACUNIT/8, explodemo->scale);
-		explodemo->momy -= (P_RandomByte() % 96) * FixedMul(FRACUNIT/8, explodemo->scale);
-		S_StartSound(explodemo, sfx_cybdth);
+		if (!P_MobjWasRemoved(explodemo))
+		{
+			P_SetScale(explodemo, mo->scale);
+			explodemo->destscale = mo->destscale;
+			explodemo->momx -= (P_RandomByte() % 96) * FixedMul(FRACUNIT/8, explodemo->scale);
+			explodemo->momy -= (P_RandomByte() % 96) * FixedMul(FRACUNIT/8, explodemo->scale);
+			S_StartSound(explodemo, sfx_cybdth);
+		}
 
 		// Hack: Release an animal.
 		P_DamageMobj(mo, NULL, NULL, 10000);
@@ -3583,6 +3598,9 @@ static void P_PlayerMobjThinker(mobj_t *mobj)
 	I_Assert(mobj != NULL);
 	I_Assert(mobj->player != NULL);
 	I_Assert(!P_MobjWasRemoved(mobj));
+
+	if (P_MobjWasRemoved(mobj))
+		return;
 
 	P_MobjCheckWater(mobj);
 
@@ -7051,6 +7069,9 @@ void P_MobjThinker(mobj_t *mobj)
 	// separate thinker
 	if (mobj->flags & MF_PUSHABLE || (mobj->info->flags & MF_PUSHABLE && mobj->fuse))
 	{
+		if (P_MobjWasRemoved(mobj))
+			return;
+
 		P_MobjCheckWater(mobj);
 		P_PushableThinker(mobj);
 
@@ -10235,6 +10256,10 @@ void P_RemoveMobj(mobj_t *mobj)
 		}
 	}
 
+	// clear the reference from the mapthing
+	if (mobj->spawnpoint)
+		mobj->spawnpoint->mobj = NULL;
+
 	// free block
 	// DBG: set everything in mobj_t to 0xFF instead of leaving it. debug memory error.
 	if (mobj->flags & MF_NOTHINK && !mobj->thinker.next)
@@ -10751,6 +10776,7 @@ void P_SpawnPlayer(INT32 playernum)
 	}
 
 	mobj = P_SpawnMobj(0, 0, 0, MT_PLAYER);
+	I_Assert(mobj != NULL);
 	(mobj->player = p)->mo = mobj;
 
 	mobj->angle = 0;
@@ -11363,6 +11389,13 @@ void P_SpawnMapThing(mapthing_t *mthing)
 	}
 
 	mobj = P_SpawnMobj(x, y, z, i);
+
+	if (!mobj || P_MobjWasRemoved(mobj))
+	{
+		CONS_Alert(CONS_WARNING, "Failed to spawn map thing #%d at %d, %d\n", mthing->type, x>>FRACBITS, y>>FRACBITS);
+		return;
+	}
+
 	mobj->spawnpoint = mthing;
 
 	switch(mobj->type)

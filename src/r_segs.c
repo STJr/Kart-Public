@@ -681,7 +681,7 @@ static void R_DrawRepeatMaskedColumn(column_t *col)
 {
 	while (sprtopscreen < sprbotscreen) {
 		R_DrawMaskedColumn(col);
-		if ((INT64)sprtopscreen + dc_texheight*spryscale > (INT64)INT32_MAX) // prevent overflow
+		if (sprtopscreen + (INT64)dc_texheight*spryscale > (INT64)INT32_MAX) // prevent overflow
 			sprtopscreen = INT32_MAX;
 		else
 			sprtopscreen += dc_texheight*spryscale;
@@ -733,7 +733,7 @@ void R_RenderThickSideRange(drawseg_t *ds, INT32 x1, INT32 x2, ffloor_t *pfloor)
 
 	if (pfloor->master->flags & ML_TFERLINE)
 	{
-		size_t linenum = curline->linedef-backsector->lines[0];
+		size_t linenum = min((size_t)(curline->linedef-backsector->lines[0]), pfloor->master->frontsector->linecount);
 		newline = pfloor->master->frontsector->lines[0] + linenum;
 		texnum = R_GetTextureNum(sides[newline->sidenum[0]].midtexture);
 	}
