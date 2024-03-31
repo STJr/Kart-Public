@@ -8312,7 +8312,9 @@ static void M_EraseGuest(INT32 choice)
 	/*if (currentMenu == &SP_NightsGuestReplayDef)
 		M_SetupNextMenu(&SP_NightsAttackDef);
 	else*/
+	{
 		M_SetupNextMenu(&SP_TimeAttackDef);
+	}
 	CV_AddValue(&cv_nextmap, -1);
 	CV_AddValue(&cv_nextmap, 1);
 	M_StartMessage(M_GetText("Guest replay data erased.\n"),NULL,MM_NOTHING);

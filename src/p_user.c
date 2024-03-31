@@ -2309,7 +2309,9 @@ static void P_CheckInvincibilityTimer(player_t *player)
 		return;
 
 	//if (mariomode && !player->powers[pw_super]) // SRB2kart
+	{
 		player->mo->color = (UINT8)(1 + (leveltime % (MAXSKINCOLORS-1)));
+	}
 	/*if (leveltime % (TICRATE/7) == 0)
 	{
 		mobj_t *sparkle = P_SpawnMobj(player->mo->x, player->mo->y, player->mo->z, MT_IVSP);

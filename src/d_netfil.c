@@ -72,7 +72,12 @@ static boolean SV_SendFile(INT32 node, const char *filename, UINT8 fileid);
 
 #ifdef HAVE_CURL
 size_t curlwrite_data(void *ptr, size_t size, size_t nmemb, FILE *stream);
+#if defined(CURL_AT_LEAST_VERSION) && CURL_AT_LEAST_VERSION(7, 35, 0)
+int curlprogress_callbackx(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
+#define XFERINFOFUNCTION
+#else
 int curlprogress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow);
+#endif
 #endif
 
 // Sender structure
@@ -489,7 +494,6 @@ INT32 CL_CheckFiles(void)
 {
 	INT32 i, j;
 	char wadfilename[MAX_WADPATH];
-	size_t packetsize = 0;
 	size_t filestoload = 0;
 	boolean downloadrequired = false;
 
@@ -560,8 +564,6 @@ INT32 CL_CheckFiles(void)
 				return 4;
 			}
 		}
-
-		packetsize += nameonlylength(fileneeded[i].filename) + 22;
 
 		fileneeded[i].status = findfile(fileneeded[i].filename, fileneeded[i].md5sum, true);
 		CONS_Debug(DBG_NETPLAY, "found %d\n", fileneeded[i].status);
@@ -1220,6 +1222,18 @@ size_t curlwrite_data(void *ptr, size_t size, size_t nmemb, FILE *stream)
     return written;
 }
 
+#ifdef XFERINFOFUNCTION
+int curlprogress_callbackx(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
+{
+	(void)clientp;
+	(void)ultotal;
+	(void)ulnow; // Function prototype requires these but we won't use, so just discard
+	curl_dlnow = dlnow;
+	curl_dltotal = dltotal;
+	getbytes = curl_dlnow / (time(NULL) - curl_starttime); // To-do: Make this more accurate???
+	return 0;
+}
+#else
 int curlprogress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
 	(void)clientp;
@@ -1230,6 +1244,7 @@ int curlprogress_callback(void *clientp, double dltotal, double dlnow, double ul
 	getbytes = curl_dlnow / (time(NULL) - curl_starttime); // To-do: Make this more accurate???
 	return 0;
 }
+#endif
 
 void CURLPrepareFile(const char* url, int dfilenum)
 {
@@ -1259,7 +1274,11 @@ void CURLPrepareFile(const char* url, int dfilenum)
 		curl_easy_setopt(http_handle, CURLOPT_URL, va("%s/%s", url, curl_realname));
 
 		// Only allow HTTP and HTTPS
+#if defined(CURL_AT_LEAST_VERSION) && CURL_AT_LEAST_VERSION(7, 85, 0)
+		curl_easy_setopt(http_handle, CURLOPT_PROTOCOLS_STR, "http,https");
+#else
 		curl_easy_setopt(http_handle, CURLOPT_PROTOCOLS, CURLPROTO_HTTP|CURLPROTO_HTTPS);
+#endif
 
 		curl_easy_setopt(http_handle, CURLOPT_USERAGENT, va("SRB2Kart/v%d.%d", VERSION, SUBVERSION)); // Set user agent as some servers won't accept invalid user agents.
 
@@ -1283,7 +1302,11 @@ void CURLPrepareFile(const char* url, int dfilenum)
 		curl_easy_setopt(http_handle, CURLOPT_WRITEDATA, curl_curfile->file);
 		curl_easy_setopt(http_handle, CURLOPT_WRITEFUNCTION, curlwrite_data);
 		curl_easy_setopt(http_handle, CURLOPT_NOPROGRESS, 0L);
+#ifdef XFERINFOFUNCTION
+		curl_easy_setopt(http_handle, CURLOPT_XFERINFOFUNCTION, curlprogress_callbackx);
+#else
 		curl_easy_setopt(http_handle, CURLOPT_PROGRESSFUNCTION, curlprogress_callback);
+#endif
 
 		curl_curfile->status = FS_DOWNLOADING;
 		lastfilenum = dfilenum;
