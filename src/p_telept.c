@@ -181,6 +181,8 @@ boolean P_Teleport(mobj_t *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle
 			P_SetPlayerMobjState(thing, S_KART_STND1); // SRB2kart - was S_PLAY_STND
 		}
 
+		thing->player->kartstuff[k_boostangle] = angle;
+
 		if (flash)
 			P_FlashPal(thing->player, PAL_MIXUP, 10);
 	}
